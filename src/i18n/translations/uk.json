@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Скасувати",
+    "save": "Зберегти",
+    "delete": "Видалити",
+    "edit": "Редагувати",
+    "back": "Назад",
+    "close": "Закрити",
+    "loading": "Завантаження...",
+    "error": "Помилка",
+    "success": "Успіх",
+    "yes": "Так",
+    "no": "Ні"
+  },
+  "onboarding": {
+    "welcome": "Ласкаво просимо до BriefPilot",
+    "selectLanguage": "Вибрати мову",
+    "selectLanguageDescription": "Виберіть мову інтерфейсу за вашим бажанням",
+    "continue": "Продовжити",
+    "uiLanguage": "Мова інтерфейсу",
+    "aiLanguage": "Аналіз ШІ цією мовою"
+  },
+  "home": {
+    "title": "Головна",
+    "noDocs": "Немає документів",
+    "addFirst": "Додайте свій перший документ",
+    "recentDocuments": "Недавні документи",
+    "allDocuments": "Всі документи"
+  },
+  "detail": {
+    "title": "Документ",
+    "notFound": "Документ не знайдено",
+    "overview": "Огляд",
+    "analysis": "Аналіз",
+    "details": "Деталі",
+    "actions": "Дії",
+    "delete": "Видалити",
+    "share": "Поділитися",
+    "download": "Завантажити",
+    "edit": "Редагувати"
+  },
+  "document": {
+    "type": "Тип документа",
+    "sender": "Відправник",
+    "date": "Дата",
+    "amount": "Сума",
+    "deadline": "Строк",
+    "risk": "Ризик",
+    "status": "Статус",
+    "summary": "Резюме",
+    "attachments": "Вкладення"
+  },
+  "actions": {
+    "pay": "Оплатити",
+    "appeal": "Оскарження",
+    "calendar": "Календар",
+    "complete": "Завершено",
+    "share": "Поділитися",
+    "export": "Експортувати",
+    "archive": "Архів"
+  },
+  "settings": {
+    "title": "Налаштування",
+    "language": "Мова",
+    "notifications": "Сповіщення",
+    "privacy": "Конфіденційність",
+    "about": "Про додаток"
+  },
+  "ai": {
+    "analyzing": "Аналізується...",
+    "explain": "Пояснення ШІ",
+    "chat": "Чат ШІ",
+    "summary": "Резюме",
+    "risks": "Ризики",
+    "suggestions": "Пропозиції"
+  }
+}

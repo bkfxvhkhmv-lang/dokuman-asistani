@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "Tamam",
+    "cancel": "İptal",
+    "save": "Kaydet",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "back": "Geri",
+    "close": "Kapat",
+    "loading": "Yükleniyor...",
+    "error": "Hata",
+    "success": "Başarılı",
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "onboarding": {
+    "welcome": "BriefPilot'a Hoşgeldiniz",
+    "selectLanguage": "Dil Seç",
+    "selectLanguageDescription": "Kullanıcı arayüzü için tercih ettiğin dili seç",
+    "continue": "Devam",
+    "uiLanguage": "Arayüz Dili",
+    "aiLanguage": "KI analizleri bu dilde"
+  },
+  "home": {
+    "title": "Anasayfa",
+    "noDocs": "Belge yok",
+    "addFirst": "İlk belgenizi ekleyin",
+    "recentDocuments": "Son görüntülenenler",
+    "allDocuments": "Tüm belgeler"
+  },
+  "detail": {
+    "title": "Belge",
+    "notFound": "Belge bulunamadı",
+    "overview": "Genel Bakış",
+    "analysis": "Analiz",
+    "details": "Ayrıntılar",
+    "actions": "İşlemler",
+    "delete": "Sil",
+    "share": "Paylaş",
+    "download": "İndir",
+    "edit": "Düzenle"
+  },
+  "document": {
+    "type": "Belge Türü",
+    "sender": "Gönderen",
+    "date": "Tarih",
+    "amount": "Tutar",
+    "deadline": "Son Tarih",
+    "risk": "Risk",
+    "status": "Durum",
+    "summary": "Özet",
+    "attachments": "Ekler"
+  },
+  "actions": {
+    "pay": "Öde",
+    "appeal": "Temyiz",
+    "calendar": "Takvim",
+    "complete": "Tamamlandı",
+    "share": "Paylaş",
+    "export": "Dışa Aktar",
+    "archive": "Arşivle"
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "notifications": "Bildirimler",
+    "privacy": "Gizlilik",
+    "about": "Hakkında"
+  },
+  "ai": {
+    "analyzing": "Analiz ediliyor...",
+    "explain": "KI Açıklaması",
+    "chat": "KI Sohbeti",
+    "summary": "Özet",
+    "risks": "Riskler",
+    "suggestions": "Öneriler"
+  }
+}

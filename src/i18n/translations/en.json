@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "onboarding": {
+    "welcome": "Welcome to BriefPilot",
+    "selectLanguage": "Select Language",
+    "selectLanguageDescription": "Choose your preferred language for the user interface",
+    "continue": "Continue",
+    "uiLanguage": "UI Language",
+    "aiLanguage": "AI analysis in this language"
+  },
+  "home": {
+    "title": "Home",
+    "noDocs": "No Documents",
+    "addFirst": "Add your first document",
+    "recentDocuments": "Recently viewed",
+    "allDocuments": "All documents"
+  },
+  "detail": {
+    "title": "Document",
+    "notFound": "Document not found",
+    "overview": "Overview",
+    "analysis": "Analysis",
+    "details": "Details",
+    "actions": "Actions",
+    "delete": "Delete",
+    "share": "Share",
+    "download": "Download",
+    "edit": "Edit"
+  },
+  "document": {
+    "type": "Document Type",
+    "sender": "Sender",
+    "date": "Date",
+    "amount": "Amount",
+    "deadline": "Deadline",
+    "risk": "Risk",
+    "status": "Status",
+    "summary": "Summary",
+    "attachments": "Attachments"
+  },
+  "actions": {
+    "pay": "Pay",
+    "appeal": "Appeal",
+    "calendar": "Calendar",
+    "complete": "Complete",
+    "share": "Share",
+    "export": "Export",
+    "archive": "Archive"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "about": "About"
+  },
+  "ai": {
+    "analyzing": "Analyzing...",
+    "explain": "AI Explanation",
+    "chat": "AI Chat",
+    "summary": "Summary",
+    "risks": "Risks",
+    "suggestions": "Suggestions"
+  }
+}

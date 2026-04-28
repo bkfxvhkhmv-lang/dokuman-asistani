@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "close": "Fermer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "onboarding": {
+    "welcome": "Bienvenue sur BriefPilot",
+    "selectLanguage": "Sélectionner la langue",
+    "selectLanguageDescription": "Choisissez votre langue d'interface préférée",
+    "continue": "Continuer",
+    "uiLanguage": "Langue de l'interface",
+    "aiLanguage": "Analyse IA dans cette langue"
+  },
+  "home": {
+    "title": "Accueil",
+    "noDocs": "Aucun document",
+    "addFirst": "Ajoutez votre premier document",
+    "recentDocuments": "Documents récents",
+    "allDocuments": "Tous les documents"
+  },
+  "detail": {
+    "title": "Document",
+    "notFound": "Document non trouvé",
+    "overview": "Aperçu",
+    "analysis": "Analyse",
+    "details": "Détails",
+    "actions": "Actions",
+    "delete": "Supprimer",
+    "share": "Partager",
+    "download": "Télécharger",
+    "edit": "Modifier"
+  },
+  "document": {
+    "type": "Type de document",
+    "sender": "Expéditeur",
+    "date": "Date",
+    "amount": "Montant",
+    "deadline": "Délai",
+    "risk": "Risque",
+    "status": "Statut",
+    "summary": "Résumé",
+    "attachments": "Pièces jointes"
+  },
+  "actions": {
+    "pay": "Payer",
+    "appeal": "Appel",
+    "calendar": "Calendrier",
+    "complete": "Complété",
+    "share": "Partager",
+    "export": "Exporter",
+    "archive": "Archive"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "notifications": "Notifications",
+    "privacy": "Confidentialité",
+    "about": "À propos"
+  },
+  "ai": {
+    "analyzing": "Analyse en cours...",
+    "explain": "Explication IA",
+    "chat": "Discussion IA",
+    "summary": "Résumé",
+    "risks": "Risques",
+    "suggestions": "Suggestions"
+  }
+}

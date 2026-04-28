@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "ОК",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "back": "Назад",
+    "close": "Закрыть",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успех",
+    "yes": "Да",
+    "no": "Нет"
+  },
+  "onboarding": {
+    "welcome": "Добро пожаловать в BriefPilot",
+    "selectLanguage": "Выберите язык",
+    "selectLanguageDescription": "Выберите предпочитаемый язык интерфейса",
+    "continue": "Продолжить",
+    "uiLanguage": "Язык интерфейса",
+    "aiLanguage": "Анализ ИИ на этом языке"
+  },
+  "home": {
+    "title": "Главная",
+    "noDocs": "Нет документов",
+    "addFirst": "Добавьте первый документ",
+    "recentDocuments": "Недавние документы",
+    "allDocuments": "Все документы"
+  },
+  "detail": {
+    "title": "Документ",
+    "notFound": "Документ не найден",
+    "overview": "Обзор",
+    "analysis": "Анализ",
+    "details": "Детали",
+    "actions": "Действия",
+    "delete": "Удалить",
+    "share": "Поделиться",
+    "download": "Загрузить",
+    "edit": "Редактировать"
+  },
+  "document": {
+    "type": "Тип документа",
+    "sender": "Отправитель",
+    "date": "Дата",
+    "amount": "Сумма",
+    "deadline": "Срок",
+    "risk": "Риск",
+    "status": "Статус",
+    "summary": "Резюме",
+    "attachments": "Вложения"
+  },
+  "actions": {
+    "pay": "Оплатить",
+    "appeal": "Обжалование",
+    "calendar": "Календарь",
+    "complete": "Завершено",
+    "share": "Поделиться",
+    "export": "Экспортировать",
+    "archive": "Архив"
+  },
+  "settings": {
+    "title": "Параметры",
+    "language": "Язык",
+    "notifications": "Уведомления",
+    "privacy": "Конфиденциальность",
+    "about": "О приложении"
+  },
+  "ai": {
+    "analyzing": "Анализ...",
+    "explain": "Объяснение ИИ",
+    "chat": "Чат ИИ",
+    "summary": "Резюме",
+    "risks": "Риски",
+    "suggestions": "Предложения"
+  }
+}

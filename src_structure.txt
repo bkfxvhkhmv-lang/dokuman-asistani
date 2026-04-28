@@ -1,0 +1,425 @@
+src
+├── __tests__
+│   ├── formatters.test.ts
+│   ├── SmartRiskEngineService.test.ts
+│   └── SmartSuggestionsService.test.ts
+├── components
+│   ├── ActionSimulatorModal.tsx
+│   ├── AIThinkingIndicator.tsx
+│   ├── AppBottomSheet.tsx
+│   ├── AutoFillReviewModal.tsx
+│   ├── batch
+│   │   └── PageThumbnail.tsx
+│   ├── BelgeAciklamaModal.tsx
+│   ├── BelgeChatModal.tsx
+│   ├── BudgetGrafikModal.tsx
+│   ├── ContextualGuidance.tsx
+│   ├── document-surface
+│   │   └── DocumentSurface.tsx
+│   ├── DocumentContextSheet.tsx
+│   ├── DocumentEntityOverlay.tsx
+│   ├── DocumentMagnifier.tsx
+│   ├── DocumentSpotlight.tsx
+│   ├── DokumentKarte.tsx
+│   ├── EmptyState.tsx
+│   ├── ErrorBoundary.tsx
+│   ├── FloatingActionPulse.tsx
+│   ├── FlyingCard.tsx
+│   ├── GlobalFAB.tsx
+│   ├── HighlightedTextView.tsx
+│   ├── HilfeModal.tsx
+│   ├── Icon.tsx
+│   ├── image-processing
+│   │   └── CropEditor.tsx
+│   ├── KisiselBilgiModal.tsx
+│   ├── KurumlarRehberiModal.tsx
+│   ├── MultiLayerSummaryView.tsx
+│   ├── OfflineBanner.tsx
+│   ├── Onboarding.tsx
+│   ├── OptimisticDokumentKarte.tsx
+│   ├── PdfMergeDragModal.tsx
+│   ├── PipelineStatus.tsx
+│   ├── QrScanModal.tsx
+│   ├── scanner
+│   │   ├── CaptureButton.tsx
+│   │   ├── CaptureControls.tsx
+│   │   ├── DocumentOverlay.tsx
+│   │   ├── ScannerView.tsx
+│   │   └── StabilityIndicator.tsx
+│   ├── SkeletonKarte.tsx
+│   ├── SkeletonLoader.tsx
+│   ├── SkiaRefreshIndicator.tsx
+│   ├── SmartActionsPanel.tsx
+│   ├── SmartLinksPanel.tsx
+│   ├── SmartRegionsView.tsx
+│   ├── SmartRemindersPanel.tsx
+│   ├── SmartRiskPanel.tsx
+│   ├── SmartSuggestionsPanel.tsx
+│   ├── SmartSummaryCard.tsx
+│   ├── SmartTimelinePanel.tsx
+│   ├── SperrBildschirm.tsx
+│   ├── StackedDokumentKarte.tsx
+│   ├── SuccessBurst.tsx
+│   ├── SwipeableDokumentKarte.tsx
+│   ├── TimelineView.tsx
+│   ├── YanıtSablonlariModal.tsx
+│   └── YillikOzetModal.tsx
+├── config.ts
+├── core
+│   ├── actionable-summary
+│   │   └── service.ts
+│   ├── classification
+│   │   ├── DocumentClassifier.ts
+│   │   ├── index.ts
+│   │   └── riskAnalyzer.ts
+│   ├── database
+│   │   ├── client.ts
+│   │   ├── index.ts
+│   │   ├── init.ts
+│   │   └── schema.ts
+│   ├── encryption
+│   │   └── PrivacyLayerV4.ts
+│   ├── events
+│   │   ├── EventLogger.ts
+│   │   └── TimelineEngineV4.ts
+│   ├── index.ts
+│   ├── intelligence
+│   │   ├── AutoWorkflowEngine.ts
+│   │   ├── DocumentDigitalTwin.ts
+│   │   ├── DocumentMemory.ts
+│   │   ├── InstitutionBehaviorModel.ts
+│   │   ├── IntentDetector.ts
+│   │   ├── LifecyclePrediction.ts
+│   │   ├── OutcomePredictor.ts
+│   │   └── UserBehaviorModel.ts
+│   ├── monitoring
+│   ├── ocr
+│   │   └── OcrManager.ts
+│   ├── orchestrator
+│   │   └── DocumentOrchestratorV4.ts
+│   ├── pdf
+│   │   ├── compressionProfiles.ts
+│   │   ├── dpiNormalizer.ts
+│   │   ├── index.ts
+│   │   ├── native
+│   │   │   └── PdfEngine.stub.ts
+│   │   └── PdfGenerator.ts
+│   ├── rules
+│   │   └── RuleEngineV4.ts
+│   ├── search
+│   │   ├── embedding.ts
+│   │   └── HybridSearchEngineV4.ts
+│   └── sync
+│       ├── CloudSyncV4.ts
+│       └── SyncResolverV4.ts
+├── data
+│   ├── demoData.ts
+│   └── kurumlar.ts
+├── design
+│   ├── components
+│   │   ├── AppBar.tsx
+│   │   ├── AppButton.tsx
+│   │   ├── AppCard.tsx
+│   │   ├── AppChip.tsx
+│   │   ├── AppIconButton.tsx
+│   │   ├── AppInput.tsx
+│   │   ├── AppListRow.tsx
+│   │   ├── AppSheet.tsx
+│   │   ├── AppStatCard.tsx
+│   │   ├── AppSurface.tsx
+│   │   ├── AppToast.tsx
+│   │   ├── AuroraBackground.tsx
+│   │   ├── GlassCard.tsx
+│   │   ├── index.ts
+│   │   └── PremiumToast.tsx
+│   ├── GOVERNANCE.md
+│   ├── motion.ts
+│   └── tokens.ts
+├── features
+│   ├── camera
+│   ├── detail
+│   │   ├── components
+│   │   │   ├── ActionsPanel.tsx
+│   │   │   ├── AIBox.tsx
+│   │   │   ├── ChatEntryBar.tsx
+│   │   │   ├── DetailHeader.tsx
+│   │   │   ├── DetailProcessTracker.tsx
+│   │   │   ├── DetailsPanel.tsx
+│   │   │   ├── DigitalTwinPanel.tsx
+│   │   │   ├── HeroCard.tsx
+│   │   │   ├── OzetTab.tsx
+│   │   │   ├── RiskPanel.tsx
+│   │   │   └── TasksPanel.tsx
+│   │   ├── DetailModalsContainer.tsx
+│   │   ├── DetailScreen.tsx
+│   │   ├── hooks
+│   │   │   ├── useActionSessionManager.ts
+│   │   │   ├── useDetailScreenAnimations.ts
+│   │   │   ├── useDocumentActions.ts
+│   │   │   ├── useDocumentAI.ts
+│   │   │   ├── useDocumentDerived.ts
+│   │   │   ├── useDocumentDetail.ts
+│   │   │   └── useModalController.ts
+│   │   ├── index.tsx
+│   │   ├── modals
+│   │   │   ├── AufgabenModal.tsx
+│   │   │   ├── EditDocumentModal.tsx
+│   │   │   ├── ErledigtModal.tsx
+│   │   │   ├── FormularModal.tsx
+│   │   │   ├── LoeschenModal.tsx
+│   │   │   ├── PartnerInfoModal.tsx
+│   │   │   ├── SicherTeilenModal.tsx
+│   │   │   └── ZahlungModal.tsx
+│   │   ├── services
+│   │   │   ├── actionEngine.ts
+│   │   │   ├── documentActionFlows.ts
+│   │   │   └── documentChainEngine.ts
+│   │   └── styles.ts
+│   ├── documents
+│   ├── home
+│   │   ├── components
+│   │   │   ├── ContextualActionStrip.tsx
+│   │   │   ├── HomeBudgetBar.tsx
+│   │   │   ├── HomeDashboardCards.tsx
+│   │   │   ├── HomeFilterModal.tsx
+│   │   │   ├── HomeHeader.tsx
+│   │   │   ├── HomeHeaderCluster.tsx
+│   │   │   ├── HomeProfileStrip.tsx
+│   │   │   ├── HomePullDigest.tsx
+│   │   │   ├── HomeQuickActions.tsx
+│   │   │   ├── HomeRecentList.tsx
+│   │   │   ├── HomeSmartFolders.tsx
+│   │   │   ├── HomeStatsRow.tsx
+│   │   │   ├── HomeSuggestionsStrip.tsx
+│   │   │   ├── HomeSyncStrip.tsx
+│   │   │   ├── HomeUrgencyBanner.tsx
+│   │   │   ├── HotCardSection.tsx
+│   │   │   └── QuickActionFAB.tsx
+│   │   ├── hooks
+│   │   │   ├── useHomeData.ts
+│   │   │   └── useHomeState.ts
+│   │   ├── index.tsx
+│   │   ├── modals
+│   │   │   └── BudgetTargetModal.tsx
+│   │   ├── styles
+│   │   └── styles.ts
+│   ├── marketplace
+│   │   └── MarketplaceScreen.tsx
+│   ├── onboarding
+│   ├── profile
+│   │   └── ProfileScreen.tsx
+│   ├── scan
+│   │   └── ScanScreen.tsx
+│   └── search
+│       ├── SearchScreen.tsx
+│       └── useSearchState.ts
+├── hooks
+│   ├── queryHooks.ts
+│   ├── useApprovalFlow.ts
+│   ├── useAuthFlow.ts
+│   ├── useBackup.ts
+│   ├── useBatch.ts
+│   ├── useDocumentPipeline.ts
+│   ├── useLangPreference.ts
+│   ├── useMarketplace.ts
+│   ├── useNotifications.ts
+│   ├── useOcr.ts
+│   ├── usePrivacyGate.ts
+│   ├── useScanner.ts
+│   ├── useSearch.ts
+│   ├── useShareHandler.ts
+│   ├── useSheet.ts
+│   ├── useSmartActions.ts
+│   ├── useSmartDocumentPipeline.ts
+│   ├── useSmartLinking.ts
+│   ├── useSmartNotifications.ts
+│   ├── useSmartReminders.ts
+│   ├── useSmartRiskEngine.ts
+│   ├── useSmartSearch.ts
+│   ├── useSmartSuggestions.ts
+│   ├── useSmartSummary.ts
+│   ├── useSmartTimeline.ts
+│   ├── useStaggerFadeIn.ts
+│   ├── useSyncEngine.ts
+│   ├── useThrottledPress.ts
+│   ├── useToast.ts
+│   └── useWidgetSync.ts
+├── i18n
+│   └── langConfig.ts
+├── lib
+│   ├── api
+│   ├── constants
+│   └── utils
+├── modules
+│   ├── batch
+│   │   ├── index.ts
+│   │   ├── manager
+│   │   │   ├── BatchManager.ts
+│   │   │   ├── PageOrganizer.ts
+│   │   │   └── PdfGenerator.ts
+│   │   └── types.ts
+│   ├── cloud
+│   │   ├── index.ts
+│   │   ├── providers
+│   │   │   ├── DropboxProvider.ts
+│   │   │   ├── GoogleDriveProvider.ts
+│   │   │   └── OneDriveProvider.ts
+│   │   └── types.ts
+│   ├── image-processing
+│   │   ├── core
+│   │   │   ├── CropEngine.ts
+│   │   │   ├── Enhancer.ts
+│   │   │   ├── FilterCache.ts
+│   │   │   ├── FilterPipeline.ts
+│   │   │   ├── ImagePipeline.ts
+│   │   │   ├── QualityAnalyzer.ts
+│   │   │   └── UnifiedImagePipeline.ts
+│   │   ├── crop
+│   │   ├── engine
+│   │   │   └── FilterPipeline.ts
+│   │   ├── filters
+│   │   ├── hooks
+│   │   │   ├── useFilterPreview.ts
+│   │   │   ├── useImagePipeline.ts
+│   │   │   └── useImageSession.ts
+│   │   ├── index.ts
+│   │   ├── pipeline
+│   │   ├── presets
+│   │   │   ├── base.ts
+│   │   │   ├── bw.ts
+│   │   │   ├── clean.ts
+│   │   │   ├── color.ts
+│   │   │   ├── index.ts
+│   │   │   └── magic.ts
+│   │   ├── registry
+│   │   │   ├── FilterRegistry.ts
+│   │   │   ├── PipelineConfig.ts
+│   │   │   └── PresetRegistry.ts
+│   │   ├── session
+│   │   │   └── ImageSessionManager.ts
+│   │   └── types.ts
+│   ├── ocr
+│   │   ├── index.ts
+│   │   └── types.ts
+│   ├── scanner
+│   │   ├── engine
+│   │   │   ├── AutoCapture.ts
+│   │   │   ├── CameraEngine.ts
+│   │   │   ├── EdgeDetector.ts
+│   │   │   ├── FrameProcessorBridge.ts
+│   │   │   ├── NativeStub.ts
+│   │   │   └── PerspectiveCorrector.ts
+│   │   ├── hooks
+│   │   │   └── useFrameScanner.ts
+│   │   ├── index.ts
+│   │   ├── native
+│   │   │   ├── contract.ts
+│   │   │   └── index.ts
+│   │   ├── types.ts
+│   │   └── useAutoCapture.ts
+│   ├── security
+│   │   ├── engine
+│   │   │   ├── BlurEngine.ts
+│   │   │   └── SensitiveDataDetector.ts
+│   │   ├── index.ts
+│   │   └── types.ts
+│   └── voice
+│       ├── engine
+│       │   ├── SpeechRecognizer.ts
+│       │   └── VoiceCommandEngine.ts
+│       ├── index.ts
+│       └── types.ts
+├── navigation
+│   ├── CustomBottomTab.tsx
+│   ├── HeroTransitionOverlay.tsx
+│   ├── MainTabs.tsx
+│   ├── mainTabsConfig.tsx
+│   ├── tabBarVisibility.ts
+│   └── transitionStore.ts
+├── providers
+│   └── AuthContext.tsx
+├── screens
+│   ├── DetailScreen.tsx
+│   ├── HomeScreen.tsx
+│   ├── Kamera
+│   │   ├── components
+│   │   │   ├── AnalysisView.tsx
+│   │   │   ├── BatchView.tsx
+│   │   │   ├── CameraView.tsx
+│   │   │   ├── EditActionBar.tsx
+│   │   │   ├── EditView.tsx
+│   │   │   ├── EnhancementPanel.tsx
+│   │   │   ├── PermissionView.tsx
+│   │   │   ├── PostCaptureActionSheet.tsx
+│   │   │   └── QuickScanOverlay.tsx
+│   │   ├── constants.ts
+│   │   ├── hooks
+│   │   │   ├── useCameraHandler.ts
+│   │   │   ├── useEditAnimations.ts
+│   │   │   ├── usePinchZoom.ts
+│   │   │   └── useProcessingHandler.ts
+│   │   ├── index.tsx
+│   │   ├── state
+│   │   │   └── EditStateMachine.ts
+│   │   └── styles.ts
+│   ├── Kamerabildschirm.tsx
+│   ├── LoginBildschirm.tsx
+│   ├── MarktplatzBildschirm.tsx
+│   ├── OnboardingBildschirm.tsx
+│   ├── Profilbildschirm.tsx
+│   ├── ScannerScreen.tsx
+│   └── Suchbildschirm.tsx
+├── services
+│   ├── authService.ts
+│   ├── backup.ts
+│   ├── BudgetEngine.ts
+│   ├── CardStackService.ts
+│   ├── DigestAIService.ts
+│   ├── emailImportService.ts
+│   ├── ErrorService.ts
+│   ├── formFillerService.ts
+│   ├── giroCodeService.ts
+│   ├── kisiselBilgi.ts
+│   ├── notifications.ts
+│   ├── offlineQueue.ts
+│   ├── PriorityService.ts
+│   ├── retryHelper.ts
+│   ├── ShareUploadService.ts
+│   ├── SmartActionsService.ts
+│   ├── SmartAutoFillService.ts
+│   ├── SmartCategorizationService.ts
+│   ├── SmartFolderService.ts
+│   ├── SmartLinkingService.ts
+│   ├── SmartNotificationsService.ts
+│   ├── SmartRemindersService.ts
+│   ├── SmartRiskEngineService.ts
+│   ├── SmartSearchService.ts
+│   ├── SmartSuggestionsService.ts
+│   ├── SmartSummaryService.ts
+│   ├── SmartTimelineService.ts
+│   ├── TargetService.ts
+│   ├── UISoundService.ts
+│   ├── v4Api.js.bak
+│   ├── v4Api.ts
+│   ├── v4FileService.ts
+│   ├── visionApi.ts
+│   ├── WidgetDataService.ts
+│   └── zodSchemas.ts
+├── store.tsx
+├── theme.ts
+├── ThemeContext.tsx
+├── types
+├── utils
+│   ├── calendar.ts
+│   ├── documentAnalysis.ts
+│   ├── exporters.ts
+│   ├── formatters.ts
+│   ├── index.ts
+│   ├── labels.ts
+│   ├── learningRules.ts
+│   ├── riskAnalysis.ts
+│   ├── search.ts
+│   └── types.ts
+└── utils.ts
+
+83 directories, 340 files

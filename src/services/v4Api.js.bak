@@ -1,0 +1,224 @@
+
+
+/**
+ * BriefPilot V4 API Client
+ * Tüm backend çağrıları buradan geçer.
+ * JWT token'ı authService üzerinden eklenir, 401'de otomatik refresh yapılır.
+ */
+import { authFetch } from './authService';
+import { API_BASE } from '../config';
+
+export const BASE = API_BASE;
+
+async function req(method, path, body, isForm = false) {
+  const opts = { method, headers: {} };
+  if (body) {
+    if (isForm) {
+      opts.body = body;
+    } else {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+  }
+  const res = await authFetch(`${BASE}${path}`, opts);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`V4 API ${res.status}: ${err}`);
+  }
+  return res.json();
+}
+
+// ── Documents ─────────────────────────────────────────────────────────────────
+
+export async function uploadDocumentV4(fileUri, filename) {
+  const form = new FormData();
+  form.append('file', { uri: fileUri, name: filename, type: 'application/octet-stream' });
+  return req('POST', '/documents/', form, true);
+}
+
+export async function getDocumentV4(docId) {
+  return req('GET', `/documents/${docId}`);
+}
+
+export async function listDocumentsV4({ limit = 50, offset = 0 } = {}) {
+  return req('GET', `/documents/?limit=${limit}&offset=${offset}`);
+  // Returns: { items, total, limit, offset, has_more }
+}
+
+export async function deleteDocumentV4(docId) {
+  return req('DELETE', `/documents/${docId}`);
+}
+
+export async function downloadDocumentV4(docId) {
+  // authFetch kullan — JWT token gerekli
+  const res = await authFetch(`${BASE}/documents/${docId}/download`);
+  if (!res.ok) throw new Error(`Download fehlgeschlagen: ${res.status}`);
+  const blob = await res.blob();
+  const filename = (res.headers.get('Content-Disposition') || '').match(/filename="?([^"]+)"?/)?.[1] || 'dokument';
+  return { blob, filename };
+}
+
+/**
+ * Orijinal dosyayı expo-file-system ile indirir ve expo-sharing ile paylaşır.
+ * Blob yerine doğrudan FileSystem.downloadAsync kullanır — React Native uyumlu.
+ */
+export async function shareOriginalFile(docId, filename = 'dokument') {
+  const { getAccessToken } = await import('./authService');
+  const { default: FileSystem } = await import('expo-file-system');
+  const { default: Sharing, isAvailableAsync } = await import('expo-sharing');
+
+  const token = await getAccessToken();
+  const destUri = FileSystem.cacheDirectory + filename;
+
+  const result = await FileSystem.downloadAsync(
+    `${BASE}/documents/${docId}/download`,
+    destUri,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (result.status !== 200) throw new Error('Dosya indirilemedi');
+
+  const available = await isAvailableAsync();
+  if (!available) throw new Error('Teilen wird auf diesem Gerät nicht unterstützt');
+
+  await Sharing.shareAsync(result.uri, { mimeType: 'application/octet-stream', dialogTitle: filename });
+}
+
+export async function downloadOriginalFileToCache(docId, filename = 'dokument') {
+  const { getAccessToken } = await import('./authService');
+  const { default: FileSystem } = await import('expo-file-system');
+
+  const token = await getAccessToken();
+  const destUri = FileSystem.cacheDirectory + filename;
+
+  const result = await FileSystem.downloadAsync(
+    `${BASE}/documents/${docId}/download`,
+    destUri,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  if (result.status !== 200) throw new Error('Datei konnte nicht heruntergeladen werden');
+  return result.uri;
+}
+
+// ── AI Explain ────────────────────────────────────────────────────────────────
+
+export async function explainDocument(docId, lang = 'tr') {
+  return req('POST', `/ai/explain/${docId}`, { lang });
+}
+
+export async function getAiLanguages() {
+  return req('GET', '/ai/languages');
+}
+
+export async function chatWithDocument(docId, messages, lang = 'tr') {
+  return req('POST', `/ai/chat/${docId}`, { messages, lang });
+}
+
+// ── Share ─────────────────────────────────────────────────────────────────────
+
+export async function createShareLink(docId, ttl = '7d', maxViews = 0) {
+  return req('POST', `/share/${docId}`, { ttl, max_views: maxViews });
+}
+
+export async function revokeShareLink(token) {
+  return req('DELETE', `/share/${token}`);
+}
+
+// ── Timeline ──────────────────────────────────────────────────────────────────
+
+export async function getTimeline(docId) {
+  return req('GET', `/timeline/${docId}`);
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+export async function hybridSearch(query, { topK = 10, ftsWeight = 0.5, vectorWeight = 0.5 } = {}) {
+  return req('POST', '/search/', { query, top_k: topK, fts_weight: ftsWeight, vector_weight: vectorWeight });
+}
+
+// ── Marketplace ───────────────────────────────────────────────────────────────
+
+export async function browseMarketplace({ category, tag, q, limit = 20 } = {}) {
+  const params = new URLSearchParams();
+  if (category) params.set('category', category);
+  if (tag)      params.set('tag', tag);
+  if (q)        params.set('q', q);
+  params.set('limit', limit);
+  return req('GET', `/marketplace/rules?${params}`);
+}
+
+export async function installRule(ruleId, config = null) {
+  return req('POST', `/marketplace/rules/${ruleId}/install`, { config });
+}
+
+export async function uninstallRule(ruleId) {
+  return req('DELETE', `/marketplace/rules/${ruleId}/install`);
+}
+
+export async function rateRule(ruleId, score, comment = null) {
+  return req('POST', `/marketplace/rules/${ruleId}/rate`, { score, comment });
+}
+
+// ── Approvals ─────────────────────────────────────────────────────────────────
+
+export async function getPendingApprovals(orgId) {
+  return req('GET', `/orgs/${orgId}/approvals/pending`);
+}
+
+export async function resolveApproval(requestId, decision, comment = null) {
+  return req('POST', `/approvals/${requestId}/resolve`, { decision, comment });
+}
+
+// ── Pricing ───────────────────────────────────────────────────────────────────
+
+export async function getPricingForecast(horizonDays = 90) {
+  return req('GET', `/pricing/forecast?horizon_days=${horizonDays}`);
+}
+
+export async function getSubscriptionAdvice() {
+  return req('GET', `/pricing/subscriptions/advice`);
+}
+
+// ── Sync ──────────────────────────────────────────────────────────────────────
+
+export async function deltaSync(since) {
+  return req('GET', `/sync/delta?since=${encodeURIComponent(since)}`);
+}
+
+export async function eventReplay(fromEventId = 0) {
+  return req('GET', `/sync/replay?from_event_id=${fromEventId}`);
+}
+
+export async function resolveConflict(docId, strategy = 'server_always') {
+  return req('POST', `/sync/conflicts/${docId}/resolve`, { strategy });
+}
+
+// ── Health ────────────────────────────────────────────────────────────────────
+
+export async function getHealthStatus() {
+  return req('GET', '/health/');
+}
+
+// ── Retry wrappers (OCR, upload, AI için) ─────────────────────────────────────
+import { withRetry } from './retryHelper';
+
+export async function uploadDocumentV4Safe(fileUri, filename) {
+  return withRetry(() => uploadDocumentV4(fileUri, filename), { label: 'upload', maxAttempts: 3 });
+}
+
+export async function explainDocumentSafe(docId, lang = 'tr') {
+  return withRetry(() => explainDocument(docId, lang), { label: 'AI explain', maxAttempts: 3, delayMs: 1200 });
+}
+
+export async function getDocumentV4Safe(docId) {
+  return withRetry(() => getDocumentV4(docId), { label: 'getDocument', maxAttempts: 3 });
+}
+
+// ── Smart Search (LLM destekli) ───────────────────────────────────────────────
+export async function smartSearch(query, { topK = 10, lang = 'tr' } = {}) {
+  return withRetry(
+    () => req('POST', '/search/smart', { query, top_k: topK, lang }),
+    { label: 'smartSearch', maxAttempts: 2, delayMs: 500 }
+  );
+}

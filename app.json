@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "BriefPilot",
+    "slug": "briefpilot",
+    "version": "4.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f8f9fa"
+    },
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-web-browser",
+      "expo-mail-composer",
+      "expo-localization",
+      "./plugins/withShareExtension",
+      "./plugins/withWidget"
+    ],
+    "scheme": "briefpilot",
+    "ios": {
+      "bundleIdentifier": "com.briefpilot.app"
+    },
+    "android": {
+      "package": "com.briefpilot.app"
+    },
+    "extra": {
+      "APP_ENV": "device"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -n '38,46p' /Users/bayramgul/bp_canavar_v6_refactor/src/components/BelgeChatModal.js)",
+      "Bash(sed -n '205,215p' /Users/bayramgul/bp_canavar_v6_refactor/src/components/BelgeChatModal.js)",
+      "Bash(sed -n '238,246p' /Users/bayramgul/bp_canavar_v6_refactor/src/components/BelgeChatModal.js)",
+      "Bash(sed -n '125,135p' /Users/bayramgul/bp_canavar_v6_refactor/src/features/detail/components/AIBox.js)",
+      "Bash(sed -n '245,255p' /Users/bayramgul/bp_canavar_v6_refactor/src/screens/Detailbildschirm.js)",
+      "Bash(sed -n '155,165p' /Users/bayramgul/bp_canavar_v6_refactor/src/screens/GenehmigungBildschirm.js)",
+      "Bash(sed -n '176,184p' /Users/bayramgul/bp_canavar_v6_refactor/src/screens/GenehmigungBildschirm.js)",
+      "Bash(sed -n '678,686p' /Users/bayramgul/bp_canavar_v6_refactor/src/screens/Kamerabildschirm.js)",
+      "Bash(sed -n '789,796p' /Users/bayramgul/bp_canavar_v6_refactor/src/screens/Hauptbildschirm.js)",
+      "Bash(grep \"\\\\\"[^\\\\\"]*[ğş][^\\\\\"]*\\\\\"\\\\|'[^']*[ğş][^']*'\\\\|\\\\`[^\\\\`]*[ğş][^\\\\`]*\\\\`\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); deps={**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}; checks=['react-native-vision-camera','react-native-worklets-core','react-native-svg','react-native-reanimated','pdf-lib','expo-speech']; [print\\(f'{k}: {deps.get\\(k, \\\\\"❌ YOK\\\\\"\\)}'\\) for k in checks]\")",
+      "Bash(xargs ls *)"
+    ]
+  }
+}

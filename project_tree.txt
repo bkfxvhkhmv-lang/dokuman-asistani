@@ -1,0 +1,395 @@
+.
+├── 117
+├── app
+│   ├── _layout.tsx
+│   ├── (tabs)
+│   │   ├── _layout.tsx
+│   │   ├── index.tsx
+│   │   ├── Kamera.tsx
+│   │   ├── Marktplatz.tsx
+│   │   ├── Profil.tsx
+│   │   └── Suche.tsx
+│   ├── detail
+│   ├── detail.tsx
+│   ├── index.tsx
+│   └── login.tsx
+├── App.js
+├── app.json
+├── assets
+│   ├── adaptive-icon.png
+│   ├── icon.png
+│   ├── notification-icon.png
+│   └── splash.png
+├── babel.config.js
+├── eas.json
+├── expo-router
+├── icons.txt
+├── MIGRATION_MARKER.txt
+├── package-lock.json
+├── package.json
+├── phosphor-react-native
+├── project_tree.txt
+├── react
+├── react-native
+├── src
+│   ├── components
+│   │   ├── ActionSimulatorModal.js
+│   │   ├── AppBottomSheet.js
+│   │   ├── BelgeAciklamaModal.js
+│   │   ├── BelgeChatModal.js
+│   │   ├── BudgetGrafikModal.js
+│   │   ├── ContextualGuidance.js
+│   │   ├── CropModal.js
+│   │   ├── DokumentKarte.js
+│   │   ├── EmptyState.js
+│   │   ├── ErrorBoundary.js
+│   │   ├── GlobalFAB.js
+│   │   ├── HighlightedTextView.js
+│   │   ├── HilfeModal.js
+│   │   ├── Icon.js
+│   │   ├── Icon.tsx
+│   │   ├── KisiselBilgiModal.js
+│   │   ├── KurumlarRehberiModal.js
+│   │   ├── MultiLayerSummaryView.js
+│   │   ├── Onboarding.js
+│   │   ├── PdfMergeDragModal.js
+│   │   ├── PipelineStatus.js
+│   │   ├── QrScanModal.js
+│   │   ├── SkeletonKarte.js
+│   │   ├── SmartRegionsView.js
+│   │   ├── SperrBildschirm.js
+│   │   ├── SwipeableDokumentKarte.js
+│   │   ├── TimelineView.js
+│   │   ├── YanıtSablonlariModal.js
+│   │   └── YillikOzetModal.js
+│   ├── config.js
+│   ├── core
+│   │   ├── actionable-summary
+│   │   │   └── service.ts
+│   │   ├── database
+│   │   │   ├── client.ts
+│   │   │   ├── index.ts
+│   │   │   ├── init.ts
+│   │   │   └── schema.ts
+│   │   ├── encryption
+│   │   │   └── PrivacyLayerV4.ts
+│   │   ├── events
+│   │   │   ├── EventLogger.ts
+│   │   │   └── TimelineEngineV4.ts
+│   │   ├── intelligence
+│   │   │   ├── AutoWorkflowEngine.ts
+│   │   │   ├── DocumentDigitalTwin.ts
+│   │   │   ├── DocumentMemory.ts
+│   │   │   ├── InstitutionBehaviorModel.ts
+│   │   │   ├── IntentDetector.ts
+│   │   │   ├── LifecyclePrediction.ts
+│   │   │   ├── OutcomePredictor.ts
+│   │   │   └── UserBehaviorModel.ts
+│   │   ├── monitoring
+│   │   ├── orchestrator
+│   │   │   └── DocumentOrchestratorV4.ts
+│   │   ├── rules
+│   │   │   └── RuleEngineV4.ts
+│   │   ├── search
+│   │   │   ├── embedding.ts
+│   │   │   └── HybridSearchEngineV4.ts
+│   │   └── sync
+│   │       ├── CloudSyncV4.ts
+│   │       └── SyncResolverV4.ts
+│   ├── data
+│   │   └── kurumlar.js
+│   ├── design
+│   │   ├── components
+│   │   │   ├── AppButton.js
+│   │   │   ├── AppCard.js
+│   │   │   ├── AppChip.js
+│   │   │   ├── AppIconButton.js
+│   │   │   ├── AppSheet.js
+│   │   │   ├── AppStatCard.js
+│   │   │   ├── AppToast.js
+│   │   │   └── index.js
+│   │   ├── motion.js
+│   │   └── tokens.js
+│   ├── features
+│   │   ├── camera
+│   │   ├── detail
+│   │   │   ├── components
+│   │   │   │   ├── ActionsPanel.js
+│   │   │   │   ├── AIBox.js
+│   │   │   │   ├── DetailHeader.js
+│   │   │   │   ├── DetailProcessTracker.js
+│   │   │   │   ├── DetailsPanel.js
+│   │   │   │   ├── DigitalTwinPanel.js
+│   │   │   │   ├── HeroCard.js
+│   │   │   │   ├── OzetTab.js
+│   │   │   │   ├── RiskPanel.js
+│   │   │   │   └── TasksPanel.js
+│   │   │   ├── hooks
+│   │   │   │   ├── useDocumentActions.js
+│   │   │   │   ├── useDocumentAI.js
+│   │   │   │   ├── useDocumentDerived.js
+│   │   │   │   ├── useDocumentDetail.js
+│   │   │   │   └── useModalController.js
+│   │   │   ├── modals
+│   │   │   │   ├── AufgabenModal.js
+│   │   │   │   ├── EditDocumentModal.js
+│   │   │   │   ├── ErledigtModal.js
+│   │   │   │   ├── FormularModal.js
+│   │   │   │   ├── LoeschenModal.js
+│   │   │   │   ├── PartnerInfoModal.js
+│   │   │   │   ├── SicherTeilenModal.js
+│   │   │   │   └── ZahlungModal.js
+│   │   │   └── services
+│   │   │       ├── actionEngine.js
+│   │   │       ├── documentActionFlows.js
+│   │   │       └── documentChainEngine.js
+│   │   ├── documents
+│   │   ├── home
+│   │   │   └── components
+│   │   │       ├── HomeDashboardCards.js
+│   │   │       ├── HomeHeaderCluster.js
+│   │   │       ├── HomeProfileStrip.js
+│   │   │       ├── HomeStatsRow.js
+│   │   │       ├── HomeSyncStrip.js
+│   │   │       └── HomeUrgencyBanner.js
+│   │   ├── onboarding
+│   │   ├── profile
+│   │   └── search
+│   ├── hooks
+│   ├── lib
+│   │   ├── api
+│   │   ├── constants
+│   │   └── utils
+│   ├── providers
+│   │   ├── AuthContext.js
+│   │   └── StoreProvider.js
+│   ├── screens
+│   │   ├── Detailbildschirm.backup.js
+│   │   ├── Detailbildschirm.js
+│   │   ├── Detailbildschirm.js.backup
+│   │   ├── Detailbildschirm.js.bak
+│   │   ├── Detailbildschirm.js.son.backup
+│   │   ├── Detailbildschirm.pre_cleanup.js
+│   │   ├── GenehmigungBildschirm.js
+│   │   ├── Hauptbildschirm.js
+│   │   ├── Kamerabildschirm.js
+│   │   ├── LoginBildschirm.backup.js
+│   │   ├── LoginBildschirm.js
+│   │   ├── MarktplatzBildschirm.js
+│   │   ├── Profilbildschirm.js
+│   │   ├── Profilbildschirm.js.bak
+│   │   └── Suchbildschirm.js
+│   ├── services
+│   │   ├── authService.js
+│   │   ├── backup.js
+│   │   ├── emailImportService.js
+│   │   ├── ErrorService.js
+│   │   ├── formFillerService.js
+│   │   ├── giroCodeService.js
+│   │   ├── kisiselBilgi.js
+│   │   ├── notifications.js
+│   │   ├── offlineQueue.js
+│   │   ├── retryHelper.js
+│   │   ├── v4Api.js
+│   │   └── visionApi.js
+│   ├── store
+│   │   └── index.js
+│   ├── store.js
+│   ├── store.ts.bak
+│   ├── theme.js
+│   ├── ThemeContext.js
+│   ├── types
+│   └── utils.js
+├── src-backup-20260417
+│   ├── components
+│   │   ├── BelgeAciklamaModal.js
+│   │   ├── BelgeChatModal.js
+│   │   ├── BudgetGrafikModal.js
+│   │   ├── CropModal.js
+│   │   ├── DokumentKarte.js
+│   │   ├── EmptyState.js
+│   │   ├── ErrorBoundary.js
+│   │   ├── ErrorBoundary.js.bak
+│   │   ├── HilfeModal.js
+│   │   ├── KisiselBilgiModal.js
+│   │   ├── KurumlarRehberiModal.js
+│   │   ├── Onboarding.js
+│   │   ├── PdfMergeDragModal.js
+│   │   ├── PipelineStatus.js
+│   │   ├── SkeletonKarte.js
+│   │   ├── SperrBildschirm.js
+│   │   ├── SwipeableDokumentKarte.js
+│   │   ├── TimelineView.js
+│   │   ├── YanıtSablonlariModal.js
+│   │   └── YillikOzetModal.js
+│   ├── config.js
+│   ├── core
+│   │   ├── database
+│   │   │   ├── init.ts
+│   │   │   └── schema.ts
+│   │   ├── encryption
+│   │   │   └── PrivacyLayerV4.ts
+│   │   ├── events
+│   │   │   ├── EventLogger.ts
+│   │   │   └── TimelineEngineV4.ts
+│   │   ├── monitoring
+│   │   ├── orchestrator
+│   │   │   └── DocumentOrchestratorV4.ts
+│   │   ├── rules
+│   │   │   └── RuleEngineV4.ts
+│   │   ├── search
+│   │   │   ├── embedding.ts
+│   │   │   └── HybridSearchEngineV4.ts
+│   │   └── sync
+│   │       ├── CloudSyncV4.ts
+│   │       └── SyncResolverV4.ts
+│   ├── data
+│   │   └── kurumlar.js
+│   ├── features
+│   │   ├── camera
+│   │   ├── documents
+│   │   ├── onboarding
+│   │   ├── profile
+│   │   └── search
+│   ├── hooks
+│   ├── lib
+│   │   ├── api
+│   │   ├── constants
+│   │   └── utils
+│   ├── providers
+│   │   └── AuthContext.js
+│   ├── screens
+│   │   ├── Detailbildschirm.js
+│   │   ├── GenehmigungBildschirm.js
+│   │   ├── Hauptbildschirm.js
+│   │   ├── Kamerabildschirm.js
+│   │   ├── LoginBildschirm.js
+│   │   ├── MarktplatzBildschirm.js
+│   │   ├── Profilbildschirm.js
+│   │   └── Suchbildschirm.js
+│   ├── services
+│   │   ├── authService.js
+│   │   ├── backup.js
+│   │   ├── kisiselBilgi.js
+│   │   ├── notifications.js
+│   │   ├── offlineQueue.js
+│   │   ├── retryHelper.js
+│   │   ├── v4Api.js
+│   │   └── visionApi.js
+│   ├── store.js
+│   ├── theme.js
+│   ├── ThemeContext.js
+│   ├── types
+│   └── utils.js
+├── src.bak.20260419_230626
+│   ├── components
+│   │   ├── ActionSimulatorModal.js
+│   │   ├── BelgeAciklamaModal.js
+│   │   ├── BelgeChatModal.js
+│   │   ├── BudgetGrafikModal.js
+│   │   ├── ContextualGuidance.js
+│   │   ├── CropModal.js
+│   │   ├── DokumentKarte.js
+│   │   ├── EmptyState.js
+│   │   ├── ErrorBoundary.js
+│   │   ├── GlobalFAB.js
+│   │   ├── HighlightedTextView.js
+│   │   ├── HilfeModal.js
+│   │   ├── Icon.js
+│   │   ├── KisiselBilgiModal.js
+│   │   ├── KurumlarRehberiModal.js
+│   │   ├── MultiLayerSummaryView.js
+│   │   ├── Onboarding.js
+│   │   ├── PdfMergeDragModal.js
+│   │   ├── PipelineStatus.js
+│   │   ├── QrScanModal.js
+│   │   ├── SkeletonKarte.js
+│   │   ├── SmartRegionsView.js
+│   │   ├── SperrBildschirm.js
+│   │   ├── SwipeableDokumentKarte.js
+│   │   ├── TimelineView.js
+│   │   ├── YanıtSablonlariModal.js
+│   │   └── YillikOzetModal.js
+│   ├── config.js
+│   ├── core
+│   │   ├── actionable-summary
+│   │   │   └── service.ts
+│   │   ├── database
+│   │   │   ├── client.ts
+│   │   │   ├── index.ts
+│   │   │   ├── init.ts
+│   │   │   └── schema.ts
+│   │   ├── encryption
+│   │   │   └── PrivacyLayerV4.ts
+│   │   ├── events
+│   │   │   ├── EventLogger.ts
+│   │   │   └── TimelineEngineV4.ts
+│   │   ├── intelligence
+│   │   │   ├── AutoWorkflowEngine.ts
+│   │   │   ├── DocumentDigitalTwin.ts
+│   │   │   ├── DocumentMemory.ts
+│   │   │   ├── InstitutionBehaviorModel.ts
+│   │   │   ├── IntentDetector.ts
+│   │   │   ├── LifecyclePrediction.ts
+│   │   │   ├── OutcomePredictor.ts
+│   │   │   └── UserBehaviorModel.ts
+│   │   ├── monitoring
+│   │   ├── orchestrator
+│   │   │   └── DocumentOrchestratorV4.ts
+│   │   ├── rules
+│   │   │   └── RuleEngineV4.ts
+│   │   ├── search
+│   │   │   ├── embedding.ts
+│   │   │   └── HybridSearchEngineV4.ts
+│   │   └── sync
+│   │       ├── CloudSyncV4.ts
+│   │       └── SyncResolverV4.ts
+│   ├── data
+│   │   └── kurumlar.js
+│   ├── features
+│   │   ├── camera
+│   │   ├── documents
+│   │   ├── onboarding
+│   │   ├── profile
+│   │   └── search
+│   ├── hooks
+│   ├── lib
+│   │   ├── api
+│   │   ├── constants
+│   │   └── utils
+│   ├── providers
+│   │   └── AuthContext.js
+│   ├── screens
+│   │   ├── Detailbildschirm.js
+│   │   ├── Detailbildschirm.js.bak
+│   │   ├── GenehmigungBildschirm.js
+│   │   ├── Hauptbildschirm.js
+│   │   ├── Kamerabildschirm.js
+│   │   ├── LoginBildschirm.js
+│   │   ├── MarktplatzBildschirm.js
+│   │   ├── Profilbildschirm.js
+│   │   ├── Profilbildschirm.js.bak
+│   │   └── Suchbildschirm.js
+│   ├── services
+│   │   ├── authService.js
+│   │   ├── backup.js
+│   │   ├── emailImportService.js
+│   │   ├── formFillerService.js
+│   │   ├── giroCodeService.js
+│   │   ├── kisiselBilgi.js
+│   │   ├── notifications.js
+│   │   ├── offlineQueue.js
+│   │   ├── retryHelper.js
+│   │   ├── v4Api.js
+│   │   └── visionApi.js
+│   ├── store
+│   ├── store.js
+│   ├── store.ts.bak
+│   ├── theme.js
+│   ├── ThemeContext.js
+│   ├── types
+│   └── utils.js
+├── terminal_dump.txt
+└── tsconfig.json
+
+101 directories, 292 files

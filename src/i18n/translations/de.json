@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "back": "Zurück",
+    "close": "Schließen",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolgreich",
+    "yes": "Ja",
+    "no": "Nein"
+  },
+  "onboarding": {
+    "welcome": "Willkommen bei BriefPilot",
+    "selectLanguage": "Sprache wählen",
+    "selectLanguageDescription": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
+    "continue": "Weiter",
+    "uiLanguage": "UI-Sprache",
+    "aiLanguage": "KI-Analyse in dieser Sprache"
+  },
+  "home": {
+    "title": "Übersicht",
+    "noDocs": "Keine Dokumente",
+    "addFirst": "Füge dein erstes Dokument hinzu",
+    "recentDocuments": "Zuletzt angesehen",
+    "allDocuments": "Alle Dokumente"
+  },
+  "detail": {
+    "title": "Dokument",
+    "notFound": "Dokument nicht gefunden",
+    "overview": "Übersicht",
+    "analysis": "Analyse",
+    "details": "Details",
+    "actions": "Aktionen",
+    "delete": "Löschen",
+    "share": "Teilen",
+    "download": "Herunterladen",
+    "edit": "Bearbeiten"
+  },
+  "document": {
+    "type": "Dokumenttyp",
+    "sender": "Absender",
+    "date": "Datum",
+    "amount": "Betrag",
+    "deadline": "Frist",
+    "risk": "Risiko",
+    "status": "Status",
+    "summary": "Zusammenfassung",
+    "attachments": "Anhänge"
+  },
+  "actions": {
+    "pay": "Bezahlen",
+    "appeal": "Einspruch",
+    "calendar": "Kalender",
+    "complete": "Erledigt",
+    "share": "Teilen",
+    "export": "Exportieren",
+    "archive": "Archivieren"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "notifications": "Benachrichtigungen",
+    "privacy": "Datenschutz",
+    "about": "Über"
+  },
+  "ai": {
+    "analyzing": "Wird analysiert...",
+    "explain": "KI erklärt",
+    "chat": "KI Chat",
+    "summary": "Zusammenfassung",
+    "risks": "Risiken",
+    "suggestions": "Vorschläge"
+  }
+}

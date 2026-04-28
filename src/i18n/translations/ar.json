@@ -1,0 +1,78 @@
+{
+  "common": {
+    "ok": "موافق",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تحرير",
+    "back": "رجوع",
+    "close": "إغلاق",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "yes": "نعم",
+    "no": "لا"
+  },
+  "onboarding": {
+    "welcome": "مرحبا بك في BriefPilot",
+    "selectLanguage": "اختر اللغة",
+    "selectLanguageDescription": "اختر لغتك المفضلة لواجهة المستخدم",
+    "continue": "متابعة",
+    "uiLanguage": "لغة الواجهة",
+    "aiLanguage": "تحليل الذكاء الاصطناعي بهذه اللغة"
+  },
+  "home": {
+    "title": "الصفحة الرئيسية",
+    "noDocs": "لا توجد وثائق",
+    "addFirst": "أضف وثيقتك الأولى",
+    "recentDocuments": "الوثائق الأخيرة",
+    "allDocuments": "جميع الوثائق"
+  },
+  "detail": {
+    "title": "وثيقة",
+    "notFound": "لم يتم العثور على الوثيقة",
+    "overview": "نظرة عامة",
+    "analysis": "التحليل",
+    "details": "التفاصيل",
+    "actions": "الإجراءات",
+    "delete": "حذف",
+    "share": "مشاركة",
+    "download": "تحميل",
+    "edit": "تحرير"
+  },
+  "document": {
+    "type": "نوع الوثيقة",
+    "sender": "المرسل",
+    "date": "التاريخ",
+    "amount": "المبلغ",
+    "deadline": "الموعد النهائي",
+    "risk": "المخاطرة",
+    "status": "الحالة",
+    "summary": "ملخص",
+    "attachments": "المرفقات"
+  },
+  "actions": {
+    "pay": "دفع",
+    "appeal": "استئناف",
+    "calendar": "التقويم",
+    "complete": "كامل",
+    "share": "مشاركة",
+    "export": "تصدير",
+    "archive": "أرشيف"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "notifications": "الإخطارات",
+    "privacy": "الخصوصية",
+    "about": "حول"
+  },
+  "ai": {
+    "analyzing": "جاري التحليل...",
+    "explain": "شرح الذكاء الاصطناعي",
+    "chat": "دردشة الذكاء الاصطناعي",
+    "summary": "ملخص",
+    "risks": "المخاطر",
+    "suggestions": "الاقتراحات"
+  }
+}

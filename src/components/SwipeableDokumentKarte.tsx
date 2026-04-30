@@ -3,9 +3,9 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import * as Haptics from 'expo-haptics';
 import { CheckCircle, Archive, CurrencyEur, PencilSimple, CalendarBlank } from 'phosphor-react-native';
-import { useTheme } from '../ThemeContext';
-import DokumentKarte from './DokumentKarte';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import DokumentKarte from '@/components/DokumentKarte';
+import type { Dokument } from '@/store';
 
 interface SwipeableDokumentKarteProps {
   dok: Dokument;

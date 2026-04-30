@@ -1,21 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Modal, ScrollView, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
+import { View, Text, Modal, ScrollView, TouchableOpacity, ActivityIndicator, Share, StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '../ThemeContext';
-import { explainDocument } from '../services/v4Api';
-import { isOnline } from '../services/offlineQueue';
-import type { Dokument } from '../store';
+import { DEFAULT_LANG } from '@/i18n/langConfig';
+import { useTheme } from '@/ThemeContext';
+import { explainDocument } from '@/services/v4Api';
+import { isOnline } from '@/services/offlineQueue';
+import type { Dokument } from '@/store';
 
 const _cacheKey = (docId: string, lang: string) => `@bp_aciklama_${docId}_${lang}`;
 
-const TTS_DILLER: Record<string, string> = {
-  tr: 'tr-TR', de: 'de-DE', en: 'en-US', ar: 'ar-SA',
-  uk: 'uk-UA', ru: 'ru-RU', fr: 'fr-FR', es: 'es-ES',
-  pl: 'pl-PL', it: 'it-IT', hr: 'hr-HR', ro: 'ro-RO',
-  bg: 'bg-BG', el: 'el-GR', vi: 'vi-VN', fa: 'fa-IR',
-};
+import { TTS_LANG_TO_LOCALE } from '@/services/tts/locales';
 
 interface DilItem {
   code: string;
@@ -46,8 +42,28 @@ const DILLER: DilItem[] = [
 ];
 
 interface AciklamaResult {
-  text: string;
-  model_used: string;
+  text?: string | null;
+  zusammenfassung?: string | null;
+  kurzfassung?: string | null;
+  model_used?: string;
+}
+
+function explainBody(r: AciklamaResult | null): string {
+  if (!r) return '';
+  return [r.zusammenfassung, r.kurzfassung, r.text].find(s => typeof s === 'string' && s.trim().length > 0)?.trim() ?? '';
+}
+
+/** Ohne Server-Sync: gespeicherte Zusammenfassung oder OCR-Text als Erklärung */
+function localExplainPayload(dok: Dokument): AciklamaResult | null {
+  const zus = dok.zusammenfassung?.trim();
+  if (zus && zus.length > 0) {
+    return { zusammenfassung: zus, model_used: 'local/zusammenfassung' };
+  }
+  const raw = dok.rohText?.trim();
+  if (raw && raw.length > 80) {
+    return { text: raw.slice(0, 12_000), model_used: 'local/ocr' };
+  }
+  return null;
 }
 
 interface BelgeAciklamaModalProps {
@@ -64,7 +80,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
     return () => { mountedRef.current = false; };
   }, []);
 
-  const [seciliDil, setSeciliDil] = useState('tr');
+  const [seciliDil, setSeciliDil] = useState(DEFAULT_LANG);
   const [aciklama, setAciklama]   = useState<AciklamaResult | null>(null);
   const [yukleniyor, setYukleniyor] = useState(false);
   const [hata, setHata]           = useState<string | null>(null);
@@ -88,39 +104,84 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
       setOkuyor(false);
       return;
     }
-    if (!aciklama?.text) return;
+    const body = explainBody(aciklama);
+    if (!body) return;
     setOkuyor(true);
-    Speech.speak(aciklama.text, {
-      language: TTS_DILLER[seciliDil] || 'de-DE',
+    Speech.speak(body, {
+      language: TTS_LANG_TO_LOCALE[seciliDil] || 'de-DE',
       rate: 0.9,
       onDone: () => setOkuyor(false),
       onError: () => setOkuyor(false),
     });
   };
 
+  const finishWithLocalIfPossible = (): boolean => {
+    if (!dok) return false;
+    const local = localExplainPayload(dok);
+    const body = explainBody(local);
+    if (!local || !body) return false;
+    setAciklama(local);
+    setHata(null);
+    return true;
+  };
+
   const handleAcikla = async (dilKodu = seciliDil) => {
-    if (!dok?.id) return;
+    if (!dok?.id) {
+      setHata('Kein Dokument geladen. Bitte erneut öffnen.');
+      return;
+    }
+    const serverDocId = (dok.v4DocId && String(dok.v4DocId).trim()) || '';
+    const cacheDocId = serverDocId || dok.id;
     setYukleniyor(true);
     setHata(null);
     setAciklama(null);
     try {
       const online = await isOnline();
       if (!online) {
-        const cached = await AsyncStorage.getItem(_cacheKey(dok.id, dilKodu));
+        const cacheKey = _cacheKey(cacheDocId, dilKodu);
+        const cached = await AsyncStorage.getItem(cacheKey);
         if (cached) {
           setAciklama({ ...JSON.parse(cached), model_used: 'cache/offline' });
           return;
         }
-        setHata('Kein Internet. Bitte zuerst online öffnen, dann wird die Erklärung gespeichert.');
+        if (finishWithLocalIfPossible()) return;
+        setHata('Kein Internet und keine gespeicherte Erklärung. Mit Verbindung wird die KI-Antwort gecacht.');
         return;
       }
-      const sonuc = await explainDocument(dok.id, dilKodu) as unknown as AciklamaResult;
+      if (!serverDocId) {
+        if (finishWithLocalIfPossible()) return;
+        setHata(
+          'Dieses Dokument hat noch keine lesbare Kurzfassung. Bitte warten bis der Text erkannt wurde oder einen Scan mit OCR erneut anlegen.',
+        );
+        return;
+      }
+      const sonuc = await explainDocument(serverDocId, dilKodu) as unknown as AciklamaResult;
       if (!mountedRef.current) return;
+      const body = explainBody(sonuc);
+      if (!body) {
+        if (finishWithLocalIfPossible()) return;
+        setHata('Die KI-Antwort enthielt keinen Text. Bitte erneut versuchen oder ein anderes Dokument wählen.');
+        return;
+      }
       setAciklama(sonuc);
-      await AsyncStorage.setItem(_cacheKey(dok.id, dilKodu), JSON.stringify(sonuc));
-    } catch {
+      await AsyncStorage.setItem(_cacheKey(cacheDocId, dilKodu), JSON.stringify(sonuc));
+    } catch (e) {
       if (!mountedRef.current) return;
-      setHata('Erklärung konnte nicht geladen werden. Bitte erneut versuchen.');
+      const raw = e instanceof Error ? e.message : String(e);
+      if (finishWithLocalIfPossible()) return;
+      if (raw.includes(' 404') || raw.includes('404:')) {
+        setHata('Dokument auf dem Server nicht gefunden. Bitte Synchronisierung prüfen.');
+      } else if (raw.includes(' 422') || raw.includes('422:')) {
+        setHata(
+          'Text für dieses Dokument ist noch nicht bereit (OCR läuft oder fehlgeschlagen). Bitte später erneut versuchen.',
+        );
+      } else if (raw.includes(' 401') || raw.includes('401:')) {
+        setHata('Sitzung abgelaufen. Bitte erneut anmelden.');
+      } else if (__DEV__) {
+        setHata(`Erklärung fehlgeschlagen (Dev): ${raw}`);
+      } else {
+        setHata('Erklärung konnte nicht geladen werden. Bitte erneut versuchen.');
+      }
     } finally {
       if (mountedRef.current) setYukleniyor(false);
     }
@@ -133,20 +194,36 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
   };
 
   const handleKopyala = async () => {
-    if (aciklama?.text) await Clipboard.setStringAsync(aciklama.text);
+    const body = explainBody(aciklama);
+    if (body) await Clipboard.setStringAsync(body);
   };
 
   const handlePaylas = async () => {
-    if (aciklama?.text) await Share.share({ message: aciklama.text });
+    const body = explainBody(aciklama);
+    if (body) await Share.share({ message: body });
   };
 
   const seciliDilObj = DILLER.find(d => d.code === seciliDil) || DILLER[0];
 
   return (
     <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
-      <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} />
-      <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,
-        maxHeight: '90%', paddingBottom: 32 }}>
+      <View style={styles.modalRoot}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFillObject}
+          activeOpacity={1}
+          accessibilityRole="button"
+          accessibilityLabel="Schließen"
+          onPress={onClose}
+        />
+        <View
+          style={{
+            backgroundColor: C.bgCard,
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            maxHeight: '90%',
+            paddingBottom: 32,
+          }}
+        >
         <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.border,
           alignSelf: 'center', marginTop: 12, marginBottom: 16 }} />
 
@@ -237,15 +314,29 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
             <>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6,
                 marginBottom: 14, padding: 8, borderRadius: R.md,
-                backgroundColor: aciklama.model_used.startsWith('local') ? C.successLight : C.primaryLight }}>
+                backgroundColor: (() => {
+                  const m = aciklama.model_used ?? '';
+                  if (m.startsWith('local/')) return C.warningLight;
+                  if (m.startsWith('cache/')) return C.successLight;
+                  return C.primaryLight;
+                })() }}>
                 <Text style={{ fontSize: 12 }}>
-                  {aciklama.model_used.startsWith('local') ? '🟢' : '🟣'}
+                  {(aciklama.model_used ?? '').startsWith('local/') ? '📱'
+                    : (aciklama.model_used ?? '').startsWith('cache/') ? '🟢' : '🟣'}
                 </Text>
                 <Text style={{ fontSize: 11,
-                  color: aciklama.model_used.startsWith('local') ? C.successText : C.primaryDark }}>
-                  {aciklama.model_used.startsWith('local')
-                    ? 'Local AI — 100 % DSGVO-konform, keine Zusatzkosten'
-                    : 'Cloud AI (Claude Haiku) — Nur Metadaten übertragen'}
+                  color: (() => {
+                    const m = aciklama.model_used ?? '';
+                    if (m.startsWith('local/')) return C.warningText ?? C.warning;
+                    if (m.startsWith('cache/')) return C.successText;
+                    return C.primaryDark;
+                  })(),
+                  }}>
+                  {(aciklama.model_used ?? '').startsWith('local/')
+                    ? 'Hier nur gespeicherter OCR-/Übersichtstext vom Gerät. Formulierte KI-Erklärung („Auf … erklären“ in der gewählten Sprache) nach erfolgreicher Server-Synchronisation.'
+                    : (aciklama.model_used ?? '').startsWith('cache/')
+                      ? 'Zuletzt gespeicherter Abruf.'
+                      : 'Cloud-KI — Antwort enthält erklärten Text zum Dokument'}
                 </Text>
               </View>
 
@@ -253,7 +344,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
                 padding: 16, marginBottom: 16, borderWidth: 0.5, borderColor: C.border }}>
                 <Text style={{ fontSize: 14, color: C.text, lineHeight: 22,
                   textAlign: seciliDil === 'ar' || seciliDil === 'fa' ? 'right' : 'left' }}>
-                  {aciklama.text}
+                  {explainBody(aciklama)}
                 </Text>
               </View>
 
@@ -285,7 +376,16 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
             </>
           )}
         </ScrollView>
+        </View>
       </View>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+});

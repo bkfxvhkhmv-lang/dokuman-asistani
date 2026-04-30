@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { filterBySearch, parseNatuerlicheAbfrage } from '../../utils';
-import { useSearch } from '../../hooks/useSearch';
-import type { Dokument } from '../../store';
+import { filterBySearch, parseNatuerlicheAbfrage } from '@/utils';
+import { useSearch } from '@/hooks/useSearch';
+import type { Dokument } from '@/store';
 
 const MAX_VERLAUF = 8;
 

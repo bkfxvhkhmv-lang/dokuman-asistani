@@ -1,18 +1,18 @@
-export { DocumentClassifier } from './DocumentClassifier';
-export { RiskAnalyzer } from './riskAnalyzer';
-export type { DocumentType, ClassificationResult } from './DocumentClassifier';
-export type { RiskLevel, RiskAnalysis } from './riskAnalyzer';
+export { DocumentClassifier } from '@/core/classification/DocumentClassifier';
+export { RiskAnalyzer } from '@/core/classification/riskAnalyzer';
+export type { DocumentType, ClassificationResult } from '@/core/classification/DocumentClassifier';
+export type { RiskLevel, RiskAnalysis } from '@/core/classification/riskAnalyzer';
 
-import { DocumentClassifier } from './DocumentClassifier';
-import { RiskAnalyzer } from './riskAnalyzer';
+import { DocumentClassifier } from '@/core/classification/DocumentClassifier';
+import { RiskAnalyzer } from '@/core/classification/riskAnalyzer';
 
 const classifier = new DocumentClassifier();
 const riskAnalyzer = new RiskAnalyzer();
 
 export interface DocumentAnalysis {
-  type: import('./DocumentClassifier').DocumentType;
+  type: import('@/core/classification/DocumentClassifier').DocumentType;
   confidence: number;
-  risk: import('./riskAnalyzer').RiskLevel;
+  risk: import('@/core/classification/riskAnalyzer').RiskLevel;
   riskScore: number;
   urgencyDays: number | null;
   extractedAmount: number | null;

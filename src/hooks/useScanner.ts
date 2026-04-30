@@ -5,7 +5,7 @@ import {
   CaptureResult,
   ScannerEvent,
   DocumentCorners,
-} from '../modules/scanner';
+} from '@/modules/scanner';
 
 export type DistanceHint = 'closer' | 'farther' | 'perfect' | null;
 
@@ -18,7 +18,7 @@ function computeDistanceHint(corners: DocumentCorners | null): DistanceHint {
     Math.abs(corners.bottomRight.x - corners.bottomLeft.x),
   );
   if (docWidth > 0.97) return 'farther';
-  if (docWidth < 0.72) return 'closer';
+  if (docWidth < 0.52) return 'closer';
   return 'perfect';
 }
 

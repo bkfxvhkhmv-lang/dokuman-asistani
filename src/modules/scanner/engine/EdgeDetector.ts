@@ -1,5 +1,5 @@
-import { DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '../types';
-import { nativeDetectDocumentEdges } from './NativeStub';
+import { DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
+import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
 
 export class EdgeDetector {
   private listeners: ScannerListener[] = [];

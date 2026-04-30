@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { Dokument } from '../../../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
 
 interface SicherTeilenModalProps {
   visible: boolean;

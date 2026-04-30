@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import type { Dokument, StoreState } from '../../../store';
-import type { ColorPalette, RiskPalette } from '../../../theme';
+import type { Dokument, StoreState } from '@/store';
+import type { ColorPalette, RiskPalette } from '@/theme';
 import {
   getRisikoInfo,
   berechneGesundheitsscore,
@@ -17,7 +17,7 @@ import {
   generiereAufgabenVorschlaege,
   erkenneDarkPatterns,
   findeOzetQuellen,
-} from '../../../utils';
+} from '@/utils';
 
 interface UseDocumentDerivedParams {
   dok: Dokument | undefined;

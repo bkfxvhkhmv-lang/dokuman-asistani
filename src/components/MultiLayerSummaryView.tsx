@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
 
 type TabId = 'kurz' | 'punkte' | 'einfach' | 'technisch' | 'hukuki';
 

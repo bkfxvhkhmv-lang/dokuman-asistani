@@ -4,13 +4,15 @@ import * as WebBrowser from 'expo-web-browser';
 import {
   loginUser, registerUser, logoutUser,
   getStoredUser, setSessionExpiredHandler,
-} from '../services/authService';
+} from '@/services/authService';
+
+import {
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+} from '@/config/googleAuth';
 
 WebBrowser.maybeCompleteAuthSession();
-
-const ANDROID_CLIENT_ID = '788836666259-5s3jv9qk0nhf23vbnrqal0cjm2eu6r98.apps.googleusercontent.com';
-const WEB_CLIENT_ID     = '788836666259-vp0eqcpbped3q86as7bpdheq2f24u4cc.apps.googleusercontent.com';
-
 export interface AuthUser {
   id: string;
   email: string;
@@ -66,8 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const [, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: ANDROID_CLIENT_ID,
-    webClientId:     WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId:     GOOGLE_WEB_CLIENT_ID,
+    iosClientId:     GOOGLE_IOS_CLIENT_ID,
   });
 
   useEffect(() => {
@@ -104,5 +107,9 @@ export function useAuth(): AuthContextValue {
   return ctx;
 }
 
-export const GOOGLE_ANDROID_CLIENT_ID = ANDROID_CLIENT_ID;
-export const GOOGLE_WEB_CLIENT_ID     = WEB_CLIENT_ID;
+export {
+  GOOGLE_ANDROID_CLIENT_ID,
+  GOOGLE_WEB_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID_RAW,
+} from '@/config/googleAuth';

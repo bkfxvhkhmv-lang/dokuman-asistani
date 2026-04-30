@@ -26,7 +26,7 @@ import {
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 const MAG_SIZE    = 130;
 const MAG_SCALE   = 2.2;

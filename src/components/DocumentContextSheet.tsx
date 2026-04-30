@@ -8,11 +8,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import AppSheet from '../design/components/AppSheet';
-import Icon from './Icon';
-import { useTheme } from '../ThemeContext';
-import { HIT_SLOP } from '../theme';
-import type { Dokument } from '../store';
+import AppSheet from '@/design/components/AppSheet';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP } from '@/theme';
+import type { Dokument } from '@/store';
 
 interface Action {
   key:     string;

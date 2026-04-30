@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import type { RadiusTokens } from '../theme';
-import type { SmartAction, ActionGruppe, ActionsResult } from '../services/SmartActionsService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { RadiusTokens } from '@/theme';
+import type { SmartAction, ActionGruppe, ActionKey, ActionsResult } from '@/services/SmartActionsService';
 
 interface SmartActionsPanelProps {
   result: ActionsResult;
   onAction: (key: string) => void;
+  /** Detail: bereits „Nächster Schritt“ über ActionsPanel + FAB — keine zweite Primary-Leiste */
+  omitPrimaryBanner?: boolean;
+  /** Aktions-Schlüssel ausblenden (z. B. wenn ActionsPanel gleiche Aktion führt) */
+  omitKeys?: readonly ActionKey[];
 }
 
 const GRUPPE_LABEL: Record<ActionGruppe, string> = {
@@ -69,25 +73,43 @@ function ActionButton({ action, onPress, C, R, large }: {
   );
 }
 
-export default function SmartActionsPanel({ result, onAction }: SmartActionsPanelProps) {
+const OMITTABLE = new Set<ActionKey>();
+
+export default function SmartActionsPanel({
+  result,
+  onAction,
+  omitPrimaryBanner = false,
+  omitKeys,
+}: SmartActionsPanelProps) {
   const { Colors: C, R } = useTheme();
-  const [expandedGruppe, setExpandedGruppe] = useState<ActionGruppe | null>('ki_assistent');
+  const [expandedGruppe, setExpandedGruppe] = useState<ActionGruppe | null>('organisation');
+
+  const omit = omitKeys?.length ? new Set(omitKeys) : OMITTABLE;
+
+  const filterList = (list: SmartAction[]) => list.filter(a => !omit.has(a.key));
+
+  const primary =
+    omitPrimaryBanner || !result.nächsterSchritt || omit.has(result.nächsterSchritt.key)
+      ? null
+      : result.nächsterSchritt;
 
   const nichtLeereGruppen = (Object.entries(result.gruppen) as [ActionGruppe, SmartAction[]][])
-    .filter(([g, actions]) => g !== 'nächster_schritt' && actions.length > 0);
+    .filter(([g, actions]) => g !== 'nächster_schritt' && actions.length > 0)
+    .map(([g, actions]) => [g, filterList(actions)] as [ActionGruppe, SmartAction[]])
+    .filter(([, actions]) => actions.length > 0);
 
   return (
     <View>
       {/* Primary CTA */}
-      {result.nächsterSchritt && (
+      {primary && (
         <View style={{ marginBottom: 8 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary,
             letterSpacing: 0.6, marginBottom: 8 }}>
             ⚡ NÄCHSTER SCHRITT
           </Text>
           <ActionButton
-            action={result.nächsterSchritt}
-            onPress={() => result.nächsterSchritt && onAction(result.nächsterSchritt.key)}
+            action={primary}
+            onPress={() => onAction(primary.key)}
             C={C} R={R} large
           />
         </View>

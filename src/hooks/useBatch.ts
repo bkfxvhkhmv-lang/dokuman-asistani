@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { BatchManager, BatchPage, PdfResult } from '../modules/batch';
+import { BatchManager, BatchPage, PdfResult } from '@/modules/batch';
 
 export function useBatch() {
   const managerRef = useRef<BatchManager | null>(null);
@@ -65,6 +65,10 @@ export function useBatch() {
     managerRef.current?.clear();
   }, []);
 
+  const replacePages = useCallback((nextPages: BatchPage[]) => {
+    managerRef.current?.replacePages(nextPages);
+  }, []);
+
   const selectPage = useCallback((pageId: string, selected: boolean) => {
     managerRef.current?.selectPage(pageId, selected);
   }, []);
@@ -110,6 +114,7 @@ export function useBatch() {
     attachOcr,
     attachMetadata,
     clearPages,
+    replacePages,
     selectPage,
     selectAll,
     deselectAll,

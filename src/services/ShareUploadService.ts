@@ -15,12 +15,17 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
-import { analysiereText, extractTextFromImage } from './visionApi';
-import { runSmartAutoFill, mergeAutoFillIntoDokument } from './SmartAutoFillService';
-import { runSmartCategorization, applyCategoryToVisionResult } from './SmartCategorizationService';
-import { generateId } from '../utils';
-import { buildUploadNotificationContent } from './SmartNotificationsService';
-import type { Dokument } from '../store';
+import { analysiereText, extractTextFromImage } from '@/services/visionApi';
+import { runSmartAutoFill, mergeAutoFillIntoDokument } from '@/services/SmartAutoFillService';
+import { runSmartCategorization, applyCategoryToVisionResult } from '@/services/SmartCategorizationService';
+import { generateId } from '@/utils';
+import {
+  buildUploadNotificationContent,
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
+import { erstelleKurzfassung } from '@/services/vision-api/summarizeText';
+import type { Dokument } from '@/store';
 
 export type ShareFileType = 'pdf' | 'image' | 'unknown';
 
@@ -43,8 +48,9 @@ export function extractFileNameFromUri(uri: string): string {
 async function fireImmediate(title: string, body: string, data: Record<string, unknown> = {}): Promise<void> {
   try {
     const { default: Notifications } = await import('expo-notifications');
+    await ensureAndroidDefaultNotificationChannel();
     await Notifications.scheduleNotificationAsync({
-      content: { title, body, data },
+      content: withAndroidNotificationChannel({ title, body, data }),
       trigger: null,
     });
   } catch {}
@@ -107,13 +113,16 @@ export async function processSharedFile(
     const merged = mergeAutoFillIntoDokument(autoFillResult, {});
     const documentId = generateId();
 
+    const typ = String(merged.typ || 'Sonstiges');
+    const absender = String(merged.absender || 'Unbekannter Absender');
+
     const dokument: Dokument = {
       id:              documentId,
       titel:           fileName.replace(/\.(pdf|jpe?g|png|heic)$/i, '') || `${merged.typ} — Geteilt`,
-      typ:             String(merged.typ || 'Sonstiges'),
-      absender:        String(merged.absender || 'Unbekannter Absender'),
+      typ,
+      absender,
       zusammenfassung: rawText.length > 0 ? visionResult.zusammenfassung ?? null : null,
-      kurzfassung:     null,
+      kurzfassung:     erstelleKurzfassung(typ, merged.betrag ?? null, merged.frist ?? null, absender),
       warnung:         merged.risiko === 'hoch' ? 'Bitte innerhalb der Frist handeln.' : null,
       betrag:          merged.betrag ?? null,
       waehrung:        '€',

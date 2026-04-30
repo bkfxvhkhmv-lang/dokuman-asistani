@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Network from 'expo-network';
-import { generateId } from '../utils';
-import { uploadDocumentV4Safe } from './v4Api';
-import type { StoreAction } from '../store';
+import { generateId } from '@/utils';
+import { uploadDocumentV4Safe } from '@/services/v4Api';
+import type { StoreAction } from '@/store';
 
 const QUEUE_KEY = '@briefpilot_ocr_queue';
 

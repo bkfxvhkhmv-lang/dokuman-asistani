@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-import Icon from '../Icon';
+import Icon from '@/components/Icon';
 
 type Props = {
   insetsTop: number;

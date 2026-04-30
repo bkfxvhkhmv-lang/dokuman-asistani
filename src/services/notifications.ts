@@ -1,4 +1,4 @@
-import type { Dokument } from '../store';
+import type { Dokument } from '@/store';
 
 export async function registerForPushNotificationsAsync(): Promise<null> {
   console.log('Push notifications disabled in Expo Go');

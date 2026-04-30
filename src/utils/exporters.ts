@@ -1,7 +1,22 @@
 import { Share } from 'react-native';
 import * as MailComposer from 'expo-mail-composer';
-import { formatBetrag, formatFrist, formatDatum } from './formatters';
-import type { Dokument } from '../store';
+import * as FileSystem from 'expo-file-system/legacy';
+import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
+import type { Dokument } from '@/store';
+import { pdfRenderService } from '@/pdf';
+import { buildPdfExportBasename } from '@/utils/exportFilename';
+import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
+
+/** Leere/fehlerhafte PDFs filtern (~nur Artefakte). */
+const MIN_REASONABLE_PDF_BYTES = 400;
+
+async function assertPdfLooksValid(uri: string): Promise<void> {
+  const inf = await FileSystem.getInfoAsync(uri, { size: true } as any);
+  const size = typeof (inf as { size?: number }).size === 'number' ? (inf as { size: number }).size : 0;
+  if (!size || size < MIN_REASONABLE_PDF_BYTES) {
+    throw new Error('BRIEFPILOT_PDF_TOO_SMALL');
+  }
+}
 
 export async function shareDokument(dok: Dokument): Promise<void> {
   const lines = [
@@ -37,6 +52,53 @@ export async function exportiereEinspruchPDF(dok: Dokument, einspruchText: strin
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(dest, { mimeType: 'application/pdf' });
 }
 
+/** Sayfa görüntüleri mevcut ve dosyalar okunabiliyorsa tarayıcı çıktılı PDF */
+async function exportRasterPdfFromStoredPages(dok: Dokument): Promise<string | null> {
+  const raw = dok.pages;
+  if (!raw?.length) return null;
+
+  const sorted = [...raw].sort((a, b) => a.order - b.order);
+  try {
+    const flags = await Promise.all(
+      sorted.map(async (p) => {
+        try {
+          const info = await FileSystem.getInfoAsync(p.uri);
+          return !!info.exists;
+        } catch {
+          return false;
+        }
+      }),
+    );
+    if (!flags.every(Boolean)) {
+      console.warn('[exportRasterPdfFromStoredPages] Eksik sayfa dosyası — özet PDF’e düşülüyor');
+      return null;
+    }
+
+    const result = await pdfRenderService.generate(
+      sorted.map(p => ({
+        uri: p.uri,
+        width: p.width ?? undefined,
+        height: p.height ?? undefined,
+        ocrText: p.ocrText ?? undefined,
+        rotation: p.rotation ?? 0,
+      })),
+      {
+        profile: 'standard',
+        metadata: {
+          title: dok.titel,
+          subject: dok.absender ?? undefined,
+          documentType: dok.typ,
+        },
+      },
+    );
+    await assertPdfLooksValid(result.uri);
+    return result.uri;
+  } catch (e) {
+    console.warn('[exportRasterPdfFromStoredPages]', e);
+    return null;
+  }
+}
+
 async function renderDokumentPdfToFile(dok: Dokument): Promise<{ uri: string }> {
   const Print = await import('expo-print');
   const fristStr  = dok.frist  ? formatFrist(dok.frist)   : '–';
@@ -52,14 +114,26 @@ async function renderDokumentPdfToFile(dok: Dokument): Promise<{ uri: string }> 
 }
 
 export async function exportierePDFZuDatei(dok: Dokument): Promise<string> {
+  const raster = await exportRasterPdfFromStoredPages(dok);
+  if (raster) return raster;
+
   const { uri } = await renderDokumentPdfToFile(dok);
+  await assertPdfLooksValid(uri);
   return uri;
 }
 
 export async function exportierePDF(dok: Dokument): Promise<void> {
   const Sharing = await import('expo-sharing');
   const uri = await exportierePDFZuDatei(dok);
-  await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: dok.titel });
+  const base = buildPdfExportBasename(dok);
+  const dir = FileSystem.documentDirectory;
+  if (!dir?.length) {
+    await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: base });
+    return;
+  }
+  const dest = `${dir}${base}.pdf`;
+  await FileSystem.copyAsync({ from: uri, to: dest });
+  await Sharing.shareAsync(dest, { mimeType: 'application/pdf', dialogTitle: base });
 }
 
 export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string> {
@@ -77,7 +151,12 @@ export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string>
   }).join('<div class="trenner"></div>');
   const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1a1a2e;padding:32px}.report-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid #534AB7;margin-bottom:24px}.logo{font-size:22px;font-weight:800;color:#534AB7}.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;color:#fff;margin-bottom:6px}h2{font-size:16px;font-weight:700;margin-bottom:2px}.meta{font-size:11px;color:#888}.zahlen{text-align:right}.betrag{font-size:20px;font-weight:800}.frist{font-size:11px;color:#888;margin-top:2px}.kurz{font-size:12px;color:#555;margin-top:6px;line-height:1.6}.iban{font-size:12px;color:#1D9E75;font-weight:600;margin-top:4px;font-family:monospace;letter-spacing:1px}.erledigt{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;color:#1D9E75;background:#EAF3DE;padding:2px 10px;border-radius:999px}.trenner{border-top:1px solid #eee;margin:16px 0}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#bbb;text-align:center}</style></head><body><div class="report-header"><div class="logo">BriefPilot — Bericht</div><div style="font-size:11px;color:#888;text-align:right">${dokumente.length} Dokumente<br/>${formatDatum(new Date().toISOString())}</div></div>${sayfalar}<div class="footer">BriefPilot v3.0.0 · Automatisch erstellt · Keine Rechtsberatung</div></body></html>`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
-  await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: `BriefPilot — ${dokumente.length} Dokumente` });
+  const mergedBase =
+    dokumente.length === 1 ? buildPdfExportBasename(dokumente[0]) : `Sammel_${dokumente.length}_${new Date().toISOString().slice(0, 10)}`;
+  await Sharing.shareAsync(uri, {
+    mimeType: 'application/pdf',
+    dialogTitle: `BriefPilot — ${dokumente.length} Dokumente · ${mergedBase}`,
+  });
   return uri;
 }
 
@@ -85,11 +164,22 @@ export async function exportiereDatavCSV(dokumente: Dokument[]): Promise<void> {
   const FileSystem = await import('expo-file-system');
   const Sharing    = await import('expo-sharing');
   const header = ['Umsatz','Soll/Haben','WKZ','Kurs','Basisumsatz','Basis-WKZ','Konto','Gegenkonto','BU-Schlüssel','Belegdatum','Belegfeld1','Belegfeld2','Skonto','Buchungstext'].join(';');
-  const KONTO_MAP: Record<string, string> = { Rechnung:'1600', Mahnung:'1600', Bußgeld:'4900', Behörde:'4900', Steuerbescheid:'3800', Termin:'4900', Versicherung:'4360', Vertrag:'4900', Sonstiges:'4900' };
+  const KONTO_MAP: Record<string, string> = {
+    Rechnung: '1600', Rechnungen: '1600',
+    Mahnung: '1600', 'Mahnung / Zahlungserinnerung': '1600',
+    Bußgeld: '4900', Behörde: '4900', 'Behörden / Amt': '4900',
+    Steuerbescheid: '3800', Steuer: '3800',
+    Termin: '4900', Versicherung: '4360',
+    Vertrag: '4900', Verträge: '4900', Kündigung: '4900',
+    Gesundheit: '4360', 'Schule / Kita': '4900',
+    'Bank / Finanzen': '1800', 'Garantie / Kaufbeleg': '4900',
+    Sonstiges: '4900',
+  };
   const rows = dokumente.filter(d => d.betrag && (d.betrag as number) > 0).map(d => {
     const datum = d.datum ? new Date(d.datum).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }).replace('.', '') : '';
     const betrag = (d.betrag as number).toFixed(2).replace('.', ',');
-    return [betrag, 'S', 'EUR', '', '', '', KONTO_MAP[d.typ] || '4900', '1200', '', datum, d.id.substring(0, 12), '', '', (d.titel || '').replace(/;/g, ',').substring(0, 60)].join(';');
+    const konto = KONTO_MAP[normalizeDocumentTyp(d.typ)] || KONTO_MAP[d.typ] || '4900';
+    return [betrag, 'S', 'EUR', '', '', '', konto, '1200', '', datum, d.id.substring(0, 12), '', '', (d.titel || '').replace(/;/g, ',').substring(0, 60)].join(';');
   });
   const inhalt = [header, ...rows].join('\r\n');
   const FS = FileSystem as any;

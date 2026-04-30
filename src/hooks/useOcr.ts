@@ -1,8 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
-import { OcrManager } from '../core/ocr/OcrManager';
-import type { OcrManagerResult, OcrBatchResult } from '../core/ocr/OcrManager';
+import { OcrManager } from '@/core/ocr/OcrManager';
+import type { OcrManagerResult, OcrBatchResult } from '@/core/ocr/OcrManager';
 export type { OcrBatchResult };
-import type { OcrCaptureInput } from '../modules/ocr/types';
+import type { OcrCaptureInput } from '@/modules/ocr/types';
 
 export function useOcr() {
   const managerRef = useRef(new OcrManager());

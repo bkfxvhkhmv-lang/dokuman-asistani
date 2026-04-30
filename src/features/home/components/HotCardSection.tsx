@@ -9,9 +9,9 @@ import Animated, { cancelAnimation, Layout,
   withSpring,
   FadeInDown,
 } from 'react-native-reanimated';
-import GlassCard from '../../../design/components/GlassCard';
-import { useTheme } from '../../../ThemeContext';
-import { PRIORITY_COLOR, type HotDoc } from '../../../services/PriorityService';
+import GlassCard from '@/design/components/GlassCard';
+import { useTheme } from '@/ThemeContext';
+import { PRIORITY_COLOR, type HotDoc } from '@/services/PriorityService';
 
 interface Props {
   hotDocs: HotDoc[];

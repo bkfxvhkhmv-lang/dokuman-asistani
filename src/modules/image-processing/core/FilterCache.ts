@@ -1,5 +1,5 @@
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import { DEFAULT_PIPELINE_CONFIG } from '../registry/PipelineConfig';
+import { DEFAULT_PIPELINE_CONFIG } from '@/modules/image-processing/registry/PipelineConfig';
 
 interface CachedFilterEntry {
   uri: string;

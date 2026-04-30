@@ -1,11 +1,10 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { AppInput } from '../../../design/components';
-import type { ModalController } from '../hooks/useModalController';
-import type { StoreState } from '../../../store';
-
-const TYPEN = ['Rechnung','Mahnung','Bußgeld','Behörde','Termin','Versicherung','Vertrag','Sonstiges'];
+import { useTheme } from '@/ThemeContext';
+import { AppInput } from '@/design/components';
+import type { ModalController } from '@/features/detail/hooks/useModalController';
+import type { StoreState } from '@/store';
+import { CANONICAL_DOCUMENT_TYPES } from '@/product/canonicalDocTypes';
 const RISIKEN = [
   { id: 'hoch',    label: '🔴 Dringend' },
   { id: 'mittel',  label: '🟡 Diese Woche' },
@@ -79,14 +78,22 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
             </>
           ) : (
             <>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>DOKUMENTTYP</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-                {TYPEN.map(t => (
+              <AppInput
+                label="Dein Ordner"
+                icon="folder"
+                placeholder='z. B. Firma 2026 / Auto'
+                value={modal.editUserOrdner}
+                onChangeText={modal.setEditUserOrdner}
+                style={{ marginBottom: 18 }}
+              />
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>AUTOMATISCHE KATEGORIE</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {CANONICAL_DOCUMENT_TYPES.map(t => (
                   <TouchableOpacity key={t} onPress={() => modal.setEditTyp(t)}
-                    style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1,
+                    style={{ paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1,
                       borderColor: modal.editTyp === t ? C.primary : C.border,
                       backgroundColor: modal.editTyp === t ? C.primaryLight : 'transparent' }}>
-                    <Text style={{ fontSize: 13, fontWeight: modal.editTyp === t ? '700' : '400',
+                    <Text style={{ fontSize: 12, fontWeight: modal.editTyp === t ? '700' : '400',
                       color: modal.editTyp === t ? C.primaryDark : C.textSecondary }}>{t}</Text>
                   </TouchableOpacity>
                 ))}

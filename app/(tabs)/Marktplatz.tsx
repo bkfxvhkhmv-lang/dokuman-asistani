@@ -1,3 +1,3 @@
-import MarketplaceScreen from '../../src/features/marketplace/MarketplaceScreen';
+import MarketplaceScreen from '@features/marketplace/MarketplaceScreen';
 
 export default MarketplaceScreen;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { DocumentDigitalTwinModel } from '../../../core/intelligence/DocumentDigitalTwin';
+import { useTheme } from '@/ThemeContext';
+import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 
 const STEPS = [
   { key: 'received',      label: 'Gescannt' },

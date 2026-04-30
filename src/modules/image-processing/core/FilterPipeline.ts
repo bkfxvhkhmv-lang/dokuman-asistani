@@ -1,4 +1,4 @@
-import { ImageFilter, FilterResult, ProcessingError } from '../types';
+import { ImageFilter, FilterResult, ProcessingError } from '@/modules/image-processing/types';
 
 export class FilterPipeline {
   private filters = new Map<string, ImageFilter>();

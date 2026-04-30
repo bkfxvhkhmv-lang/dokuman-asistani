@@ -7,7 +7,8 @@ export const ExplainResultSchema = z.object({
   zusammenfassung: z.string().optional(),
   titel:         z.string().optional(),
   typ:           z.string().optional(),
-  risiko:        z.enum(['hoch', 'mittel', 'niedrig']).optional(),
+  /** Backend/Llm darf zusätzliche Werte liefern — striktes Enum bricht parsing und wirkt wie „nichts passiert“ */
+  risiko:        z.string().optional(),
   betrag:        z.number().nullable().optional(),
   frist:         z.string().nullable().optional(),
   iban:          z.string().nullable().optional(),

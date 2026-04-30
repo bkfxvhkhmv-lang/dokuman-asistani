@@ -1,5 +1,5 @@
-import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from './formatters';
-import type { Dokument } from '../store';
+import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from '@/utils/formatters';
+import type { Dokument } from '@/store';
 
 export function findeAehnlicheDokumente(dok: Dokument, alleDocs: Dokument[], maxAnzahl = 5): (Dokument & { _aehnlichScore: number })[] {
   return alleDocs.filter(d => d.id !== dok.id).map(d => {

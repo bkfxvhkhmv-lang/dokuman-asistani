@@ -13,7 +13,12 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "plugins": [
+      [
+        "expo-notifications",
+        { "defaultChannel": "briefpilot_default", "color": "#2563eb" }
+      ],
       "expo-router",
+      "expo-font",
       "expo-secure-store",
       "expo-sqlite",
       "expo-web-browser",
@@ -30,7 +35,10 @@
       "package": "com.briefpilot.app"
     },
     "extra": {
-      "APP_ENV": "device"
+      "APP_ENV": "device",
+      "googleAndroidClientId": "",
+      "googleWebClientId": "",
+      "googleIosClientId": ""
     }
   }
 }

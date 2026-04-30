@@ -1,4 +1,4 @@
-export { CleanFilter } from './clean';
-export { BWFilter } from './bw';
-export { MagicFilter } from './magic';
-export { ColorFilter } from './color';
+export { CleanFilter } from '@/modules/image-processing/presets/clean';
+export { BWFilter } from '@/modules/image-processing/presets/bw';
+export { MagicFilter } from '@/modules/image-processing/presets/magic';
+export { ColorFilter } from '@/modules/image-processing/presets/color';

@@ -1,18 +1,19 @@
-import { Accelerometer } from 'expo-sensors';
+import { Gyroscope } from 'expo-sensors';
 import * as Haptics from 'expo-haptics';
 import { Platform, Vibration } from 'react-native';
-import { AutoCaptureReadiness, StabilityState, ScannerListener, ScannerEvent } from '../types';
+import { AutoCaptureReadiness, StabilityState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
 
 export class AutoCaptureEngine {
   private subscription: any = null;
-  private lastAccel = { x: 0, y: 0, z: 0 };
   private stabilityStart: number | null = null;
   private isStable = false;
   private listeners: ScannerListener[] = [];
   private config = {
-    threshold: 0.15,
-    requiredDuration: 800,
-    autoTriggerDelay: 1200,
+    // rad/s — kullanıcının koduyla aynı: 0.1 rad/s altı = sabit
+    threshold: 0.10,
+    // 500ms sabit kaldıktan sonra "stable" (kullanıcının 0.5s timer'ı)
+    requiredDuration: 500,
+    autoTriggerDelay: 800,
     readinessThreshold: 0.78,
   };
   private enabled = false;
@@ -56,15 +57,16 @@ export class AutoCaptureEngine {
     if (this.enabled) return;
     this.enabled = true;
     try {
-      const permission = await Accelerometer.requestPermissionsAsync();
+      const permission = await Gyroscope.requestPermissionsAsync();
       if (!permission.granted) {
-        this.emit({ type: 'error', error: { code: 'ACCEL_PERM_DENIED', message: 'Accelerometer permission denied', recoverable: true } });
+        this.emit({ type: 'error', error: { code: 'GYRO_PERM_DENIED', message: 'Gyroscope permission denied', recoverable: true } });
         return;
       }
-      Accelerometer.setUpdateInterval(80);
-      this.subscription = Accelerometer.addListener(({ x, y, z }) => this.processAccelerometer(x, y, z));
+      // 50ms = 20fps — kullanıcının deviceMotionUpdateInterval: 0.05 ile aynı
+      Gyroscope.setUpdateInterval(50);
+      this.subscription = Gyroscope.addListener(({ x, y, z }) => this.processGyroscope(x, y, z));
     } catch (e) {
-      this.emit({ type: 'error', error: { code: 'ACCEL_INIT_FAILED', message: 'Failed to initialize accelerometer', recoverable: true } });
+      this.emit({ type: 'error', error: { code: 'GYRO_INIT_FAILED', message: 'Failed to initialize gyroscope', recoverable: true } });
     }
   }
 
@@ -119,16 +121,11 @@ export class AutoCaptureEngine {
     this.updateQualityScores(blur, brightness, distortion);
   }
 
-  private processAccelerometer(x: number, y: number, z: number) {
-    const last = this.lastAccel;
-    const delta = Math.sqrt(
-      Math.pow(x - last.x, 2) +
-      Math.pow(y - last.y, 2) +
-      Math.pow(z - last.z, 2)
-    );
-    this.lastAccel = { x, y, z };
+  private processGyroscope(x: number, y: number, z: number) {
+    // Angular velocity magnitude (rad/s) — kullanıcının speed hesabıyla aynı
+    const speed = Math.sqrt(x * x + y * y + z * z);
 
-    if (delta < this.config.threshold) {
+    if (speed < this.config.threshold) {
       if (!this.stabilityStart) {
         this.stabilityStart = Date.now();
       } else {

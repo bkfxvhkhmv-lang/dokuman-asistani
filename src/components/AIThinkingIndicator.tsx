@@ -12,7 +12,7 @@ import Animated, {
   withRepeat, withSequence, withTiming, withDelay,
   cancelAnimation, Easing,
 } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 // ── Single orbiting dot ────────────────────────────────────────────────────
 

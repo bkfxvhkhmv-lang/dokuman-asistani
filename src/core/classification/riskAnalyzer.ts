@@ -1,4 +1,4 @@
-import type { DocumentType } from './DocumentClassifier';
+import type { DocumentType } from '@/core/classification/DocumentClassifier';
 
 export type RiskLevel = 'hoch' | 'mittel' | 'niedrig';
 

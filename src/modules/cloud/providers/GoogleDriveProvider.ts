@@ -1,7 +1,7 @@
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system';
-import type { CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile } from '../types';
+import type { CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile, CloudFolderChild } from '@/modules/cloud/types';
 
 const CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 const TOKEN_KEY = 'briefpilot_gdrive_token';
@@ -142,6 +142,32 @@ export class GoogleDriveProvider implements CloudSyncProvider {
       url: f.webViewLink,
       createdAt: f.createdTime,
       sizeBytes: f.size ? (parseInt(f.size, 10) || 0) : undefined,
+    }));
+  }
+
+  /** S6 — `BriefPilot` kökü veya bilinen klasör kimliği altındaki öğeler. */
+  async listFolderChildren(parentId: string | null): Promise<CloudFolderChild[]> {
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    if (!token) return [];
+
+    const folderId =
+      parentId ?? (await this.ensureFolder(token, FOLDER_NAME));
+    if (!folderId) return [];
+
+    const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+    const res = await fetch(
+      `${DRIVE_FILES}?q=${q}&fields=files(id,name,mimeType)&pageSize=100`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.files ?? []).map((f: any) => ({
+      id: f.id as string,
+      name: f.name as string,
+      kind:
+        f.mimeType === 'application/vnd.google-apps.folder' ? ('folder' as const) : ('file' as const),
     }));
   }
 

@@ -2,8 +2,8 @@
  * OutcomePredictor — Belgenin olası sonuçlarını tahmin eder.
  * "Bu belge büyük ihtimalle bir ödeme ile sonuçlanır."
  */
-import { InstitutionBehaviorModel } from './InstitutionBehaviorModel';
-import { detectIntent } from './IntentDetector';
+import { InstitutionBehaviorModel } from '@/core/intelligence/InstitutionBehaviorModel';
+import { detectIntent } from '@/core/intelligence/IntentDetector';
 
 export interface PredictedOutcome {
   id:          string;

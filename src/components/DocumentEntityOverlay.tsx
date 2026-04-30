@@ -18,8 +18,8 @@ import Animated, {
   withDelay, withRepeat, withSequence, withTiming,
   cancelAnimation, Easing,
 } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
-import type { EntityBox } from '../services/visionApi';
+import { useTheme } from '@/ThemeContext';
+import type { EntityBox } from '@/services/visionApi';
 
 // #103: Simple Mode doubles border width and glow radius
 

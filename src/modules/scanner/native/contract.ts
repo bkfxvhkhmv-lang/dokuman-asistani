@@ -1,4 +1,4 @@
-import type { DocumentCorners } from '../types';
+import type { DocumentCorners } from '@/modules/scanner/types';
 
 export const SCANNER_NATIVE_MODULE_NAME = 'BriefPilotScanner';
 

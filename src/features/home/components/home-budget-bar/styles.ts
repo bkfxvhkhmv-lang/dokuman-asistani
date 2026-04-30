@@ -1,0 +1,28 @@
+import { StyleSheet } from 'react-native';
+
+export const homeBudgetStyles = StyleSheet.create({
+  wrapper: {},
+  card: { padding: 16, shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 4 },
+  greeting: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5, marginBottom: 10 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  left: { flex: 1 },
+  right: { alignItems: 'flex-end', gap: 4 },
+  metaLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 3 },
+  bigAmount: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 9 },
+  chip: { borderRadius: 7, paddingHorizontal: 7, paddingVertical: 3 },
+  chipText: { fontSize: 10, fontWeight: '700' },
+  bucketLabel: { fontSize: 9, fontWeight: '600' },
+  tooltip: { position: 'absolute', top: -40, borderRadius: 8, borderWidth: 0.5, paddingHorizontal: 7, paddingVertical: 4, zIndex: 10, alignItems: 'center', minWidth: 56 },
+  tooltipLabel: { fontSize: 9, fontWeight: '600' },
+  tooltipAmount: { fontSize: 11, fontWeight: '800' },
+  progressSection: { marginTop: 12, gap: 5 },
+  progressTrack: { height: 6, borderRadius: 3, overflow: 'visible', position: 'relative' },
+  progressFill: { height: '100%', borderRadius: 3 },
+  projectedMarker: { position: 'absolute', top: -3, width: 2, height: 12, borderRadius: 1 },
+  progressLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  progressLabel: { fontSize: 11, fontWeight: '700' },
+  velocityText: { fontSize: 10, fontWeight: '500' },
+  insightRow: { borderTopWidth: 0.5, marginTop: 12, paddingTop: 10 },
+  insightText: { fontSize: 12, fontWeight: '500', lineHeight: 17 },
+});

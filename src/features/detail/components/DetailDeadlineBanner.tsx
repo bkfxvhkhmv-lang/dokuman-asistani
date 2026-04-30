@@ -1,0 +1,77 @@
+import React from 'react';
+import { TouchableOpacity, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
+import { getTageVerbleibend } from '@/utils/formatters';
+
+/** Frist in der Zukunft, noch nicht im Kalender; bei Überfälligkeit kein Kalender-Hinweis. */
+export function shouldShowDetailDeadlineBanner(dok: Dokument): boolean {
+  if (!dok?.frist || dok.erledigt || dok.fristImKalender) return false;
+  const tage = getTageVerbleibend(dok.frist);
+  if (tage === null) return false;
+  return tage >= 0;
+}
+
+type Props = {
+  dok: Dokument;
+  onCalendarPress: () => void;
+};
+
+export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
+  const { Colors: C, S, R } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  if (!shouldShowDetailDeadlineBanner(dok) || !dok.frist) return null;
+
+  const fristStr = new Date(dok.frist).toLocaleDateString('de-DE', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: S.md,
+        right: S.md,
+        bottom: Math.max(insets.bottom, 10) + 4,
+        zIndex: 95,
+      }}
+      pointerEvents="box-none"
+    >
+      <TouchableOpacity
+        onPress={onCalendarPress}
+        activeOpacity={0.92}
+        accessibilityRole="button"
+        accessibilityLabel="Frist ins Kalender übernehmen"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          paddingVertical: 12,
+          paddingHorizontal: 14,
+          borderRadius: R.lg,
+          backgroundColor: C.primary,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.2,
+          shadowRadius: 8,
+          elevation: 6,
+        }}
+      >
+        <Text style={{ fontSize: 18 }}>📅</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>Frist ins Kalender</Text>
+          <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', marginTop: 2 }} numberOfLines={2}>
+            {fristStr} — Tippen zum Eintragen und lokale Erinnerungen aktivieren
+          </Text>
+        </View>
+        <Text style={{ fontSize: 18, color: 'rgba(255,255,255,0.9)' }}>›</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}

@@ -1,10 +1,10 @@
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import { FilterPipeline as EnginePipeline, getSharedFilterPipeline } from '../engine/FilterPipeline';
-import { QualityAnalyzer, DetailedQualityAnalyzer } from './QualityAnalyzer';
-import { FilterCache, getSharedFilterCache } from './FilterCache';
-import { getSharedImageSessionManager } from '../session/ImageSessionManager';
-import { optimizeDocumentImage, binarizeForOCR } from '../engine/SkiaDocumentOptimizer';
-import type { ImageSession, ProcessingConfig, ProcessingResult, CropPixelRect, QualityMetrics } from '../types';
+import { FilterPipeline as EnginePipeline, getSharedFilterPipeline } from '@/modules/image-processing/engine/FilterPipeline';
+import { QualityAnalyzer, DetailedQualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
+import { FilterCache, getSharedFilterCache } from '@/modules/image-processing/core/FilterCache';
+import { getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
+import { optimizeDocumentImage, binarizeForOCR } from '@/modules/image-processing/engine/SkiaDocumentOptimizer';
+import type { ImageSession, ProcessingConfig, ProcessingResult, CropPixelRect, QualityMetrics } from '@/modules/image-processing/types';
 
 // ── Document scan output ──────────────────────────────────────────────────────
 

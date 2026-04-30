@@ -5,7 +5,7 @@ import Animated, {
   withSpring, withTiming, runOnJS, interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useTheme } from '../../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 const SCREEN_H = Dimensions.get('window').height;
 const SPRING   = { damping: 22, stiffness: 240, mass: 0.85 };

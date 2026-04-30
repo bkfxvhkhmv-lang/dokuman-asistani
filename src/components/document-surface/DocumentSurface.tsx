@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 interface DocumentSurfaceProps {
   children: React.ReactNode;

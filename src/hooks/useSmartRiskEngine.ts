@@ -8,8 +8,8 @@ import {
   buildPortfolioRisk,
   type RiskEngineResult,
   type PortfolioRisk,
-} from '../services/SmartRiskEngineService';
-import type { Dokument } from '../store';
+} from '@/services/SmartRiskEngineService';
+import type { Dokument } from '@/store';
 
 export function useDocumentRisk(dok: Dokument | null, alleDocs: Dokument[] = []): RiskEngineResult | null {
   return useMemo(() => (dok ? runSmartRiskEngine(dok, alleDocs) : null), [dok, alleDocs]);

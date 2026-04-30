@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../../ThemeContext';
-import { useStore } from '../../../store';
-import { analyzeAllTargets, TARGET_STATUS_COLOR, type TargetAnalysis } from '../../../services/TargetService';
-import { formatBetrag } from '../../../utils';
-import type { BudgetTarget, Dokument } from '../../../store';
+import { useTheme } from '@/ThemeContext';
+import { useStore } from '@/store';
+import { analyzeAllTargets, TARGET_STATUS_COLOR, type TargetAnalysis } from '@/services/TargetService';
+import { formatBetrag } from '@/utils';
+import type { BudgetTarget, Dokument } from '@/store';
 
 interface Props {
   visible:  boolean;

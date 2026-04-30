@@ -1,25 +1,32 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { ScrollView, View, RefreshControl, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import AuroraBackground from '../../design/components/AuroraBackground';
-import { styles } from './styles';
-import HomeHeader from './components/HomeHeader';
-import HomeRecentList from './components/HomeRecentList';
-import HomeUrgencyBanner from './components/HomeUrgencyBanner';
-import HomeFilterModal from './components/HomeFilterModal';
-import useHomeData from './hooks/useHomeData';
-import { setTabBarCollapsed } from '../../navigation/tabBarVisibility';
-import { HomeSkeletonLoader } from '../../components/SkeletonLoader';
-import { buildBudgetSnapshot } from '../../services/BudgetEngine';
-import HotCardSection from './components/HotCardSection';
-import HomePullDigest from './components/HomePullDigest';
-import { buildHotDocs } from '../../services/PriorityService';
-import type { HotDoc } from '../../services/PriorityService';
-import ContextualActionStrip from './components/ContextualActionStrip';
-import SkiaRefreshIndicator from '../../components/SkiaRefreshIndicator';
-import { generateDigest } from '../../services/DigestAIService';
-import type { DigestResult } from '../../services/DigestAIService';
-import { analyzeAllTargets } from '../../services/TargetService';
+import AuroraBackground from '@/design/components/AuroraBackground';
+import { styles } from '@/features/home/styles';
+import HomeHeader from '@/features/home/components/HomeHeader';
+import HomeRecentList from '@/features/home/components/HomeRecentList';
+import HomeUrgencyBanner from '@/features/home/components/HomeUrgencyBanner';
+import useHomeData from '@/features/home/hooks/useHomeData';
+import { setTabBarCollapsed } from '@/navigation/tabBarVisibility';
+import { HomeSkeletonLoader } from '@/components/SkeletonLoader';
+import { buildBudgetSnapshot } from '@/services/BudgetEngine';
+import HotCardSection from '@/features/home/components/HotCardSection';
+import HomePullDigest from '@/features/home/components/HomePullDigest';
+import { buildHotDocs } from '@/services/PriorityService';
+import type { HotDoc } from '@/services/PriorityService';
+import ContextualActionStrip from '@/features/home/components/ContextualActionStrip';
+import SkiaRefreshIndicator from '@/components/SkiaRefreshIndicator';
+import { generateDigest } from '@/services/DigestAIService';
+import type { DigestResult } from '@/services/DigestAIService';
+import { analyzeAllTargets } from '@/services/TargetService';
+import { HOME_ALL_GOOD_BODY, HOME_ALL_GOOD_TITLE } from '@/product/strategyCopy';
+import DashboardSummary from '@/design/components/DashboardSummary';
+import AppBottomSheet from '@/components/AppBottomSheet';
+import PdfMergeDragModal from '@/components/PdfMergeDragModal';
+import HomeSelectionBar from '@/features/home/components/HomeSelectionBar';
+
+const ENABLE_HOT = false;
+const ENABLE_CONTEXT_STRIP = false;
 
 
 export default function Home() {
@@ -35,7 +42,6 @@ export default function Home() {
   const [digestVisible, setDigestVisible]     = useState(false);
   const [digest, setDigest]                   = useState<DigestResult | null>(null);
   const [dismissedHotIds, setDismissedHotIds] = useState<Set<string>>(new Set());
-  // HotCardSection already shows hotDocs[0] — strip starts from index 1 to avoid duplicate CTA
   const activeStrip = useMemo(
     () => hotDocs.slice(1).find(h => !dismissedHotIds.has(h.dok.id)) ?? null,
     [hotDocs, dismissedHotIds],
@@ -45,7 +51,6 @@ export default function Home() {
     () => analyzeAllTargets(data.state.einstellungen.budgetTargets ?? [], data.sichtbareDocs),
     [data.state.einstellungen.budgetTargets, data.sichtbareDocs],
   );
-
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setDigest(null);          // show shimmer immediately
@@ -110,16 +115,16 @@ export default function Home() {
       }
     >
       <HomeHeader data={data} />
-      <HomeFilterModal
-        visible={data.filterOffen}
-        onClose={() => data.setFilterOffen(false)}
-        colors={data.Colors}
-        shadow={data.Shadow}
-        spacing={data.S}
-        radius={data.R}
-        activeTab={activeTab}
-        filter={data.filter}
-        setFilter={data.setFilter}
+
+      <DashboardSummary
+        urgent={data.dringend.length}
+        openTasks={data.aufgaben.length}
+        amountOpen={data.zahlungsSumme}
+        nextDeadlineDays={data.naechsteTage ?? undefined}
+        nextDeadlineTitle={data.naechste?.titel ?? data.naechste?.absender ?? undefined}
+        onPruefe={() => data.handleTabPress('Dokumente')}
+        onFrist={() => data.naechste?.id && router.push({ pathname: '/detail', params: { dokId: data.naechste!.id } })}
+        onScan={() => router.push('/(tabs)/Kamera')}
       />
 
       <HomePullDigest
@@ -128,11 +133,12 @@ export default function Home() {
         onDismiss={() => { setDigestVisible(false); setDigest(null); }}
       />
 
-      {/* Asistan seçimi — en kritik 1 belge */}
-      <HotCardSection
-        hotDocs={hotDocs.slice(0, 1)}
-        onPress={(h: HotDoc) => router.push({ pathname: '/detail', params: { dokId: h.dok.id } })}
-      />
+      {ENABLE_HOT && (
+        <HotCardSection
+          hotDocs={hotDocs.slice(0, 1)}
+          onPress={(h: HotDoc) => router.push({ pathname: '/detail', params: { dokId: h.dok.id } })}
+        />
+      )}
 
       {/* allClear — no urgent docs, system has data */}
       {hotDocs.length === 0 && (data.alleDocs?.length ?? 0) > 0 && !data.initialLaden && (
@@ -147,10 +153,10 @@ export default function Home() {
           <Text style={{ fontSize: 22 }}>✓</Text>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '700', color: data.Colors.successText ?? data.Colors.success }}>
-              Heute alles gut.
+              {HOME_ALL_GOOD_TITLE}
             </Text>
             <Text style={{ fontSize: 12, color: data.Colors.successText ?? data.Colors.success, opacity: 0.75, marginTop: 2 }}>
-              Kein Handlungsbedarf — alle Dokumente im grünen Bereich.
+              {HOME_ALL_GOOD_BODY}
             </Text>
           </View>
         </View>
@@ -172,8 +178,7 @@ export default function Home() {
       }
     </ScrollView>
 
-      {/* ── Contextual Action Strip — sits above the floating tab bar ── */}
-      {activeStrip && (
+      {ENABLE_CONTEXT_STRIP && activeStrip && (
         <View style={{ position: 'absolute', bottom: 108, left: 16, right: 16 }}>
           <ContextualActionStrip
             key={activeStrip.dok.id}
@@ -188,9 +193,37 @@ export default function Home() {
           />
         </View>
       )}
-
       {/* #41 Skia pull-to-refresh aura */}
       <SkiaRefreshIndicator refreshing={refreshing} topOffset={60} />
+
+      <AppBottomSheet
+        visible={!!data.sheetConfig}
+        onClose={data.hideSheet}
+        title={data.sheetConfig?.title ?? ''}
+        message={data.sheetConfig?.message}
+        icon={data.sheetConfig?.icon ?? 'information-circle'}
+        tone={data.sheetConfig?.tone ?? 'default'}
+        actions={data.sheetConfig?.actions ?? [{ label: 'OK', variant: 'primary', onPress: data.hideSheet }]}
+      />
+
+      <PdfMergeDragModal
+        visible={data.pdfMergeModal}
+        items={data.mergeReihenfolge}
+        onClose={() => data.setPdfMergeModal(false)}
+        onDone={() => { data.secimiIptal(); }}
+      />
+
+      {data.secilenModus ? (
+        <HomeSelectionBar
+          count={data.secilenIds.size}
+          onAbbrechen={data.secimiIptal}
+          onExport={data.handleBatchExport}
+          onSteuerpaket={data.handleSteuerpaketAuswahl}
+          onLoeschen={data.handleBatchLoeschen}
+          C={data.Colors}
+          dangerColor={data.RiskColors.hoch.color}
+        />
+      ) : null}
 
     </View>
   );

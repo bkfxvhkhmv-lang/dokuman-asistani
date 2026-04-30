@@ -1,27 +1,37 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useStore } from '../../../store';
-import { useTheme } from '../../../ThemeContext';
-import { useAuth } from '../../../providers/AuthContext';
-import { useSyncEngine } from '../../../hooks/useSyncEngine';
-import { useSheet } from '../../../hooks/useSheet';
-import { sortByRisiko, getTageVerbleibend, getUngelesen, filterDokumente, exportiereTopluPDF } from '../../../utils';
-import type { Dokument } from '../../../store';
+import { useStore } from '@/store';
+import { useTheme } from '@/ThemeContext';
+import { useAuth } from '@/providers/AuthContext';
+import { useSyncEngine } from '@/hooks/useSyncEngine';
+import { useSheet } from '@/hooks/useSheet';
+import { sortByRisiko, getTageVerbleibend, getUngelesen, filterDokumente, exportiereTopluPDF } from '@/utils';
+import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
+import type { Dokument } from '@/store';
 
+/** Persona‑Fokus: Kleinunternehmer, Angestellte, Haushalt (Belege/Garantie) · `@/product/strategyCopy` */
 export const TABS = ['Aufgaben', 'Dokumente', 'Ordner', 'Kalender', 'Zahlungen'] as const;
 
 export const TYP_META: Record<string, { icon: string; farbe: string }> = {
   Rechnung:       { icon: 'receipt',        farbe: '#4A90D9' },
+  Rechnungen:    { icon: 'receipt',        farbe: '#4A90D9' },
   Mahnung:        { icon: 'warning-circle', farbe: '#E24B4A' },
+  'Mahnung / Zahlungserinnerung': { icon: 'warning-circle', farbe: '#E24B4A' },
   Bußgeld:        { icon: 'car',            farbe: '#E24B4A' },
   Behörde:        { icon: 'buildings',      farbe: '#BA7517' },
+  'Behörden / Amt': { icon: 'buildings',   farbe: '#BA7517' },
   Steuer:         { icon: 'folder-open',    farbe: '#2F7D32' },
   Steuerbescheid: { icon: 'chart-bar',      farbe: '#BA7517' },
   Termin:         { icon: 'calendar',       farbe: '#1D9E75' },
   Versicherung:   { icon: 'shield-check',   farbe: '#534AB7' },
   Vertrag:        { icon: 'file-text',      farbe: '#7C6EF8' },
+  Verträge:       { icon: 'file-text',      farbe: '#7C6EF8' },
   Kündigung:      { icon: 'scissors',       farbe: '#E24B4A' },
+  Gesundheit:     { icon: 'heart',          farbe: '#1D9E75' },
+  'Schule / Kita': { icon: 'book-outline',  farbe: '#534AB7' },
+  'Bank / Finanzen': { icon: 'bank',       farbe: '#4A90D9' },
+  'Garantie / Kaufbeleg': { icon: 'archive', farbe: '#BA7517' },
   Sonstiges:      { icon: 'file',           farbe: '#888'    },
 };
 
@@ -30,11 +40,17 @@ export function useHomeState() {
   const { Colors, RiskColors, Shadow, S, R, isDark } = useTheme();
   const { user: authUser } = useAuth();
   const { sync: runSyncEngine, status: syncStatus, lastSync: letzterSync } = useSyncEngine();
-  const { config: sheetConfig, showSheet, hideSheet, confirm } = useSheet();
+  const { config: sheetConfig, showSheet, hideSheet, confirm, alert } = useSheet();
 
-  const [aktiv, setAktiv]                             = useState('Aufgaben');
-  const [filterOffen, setFilterOffen]                 = useState(false);
-  const [filter, setFilter]                           = useState({ risiko: 'alle', typ: 'alle', sortBy: 'risiko', nurOffen: true });
+  // Default tab "Dokumente": Archiv + klassierte Belege (Strategie: Suche/Export).
+  const [aktiv, setAktiv]                             = useState('Dokumente');
+  const [filter, setFilter]                           = useState({
+    risiko: 'alle',
+    typ: 'alle',
+    sortBy: 'risiko',
+    nurOffen: false,
+    quickScope: 'offen' as 'alle' | 'offen' | 'ueberfaellig',
+  });
   const [initialLaden, setInitialLaden]               = useState(true);
   const [aktifOrdner, setAktifOrdner]                 = useState<string | null>(null);
   const [secilenModus, setSecilenModus]               = useState(false);
@@ -85,7 +101,11 @@ export function useHomeState() {
   const ungelesen    = useMemo(() => getUngelesen(state.dokumente), [state.dokumente]);
   const naechste     = kalDocs[0] ?? null;
   const naechsteTage = naechste ? getTageVerbleibend(naechste.frist) : null;
-  const filterAktiv  = filter.risiko !== 'alle' || filter.typ !== 'alle';
+  const filterAktiv =
+    filter.risiko !== 'alle' ||
+    filter.typ !== 'alle' ||
+    filter.quickScope === 'alle' ||
+    filter.quickScope === 'ueberfaellig';
 
   const ordner = useMemo(() => {
     const map: Record<string, { typ: string; docs: Dokument[]; offen: number; letztesDatum: string | null }> = {};
@@ -184,6 +204,23 @@ export function useHomeState() {
     if (ok) { secilenIds.forEach(id => dispatch({ type: 'DELETE_DOKUMENT', id })); setSecilenModus(false); setSecilenIds(new Set()); }
   }, [secilenIds, dispatch, confirm]);
 
+  const handleSteuerpaketAuswahl = useCallback(async () => {
+    const secilen = state.dokumente.filter(d => secilenIds.has(d.id));
+    if (secilen.length === 0) return;
+    const jahr = new Date().getFullYear();
+    const paket = collectSteuerpaketDokumente(secilen, { jahr });
+    if (paket.length === 0) {
+      alert(
+        'Keine Steuernachweise',
+        `Unter den ${secilen.length} ausgewählten Dokumenten ist für ${jahr} nichts eindeutig steuerrelevant.`,
+        { icon: 'folder-open', tone: 'default' },
+      );
+      return;
+    }
+    await exportiereTopluPDF(paket);
+    setSecilenModus(false); setSecilenIds(new Set());
+  }, [state.dokumente, secilenIds, alert]);
+
   const handleTabPress = useCallback((tab: string) => {
     setAktiv(tab);
     if (tab !== 'Ordner') setAktifOrdner(null);
@@ -237,11 +274,10 @@ export function useHomeState() {
     sheetConfig, showSheet, hideSheet,
     state, dispatch,
     aktiv, setAktiv, handleTabPress,
-    filterOffen, setFilterOffen,
     filter, setFilter, filterAktiv,
     initialLaden, aktifOrdner, setAktifOrdner,
     secilenModus, secilenIds, secimiIptal, handleSecim, handleLongPress,
-    handleBatchExport, handleBatchLoeschen,
+    handleBatchExport, handleSteuerpaketAuswahl, handleBatchLoeschen,
     umbenennenModal, setUmbenennenModal, umbenennenTyp, setUmbenennenTyp,
     umbenennenText, setUmbenennenText, kombiName, setKombiName,
     kombiSpeichernModal, setKombiSpeichernModal,

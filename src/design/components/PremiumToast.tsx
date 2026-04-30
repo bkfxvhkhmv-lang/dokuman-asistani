@@ -5,9 +5,9 @@ import Animated, {
   withSpring, withTiming, withSequence, runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from '../../components/Icon';
-import { useTheme } from '../../ThemeContext';
-import type { ToastConfig } from '../../hooks/useToast';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import type { ToastConfig } from '@/hooks/useToast';
 
 interface Props {
   config: ToastConfig | null;

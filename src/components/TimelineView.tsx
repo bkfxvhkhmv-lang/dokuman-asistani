@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import Icon from './Icon';
-import { useTheme } from '../ThemeContext';
-import { getTimeline } from '../services/v4Api';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import { getTimeline } from '@/services/v4Api';
 
 const EVENT_ICONS: Record<string, string> = {
   DOCUMENT_CREATED: 'cloud-upload',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import Icon from '../../../components/Icon';
-import { useTheme } from '../../../ThemeContext';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
 
 interface OcrRisikoItem {
   wort: string;

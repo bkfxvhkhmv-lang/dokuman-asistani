@@ -5,8 +5,8 @@
  * Returns ordered action list with "Nächster Schritt" CTA.
  */
 
-import type { Dokument } from '../store';
-import { getTageVerbleibend } from '../utils';
+import type { Dokument } from '@/store';
+import { getTageVerbleibend } from '@/utils';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -136,8 +136,8 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   // ── KI-Assistent ──────────────────────────────────────────────────────────
   if (dok.rohText && dok.rohText.length > 50) {
     actions.push(makeAction(
-      'ai_erklären', 'Dokument erklären', '🤖',
-      'KI erklärt das Dokument in Ihrer Sprache',
+      'ai_erklären', 'Dokument verstehen', '🧠',
+      'KI fasst zusammen — Sprache wählbar',
       'ki_assistent', 62,
     ));
     actions.push(makeAction(

@@ -3,7 +3,7 @@
  * Online  → sunucu hibrit arama (FTS + vektör embedding)
  * Offline → yerel BM25 benzeri skor hesaplama
  */
-import { hybridSearch, smartSearch } from '../../services/v4Api';
+import { hybridSearch, smartSearch } from '@/services/v4Api';
 
 export type SearchMode = 'text' | 'mix' | 'semantic';
 export type SearchSource = 'server' | 'local';
@@ -149,7 +149,7 @@ export class HybridSearchEngineV4 {
     options: SearchOptions = { mode: 'mix' },
     filters: FilterOptions = {},
   ): Promise<SearchResult[]> {
-    const { mode, topK = 20, lang = 'tr', offline = false, localDocs = [] } = options;
+    const { mode, topK = 20, lang = 'de', offline = false, localDocs = [] } = options;
 
     let results: SearchResult[] = [];
 

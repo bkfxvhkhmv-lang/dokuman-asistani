@@ -1,9 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
-import Icon from '../../../components/Icon';
-import type { Dokument } from '../../../store';
-import type { ThemeColors } from '../../../ThemeContext';
-import type { RiskPalette } from '../../../theme';
+import Icon from '@/components/Icon';
+import type { Dokument } from '@/store';
+import type { ThemeColors } from '@/ThemeContext';
+import type { RiskPalette } from '@/theme';
 
 interface HomeUrgencyBannerProps {
   colors: ThemeColors;

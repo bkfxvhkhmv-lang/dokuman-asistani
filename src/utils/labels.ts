@@ -1,5 +1,5 @@
-import { formatBetrag } from './formatters';
-import type { Dokument } from '../store';
+import { formatBetrag } from '@/utils/formatters';
+import type { Dokument } from '@/store';
 
 export function schlagoEtikettenVor(dok: Dokument, haufig: string[] = []): string[] {
   const set = new Set<string>();

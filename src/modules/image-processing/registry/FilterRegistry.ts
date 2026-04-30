@@ -1,8 +1,8 @@
-import { CleanFilter } from '../presets/clean';
-import { BWFilter } from '../presets/bw';
-import { MagicFilter } from '../presets/magic';
-import { ColorFilter } from '../presets/color';
-import type { ImageFilter } from '../types';
+import { CleanFilter } from '@/modules/image-processing/presets/clean';
+import { BWFilter } from '@/modules/image-processing/presets/bw';
+import { MagicFilter } from '@/modules/image-processing/presets/magic';
+import { ColorFilter } from '@/modules/image-processing/presets/color';
+import type { ImageFilter } from '@/modules/image-processing/types';
 
 export class FilterRegistry {
   getFilters(): ImageFilter[] {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AutoCaptureEngine } from './engine/AutoCapture';
-import type { AutoCaptureReadiness } from './types';
+import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
+import type { AutoCaptureReadiness } from '@/modules/scanner/types';
 
 interface AutoCaptureConfig {
   threshold?: number;

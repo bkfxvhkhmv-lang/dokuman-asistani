@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { StatusBar, View, StyleSheet } from 'react-native';
+import { initNativeScannerBridge } from '../src/modules/scanner/engine/NativeScannerBridge';
 import HeroTransitionOverlay from '../src/navigation/HeroTransitionOverlay';
 import OfflineBanner from '../src/components/OfflineBanner';
 import SperrBildschirm from '../src/components/SperrBildschirm';
@@ -14,6 +15,8 @@ import ErrorBoundary from '../src/components/ErrorBoundary';
 import { useSmartNotifications } from '../src/hooks/useSmartNotifications';
 import { useShareHandler } from '../src/hooks/useShareHandler';
 import { useWidgetSync } from '../src/hooks/useWidgetSync';
+import { useSpeechStopOnBackground } from '../src/hooks/useSpeechStopOnBackground';
+import BackendHealthBootstrap from '../src/providers/BackendHealthBootstrap';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,10 +48,36 @@ function ThemedNavigator() {
   const { Colors } = useTheme();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.bg } }}>
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen
+        name="first-value"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_bottom',
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
       <Stack.Screen name="index" />
       <Stack.Screen name="login"   options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)"  options={{ headerShown: false }} />
-      <Stack.Screen name="detail"  options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen
+        name="detail"
+        options={{
+          headerShown: false,
+          animation: 'fade',
+          animationDuration: 180,
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
+      <Stack.Screen
+        name="einstellungen"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
     </Stack>
   );
 }
@@ -67,6 +96,16 @@ function ShareExtensionProvider() {
 function WidgetSyncProvider() {
   useWidgetSync();
   return null;
+}
+
+function SpeechKillOnBackground() {
+  useSpeechStopOnBackground();
+  return null;
+}
+
+function ThemedRootSurface({ children }: { children: React.ReactNode }) {
+  const { Colors } = useTheme();
+  return <View style={{ flex: 1, backgroundColor: Colors.bg }}>{children}</View>;
 }
 
 function PrivacyGateProvider() {
@@ -95,6 +134,7 @@ const priv = StyleSheet.create({
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+    initNativeScannerBridge();
   }, []);
 
   return (
@@ -108,7 +148,10 @@ export default function RootLayout() {
                 <SmartNotificationsProvider />
                 <ShareExtensionProvider />
                 <WidgetSyncProvider />
-                <View style={{ flex: 1 }}>
+                <SpeechKillOnBackground />
+                <BackendHealthBootstrap />
+                {/* Keep root surface aligned with active theme */}
+                <ThemedRootSurface>
                   <ThemedNavigator />
 
                   {/* Floating hero expansion overlay — above all screens */}
@@ -119,7 +162,7 @@ export default function RootLayout() {
 
                   {/* #101/#102 — privacy overlay + biometric gate */}
                   <PrivacyGateProvider />
-                </View>
+                </ThemedRootSurface>
               </StoreProvider>
             </AuthProvider>
           </ThemeProvider>

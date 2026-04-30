@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import { parseGiroCode, giroCodeToText } from '../services/giroCodeService';
-import type { GiroCode } from '../services/giroCodeService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { parseGiroCode, giroCodeToText } from '@/services/giroCodeService';
+import type { GiroCode } from '@/services/giroCodeService';
 
 type ScanResult = (GiroCode & { raw?: never }) | { raw: string; iban?: never };
 

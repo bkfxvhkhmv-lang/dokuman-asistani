@@ -8,10 +8,10 @@ import { useQuery, useMutation, useQueryClient, QueryClient } from '@tanstack/re
 import {
   browseMarketplace, getHealthStatus,
   explainDocumentSafe, installRule, uninstallRule, rateRule,
-} from '../services/v4Api';
-import type { MarketplaceRule } from '../services/v4Api';
-import type { Dokument } from '../store';
-import type { DocumentDigitalTwinModel } from '../core/intelligence/DocumentDigitalTwin';
+} from '@/services/v4Api';
+import type { MarketplaceRule } from '@/services/v4Api';
+import type { Dokument } from '@/store';
+import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 
 // ── Query keys (centralised to avoid string typos) ────────────────────────
 
@@ -141,7 +141,7 @@ export function useDigitalTwinQuery(dok: Dokument | undefined) {
   return useQuery<DocumentDigitalTwinModel>({
     queryKey:  QK.twin(dok?.id ?? ''),
     queryFn:   async () => {
-      const { DocumentDigitalTwin } = await import('../core/intelligence/DocumentDigitalTwin');
+      const { DocumentDigitalTwin } = await import('@/core/intelligence/DocumentDigitalTwin');
       return DocumentDigitalTwin.build(dok!);
     },
     enabled:   !!dok,
@@ -163,7 +163,7 @@ export async function prefetchDocumentData(
   queryClient.prefetchQuery({
     queryKey:  QK.twin(dok.id),
     queryFn:   async () => {
-      const { DocumentDigitalTwin } = await import('../core/intelligence/DocumentDigitalTwin');
+      const { DocumentDigitalTwin } = await import('@/core/intelligence/DocumentDigitalTwin');
       return DocumentDigitalTwin.build(dok);
     },
     staleTime: 5 * 60 * 1000,

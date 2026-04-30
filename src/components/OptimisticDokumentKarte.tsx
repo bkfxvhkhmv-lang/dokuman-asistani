@@ -14,8 +14,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
 
 // ── Skia data-stream (optional, try-require) ──────────────────────────────
 

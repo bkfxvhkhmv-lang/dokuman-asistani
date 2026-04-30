@@ -1,9 +1,9 @@
 import { useCallback, useReducer } from 'react';
-import { getSharedUnifiedPipeline } from '../core/UnifiedImagePipeline';
-import { createImageSession, getSharedImageSessionManager } from '../session/ImageSessionManager';
-import { FastQualityGate } from '../core/QualityAnalyzer';
-import type { CaptureResult, ScanQualityInput } from '../../scanner/types';
-import type { ImageSession, ProcessingConfig, ProcessingResult, CropPixelRect } from '../types';
+import { getSharedUnifiedPipeline } from '@/modules/image-processing/core/UnifiedImagePipeline';
+import { createImageSession, getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
+import { FastQualityGate } from '@/modules/image-processing/core/QualityAnalyzer';
+import type { CaptureResult, ScanQualityInput } from '@/modules/scanner/types';
+import type { ImageSession, ProcessingConfig, ProcessingResult, CropPixelRect } from '@/modules/image-processing/types';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 

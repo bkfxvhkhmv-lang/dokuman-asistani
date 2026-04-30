@@ -1,5 +1,5 @@
-import { LightColors, LightRisk, Shadow, S, R } from '../theme';
-import type { SpacingTokens, RadiusTokens } from '../theme';
+import { LightColors, LightRisk, Shadow, S, R } from '@/theme';
+import type { SpacingTokens, RadiusTokens } from '@/theme';
 
 export const DesignColors = LightColors;
 export const DesignRiskColors = LightRisk;

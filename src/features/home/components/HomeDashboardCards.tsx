@@ -1,11 +1,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from '../../../components/Icon';
-import { AppCard } from '../../../design/components';
-import { getTageVerbleibend } from '../../../utils';
-import type { Dokument } from '../../../store';
-import type { ThemeColors } from '../../../ThemeContext';
-import type { SpacingTokens } from '../../../theme';
+import Icon from '@/components/Icon';
+import { AppCard } from '@/design/components';
+import { getTageVerbleibend } from '@/utils';
+import {
+  DASHBOARD_ALL_CLEAR_MARK,
+  DASHBOARD_ALL_CLEAR_TEXT,
+  DASHBOARD_ATTENTION_PRIMARY,
+  DASHBOARD_EYEBROW_ALL_CLEAR,
+  DASHBOARD_EYEBROW_BUSY,
+} from '@/product/strategyCopy';
+import type { Dokument } from '@/store';
+import type { ThemeColors } from '@/ThemeContext';
+import type { SpacingTokens } from '@/theme';
 
 
 function fristTag(fristISO: string | null | undefined, C: ThemeColors) {
@@ -56,18 +63,17 @@ export default function HomeDashboardCards({
     <View style={{ paddingHorizontal: S.md, marginBottom: S.md }}>
       {/* Hero card */}
       <AppCard style={[st.heroCard, { backgroundColor: allClear ? C.success : C.primary }]} padding={S.lg} radius={18}>
-        <Text style={st.eyebrow}>{allClear ? 'HEUTE' : 'HEUTE · HANDLUNGSBEDARF'}</Text>
+        <Text style={st.eyebrow}>{allClear ? DASHBOARD_EYEBROW_ALL_CLEAR : DASHBOARD_EYEBROW_BUSY}</Text>
         {allClear ? (
           <>
-            <Text style={st.heroNumber}>✓</Text>
-            <Text style={st.heroText}>Alles unter Kontrolle — keine offenen Aufgaben</Text>
+            <Text style={st.heroNumber}>{DASHBOARD_ALL_CLEAR_MARK}</Text>
+            <Text style={st.heroText}>{DASHBOARD_ALL_CLEAR_TEXT}</Text>
           </>
         ) : (
           <>
             <Text style={st.heroNumber}>{wichtig}</Text>
             <Text style={st.heroText}>
-              {wichtig === 1 ? 'Dokument erfordert' : 'Dokumente erfordern'} Ihre Aufmerksamkeit
-              {mitDeadline > 0 ? ` · ${mitDeadline} mit offener Frist` : ''}
+              {DASHBOARD_ATTENTION_PRIMARY(wichtig, mitDeadline)}
             </Text>
           </>
         )}

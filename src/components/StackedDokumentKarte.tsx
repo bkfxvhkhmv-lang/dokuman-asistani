@@ -9,20 +9,21 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../ThemeContext';
-import DokumentKarte from './DokumentKarte';
-import type { DocStack } from '../services/CardStackService';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import DokumentKarte from '@/components/DokumentKarte';
+import type { DocStack } from '@/services/CardStackService';
+import type { Dokument } from '@/store';
 
 interface Props {
   stack:   DocStack;
   onPress: (dok: Dokument) => void;
   onErledigt?: (dok: Dokument) => void;
+  onLongPressDok?: (dok: Dokument) => void;
 }
 
 const SPRING_CFG  = { damping: 22, stiffness: 240, mass: 0.8 };
 
-export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Props) {
+export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLongPressDok }: Props) {
   const { Colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -75,7 +76,7 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Pro
         activeOpacity={stack.isStack ? 0.92 : 1}
         style={st.leadWrap}
       >
-        <DokumentKarte dok={stack.lead} onPress={stack.isStack ? undefined : onPress} />
+        <DokumentKarte dok={stack.lead} onPress={stack.isStack ? undefined : onPress} onLongPress={onLongPressDok} />
 
         {/* Stack badge + chevron */}
         {stack.isStack && (
@@ -92,7 +93,7 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Pro
           docs={stack.docs.slice(1)}
           progress={progress}
           onPress={onPress}
-          onErledigt={onErledigt}
+          onLongPressDok={onLongPressDok}
           colors={Colors}
         />
       )}
@@ -130,11 +131,11 @@ function ShadowLayer({ index, totalShadows, color, border }: {
 
 // ── Animated expanded list ────────────────────────────────────────────────
 
-function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
+function ExpandedList({ docs, progress, onPress, onLongPressDok, colors }: {
   docs:       Dokument[];
   progress:   ReturnType<typeof useSharedValue<number>>;
   onPress:    (d: Dokument) => void;
-  onErledigt?: (d: Dokument) => void;
+  onLongPressDok?: (d: Dokument) => void;
   colors:     any;
 }) {
   const containerStyle = useAnimatedStyle(() => ({
@@ -153,6 +154,7 @@ function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
           index={i}
           progress={progress}
           onPress={onPress}
+          onLongPressDok={onLongPressDok}
           colors={colors}
         />
       ))}
@@ -160,11 +162,12 @@ function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
   );
 }
 
-function ExpandItem({ dok, index, progress, onPress, colors }: {
+function ExpandItem({ dok, index, progress, onPress, onLongPressDok, colors }: {
   dok:      Dokument;
   index:    number;
   progress: ReturnType<typeof useSharedValue<number>>;
   onPress:  (d: Dokument) => void;
+  onLongPressDok?: (d: Dokument) => void;
   colors:   any;
 }) {
   const delay = index * 0.08;
@@ -178,7 +181,7 @@ function ExpandItem({ dok, index, progress, onPress, colors }: {
 
   return (
     <Animated.View style={itemStyle}>
-      <DokumentKarte dok={dok} onPress={onPress} />
+      <DokumentKarte dok={dok} onPress={onPress} onLongPress={onLongPressDok} />
     </Animated.View>
   );
 }

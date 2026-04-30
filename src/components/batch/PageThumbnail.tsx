@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from '../Icon';
-import { BatchPage } from '../../modules/batch';
+import Icon from '@/components/Icon';
+import { BatchPage } from '@/modules/batch';
 
 interface Props {
   page: BatchPage;

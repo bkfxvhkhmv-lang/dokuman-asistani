@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from './Icon';
-import { useTheme } from '../ThemeContext';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
 
 type Tone = 'default' | 'success' | 'warning' | 'danger';
 

@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from 'react';
-import type { DocumentCorners, AutoCaptureReadiness } from '../types';
-import { useFrameProcessorBridge, type FrameScanResult } from '../engine/FrameProcessorBridge';
-import { EdgeDetector } from '../engine/EdgeDetector';
-import { AutoCaptureEngine } from '../engine/AutoCapture';
+import type { DocumentCorners, AutoCaptureReadiness } from '@/modules/scanner/types';
+import { useFrameProcessorBridge, type FrameScanResult } from '@/modules/scanner/engine/FrameProcessorBridge';
+import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
+import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
 
 export interface FrameScannerState {
   corners: DocumentCorners | null;

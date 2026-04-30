@@ -1,5 +1,5 @@
-import { runSmartRiskEngine, buildPortfolioRisk } from '../services/SmartRiskEngineService';
-import type { Dokument } from '../store';
+import { runSmartRiskEngine, buildPortfolioRisk } from '@/services/SmartRiskEngineService';
+import type { Dokument } from '@/store';
 
 function makeDok(overrides: Partial<Dokument> = {}): Dokument {
   return {

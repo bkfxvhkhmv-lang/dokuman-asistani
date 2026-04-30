@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 interface KurumItem {
   name: string;

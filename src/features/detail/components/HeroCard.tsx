@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../../../ThemeContext';
-import { formatBetrag, formatFrist, formatDatum } from '../../../utils';
-import type { Dokument } from '../../../store';
-import type { RiskEntry } from '../../../utils/types';
-import type { DocIntent } from '../hooks/useDocumentAI';
-import type { OutcomePrediction } from '../../../core/intelligence/OutcomePredictor';
+import { useTheme } from '@/ThemeContext';
+import { formatBetrag, formatFrist, formatDatum } from '@/utils';
+import { HIT_SLOP_LG } from '@/theme';
+import type { Dokument } from '@/store';
+import type { RiskEntry } from '@/utils/types';
+import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
+import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
 
 const TYP_EMOJI: Record<string, string> = {
   Mahnung: '⚠️', Rechnung: '💶', Bußgeld: '🚔',
@@ -26,14 +27,17 @@ interface HeroCardProps {
   onSimulator?: () => void;
   anonModus?: boolean;
   parallaxTranslate?: Animated.AnimatedInterpolation<number>;
+  /** Einfacher Modus auf Detail: weniger KPI-Zeilen, keine Simulation/OCR-Bar */
+  simpleLayout?: boolean;
 }
 
 export default function HeroCard({
-  dok, info, score, scoreColor, docIntent, outcomePrediction,
-  kontaktName, onKontaktVerknuepfen, onSimulator, anonModus,
+  dok, info, score: _score, scoreColor,
+  kontaktName, onKontaktVerknuepfen,
   parallaxTranslate,
+  simpleLayout = false,
 }: HeroCardProps) {
-  const { Colors: C, S, Shadow } = useTheme();
+  const { Colors: C, S, Shadow, fs } = useTheme();
 
   const workflowPalette: Record<string, { bg: string; text: string }> = {
     green: { bg: C.successLight, text: C.successText },
@@ -41,9 +45,6 @@ export default function HeroCard({
     amber: { bg: C.warningLight, text: C.warningText },
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
-  const topOutcomeText = outcomePrediction?.topOutcome
-    ? `%${Math.round(outcomePrediction.topOutcome.probability * 100)} ${outcomePrediction.topOutcome.outcome}`
-    : null;
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -73,37 +74,51 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.md, paddingVertical: S.sm }}>
         {([
-          { emoji: info.emoji ?? '🎯', label: 'Risk',          value: info.label,         color: info.color,           show: true },
-          { emoji: docIntent?.emoji ?? '🎯',    label: 'Dokumentzweck', value: docIntent?.label,    color: docIntent?.color,     show: !!docIntent },
-          { emoji: '⏳',                         label: 'Frist',         value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist },
-          { emoji: '💶',                         label: 'Betrag',        value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag },
-          { emoji: '🔮',                         label: 'Vorausschau',   value: topOutcomeText,      color: C.primaryMid,          show: !!topOutcomeText },
+          { emoji: info.emoji ?? '🎯', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true },
+          { emoji: '⏳', label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist },
+          { emoji: '💶', label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag },
         ] as const).filter(r => r.show && r.value).map((row, i, arr) => (
-          <View key={row.label} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7,
+          <View key={`${row.label}-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7,
             borderBottomWidth: i < arr.length - 1 ? 0.5 : 0, borderBottomColor: C.borderLight }}>
-            <Text style={{ fontSize: 14, width: 22, textAlign: 'center' }}>{row.emoji}</Text>
-            <Text style={{ fontSize: 11, color: C.textTertiary, width: 54 }}>{row.label}</Text>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: row.color ?? C.text, flex: 1 }}>{row.value}</Text>
+            <Text style={{ fontSize: fs(14), width: 22, textAlign: 'center' }}>{row.emoji}</Text>
+            <Text
+              style={{ fontSize: fs(11), color: C.textTertiary, width: simpleLayout ? 92 : 54 }}
+              numberOfLines={simpleLayout ? 2 : undefined}
+            >
+              {row.label}
+            </Text>
+            <Text style={{ fontSize: fs(12), fontWeight: '700', color: row.color ?? C.text, flex: 1 }}>{row.value}</Text>
           </View>
         ))}
-        <TouchableOpacity onPress={onSimulator}
-          style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 10, backgroundColor: C.primaryLight }}>
-          <Text style={{ fontSize: 13 }}>🔮</Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>„Was passiert dann?" — Szenario simulieren</Text>
-        </TouchableOpacity>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingTop: 10,
+            paddingBottom: 4,
+            borderTopWidth: 0.5,
+            borderTopColor: C.borderLight,
+          }}
+        >
+          <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary }}>ℹ️</Text>
+          <Text style={{ fontSize: 11, color: C.textTertiary, flex: 1, lineHeight: 15 }}>
+            {dok.confidence == null
+              ? 'Automatisch erkannt · Angaben bitte kurz prüfen'
+              : dok.confidence >= 75
+                ? 'KI-Einschätzung: Erkennung wirkt zuverlässig'
+                : dok.confidence >= 55
+                  ? 'KI-Einschätzung: bitte Betrag und Frist prüfen'
+                  : 'KI-Einschätzung: unsichere Daten — manuell gegenlesen'}
+          </Text>
+        </View>
       </View>
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.lg, paddingBottom: S.md, borderTopWidth: 0.5, borderTopColor: C.borderLight }}>
-        {outcomePrediction?.topOutcome && (
-          <View style={{ marginTop: S.sm, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8,
-            paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.primaryMid + '88' }}>
-            <Text style={{ fontSize: 13 }}>🔮</Text>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary }}>Voraussichtliches Ergebnis: {topOutcomeText}</Text>
-          </View>
-        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: S.sm }}>
           <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{dok.absender} · {formatDatum(dok.datum)}</Text>
           <TouchableOpacity onPress={onKontaktVerknuepfen}
+            hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
               backgroundColor: kontaktName ? C.successLight : C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
             <Text style={{ fontSize: 10, fontWeight: '600', color: kontaktName ? C.success : C.textTertiary }}>
@@ -111,17 +126,6 @@ export default function HeroCard({
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ flex: 1, height: 6, backgroundColor: C.borderLight, borderRadius: 3, overflow: 'hidden' }}>
-            <View style={{ height: 6, width: `${score}%`, backgroundColor: scoreColor, borderRadius: 3 }} />
-          </View>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: scoreColor, width: 52 }}>
-            {score < 45 ? '⚠️' : score < 75 ? '🔶' : '✅'} {score}%
-          </Text>
-        </View>
-        <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>
-          Lesequalität & Vollständigkeit{score < 45 ? ' — Einige Felder fehlen möglicherweise' : ''}
-        </Text>
         {dok.erledigt && (
           <View style={{ marginTop: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, backgroundColor: C.successLight }}>
             <Text style={{ fontSize: 12, fontWeight: '600', color: C.successText }}>✓ Erledigt</Text>
@@ -132,7 +136,7 @@ export default function HeroCard({
             <Text style={{ fontSize: 12, fontWeight: '700', color: workflowTone.text }}>{dok.workflowStamp}</Text>
           </View>
         )}
-        {!!dok.workflowTimeline && (
+        {!!dok.workflowTimeline && !simpleLayout && (
           <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 8 }}>{dok.workflowTimeline}</Text>
         )}
       </View>

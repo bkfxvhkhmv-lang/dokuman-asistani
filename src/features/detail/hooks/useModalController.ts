@@ -35,6 +35,7 @@ export function useModalController() {
   const [editFrist, setEditFrist]       = useState('');
   const [editTab, setEditTab]           = useState('info');
   const [editProfilId, setEditProfilId] = useState<string | null>(null);
+  const [editUserOrdner, setEditUserOrdner] = useState('');
 
   // Aufgaben form state
   const [neueAufgabeTitel, setNeueAufgabeTitel]               = useState('');
@@ -76,6 +77,7 @@ export function useModalController() {
     editFrist, setEditFrist,
     editTab, setEditTab,
     editProfilId, setEditProfilId,
+    editUserOrdner, setEditUserOrdner,
     neueAufgabeTitel, setNeueAufgabeTitel,
     neueAufgabeFrist, setNeueAufgabeFrist,
     neueAufgabeVerantwortlich, setNeueAufgabeVerantwortlich,

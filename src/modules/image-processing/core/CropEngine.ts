@@ -1,5 +1,5 @@
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import type { CropBox, CropImageSize, CropPixelRect } from '../types';
+import type { CropBox, CropImageSize, CropPixelRect } from '@/modules/image-processing/types';
 
 export interface CropLayout {
   x: number;

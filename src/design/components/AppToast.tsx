@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableOpacity, Text, StyleSheet, View, ViewStyle } from 'react-native';
-import Icon from '../../components/Icon';
-import { useTheme } from '../../ThemeContext';
-import { UISoundService } from '../../services/UISoundService';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import { UISoundService } from '@/services/UISoundService';
 
 type Tone = 'default' | 'success' | 'warning' | 'danger';
 

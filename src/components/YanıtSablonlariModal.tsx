@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { useTheme } from '../ThemeContext';
-import { formatFrist, formatBetrag } from '../utils';
-import { getBilgiler, platzhalterDoldur } from '../services/kisiselBilgi';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import { formatFrist, formatBetrag } from '@/utils';
+import { getBilgiler, platzhalterDoldur } from '@/services/kisiselBilgi';
+import type { Dokument } from '@/store';
 
 interface Sablon {
   id: string;

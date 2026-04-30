@@ -6,7 +6,7 @@ import Animated, {
   withRepeat, withSequence, withTiming, withSpring,
   cancelAnimation, Easing, FadeIn,
 } from 'react-native-reanimated';
-import { useTheme, type ThemeColors } from '../ThemeContext';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
 
 // ── Breathing illustration ─────────────────────────────────────────────────
 
@@ -127,9 +127,9 @@ interface VariantConfig {
 const VARIANTS: Record<EmptyVariant, VariantConfig> = {
   docs: {
     tintKey:   'primary',
-    title:     'Noch keine Dokumente',
-    subtitle:  'Scanne dein erstes Dokument und ich analysiere es sofort für dich.',
-    assistant: 'Tipp: Du kannst auch ein Beispieldokument testen — tippe einfach auf „Demo starten".',
+    title:     'Noch keine Belege',
+    subtitle:  'Scanne Rechnungen, Schreiben und Garantien — BriefPilot klassiert nach Typ und Datum.',
+    assistant: 'PDF-Export und Pakete für deine Buchhaltung findest du im Dokument unter „PDF exportieren“.',
   },
   search: {
     tintKey:   'primary',
@@ -139,21 +139,21 @@ const VARIANTS: Record<EmptyVariant, VariantConfig> = {
   },
   tasks: {
     tintKey:   'success',
-    title:     'Keine offenen Aufgaben',
-    subtitle:  'Alles erledigt — ein gutes Gefühl.',
-    assistant: 'Wenn neue Dokumente eintreffen, erstelle ich automatisch Aufgaben daraus.',
+    title:     'Keine offenen Pflichten',
+    subtitle:  'Alle Belege erledigt oder ohne Handlungsbedarf.',
+    assistant: 'Neue eingescannte Pflicht-Stücke erscheinen hier mit Frist und nächstem Schritt.',
   },
   calendar: {
     tintKey:   'warning',
-    title:     'Keine Fristen in Sicht',
-    subtitle:  'Dokumente mit Fristdatum erscheinen hier automatisch.',
-    assistant: 'Ich behalte deine Fristen im Auge und erinnere dich rechtzeitig.',
+    title:     'Keine Frist in Sicht',
+    subtitle:  'Mit Fristdatum markierte Belege erscheinen hier chronologisch.',
+    assistant: 'Wir erinnern dich lokal — lass keine Behörden- oder Zahlungsfrist verstreichen.',
   },
   payments: {
     tintKey:   'danger',
-    title:     'Keine Zahlungsdokumente',
-    subtitle:  'Rechnungen, Mahnungen und Bußgelder erscheinen hier.',
-    assistant: 'Sobald du ein Zahlungsdokument scannst, berechne ich den Betrag automatisch.',
+    title:     'Keine Zahlungsbelege',
+    subtitle:  'Rechnungen, Mahnungen und Bußgelder landen hier mit Betrag und Frist.',
+    assistant: 'Sortiert und suchbar — ideal für Offene-Posten-Übersicht vor der Steuer.',
   },
   folder: {
     tintKey:   'primary',

@@ -1,5 +1,5 @@
-import { db } from '../database/client';
-import { documentEvents } from '../database/schema';
+import { db } from '@/core/database/client';
+import { documentEvents } from '@/core/database/schema';
 import { eq } from 'drizzle-orm';
 
 export type EventName =

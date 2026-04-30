@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet, Animated } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { SmartFolder } from '../../../services/SmartFolderService';
+import { useTheme } from '@/ThemeContext';
+import type { SmartFolder } from '@/services/SmartFolderService';
 
 interface Props {
   folders:       SmartFolder[];

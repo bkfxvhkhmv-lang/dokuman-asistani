@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { AppInput } from '../../../design/components';
-import type { ModalController } from '../hooks/useModalController';
+import { useTheme } from '@/ThemeContext';
+import { AppInput } from '@/design/components';
+import type { ModalController } from '@/features/detail/hooks/useModalController';
 
 interface AufgabenModalProps {
   visible: boolean;

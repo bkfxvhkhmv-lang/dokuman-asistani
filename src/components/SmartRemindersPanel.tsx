@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import type { RadiusTokens } from '../theme';
-import type { ReminderSuggestion, ScheduledReminder } from '../services/SmartRemindersService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { RadiusTokens } from '@/theme';
+import type { ReminderSuggestion, ScheduledReminder } from '@/services/SmartRemindersService';
 
 interface SmartRemindersPanelProps {
   suggestions:         ReminderSuggestion[];

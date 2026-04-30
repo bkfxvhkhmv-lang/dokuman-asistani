@@ -1,5 +1,5 @@
-import { getTageVerbleibend, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
+import { getTageVerbleibend, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
 
 export interface MonthlyBucket {
   month: string;  // "2026-03"

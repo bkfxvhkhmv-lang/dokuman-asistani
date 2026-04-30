@@ -12,9 +12,9 @@ import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, cancelAnimation,
 } from 'react-native-reanimated';
-import { useHealthQuery } from '../hooks/queryHooks';
-import { useTheme } from '../ThemeContext';
-import { HIT_SLOP } from '../theme';
+import { useHealthQuery } from '@/hooks/queryHooks';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP } from '@/theme';
 
 export default function OfflineBanner() {
   const { Colors: C } = useTheme();

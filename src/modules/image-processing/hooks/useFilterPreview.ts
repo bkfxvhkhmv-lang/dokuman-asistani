@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { getSharedUnifiedPipeline } from '../core/UnifiedImagePipeline';
-import { createImageSession } from '../session/ImageSessionManager';
-import { getSharedPresetRegistry } from '../registry/PresetRegistry';
-import type { ImageSession } from '../types';
+import { getSharedUnifiedPipeline } from '@/modules/image-processing/core/UnifiedImagePipeline';
+import { createImageSession } from '@/modules/image-processing/session/ImageSessionManager';
+import { getSharedPresetRegistry } from '@/modules/image-processing/registry/PresetRegistry';
+import type { ImageSession } from '@/modules/image-processing/types';
 
 export function useFilterPreview() {
   const pipeline = useMemo(() => getSharedUnifiedPipeline(), []);

@@ -1,6 +1,6 @@
-import { validiereIBAN } from '../services/visionApi';
-import { formatBetrag, getTageVerbleibend } from './formatters';
-import type { Dokument } from '../store';
+import { validiereIBAN } from '@/services/visionApi';
+import { formatBetrag, getTageVerbleibend } from '@/utils/formatters';
+import type { Dokument } from '@/store';
 
 export interface OcrRisikoWort {
   wort: string; risiko: 'hoch' | 'mittel'; grund: string;

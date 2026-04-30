@@ -1,4 +1,5 @@
-export { GoogleDriveProvider } from './providers/GoogleDriveProvider';
-export { OneDriveProvider } from './providers/OneDriveProvider';
-export { DropboxProvider } from './providers/DropboxProvider';
-export * from './types';
+export { GoogleDriveProvider } from '@/modules/cloud/providers/GoogleDriveProvider';
+export { OneDriveProvider } from '@/modules/cloud/providers/OneDriveProvider';
+export { DropboxProvider } from '@/modules/cloud/providers/DropboxProvider';
+export * from '@/modules/cloud/iCloudDocuments';
+export * from '@/modules/cloud/types';

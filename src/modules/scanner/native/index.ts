@@ -3,8 +3,8 @@ import {
   registerNativeEdgeDetect,
   registerNativeFilter,
   registerNativeWarp,
-} from '../engine/NativeStub';
-import type { DocumentCorners } from '../types';
+} from '@/modules/scanner/engine/NativeStub';
+import type { DocumentCorners } from '@/modules/scanner/types';
 import {
   SCANNER_NATIVE_MODULE_NAME,
   type NativeEdgeDetectionInput,
@@ -12,7 +12,7 @@ import {
   type NativeScannerCapabilities,
   type NativeScannerModuleContract,
   type NativeWarpPerspectiveInput,
-} from './contract';
+} from '@/modules/scanner/native/contract';
 
 const nativeScannerModule =
   NativeModules[SCANNER_NATIVE_MODULE_NAME] as NativeScannerModuleContract | undefined;
@@ -110,4 +110,4 @@ export const defaultScannerNativeCapabilities: NativeScannerCapabilities = {
   version: 'stub',
 };
 
-export * from './contract';
+export * from '@/modules/scanner/native/contract';

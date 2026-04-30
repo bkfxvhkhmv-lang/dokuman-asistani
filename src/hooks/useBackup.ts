@@ -5,7 +5,7 @@ import {
   autoYedekSpeichern,
   letzteAutoYedekTarih,
   autoYedekWiederherstellen,
-} from '../services/backup';
+} from '@/services/backup';
 
 export function useBackup() {
   const [loading, setLoading] = useState(false);

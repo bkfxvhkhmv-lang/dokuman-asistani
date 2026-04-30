@@ -1,11 +1,11 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WarningCircle, Money, PencilSimple, CalendarBlank, FileText, File, Clock, CheckCircle } from 'phosphor-react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import DocumentSurface from './document-surface/DocumentSurface';
-import type { Dokument } from '../store';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import DocumentSurface from '@/components/document-surface/DocumentSurface';
+import type { Dokument } from '@/store';
+import { excerptForDocumentListCard } from '@/utils/listCardSummary';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -53,7 +53,6 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const tageText    = getTageText(dok.frist);
   const intent      = quickIntent(dok, Colors);
   const isDone      = dok.erledigt;
-
   const a11yLabel = [
     dok.typ, dok.titel, dok.absender,
     isDone ? 'Erledigt' : tageText ? `Frist: ${tageText}` : null,
@@ -68,6 +67,8 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     ? { bg: Colors.primaryLight, text: Colors.primaryDark }
     : null;
 
+  const listSnippet = excerptForDocumentListCard(dok);
+
   return (
     <DocumentSurface
       onPress={() => onPress?.(dok)}
@@ -78,7 +79,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     >
       {/* Header */}
       <View style={styles.header}>
-        <View style={[styles.iconBox, { backgroundColor: `${accentColor}18`, borderColor: `${accentColor}30` }]}>
+        <View style={[styles.iconBox, { backgroundColor: `${accentColor}18`, borderColor: `${accentColor}30`, marginTop: 2 }]}>
           {isDone
             ? <CheckCircle size={22} color={Colors.textTertiary} weight="fill" />
             : <intent.PhIcon size={21} color={intent.color} weight="duotone" />
@@ -114,10 +115,9 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         ) : null}
       </View>
 
-      {/* Summary */}
-      {!!dok.zusammenfassung && (
-        <Text style={[styles.summary, { color: Colors.textSecondary, fontSize: fs(13), lineHeight: fs(13) * 1.55 }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
-          {dok.zusammenfassung}
+      {!!listSnippet && (
+        <Text style={[styles.summary, { color: Colors.textTertiary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+          {listSnippet}
         </Text>
       )}
 
@@ -149,14 +149,14 @@ const DokumentKarte = React.memo(DokumentKarteInner);
 export default DokumentKarte;
 
 const styles = StyleSheet.create({
-  header:        { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  iconBox:       { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 12, borderWidth: 1 },
-  titleBox:      { flex: 1, gap: 4 },
+  header:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
+  iconBox:       { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1 },
+  titleBox:      { flex: 1, gap: 3, minWidth: 0, justifyContent: 'center' },
   title:         { fontSize: 14, fontWeight: '700', letterSpacing: -0.3 },
   absender:      { fontSize: 12, letterSpacing: -0.1 },
   dateBox:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999 },
   dateText:      { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
-  summary:       { fontSize: 13, lineHeight: 20, marginBottom: 12, letterSpacing: -0.1 },
+  summary:       { fontSize: 12, lineHeight: 18, marginBottom: 10, letterSpacing: -0.1 },
   footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   amountBox:     { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   amount:        { fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },

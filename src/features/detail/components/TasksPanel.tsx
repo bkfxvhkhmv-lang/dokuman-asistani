@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { Aufgabe } from '../../../store';
-import type { AufgabenVorschlag } from '../../../utils/types';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP_LG } from '@/theme';
+import type { Aufgabe } from '@/store';
+import type { AufgabenVorschlag } from '@/utils/types';
 
 interface TasksPanelProps {
   aufgaben?: Aufgabe[];
@@ -28,6 +29,7 @@ export default function TasksPanel({
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary }}>AUFGABEN</Text>
         <TouchableOpacity onPress={onOpenAddModal}
+          hitSlop={HIT_SLOP_LG}
           style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.primary }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark }}>+ Aufgabe</Text>
         </TouchableOpacity>

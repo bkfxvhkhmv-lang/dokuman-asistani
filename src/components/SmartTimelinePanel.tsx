@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import type { RadiusTokens } from '../theme';
-import type { TimelineEvent, TimelineView, WochenZusammenfassung } from '../services/SmartTimelineService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { RadiusTokens } from '@/theme';
+import type { TimelineEvent, TimelineView, WochenZusammenfassung } from '@/services/SmartTimelineService';
 
 // ── Single event row ───────────────────────────────────────────────────────────
 

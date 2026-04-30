@@ -1,3 +1,3 @@
-export { VoiceCommandEngine } from './engine/VoiceCommandEngine';
-export { SpeechRecognizer } from './engine/SpeechRecognizer';
-export * from './types';
+export { VoiceCommandEngine } from '@/modules/voice/engine/VoiceCommandEngine';
+export { SpeechRecognizer } from '@/modules/voice/engine/SpeechRecognizer';
+export * from '@/modules/voice/types';

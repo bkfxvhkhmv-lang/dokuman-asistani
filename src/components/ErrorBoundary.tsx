@@ -32,14 +32,12 @@ export default class ErrorBoundary extends React.Component<Props, State> {
       return;
     }
 
+    console.error('[BriefPilot:crash]', error?.message ?? error, __DEV__ ? info.componentStack : '');
+
     // One silent auto-retry for transient JS engine errors
     if (this.state.retries < MAX_AUTO_RETRY && !__DEV__) {
       this.setState(s => ({ hasError: false, error: null, retries: s.retries + 1 }));
       return;
-    }
-
-    if (__DEV__) {
-      console.error('[ErrorBoundary]', error.message, info.componentStack);
     }
   }
 

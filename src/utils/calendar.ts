@@ -1,8 +1,12 @@
 import * as LucideCalendar from 'expo-calendar';
 // expo-notifications must NOT be statically imported — removed from Expo Go SDK 53+
 // Use lazy import pattern below instead
-import { getTageVerbleibend } from './formatters';
-import type { Dokument } from '../store';
+import { getTageVerbleibend } from '@/utils/formatters';
+import type { Dokument } from '@/store';
+import {
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
 
 // Lazy loader — resolved only when scheduling is actually called
 async function getNotifications() {
@@ -19,7 +23,17 @@ export async function addToLucideCalendar(dok: Dokument): Promise<boolean> {
     if (!cal) return false;
     const start = new Date(dok.frist!); start.setHours(9, 0, 0, 0);
     const end   = new Date(dok.frist!); end.setHours(10, 0, 0, 0);
-    await LucideCalendar.createEventAsync(cal.id, { title: ` BriefPilot: ${dok.titel}`, startDate: start, endDate: end, allDay: false, notes: dok.zusammenfassung ?? undefined, alarms: [{ relativeOffset: -24 * 60 }, { relativeOffset: -60 }] });
+    await LucideCalendar.createEventAsync(cal.id, {
+      title: `BriefPilot · ${dok.titel}`,
+      startDate: start,
+      endDate: end,
+      allDay: false,
+      notes: dok.zusammenfassung ?? undefined,
+      alarms: [
+        { relativeOffset: -24 * 60 },
+        { relativeOffset: -120 },
+      ],
+    });
     return true;
   } catch (e) { console.warn('[calendar] addToLucideCalendar error', e); return false; }
 }
@@ -46,22 +60,88 @@ export async function sablonHatirlaticiPlanle(dok: Dokument, sablon: Hatirlatici
     hedef.setMonth(hedef.getMonth() + sablon.aySayisi);
     hedef.setHours(9, 0, 0, 0);
     if (hedef <= jetzt) return null;
-    const id = await Notifications.scheduleNotificationAsync({ content: { title: `Bildirim  ${sablon.label} — Erinnerung`, body: `${dok.titel}: ${sablon.hinweis}`, data: { dokId: dok.id, sablonId: sablon.id } }, trigger: { type: SchedulableTriggerInputTypes.DATE, date: hedef } });
+    await ensureAndroidDefaultNotificationChannel();
+    const content = withAndroidNotificationChannel({
+      title: `Bildirim  ${sablon.label} — Erinnerung`,
+      body: `${dok.titel}: ${sablon.hinweis}`,
+      data: { dokId: dok.id, sablonId: sablon.id },
+    });
+    const id = await Notifications.scheduleNotificationAsync({
+      content,
+      trigger: { type: SchedulableTriggerInputTypes.DATE, date: hedef },
+    });
     return { notifId: id, hedef: hedef.toISOString() };
   } catch (e) { console.warn('[calendar] sablonHatirlaticiPlanle error', e); return null; }
 }
 
-export async function scheduleDeadlineNotification(dok: Dokument): Promise<void> {
+export async function scheduleFristLocalNotifications(dok: Dokument): Promise<void> {
   try {
+    if (!dok.frist || dok.erledigt) return;
     const { Notifications, SchedulableTriggerInputTypes } = await getNotifications();
-    if (!dok.frist) return;
-    const fristDate = new Date(dok.frist);
-    const dreiTageVorher = new Date(fristDate.getTime() - 3 * 24 * 60 * 60 * 1000);
-    const einTagVorher   = new Date(fristDate.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') return;
+
+    await ensureAndroidDefaultNotificationChannel();
+
+    const existing = await Notifications.getAllScheduledNotificationsAsync();
+    for (const row of existing) {
+      const d = row.content.data as { dokId?: string; kind?: string };
+      if (d?.kind === 'fristReminder' && d?.dokId === dok.id) {
+        await Notifications.cancelScheduledNotificationAsync(row.identifier);
+      }
+    }
+
+    const fristDt = new Date(dok.frist);
+    const hoch = dok.risiko === 'hoch';
+    type When = Date;
+
+    const at = (basis: Date, h: number, m: number) => {
+      const z = new Date(basis);
+      z.setHours(h, m, 0, 0);
+      return z;
+    };
+
+    const slots: When[] = [];
+    if (hoch) {
+      const drei = new Date(fristDt);
+      drei.setDate(drei.getDate() - 3);
+      slots.push(at(drei, 9, 0));
+    }
+    const einenTag = new Date(fristDt);
+    einenTag.setDate(einenTag.getDate() - 1);
+    slots.push(at(einenTag, 9, 0));
+
+    slots.push(at(new Date(fristDt), 8, 0));
+
     const jetzt = Date.now();
-    if (dreiTageVorher.getTime() > jetzt) await Notifications.scheduleNotificationAsync({ content: { title: ' Frist in 3 Tagen', body: dok.titel, data: { dokId: dok.id } }, trigger: { type: SchedulableTriggerInputTypes.DATE, date: dreiTageVorher } });
-    if (einTagVorher.getTime() > jetzt)   await Notifications.scheduleNotificationAsync({ content: { title: '🔴 Morgen fällig!', body: dok.titel, data: { dokId: dok.id } }, trigger: { type: SchedulableTriggerInputTypes.DATE, date: einTagVorher } });
-  } catch (e) { console.warn('[calendar] scheduleDeadlineNotification error', e); }
+    const uniqMap = new Map<number, Date>();
+    for (const d of slots) uniqMap.set(d.getTime(), d);
+    const uniq = [...uniqMap.values()].sort((a, b) => a.getTime() - b.getTime());
+
+    const headline = (dok.titel || 'Dokument').slice(0, 120);
+    const datumStr = fristDt.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+
+    let idx = 0;
+    for (const when of uniq) {
+      if (when.getTime() <= jetzt) continue;
+      await Notifications.scheduleNotificationAsync({
+        content: withAndroidNotificationChannel({
+          title: hoch ? 'BriefPilot · Frist (wichtig)' : 'BriefPilot · Erinnerung',
+          body: `${headline} · fällig ${datumStr}`,
+          data: { dokId: dok.id, kind: 'fristReminder', slotIndex: `${idx}` },
+        }),
+        trigger: { type: SchedulableTriggerInputTypes.DATE, date: when },
+      });
+      idx += 1;
+    }
+  } catch (e) {
+    console.warn('[calendar] scheduleFristLocalNotifications error', e);
+  }
+}
+
+/** Dokument ilk kayıtta OCR pipeline’dan tetiklenir; V1’de bildirim yalnızca takvim ekleme sonrası planlanır. */
+export async function scheduleDeadlineNotification(_dok: Dokument): Promise<void> {
+  return Promise.resolve();
 }
 
 export interface HatirlatmaVorschlag { tageVorher: number; datum: Date; label: string; datum_label: string; dringend: boolean }

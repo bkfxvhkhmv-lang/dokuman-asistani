@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { BILGI_ALANLARI, getBilgiler, saveBilgiler, type Bilgiler } from '../services/kisiselBilgi';
+import { useTheme } from '@/ThemeContext';
+import { BILGI_ALANLARI, getBilgiler, saveBilgiler, type Bilgiler } from '@/services/kisiselBilgi';
 
 interface KisiselBilgiModalProps {
   visible: boolean;

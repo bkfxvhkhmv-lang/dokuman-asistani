@@ -1,4 +1,14 @@
 .expo/
 .env
 .env.local
+.DS_Store
 
+# Dependencies (asla commit edilmemeli)
+node_modules/
+
+# Cursor / Claude lokal ayar
+.claude/settings.local.json
+
+# Yerel araç çıktıları (EPS vb. yanlış adla köke düşmesin diye ayırılmış varlıklar)
+_artifacts/
+_backup/

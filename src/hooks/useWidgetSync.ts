@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
-import { useStore } from '../store';
-import { syncWidgetData } from '../services/WidgetDataService';
+import { useStore } from '@/store';
+import { syncWidgetData } from '@/services/WidgetDataService';
 
 // Syncs document data to the native widget whenever:
 //   - The store changes (debounced to avoid thrashing)

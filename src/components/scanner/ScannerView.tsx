@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Text, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
 
-import Icon from '../Icon';
-import DocumentOverlay from './DocumentOverlay';
-import CaptureControls from './CaptureControls';
-import { useAutoCapture } from '../../modules/scanner/useAutoCapture';
+import Icon from '@/components/Icon';
+import DocumentOverlay from '@/components/scanner/DocumentOverlay';
+import CaptureControls from '@/components/scanner/CaptureControls';
+import { useAutoCapture } from '@/modules/scanner/useAutoCapture';
 
 type Props = {
   cameraRef: any;
@@ -146,7 +146,10 @@ export default function ScannerView({
 
       {shotFlash && (
         <>
-          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#fff', opacity: shotAnim }]} pointerEvents="none" />
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#DDE8FF', opacity: shotAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 0.24],
+          }) }]} pointerEvents="none" />
           <Animated.View style={[st.banner, { opacity: shotAnim }]} pointerEvents="none">
             <Icon name="checkmark" size={15} color="#fff" />
             <Text style={st.bannerText}>Dokument erkannt</Text>

@@ -5,8 +5,8 @@
  * Link types: absender, vorgang, folgedokument, zahlung_bezug, anhang
  */
 
-import type { Dokument } from '../store';
-import { findeAehnlicheDokumente } from '../utils';
+import type { Dokument } from '@/store';
+import { findeAehnlicheDokumente } from '@/utils';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

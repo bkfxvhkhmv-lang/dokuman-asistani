@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
 
 interface SimStep { icon: string; text: string }
 interface SimResult {

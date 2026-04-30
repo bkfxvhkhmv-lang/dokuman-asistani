@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { RiskEngineResult, RiskLevel, RiskTrend } from '../services/SmartRiskEngineService';
+import { useTheme } from '@/ThemeContext';
+import type { RiskEngineResult, RiskLevel, RiskTrend } from '@/services/SmartRiskEngineService';
 
 interface SmartRiskPanelProps {
   result: RiskEngineResult;

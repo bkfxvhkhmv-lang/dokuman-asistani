@@ -1,5 +1,5 @@
 import * as FileSystem from 'expo-file-system';
-import type { ImageFilter } from '../types';
+import type { ImageFilter } from '@/modules/image-processing/types';
 
 export abstract class BasePresetFilter implements ImageFilter {
   abstract id: string;

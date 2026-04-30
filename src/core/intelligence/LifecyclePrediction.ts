@@ -5,8 +5,8 @@
  * InstitutionBehaviorModel + RuleEngine verisini kombine eder.
  * Çıktı: phase, nextAction, predictedFristDate, confidence.
  */
-import { InstitutionBehaviorModel, type InstitutionSuggestion } from './InstitutionBehaviorModel';
-import { RuleEngineV4 } from '../rules/RuleEngineV4';
+import { InstitutionBehaviorModel, type InstitutionSuggestion } from '@/core/intelligence/InstitutionBehaviorModel';
+import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 
@@ -34,12 +34,12 @@ export interface LifecyclePrediction {
 // ── Sabitler ──────────────────────────────────────────────────────────────────
 
 const PHASE_LABELS: Record<LifecyclePhase, string> = {
-  received:      'Alındı',
-  reviewing:     'İnceleniyor',
-  action_needed: 'Aksiyon Gerekli',
-  waiting:       'Beklemede',
-  resolved:      'Tamamlandı',
-  overdue:       'Süresi Geçti',
+  received:      'Eingegangen',
+  reviewing:     'In Prüfung',
+  action_needed: 'Handlung nötig',
+  waiting:       'Warte auf Antwort',
+  resolved:      'Erledigt',
+  overdue:       'Frist überschritten',
 };
 
 const PHASE_ICONS: Record<LifecyclePhase, string> = {
@@ -52,10 +52,10 @@ const PHASE_ICONS: Record<LifecyclePhase, string> = {
 };
 
 const NEXT_ACTION_MAP: Partial<Record<string, { action: string; emoji: string }>> = {
-  zahlen:    { action: 'Ödeme yapılmalı',      emoji: '💶' },
-  einspruch: { action: 'Einspruch mümkün',     emoji: '✍️' },
-  kalender:  { action: 'Takvime ekle',         emoji: '📅' },
-  mail:      { action: 'E-posta taslağı aç',   emoji: '📧' },
+  zahlen:    { action: 'Zahlung erforderlich',     emoji: '💶' },
+  einspruch: { action: 'Einspruch prüfen',         emoji: '✍️' },
+  kalender:  { action: 'In Kalender eintragen',   emoji: '📅' },
+  mail:      { action: 'E-Mail-Entwurf öffnen',     emoji: '📧' },
 };
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ export class LifecyclePredictionEngine {
       const learned = parseInt(suggestion.avgFristText);
       if (!isNaN(learned)) {
         predictedFristDays = learned;
-        reasoning.push(`${dok.absender} için öğrenilmiş ort. frist: ${learned} gün`);
+        reasoning.push(`Gelernte Ø-Frist für ${dok.absender}: ${learned} Tage`);
       }
     }
 
@@ -108,7 +108,7 @@ export class LifecyclePredictionEngine {
       const learned = parseFloat(suggestion.avgBetragText);
       if (!isNaN(learned)) {
         predictedBetrag = learned;
-        reasoning.push(`Kurumdan öğrenilmiş ort. tutar: ${suggestion.avgBetragText}`);
+        reasoning.push(`Gelernte Ø-Betrag: ${suggestion.avgBetragText}`);
       }
     }
 
@@ -116,9 +116,9 @@ export class LifecyclePredictionEngine {
     const daysLeft = daysUntilFrist(dok);
     const phase = determinePhase(dok, daysLeft);
 
-    if (phase === 'overdue') reasoning.push('Frist geçmiş — acil aksiyon');
-    if (phase === 'action_needed') reasoning.push('Yüksek risk veya yakın frist');
-    if (dok.erledigt) reasoning.push('Kullanıcı tamamlandı işaretledi');
+    if (phase === 'overdue') reasoning.push('Frist abgelaufen — schnelle Rückmeldung nötig');
+    if (phase === 'action_needed') reasoning.push('Hohes Risiko oder kurze Frist');
+    if (dok.erledigt) reasoning.push('Vom Nutzer als erledigt markiert');
 
     // Sonraki aksiyon
     const aktionen: string[] = dok.aktionen ?? suggestion?.likelyActions ?? [];
@@ -132,7 +132,7 @@ export class LifecyclePredictionEngine {
     else if (dok.frist && dok.risiko) confidence = 'medium';
 
     // Risk açıklaması
-    if (dok.risiko === 'hoch')   reasoning.push('Kural motoru: yüksek risk');
+    if (dok.risiko === 'hoch')   reasoning.push('Regelmotor: hohes Risiko');
     if (dok.typ === 'Mahnung')   reasoning.push('Mahnung → ödeme veya itiraz gerekebilir');
     if (dok.typ === 'Bußgeld')   reasoning.push('Bußgeld → genellikle ödeme veya Einspruch');
 

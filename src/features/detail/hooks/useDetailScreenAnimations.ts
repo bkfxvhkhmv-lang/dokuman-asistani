@@ -80,10 +80,12 @@ export function useDetailScreenAnimations(initialTab = 'ozet'): UseDetailScreenA
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleBack = (onBack: () => void) => {
-    Animated.parallel([
-      Animated.timing(mountOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.spring(mountScale,   { toValue: 0.93, damping: 22, stiffness: 260, mass: 0.8, useNativeDriver: true }),
-    ]).start(onBack);
+    // Call back navigation immediately so expo-router's native fade transition
+    // (animation: 'fade', 180ms) drives the screen change. A local opacity
+    // animation here would briefly take the screen to opacity 0 *before* the
+    // destination screen mounts — that causes a stuck blank/white state on
+    // some devices when the back stack was created via router.replace.
+    onBack();
   };
 
   // ── Tab crossfade + scale ─────────────────────────────────────────────────

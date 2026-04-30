@@ -1,5 +1,5 @@
-import { DocumentCorners } from '../types';
-import { nativeWarpPerspective } from './NativeStub';
+import { DocumentCorners } from '@/modules/scanner/types';
+import { nativeWarpPerspective } from '@/modules/scanner/engine/NativeStub';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 const A4_WIDTH_PX = 2480;  // 300 DPI A4

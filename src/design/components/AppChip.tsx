@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme } from '../../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 interface AppChipProps {
   label: string;
@@ -19,7 +19,7 @@ export default function AppChip({
   selectedColor,
   selectedTextColor,
 }: AppChipProps) {
-  const { Colors } = useTheme();
+  const { Colors, fs } = useTheme();
 
   return (
     <TouchableOpacity
@@ -43,6 +43,7 @@ export default function AppChip({
           {
             color: selected ? (selectedTextColor || Colors.primaryDark) : Colors.textTertiary,
             fontWeight: selected ? '700' : '500',
+            fontSize: fs(13),
           },
         ]}
       >
@@ -54,5 +55,5 @@ export default function AppChip({
 
 const st = StyleSheet.create({
   base: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
-  label: { fontSize: 13 },
+  label: {},
 });

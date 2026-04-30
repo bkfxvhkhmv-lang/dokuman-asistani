@@ -9,8 +9,12 @@
  * - Offline-first: all scheduling is local
  */
 
-import type { Dokument } from '../store';
-import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '../utils';
+import type { Dokument } from '@/store';
+import {
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
+import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '@/utils';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -145,12 +149,13 @@ export async function scheduleReminder(
   try {
     const { default: Notifications } = await import('expo-notifications');
     if (suggestion.datum <= new Date()) return null;
+    await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
-      content: {
+      content: withAndroidNotificationChannel({
         title: suggestion.notifTitle,
         body:  suggestion.notifBody,
         data:  { dokId: dok.id, reminderId: suggestion.id, type: 'smart_reminder' },
-      },
+      }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: suggestion.datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: suggestion.datum.toISOString(), label: suggestion.label };
@@ -173,12 +178,13 @@ export async function scheduleTemplateReminder(
     datum.setMonth(datum.getMonth() + sablon.aySayisi);
     datum.setHours(9, 0, 0, 0);
     if (datum <= new Date()) return null;
+    await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
-      content: {
+      content: withAndroidNotificationChannel({
         title: `${sablon.icon} ${sablon.label} — Erinnerung`,
         body:  `${dok.titel}: ${sablon.hinweis}`,
         data:  { dokId: dok.id, sablonId: sablon.id, type: 'template_reminder' },
-      },
+      }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: datum.toISOString(), label: sablon.label };

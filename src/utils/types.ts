@@ -1,5 +1,5 @@
-import type { Dokument } from '../store';
-import type { RiskPalette, RiskEntry } from '../theme';
+import type { Dokument } from '@/store';
+import type { RiskPalette, RiskEntry } from '@/theme';
 
 export type { RiskPalette, RiskEntry };
 

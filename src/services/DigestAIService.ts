@@ -9,13 +9,13 @@
  *      If AI succeeds within 4s → source:'ai'.  Otherwise → source:'local'.
  */
 
-import { chatWithDocument } from './v4Api';
-import { isOnline } from './offlineQueue';
-import { getTageVerbleibend, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
-import type { HotDoc } from './PriorityService';
-import type { BudgetSnapshot } from './BudgetEngine';
-import type { TargetAnalysis } from './TargetService';
+import { chatWithDocument } from '@/services/v4Api';
+import { isOnline } from '@/services/offlineQueue';
+import { getTageVerbleibend, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
+import type { HotDoc } from '@/services/PriorityService';
+import type { BudgetSnapshot } from '@/services/BudgetEngine';
+import type { TargetAnalysis } from '@/services/TargetService';
 
 // ── Return type ────────────────────────────────────────────────────────────
 

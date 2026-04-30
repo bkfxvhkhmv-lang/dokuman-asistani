@@ -1,4 +1,4 @@
-import type { Dokument } from '../store';
+import type { Dokument } from '@/store';
 
 export const DEMO_DOKUMENTE: Dokument[] = [
   {

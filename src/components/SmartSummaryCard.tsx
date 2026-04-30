@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { SummaryResult, SummaryMode } from '../services/SmartSummaryService';
+import { useTheme } from '@/ThemeContext';
+import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
+import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
 
 // ── TypewriterText ────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ function TypewriterText({ text, speed = 18, style }: { text: string; speed?: num
 interface SmartSummaryCardProps {
   result: SummaryResult | null;
   loading?: boolean;
-  onLoadDetailed?: (lang?: string) => void;
+  onLoadDetailed?: () => void;
   currentMode: SummaryMode;
   onModeChange: (mode: SummaryMode) => void;
 }
@@ -56,8 +57,6 @@ export default function SmartSummaryCard({
   result, loading = false, onLoadDetailed, currentMode, onModeChange,
 }: SmartSummaryCardProps) {
   const { Colors: C, R } = useTheme();
-  const [lang, setLang] = useState('de');
-
   if (!result && !loading) return null;
 
   const QUELLE_COLOR: Record<string, string> = {
@@ -96,7 +95,7 @@ export default function SmartSummaryCard({
             key={m}
             onPress={() => {
               onModeChange(m);
-              if (m === 'detailliert' && onLoadDetailed) onLoadDetailed(lang);
+              if (m === 'detailliert' && onLoadDetailed) onLoadDetailed();
             }}
             style={{ flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: R.md,
               backgroundColor: currentMode === m ? C.primary : C.bgCard,
@@ -143,7 +142,7 @@ export default function SmartSummaryCard({
           {currentMode === 'detailliert' && result.detailText && (
             <>
               <TypewriterText
-                text={result.detailText}
+                text={stripLlmLanguageMetaLines(result.detailText)}
                 speed={8}
                 style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
               />
@@ -162,7 +161,7 @@ export default function SmartSummaryCard({
 
           {currentMode === 'detailliert' && !result.detailText && onLoadDetailed && (
             <TouchableOpacity
-              onPress={() => onLoadDetailed(lang)}
+              onPress={() => onLoadDetailed()}
               style={{ backgroundColor: C.primary, borderRadius: R.md,
                 padding: 12, alignItems: 'center' }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>

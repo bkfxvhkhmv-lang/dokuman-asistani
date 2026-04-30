@@ -1,7 +1,7 @@
 // Import from source files — NOT from v4Api to avoid circular dependency
-import { API_BASE } from '../config';
-import { authFetch } from './authService';
-import { withRetry } from './retryHelper';
+import { API_BASE } from '@/config';
+import { authFetch } from '@/services/authService';
+import { withRetry } from '@/services/retryHelper';
 
 const BASE = API_BASE;
 
@@ -31,15 +31,17 @@ export async function downloadDocumentV4(docId: string): Promise<{ blob: Blob; f
 }
 
 export async function shareOriginalFile(docId: string, filename = 'dokument'): Promise<void> {
-  const { getAccessToken } = await import('./authService');
+  const { getEffectiveAccessToken } = await import('@/services/authService');
   const FileSystem = await import('expo-file-system');
   const Sharing    = await import('expo-sharing');
-  const token   = await getAccessToken();
+  const token   = await getEffectiveAccessToken();
   const destUri = ((FileSystem as any).cacheDirectory ?? '') + filename;
+  const authHdr =
+    token?.trim()?.length ? { Authorization: `Bearer ${token.trim()}` as const } : undefined;
   const result  = await FileSystem.downloadAsync(
     `${BASE}/documents/${docId}/download`,
     destUri,
-    { headers: { Authorization: `Bearer ${token}` } },
+    authHdr ? { headers: authHdr } : {},
   );
   if (result.status !== 200) throw new Error('Dosya indirilemedi');
   if (!await Sharing.isAvailableAsync()) throw new Error('Teilen wird auf diesem Gerät nicht unterstützt');
@@ -47,18 +49,21 @@ export async function shareOriginalFile(docId: string, filename = 'dokument'): P
 }
 
 export async function downloadOriginalFileToCache(docId: string, filename = 'dokument'): Promise<string> {
-  const { getAccessToken } = await import('./authService');
+  const { getEffectiveAccessToken } = await import('@/services/authService');
   const FileSystem = await import('expo-file-system');
-  const token   = await getAccessToken();
+  const token   = await getEffectiveAccessToken();
   const destUri = ((FileSystem as any).cacheDirectory ?? '') + filename;
+  const authHdr =
+    token?.trim()?.length ? { Authorization: `Bearer ${token.trim()}` as const } : undefined;
   const result  = await FileSystem.downloadAsync(
     `${BASE}/documents/${docId}/download`,
     destUri,
-    { headers: { Authorization: `Bearer ${token}` } },
+    authHdr ? { headers: authHdr } : {},
   );
   if (result.status !== 200) throw new Error('Datei konnte nicht heruntergeladen werden');
   return result.uri;
 }
+
 
 export async function uploadDocumentV4Safe(fileUri: string, filename: string): Promise<V4Document> {
   return withRetry(() => uploadDocumentV4(fileUri, filename), { label: 'upload', maxAttempts: 3 });

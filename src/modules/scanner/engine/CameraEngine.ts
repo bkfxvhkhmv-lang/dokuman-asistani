@@ -1,12 +1,13 @@
 import type { RefObject } from 'react';
 import { CameraView } from 'expo-camera';
 import { Dimensions } from 'react-native';
-import { AutoCaptureReadiness, CaptureConfig, CaptureResult, EdgeDetectionState, ScannerListener, ScannerEvent } from '../types';
-import { EdgeDetector } from './EdgeDetector';
-import { AutoCaptureEngine } from './AutoCapture';
-import { PerspectiveCorrector } from './PerspectiveCorrector';
-import { Enhancer } from '../../image-processing/core/Enhancer';
-import { QualityAnalyzer } from '../../image-processing/core/QualityAnalyzer';
+import { AutoCaptureReadiness, CaptureConfig, CaptureResult, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
+import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
+import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
+import { PerspectiveCorrector } from '@/modules/scanner/engine/PerspectiveCorrector';
+import { Enhancer } from '@/modules/image-processing/core/Enhancer';
+import { QualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
+import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
 
 export class CameraEngine {
   private cameraRef: RefObject<CameraView> | null = null;
@@ -118,9 +119,14 @@ export class CameraEngine {
       let finalUri = originalUri;
       let corrected = false;
 
-      // Crop to the guide frame region (accounts for preview-vs-sensor aspect difference).
-      // analyzeCapture uses a blind 5% inset that ignores background — replaced here.
-      const captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
+      // Köşe tespiti: native OpenCV → guide frame fallback
+      let captureCorners = await nativeDetectDocumentEdges({ uri: originalUri })
+        .catch(() => null);
+
+      if (!captureCorners || captureCorners.confidence < 0.35) {
+        // Native bulamadı → guide frame kırpma (mevcut davranış)
+        captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
+      }
 
       if (this.config.enablePerspectiveCorrection && captureCorners.confidence >= 0.4) {
         correctedUri = await this.perspectiveCorrector.correct(originalUri, captureCorners, photo.width, photo.height);
@@ -213,13 +219,13 @@ export class CameraEngine {
    * a 9:16 preview while the sensor captures at 3:4, so ~21% of the capture width
    * falls outside the visible preview area on each side.
    *
-   * Guide frame constants must match styles.ts / DocumentOverlay.tsx:
-   *   width = 95% of screen, centered; top = 10%; height = width × 1.414 (A4).
+   * Guide frame constants must match styles/dimensions.ts:
+   *   width = 72% of screen, centered; top = 10%; height = width × 1.414 (A4).
    */
-  private computeGuideCropCorners(captureW: number, captureH: number): import('../types').DocumentCorners {
+  private computeGuideCropCorners(captureW: number, captureH: number): import('@/modules/scanner/types').DocumentCorners {
     const { width: SW, height: SH } = Dimensions.get('window');
 
-    const GUIDE_RATIO  = 0.95;
+    const GUIDE_RATIO  = 0.72;
     const GUIDE_W_PTS  = SW * GUIDE_RATIO;
     const GUIDE_H_PTS  = GUIDE_W_PTS * 1.414; // A4 aspect ratio
 

@@ -1,4 +1,4 @@
-import type { StoreAction } from '../../../store';
+import type { StoreAction } from '@/store';
 
 interface ActionDefinition {
   key: string;

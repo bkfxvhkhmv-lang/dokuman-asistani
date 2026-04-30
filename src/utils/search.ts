@@ -1,4 +1,6 @@
-import type { Dokument } from '../store';
+import type { Dokument } from '@/store';
+import { documentMatchesTypChip } from '@/product/canonicalDocTypes';
+import { getTageVerbleibend } from '@/utils/formatters';
 
 export function sortByRisiko(docs: Dokument[]): Dokument[] {
   const order: Record<string, number> = { hoch: 0, mittel: 1, niedrig: 2 };
@@ -13,14 +15,34 @@ export function sortByRisiko(docs: Dokument[]): Dokument[] {
 }
 
 export interface FilterParams {
-  risiko?: string; typ?: string; sortBy?: string; nurOffen?: boolean;
+  risiko?: string;
+  typ?: string;
+  sortBy?: string;
+  nurOffen?: boolean;
+  /** Home-Schnellfilter inline (übersteuert keine Einstellungen) */
+  quickScope?: 'alle' | 'offen' | 'ueberfaellig';
 }
 
-export function filterDokumente(docs: Dokument[], { risiko, typ, sortBy, nurOffen }: FilterParams): Dokument[] {
+export function filterDokumente(
+  docs: Dokument[],
+  { risiko, typ, sortBy, nurOffen, quickScope }: FilterParams,
+): Dokument[] {
   let r = [...docs];
-  if (nurOffen) r = r.filter(d => !d.erledigt);
+  if (quickScope === 'offen') {
+    r = r.filter(d => !d.erledigt);
+  } else if (quickScope === 'ueberfaellig') {
+    r = r.filter(d => {
+      if (!d.frist || d.erledigt) return false;
+      const tage = getTageVerbleibend(d.frist);
+      return tage !== null && tage < 0;
+    });
+  } else if (quickScope === 'alle') {
+    /* — inkl. Erledigte */
+  } else if (nurOffen) {
+    r = r.filter(d => !d.erledigt);
+  }
   if (risiko && risiko !== 'alle') r = r.filter(d => d.risiko === risiko);
-  if (typ && typ !== 'alle') r = r.filter(d => d.typ === typ);
+  if (typ && typ !== 'alle') r = r.filter(d => documentMatchesTypChip(d.typ, typ));
   switch (sortBy) {
     case 'datum_neu':  r.sort((a, b) => new Date(b.datum).getTime() - new Date(a.datum).getTime()); break;
     case 'datum_alt':  r.sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime()); break;
@@ -100,7 +122,7 @@ export function filterBySearch(docs: Dokument[], { query = '', minBetrag = '', m
     if (effectiveMax !== '' && !isNaN(parseFloat(effectiveMax)) && bet > parseFloat(effectiveMax)) return false;
     if (effectiveVon && d.datum && new Date(d.datum) < new Date(effectiveVon)) return false;
     if (effectiveBis && d.datum && new Date(d.datum) > new Date(effectiveBis + 'T23:59:59')) return false;
-    if (effectiveTyp && effectiveTyp !== 'alle' && d.typ !== effectiveTyp) return false;
+    if (effectiveTyp && effectiveTyp !== 'alle' && !documentMatchesTypChip(d.typ, effectiveTyp)) return false;
     if (effectiveRisiko && effectiveRisiko !== 'alle' && d.risiko !== effectiveRisiko) return false;
     return true;
   });

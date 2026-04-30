@@ -6,8 +6,8 @@ import {
   cancelReminder,
   type ReminderSuggestion,
   type ScheduledReminder,
-} from '../services/SmartRemindersService';
-import type { Dokument } from '../store';
+} from '@/services/SmartRemindersService';
+import type { Dokument } from '@/store';
 
 export function useSmartReminders(dok: Dokument | null) {
   const [scheduled, setScheduled] = useState<ScheduledReminder[]>([]);

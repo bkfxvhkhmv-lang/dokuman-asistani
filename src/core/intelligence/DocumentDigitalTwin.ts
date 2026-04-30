@@ -5,10 +5,10 @@
  *
  * Twin = { content, lifecycle, tasks, relations, syncState, ruleResults, intelligence }
  */
-import { RuleEngineV4 } from '../rules/RuleEngineV4';
-import { LifecyclePredictionEngine, type LifecyclePrediction } from './LifecyclePrediction';
-import { InstitutionBehaviorModel, type InstitutionSuggestion } from './InstitutionBehaviorModel';
-import type { Dokument, Aufgabe } from '../../store';
+import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
+import { LifecyclePredictionEngine, type LifecyclePrediction } from '@/core/intelligence/LifecyclePrediction';
+import { InstitutionBehaviorModel, type InstitutionSuggestion } from '@/core/intelligence/InstitutionBehaviorModel';
+import type { Dokument, Aufgabe } from '@/store';
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 

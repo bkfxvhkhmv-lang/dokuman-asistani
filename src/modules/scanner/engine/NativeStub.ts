@@ -1,4 +1,4 @@
-import type { DocumentCorners } from '../types';
+import type { DocumentCorners } from '@/modules/scanner/types';
 
 // ── Native module registration ────────────────────────────────────────────────
 // Real native implementations (OpenCV, CoreImage, MLKit) register here.
@@ -64,3 +64,54 @@ export function hasNativeMotor(): boolean {
     _native.applyFilter
   );
 }
+// ── REAL NATIVE OPENCV INTEGRATION (FAZ 1) ──────────────────────────────────
+import { NativeModules } from 'react-native';
+
+const BriefPilotScanner = NativeModules.BriefPilotScanner;
+
+async function realOpenCVEdgeDetect(frame: any): Promise<DocumentCorners | null> {
+  // Eğer native modül henüz build edilmediyse (pod install yapılmadıysa) çökme, null döndür.
+  if (!BriefPilotScanner || !frame?.uri) return null;
+
+  try {
+    // 1. Expo Camera'nın verdiği URI'yi Base64'e çevir
+    const response = await fetch(frame.uri);
+    const blob = await response.blob();
+    
+    const base64data = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        // "data:image/jpeg;base64," kısmını kes at, sadece ham base64'i al
+        resolve(reader.result?.toString().split(',')[1] || '');
+      };
+      reader.readAsDataURL(blob);
+    });
+
+    if (!base64data) return null;
+
+    // 2. NATIVE MODÜLE GÖNDER (iOS veya Android)
+    const result = await BriefPilotScanner.processFrame(base64data);
+
+    // 3. Native'den gelen düz diziyi, DocumentCorners tipine çevir
+    if (result && result.points && result.points.length === 4) {
+      return {
+        topLeft:     { x: result.points[0].x, y: result.points[0].y },
+        topRight:    { x: result.points[1].x, y: result.points[1].y },
+        bottomRight: { x: result.points[2].x, y: result.points[2].y },
+        bottomLeft:  { x: result.points[3].x, y: result.points[3].y },
+        confidence:  result.confidence
+      };
+    }
+
+    // Native 4 köşe bulamadıysa null döndür (CameraEngine eski sahte kutuya geçecek)
+    return null;
+
+  } catch (error) {
+    console.warn("[BriefPilot] Native OpenCV Hatası:", error);
+    return null;
+  }
+}
+
+// ── MOTORU ÇALIŞTIR ─────────────────────────────────────────────────────────
+// Bu satır çalıştığında, NativeStub artık gerçek OpenCV'yi kullanacak!
+registerNativeEdgeDetect(realOpenCVEdgeDetect);

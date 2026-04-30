@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { exportiereTopluPDF } from '../utils';
-import { uploadDocumentV4 } from '../services/v4Api';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import { exportiereTopluPDF } from '@/utils';
+import { uploadDocumentV4 } from '@/services/v4Api';
+import type { Dokument } from '@/store';
 
 const ITEM_H = 60;
 

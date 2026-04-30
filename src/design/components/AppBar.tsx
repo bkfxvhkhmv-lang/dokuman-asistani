@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme } from '../../ThemeContext';
-import Icon from '../../components/Icon';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 
 interface RightAction {
   icon: string;

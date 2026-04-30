@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { UISoundService } from '../../../services/UISoundService';
-import { useThrottledPress } from '../../../hooks/useThrottledPress';
+import { useTheme } from '@/ThemeContext';
+import { UISoundService } from '@/services/UISoundService';
+import { useThrottledPress } from '@/hooks/useThrottledPress';
 
 const UNDO_SECONDS = 10;
 

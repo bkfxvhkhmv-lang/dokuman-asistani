@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, type DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../../../ThemeContext';
-import type { DigestResult } from '../../../services/DigestAIService';
+import { useTheme } from '@/ThemeContext';
+import type { DigestResult } from '@/services/DigestAIService';
 
 interface Props {
   digest:    DigestResult | null;  // null = loading

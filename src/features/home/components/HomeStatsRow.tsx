@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, type ThemeColors } from '../../../ThemeContext';
-import type { ShadowTokens, SpacingTokens } from '../../../theme';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { ShadowTokens, SpacingTokens } from '@/theme';
 
 interface StatItem { n: number; label: string; color: string; tabId?: string }
 interface HomeStatsRowProps {

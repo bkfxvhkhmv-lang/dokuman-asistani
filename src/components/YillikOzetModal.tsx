@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import { berechneJahresOzet, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { berechneJahresOzet, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
 
 const RENKLER = ['#6C63FF', '#FF6584', '#43B89C', '#F7B731', '#FC5C65', '#45AAF2'];
 

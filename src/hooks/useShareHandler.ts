@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 import {
   processSharedFile,
   normaliseSharedUri,
   detectFileType,
-} from '../services/ShareUploadService';
+} from '@/services/ShareUploadService';
 
 const PDF_EXTENSIONS = /\.(pdf)$/i;
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|heic|tiff?|webp|bmp)$/i;

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Pressable, PanResponder, Dimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 const { width: W, height: H } = Dimensions.get('window');
 const FAB_SIZE = 58;

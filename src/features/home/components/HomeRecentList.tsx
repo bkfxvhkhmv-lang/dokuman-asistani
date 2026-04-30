@@ -1,18 +1,23 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
+import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import DocumentContextSheet from '../../../components/DocumentContextSheet';
-import type { Dokument } from '../../../store';
+import type { Dokument } from '@/store';
+import { useTheme } from '@/ThemeContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { TransitionStore } from '../../../navigation/transitionStore';
-import { prefetchDocumentData } from '../../../hooks/queryHooks';
+import { TransitionStore } from '@/navigation/transitionStore';
+import { prefetchDocumentData } from '@/hooks/queryHooks';
 import Reanimated, { FadeIn, Layout } from 'react-native-reanimated';
-import SwipeableDokumentKarte from '../../../components/SwipeableDokumentKarte';
-import StackedDokumentKarte from '../../../components/StackedDokumentKarte';
-import OptimisticDokumentKarte from '../../../components/OptimisticDokumentKarte';
-import { useStaggerFadeIn } from '../../../hooks/useStaggerFadeIn';
-import EmptyState, { type EmptyVariant } from '../../../components/EmptyState';
-import { buildDocStacks } from '../../../services/CardStackService';
+import SwipeableDokumentKarte from '@/components/SwipeableDokumentKarte';
+import StackedDokumentKarte from '@/components/StackedDokumentKarte';
+import OptimisticDokumentKarte from '@/components/OptimisticDokumentKarte';
+import { useStaggerFadeIn } from '@/hooks/useStaggerFadeIn';
+import EmptyState, { type EmptyVariant } from '@/components/EmptyState';
+import { buildDocStacks } from '@/services/CardStackService';
+import {
+  DOCUMENTS_SECTION_EYEBROW,
+  DOCUMENTS_SECTION_SUBLINE,
+  DOCUMENTS_SECTION_TITLE,
+} from '@/product/strategyCopy';
 
 // Tabs where sender-based stacking improves readability
 const STACK_TABS = new Set(['Aufgaben', 'Zahlungen']);
@@ -38,10 +43,10 @@ const TAB_VARIANT: Record<string, EmptyVariant> = {
 };
 
 function HomeRecentListInner({ data }: { data: any }) {
-  const router           = useRouter();
-  const cardRefs         = useRef<Map<string, View>>(new Map());
+  const router = useRouter();
+  const { fs } = useTheme();
+  const cardRefs = useRef<Map<string, View>>(new Map());
   const queryClient      = useQueryClient();
-  const [contextDok, setContextDok] = useState<Dokument | null>(null);
 
   // Predictive pre-fetch — after list stabilises for 800ms, warm the cache
   // for the top 3 visible docs so detail opens are instant.
@@ -60,16 +65,12 @@ function HomeRecentListInner({ data }: { data: any }) {
   }, [sectionDokIds, queryClient]);
 
   const navigateWithHero = (dokId: string) => {
-    const ref = cardRefs.current.get(dokId);
-    if (ref) {
-      ref.measureInWindow((x, y, width, height) => {
-        TransitionStore.trigger({
-          x, y, width, height,
-          accentColor: data.Colors.bgCard,
-        });
-      });
-    }
     router.push({ pathname: '/detail', params: { dokId } });
+  };
+
+  const openFromList = (dok: Dokument) => {
+    if (data.secilenModus) data.handleSecim(dok);
+    else navigateWithHero(dok.id);
   };
 
   const sectionMap = {
@@ -79,8 +80,9 @@ function HomeRecentListInner({ data }: { data: any }) {
       docs: data.aufgaben ?? [],
     },
     Dokumente: {
-      title: 'Letzte Dokumente',
-      eyebrow: 'DOKUMENTE',
+      title: DOCUMENTS_SECTION_TITLE,
+      eyebrow: DOCUMENTS_SECTION_EYEBROW,
+      subtitle: DOCUMENTS_SECTION_SUBLINE,
       docs: data.alleDocs ?? [],
     },
     Ordner: {
@@ -119,10 +121,22 @@ function HomeRecentListInner({ data }: { data: any }) {
   );
 
   if (docs.length === 0) {
+    // S2.3: Bos durum CTA — varsayilan sekme "Dokumente" oldugu icin
+    // ilk acilis bos kalirsa kullaniciyi dogrudan tarama akisina yonlendir.
+    const variant = TAB_VARIANT[data.aktiv] ?? 'generic';
+    const showScanCta = variant === 'docs' || variant === 'folder';
     return (
       <EmptyState
-        variant={TAB_VARIANT[data.aktiv] ?? 'generic'}
+        variant={variant}
         compact={false}
+        action={
+          showScanCta
+            ? {
+                label: 'Erste Datei scannen',
+                onPress: () => router.push('/(tabs)/Kamera'),
+              }
+            : undefined
+        }
       />
     );
   }
@@ -131,11 +145,26 @@ function HomeRecentListInner({ data }: { data: any }) {
     <View style={st.wrap}>
       <View style={st.header}>
         <View>
-          <Text style={[st.eyebrow, { color: data.Colors.textTertiary }]}>{section.eyebrow}</Text>
-          <Text style={[st.title, { color: data.Colors.text }]}>{section.title}</Text>
+          <Text style={[st.eyebrow, { color: data.Colors.textTertiary, fontSize: fs(10), lineHeight: fs(10) * 1.35 }]}>{section.eyebrow}</Text>
+          <Text style={[st.title, { color: data.Colors.text, fontSize: fs(18) }]}>{section.title}</Text>
+          {!!section.subtitle && (
+            <Text
+              style={{
+                fontSize: fs(11),
+                fontWeight: '500',
+                color: data.Colors.textSecondary,
+                marginTop: 3,
+                lineHeight: fs(14),
+                letterSpacing: 0.05,
+              }}
+              numberOfLines={2}
+            >
+              {section.subtitle}
+            </Text>
+          )}
         </View>
         <View style={[st.countPill, { backgroundColor: data.Colors.bgCard, borderColor: `${data.Colors.border}D9` }]}>
-          <Text style={[st.countText, { color: data.Colors.textSecondary }]}>{docs.length}</Text>
+          <Text style={[st.countText, { color: data.Colors.textSecondary, fontSize: fs(12) }]}>{docs.length}</Text>
         </View>
       </View>
 
@@ -146,7 +175,8 @@ function HomeRecentListInner({ data }: { data: any }) {
                 <View ref={r => { if (r) cardRefs.current.set(stack.id, r); }}>
                   <StackedDokumentKarte
                     stack={stack}
-                    onPress={(dok) => navigateWithHero(dok.id)}
+                    onPress={(dok) => openFromList(dok)}
+                    onLongPressDok={(dok) => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
                   />
                 </View>
@@ -158,8 +188,9 @@ function HomeRecentListInner({ data }: { data: any }) {
                 <View ref={r => { if (r) cardRefs.current.set(dok.id, r); }}>
                   <SwipeableDokumentKarte
                     dok={dok}
-                    onPress={() => navigateWithHero(dok.id)}
-                    onLongPress={() => setContextDok(dok)}
+                    secilen={!!data.secilenIds?.has?.(dok.id)}
+                    onPress={() => openFromList(dok)}
+                    onLongPress={() => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
                     onContextAction={(d, action) => {
                       if (action === 'bezahlt' || action === 'archivieren')
@@ -173,17 +204,6 @@ function HomeRecentListInner({ data }: { data: any }) {
             ))
         }
       </ScrollView>
-
-      {/* #113 Long-press context menu */}
-      <DocumentContextSheet
-        dok={contextDok}
-        onClose={() => setContextDok(null)}
-        onNavigate={() => contextDok && navigateWithHero(contextDok.id)}
-        onErledigt={() => contextDok && data.dispatch({ type: 'MARK_ERLEDIGT', id: contextDok.id })}
-        onTeilen={() => contextDok && navigateWithHero(contextDok.id)}
-        onPDF={() => contextDok && navigateWithHero(contextDok.id)}
-        onLoeschen={() => contextDok && data.dispatch({ type: 'DELETE_DOKUMENT', id: contextDok.id })}
-      />
     </View>
   );
 }
@@ -203,13 +223,11 @@ const st = StyleSheet.create({
     justifyContent: 'space-between',
   },
   eyebrow: {
-    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.7,
     marginBottom: 4,
   },
   title: {
-    fontSize: 18,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
@@ -223,7 +241,6 @@ const st = StyleSheet.create({
     paddingHorizontal: 10,
   },
   countText: {
-    fontSize: 12,
     fontWeight: '800',
   },
 });

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ViewStyle, TextStyle, TextInputProps } from 'react-native';
-import { useTheme } from '../../ThemeContext';
-import Icon from '../../components/Icon';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 
 type InputVariant = 'default' | 'search' | 'underline';
 

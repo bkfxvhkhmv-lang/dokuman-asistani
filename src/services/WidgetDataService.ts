@@ -14,8 +14,8 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
-import { getTageVerbleibend, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
+import { getTageVerbleibend, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
 
 export const WIDGET_FILE = `${FileSystem.documentDirectory}widget_data.json`;
 export const APP_GROUP   = 'group.com.briefpilot.app';
@@ -134,7 +134,7 @@ export async function writeWidgetData(snapshot: WidgetSnapshot): Promise<void> {
 function tryGetWidgetBridge(): { setString: (group: string, key: string, value: string) => Promise<void>; reloadTimelines: () => Promise<void> } | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('../native/WidgetBridge').default;
+    return require('@/native/WidgetBridge').default;
   } catch {
     return null;  // Expo Go / module not yet built
   }

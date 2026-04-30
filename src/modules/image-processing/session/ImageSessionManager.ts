@@ -1,5 +1,5 @@
-import type { ImageEditMode, ImageSession, ImageSessionEdit } from '../types';
-import type { CaptureResult } from '../../scanner/types';
+import type { ImageEditMode, ImageSession, ImageSessionEdit } from '@/modules/image-processing/types';
+import type { CaptureResult } from '@/modules/scanner/types';
 
 function createSessionId() {
   return `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

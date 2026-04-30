@@ -1,0 +1,32 @@
+import { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/ThemeContext';
+
+interface Props {
+  rohText: string;
+}
+
+export function RohTextSection({ rohText }: Props) {
+  const { Colors: C, S, R, Shadow } = useTheme();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <View style={{ borderRadius: R.lg, padding: S.md, backgroundColor: C.bgCard,
+      borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>
+          ORIGINALTEXT (OCR)
+        </Text>
+        <TouchableOpacity onPress={() => setOpen(p => !p)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary }}>
+            {open ? 'Weniger' : 'Alles anzeigen'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={{ fontSize: 11, color: C.textSecondary, lineHeight: 18 }}
+        numberOfLines={open ? undefined : 6}>
+        {rohText}
+      </Text>
+    </View>
+  );
+}

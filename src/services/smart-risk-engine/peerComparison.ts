@@ -1,0 +1,23 @@
+import type { Dokument } from '@/store';
+import type { PeerComparison } from './types';
+
+export function buildPeerComparison(dok: Dokument, alleDocs: Dokument[]): PeerComparison | null {
+  const similar = alleDocs.filter(d => d.id !== dok.id && d.typ === dok.typ && !d.erledigt);
+  if (similar.length < 2) return null;
+
+  const risikoMap: Record<string, number> = { hoch: 3, mittel: 2, niedrig: 1 };
+  const avgScore = similar.reduce((s, d) => s + (risikoMap[d.risiko] || 1), 0) / similar.length;
+  const myScore = risikoMap[dok.risiko] || 1;
+
+  const durchschnittRisiko = avgScore > 2.5 ? 'hoch' : avgScore > 1.5 ? 'mittel' : 'niedrig';
+  const istSchlechterAlsDurchschnitt = myScore > avgScore + 0.5;
+
+  return {
+    aehnlicheDokumente: similar.length,
+    durchschnittRisiko,
+    istSchlechterAlsDurchschnitt,
+    beschreibung: istSchlechterAlsDurchschnitt
+      ? `Risiko höher als bei ${similar.length} ähnlichen Dokumenten (Ø: ${durchschnittRisiko})`
+      : `Risiko im normalen Bereich für ${dok.typ}`,
+  };
+}

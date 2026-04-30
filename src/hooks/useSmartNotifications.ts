@@ -1,12 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 import {
   requestNotificationPermission,
   notifyAfterUpload,
   scheduleDailyDigest,
   parseNotificationData,
-} from '../services/SmartNotificationsService';
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
+import { isAutoNotificationBlocked } from '@/product/onboardingStorage';
 
 // Wires smart notifications to the store.
 // - Requests permission + sets up notification categories once on mount
@@ -21,11 +24,16 @@ export function useSmartNotifications() {
   const permissionGrantedRef = useRef(false);
   const responseListenerRef = useRef<{ remove: () => void } | null>(null);
 
-  // Permission + notification categories on mount
+  // Permission nach erstem Nutzenmoment (First-Value) oder wenn nicht onboarding-blockiert.
   useEffect(() => {
-    requestNotificationPermission().then(granted => {
+    let cancelled = false;
+    void (async () => {
+      if (await isAutoNotificationBlocked()) return;
+      if (cancelled) return;
+      const granted = await requestNotificationPermission();
       permissionGrantedRef.current = granted;
-    });
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   // Notification tap + Quick Action handler
@@ -56,17 +64,18 @@ export function useSmartNotifications() {
           case 'remind_3d':
             if (data?.dokId) {
               // Re-schedule a reminder 3 days from now at 09:00
-              import('expo-notifications').then(({ default: N, SchedulableTriggerInputTypes }) => {
+              import('expo-notifications').then(async ({ default: N, SchedulableTriggerInputTypes }) => {
+                await ensureAndroidDefaultNotificationChannel();
                 const in3Days = new Date();
                 in3Days.setDate(in3Days.getDate() + 3);
                 in3Days.setHours(9, 0, 0, 0);
                 const originalContent = notification.request.content;
                 N.scheduleNotificationAsync({
-                  content: {
+                  content: withAndroidNotificationChannel({
                     title: `⏰ ${originalContent.title ?? ''}`,
                     body: originalContent.body ?? '',
                     data: { dokId: data?.dokId, type: 'upload' },
-                  },
+                  }),
                   trigger: { type: SchedulableTriggerInputTypes.DATE, date: in3Days },
                 }).catch(() => {});
               });

@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import Icon from '../Icon';
-import type { CropBox, CropImageSize } from '../../modules/image-processing';
-import { getSharedCropEngine, type CropLayout } from '../../modules/image-processing/core/CropEngine';
+import Icon from '@/components/Icon';
+import type { CropBox, CropImageSize } from '@/modules/image-processing';
+import { getSharedCropEngine, type CropLayout } from '@/modules/image-processing/core/CropEngine';
 
 const HANDLE = 28;
 const ACCENT = '#7C6EF8';

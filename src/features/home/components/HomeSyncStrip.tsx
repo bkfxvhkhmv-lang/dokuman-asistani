@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, View, Text, StyleSheet, Animated } from 'react-native';
-import Icon from '../../../components/Icon';
-import { Shadow } from '../../../theme';
-import type { ThemeColors } from '../../../ThemeContext';
+import Icon from '@/components/Icon';
+import { Shadow } from '@/theme';
+import type { ThemeColors } from '@/ThemeContext';
 
 interface HomeSyncStripProps {
   colors: ThemeColors;
@@ -31,8 +31,9 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
 
   if (syncStatus === 'idle') return null;
 
+  // useSyncEngine setzt bei Erfolg 'success'; ältere UI erwartete 'ok'.
   const isError  = syncStatus === 'error';
-  const isOk     = syncStatus === 'ok';
+  const isOk     = syncStatus === 'ok' || syncStatus === 'success';
   const isSyncing = syncStatus === 'syncing';
 
   const accent = isError ? colors.danger : isOk ? colors.success : colors.primary;

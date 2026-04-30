@@ -12,9 +12,9 @@ import {
   type TimelineView,
   type TimelineEvent,
   type WochenZusammenfassung,
-} from '../services/SmartTimelineService';
-import { TimelineEngineV4 } from '../core/events/TimelineEngineV4';
-import type { Dokument } from '../store';
+} from '@/services/SmartTimelineService';
+import { TimelineEngineV4 } from '@/core/events/TimelineEngineV4';
+import type { Dokument } from '@/store';
 
 // ── Per-document timeline hook ─────────────────────────────────────────────────
 

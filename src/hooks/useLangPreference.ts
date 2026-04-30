@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DEFAULT_LANG } from '../i18n/langConfig';
+import { DEFAULT_LANG } from '@/i18n/langConfig';
 
 export const LANG_KEY = '@briefpilot_lang';
 

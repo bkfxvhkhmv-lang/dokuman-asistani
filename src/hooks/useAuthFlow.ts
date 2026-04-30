@@ -7,7 +7,7 @@ import {
   resetPassword,
   getStoredUser,
   clearTokens,
-} from '../services/authService';
+} from '@/services/authService';
 
 export type AuthFlowStatus = 'idle' | 'loading' | 'success' | 'error';
 

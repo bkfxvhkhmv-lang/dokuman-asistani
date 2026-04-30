@@ -4,7 +4,8 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  /** Cam-Tab-Bar + Scan-Button — genug Abstand, damit kein Karteninhalt „durchscheint“ */
   content: {
-    paddingBottom: 128,
+    paddingBottom: 152,
   },
 });

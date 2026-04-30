@@ -6,7 +6,7 @@ import Animated, {
   FadeInDown, Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 import type { SharedValue } from 'react-native-reanimated';
 
 const { width: SCREEN_W } = Dimensions.get('window');

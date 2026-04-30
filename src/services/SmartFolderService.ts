@@ -1,5 +1,5 @@
-import { getTageVerbleibend } from '../utils';
-import type { Dokument } from '../store';
+import { getTageVerbleibend } from '@/utils';
+import type { Dokument } from '@/store';
 
 export interface SmartFolder {
   id:    string;

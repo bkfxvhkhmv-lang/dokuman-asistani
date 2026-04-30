@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { ColorPalette } from '../theme';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { ColorPalette } from '@/theme';
+import type { Dokument } from '@/store';
 
 interface GuidanceCard {
   id: string;
@@ -69,9 +69,13 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
   const mitAufgaben = docs.filter(d => d.aufgaben?.some(a => !a.erledigt));
   if (mitAufgaben.length > 0) {
     const total = mitAufgaben.reduce((s, d) => s + (d.aufgaben ?? []).filter(a => !a.erledigt).length, 0);
+    const ersteOffeneZeile =
+      mitAufgaben
+        .map(d => (d.aufgaben ?? []).find(a => !a.erledigt)?.titel)
+        .find(Boolean) ?? '';
     cards.push({ id: 'aufgaben', emoji: '✅',
       title: `${total} offene${total === 1 ? ' Aufgabe' : ' Aufgaben'}`,
-      sub: (mitAufgaben[0].aufgaben ?? []).find(a => !a.erledigt)?.titel || '',
+      sub: ersteOffeneZeile,
       color: C.primaryDark, bg: C.primaryLight, action: () => {}, actionLabel: 'Zu den Aufgaben →', priority: 5 });
   }
 

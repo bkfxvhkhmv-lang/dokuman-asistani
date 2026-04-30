@@ -1,95 +1,101 @@
 import React from 'react';
-import { Platform, View, Text, ScrollView, StyleSheet } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppChip, AppIconButton } from '../../../design/components';
+import { AppIconButton } from '@/design/components';
+import { useTheme } from '@/ThemeContext';
 
 interface HomeHeaderClusterProps {
   colors: any;
-  tabs: readonly string[];
-  activeTab: string;
-  onTabPress: (tab: string) => void;
+  dringend: number;
+  totalOpen: number;
+  quickScope: 'offen' | 'alle';
+  onScopeChange: (s: 'offen' | 'alle') => void;
+  onSettingsPress: () => void;
   onSearchPress: () => void;
-  onFilterPress: () => void;
-  filterActive?: boolean;
-  filterOpen?: boolean;
-  unreadCount?: number;
 }
 
 export default function HomeHeaderCluster({
-  colors, tabs, activeTab, onTabPress, onSearchPress, onFilterPress, filterActive, filterOpen = false, unreadCount = 0,
+  colors, dringend, totalOpen, quickScope, onScopeChange,
+  onSettingsPress, onSearchPress,
 }: HomeHeaderClusterProps) {
   const insets = useSafeAreaInsets();
-  const hasUnread = unreadCount > 0;
+  const { fs } = useTheme();
 
   return (
     <LinearGradient
       colors={Platform.OS === 'android'
         ? [colors.primaryLight, `${colors.primaryLight}CC`, colors.bg]
-        : [colors.primaryLight, colors.bg]}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={[st.headerCluster, { borderBottomColor: `${colors.border}88`, paddingTop: Math.max(insets.top, 12) }]}
+        : [`${colors.primary}22`, `${colors.primary}08`, colors.bg]}
+      start={{ x: 0, y: 0 }} end={{ x: 0.3, y: 1 }}
+      style={[st.wrap, { paddingTop: Math.max(insets.top + 8, 20) }]}
     >
-      <View style={st.headerRow}>
-        {/* Brand */}
-        <View style={st.brandBlock}>
+      {/* Top row */}
+      <View style={st.topRow}>
+        <View style={st.brand}>
           <View style={[st.brandMark, { backgroundColor: colors.primary }]}>
-            <View style={st.brandFrame} />
-            <Text style={st.brandPlane}>➤</Text>
-            <Text style={st.brandSpark}>✦</Text>
+            <Text style={st.brandLetter}>B</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[st.appname, { color: colors.text }]}>BriefPilot</Text>
-            <Text style={[st.gruss, { color: hasUnread ? colors.primary : colors.textSecondary }]}>
-              {hasUnread
-                ? `${unreadCount} neue${unreadCount > 1 ? '' : 's'} Dokument${unreadCount > 1 ? 'e' : ''}`
-                : 'Alles im Griff'}
-            </Text>
-          </View>
+          <Text style={[st.appname, { color: colors.text }]}>BriefPilot</Text>
         </View>
-
-        {/* Actions */}
-        <View style={st.headerActions}>
-          <AppIconButton name="options-outline" onPress={onFilterPress} active={filterOpen} badge={filterActive && !filterOpen} accessibilityLabel={filterOpen ? 'Filter schließen' : 'Filter öffnen'} />
-          <AppIconButton name="search-outline"  onPress={onSearchPress} size={19} accessibilityLabel="Suche" />
+        <View style={st.actions}>
+          <AppIconButton name="magnifying-glass" onPress={onSearchPress} size={20} accessibilityLabel="Suche" />
+          <AppIconButton name="gear" onPress={onSettingsPress} size={20} accessibilityLabel="Einstellungen" />
         </View>
       </View>
 
-      {/* Tab strip */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={st.tabsWrap}
-        contentContainerStyle={st.tabs}
-      >
-        {tabs.map(tab => (
-          <AppChip
-            key={tab}
-            label={tab}
-            selected={activeTab === tab}
-            onPress={() => onTabPress(tab)}
-            selectedColor={colors.primaryLight}
-            selectedTextColor={colors.primaryDark}
-            style={st.tab}
-          />
+      {/* Metric */}
+      <View style={st.metricRow}>
+        <View>
+          <Text style={[st.metricLabel, { color: colors.textSecondary, fontSize: fs(12) }]}>
+            Offene Dokumente
+          </Text>
+          <Text style={[st.metricNumber, { color: colors.text, fontSize: fs(40) }]}>
+            {totalOpen}
+          </Text>
+        </View>
+        {dringend > 0 && (
+          <View style={[st.urgentBadge, { backgroundColor: `${colors.danger}18`, borderColor: `${colors.danger}30` }]}>
+            <Text style={[st.urgentNum, { color: colors.danger }]}>{dringend}</Text>
+            <Text style={[st.urgentLabel, { color: colors.danger }]}>dringend</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Scope filter */}
+      <View style={st.scopeRow}>
+        {(['offen', 'alle'] as const).map(s => (
+          <TouchableOpacity
+            key={s}
+            style={[st.scopeChip, quickScope === s && { backgroundColor: colors.primary }]}
+            onPress={() => onScopeChange(s)}
+            activeOpacity={0.7}
+          >
+            <Text style={[st.scopeLabel, { color: quickScope === s ? '#fff' : colors.textSecondary }]}>
+              {s === 'offen' ? 'Offen' : 'Alle'}
+            </Text>
+          </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
     </LinearGradient>
   );
 }
 
 const st = StyleSheet.create({
-  headerCluster: { paddingBottom: 10, borderBottomWidth: 0.5, zIndex: 20 },
-  headerRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18 },
-  brandBlock:    { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14, paddingRight: 12 },
-  brandMark:     { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
-  brandFrame:    { position: 'absolute', width: 21, height: 21, borderRadius: 7, borderWidth: 2.5, borderColor: '#fff', transform: [{ rotate: '-22deg' }], left: 9, top: 11 },
-  brandPlane:    { position: 'absolute', right: 3, top: 1, color: '#fff', fontSize: 20, fontWeight: '800', transform: [{ rotate: '-18deg' }] },
-  brandSpark:    { position: 'absolute', left: 15, top: 16, color: '#FFB11A', fontSize: 10, fontWeight: '800' },
-  appname:       { fontSize: 26, fontWeight: '800', letterSpacing: -0.8 },
-  gruss:         { fontSize: 12, fontWeight: '500', marginTop: 3, letterSpacing: 0.1 },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  tabsWrap:      { marginTop: 12 },
-  tabs:          { flexDirection: 'row', gap: 6, paddingHorizontal: 16, paddingVertical: 2 },
-  tab:           { borderWidth: 0 },
+  wrap:        { paddingHorizontal: 18, paddingBottom: 16 },
+  topRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+  brand:       { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  brandMark:   { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  brandLetter: { color: '#fff', fontSize: 17, fontWeight: '900' },
+  appname:     { fontSize: 20, fontWeight: '800', letterSpacing: -0.6 },
+  actions:     { flexDirection: 'row', gap: 4 },
+  metricRow:   { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 },
+  metricLabel: { fontWeight: '600', letterSpacing: 0.1, marginBottom: 2 },
+  metricNumber: { fontWeight: '800', letterSpacing: -1.5, lineHeight: 48 },
+  urgentBadge: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center' },
+  urgentNum:   { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  urgentLabel: { fontSize: 11, fontWeight: '600', marginTop: 1 },
+  scopeRow:    { flexDirection: 'row', gap: 8 },
+  scopeChip:   { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.07)' },
+  scopeLabel:  { fontSize: 13, fontWeight: '700' },
 });

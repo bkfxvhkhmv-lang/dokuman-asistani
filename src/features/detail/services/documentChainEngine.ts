@@ -1,4 +1,4 @@
-import type { Dokument } from '../../../store';
+import type { Dokument } from '@/store';
 
 type ChainType = 'bussgeld' | 'forderung' | 'garantie' | 'rechnung' | 'vertrag' | 'versicherung' | 'standard';
 

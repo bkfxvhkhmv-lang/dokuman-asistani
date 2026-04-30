@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import Icon from '../../../components/Icon';
-import { useTheme } from '../../../ThemeContext';
-import type { Dokument } from '../../../store';
-import type { OzetQuelle } from '../../../utils/types';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP_LG } from '@/theme';
+import type { Dokument } from '@/store';
+import type { OzetQuelle } from '@/utils/types';
 
 interface AIBoxProps {
   dok: Dokument | undefined;
@@ -38,6 +39,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
             </View>
           )}
           <TouchableOpacity onPress={onMailTaslak}
+            hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>📧 E-Mail</Text>
           </TouchableOpacity>
@@ -48,6 +50,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
 
       {dok.rohText && dok.zusammenfassung && (
         <TouchableOpacity onPress={() => setOzetQuellenSichtbar(v => !v)}
+          hitSlop={HIT_SLOP_LG}
           style={{ marginTop: 10, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
             paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8,
             backgroundColor: ozetQuellenSichtbar ? C.primaryLight : C.bgInput,

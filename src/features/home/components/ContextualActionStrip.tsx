@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import Animated, { FadeInDown, FadeOutDown, Layout } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../../ThemeContext';
-import Icon from '../../../components/Icon';
-import { formatBetrag } from '../../../utils';
-import type { HotDoc } from '../../../services/PriorityService';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import { formatBetrag } from '@/utils';
+import type { HotDoc } from '@/services/PriorityService';
 
 // ── CTA — outcome-focused labels, betrag included when available ───────────
 

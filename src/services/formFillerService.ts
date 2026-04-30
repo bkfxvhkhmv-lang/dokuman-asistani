@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import * as MailComposer from 'expo-mail-composer';
 import { Linking, Platform } from 'react-native';
-import type { Dokument } from '../store';
+import type { Dokument } from '@/store';
 
 export interface PaymentForm {
   empfaenger: string;

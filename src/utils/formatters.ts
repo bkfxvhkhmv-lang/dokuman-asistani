@@ -1,4 +1,4 @@
-import type { RiskPalette } from '../theme';
+import type { RiskPalette } from '@/theme';
 
 export const generateId = (): string =>
   Date.now().toString(36) + Math.random().toString(36).slice(2);

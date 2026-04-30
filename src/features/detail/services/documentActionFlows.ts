@@ -1,7 +1,7 @@
 import * as MailComposer from 'expo-mail-composer';
-import { formatBetrag, formatFrist, genEinspruchText, exportierePDFZuDatei } from '../../../utils';
-import { openBankingAppWithPayment } from '../../../services/formFillerService';
-import type { Dokument } from '../../../store';
+import { formatBetrag, formatFrist, genEinspruchText, exportierePDFZuDatei } from '@/utils';
+import { openBankingAppWithPayment } from '@/services/formFillerService';
+import type { Dokument } from '@/store';
 
 type DokumentErweitert = Dokument;
 
@@ -94,7 +94,7 @@ export async function resolveMailAttachmentUris(dok: DokumentErweitert): Promise
 
   try {
     if (dok.v4DocId) {
-      const { downloadOriginalFileToCache } = await import('../../../services/v4Api');
+      const { downloadOriginalFileToCache } = await import('@/services/v4Api');
       const fileUri = await downloadOriginalFileToCache(dok.v4DocId, dok.dateiName || `${dok.titel}.pdf`);
       return [fileUri];
     }

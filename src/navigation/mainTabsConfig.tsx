@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, View } from 'react-native';
-import Icon from '../components/Icon';
+import Icon from '@/components/Icon';
 
 interface TabColors {
   bgCard: string;
@@ -144,7 +144,7 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'index',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Docs',
+      tabBarLabel: 'Dokumente',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="files" focused={focused} color={color} colors={colors} />
       ),
@@ -153,7 +153,7 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'Suche',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Search',
+      tabBarLabel: 'Suche',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="magnifying-glass" focused={focused} color={color} colors={colors} />
       ),
@@ -170,6 +170,15 @@ export const MAIN_TABS: MainTabDefinition[] = [
     }),
   },
   {
+    name: 'Export',
+    options: (colors: TabColors) => ({
+      tabBarLabel: 'Export',
+      tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
+        <TabIcon name="export" focused={focused} color={color} colors={colors} />
+      ),
+    }),
+  },
+  {
     name: 'Marktplatz',
     options: () => ({
       href: null,
@@ -178,7 +187,7 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'Profil',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Profile',
+      tabBarLabel: 'Profil',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="user-circle" focused={focused} color={color} colors={colors} />
       ),

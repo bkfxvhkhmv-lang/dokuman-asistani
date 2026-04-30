@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Polygon, Circle } from 'react-native-svg';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const DEFAULT_FRAME_W = Math.round(SCREEN_W * 0.95);
+const DEFAULT_FRAME_W = Math.round(SCREEN_W * 0.72);
 const DEFAULT_FRAME_H = Math.round(DEFAULT_FRAME_W * 1.414); // A4
-import { DocumentCorners } from '../../modules/scanner';
+import { DocumentCorners } from '@/modules/scanner';
 
 type Props = {
   corners?: DocumentCorners | null;
@@ -38,7 +38,8 @@ export const DocumentOverlay: React.FC<Props> = ({
 
   if (corners) {
     const { topLeft, topRight, bottomRight, bottomLeft, confidence } = corners;
-    const edgeColor = confidence > 0.7 ? '#22C55E' : confidence > 0.4 ? '#EAB308' : '#EF4444';
+    // Beyaz: kenar yok/çok düşük | Sarı: eğik/kötü açı | Yeşil: mükemmel
+    const edgeColor = confidence > 0.65 ? '#22C55E' : confidence > 0.35 ? '#EAB308' : 'rgba(255,255,255,0.7)';
 
     return (
       <View style={StyleSheet.absoluteFill} pointerEvents="none">

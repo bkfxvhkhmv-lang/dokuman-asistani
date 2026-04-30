@@ -6,8 +6,8 @@
  *   1. Özet çıkar  2. Deadline tespit et  3. Takvime ekle
  *   4. Bildirim gönder  5. Gerekirse itiraz taslağı
  */
-import { InstitutionBehaviorModel } from './InstitutionBehaviorModel';
-import { RuleEngineV4 } from '../rules/RuleEngineV4';
+import { InstitutionBehaviorModel } from '@/core/intelligence/InstitutionBehaviorModel';
+import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 

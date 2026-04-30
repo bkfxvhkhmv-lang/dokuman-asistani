@@ -2,7 +2,7 @@ import { useFrameProcessor } from 'react-native-vision-camera';
 import type { Frame } from 'react-native-vision-camera';
 import { useSharedValue, runOnJS } from 'react-native-reanimated';
 import { useCallback, useRef } from 'react';
-import type { DocumentCorners } from '../types';
+import type { DocumentCorners } from '@/modules/scanner/types';
 import { VisionCameraProxy } from 'react-native-vision-camera';
 
 // ── Native plugin interface ───────────────────────────────────────────────────

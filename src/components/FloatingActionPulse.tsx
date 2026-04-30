@@ -19,7 +19,7 @@ import Animated, {
   cancelAnimation, Easing,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from './Icon';
+import Icon from '@/components/Icon';
 
 export type PulseUrgency = 'high' | 'medium' | 'low';
 
@@ -30,6 +30,8 @@ export interface FloatingActionPulseProps {
   icon?:     string;
   urgency?:  PulseUrgency;
   onPress:   () => void;
+  /** Push CTA up (e.g. deadline strip above home indicator) */
+  extraBottomInset?: number;
 }
 
 const URGENCY_COLOR: Record<PulseUrgency, string> = {
@@ -46,6 +48,7 @@ const PULSE_DURATION: Record<PulseUrgency, number> = {
 
 export default function FloatingActionPulse({
   visible, label, sublabel, icon = 'flash', urgency = 'medium', onPress,
+  extraBottomInset = 0,
 }: FloatingActionPulseProps) {
   const insets = useSafeAreaInsets();
   const color  = URGENCY_COLOR[urgency];
@@ -106,7 +109,7 @@ export default function FloatingActionPulse({
       pointerEvents={visible ? 'auto' : 'none'}
       style={[
         st.wrapper,
-        { bottom: (insets.bottom || 16) + 16 },
+        { bottom: (insets.bottom || 16) + 16 + extraBottomInset },
         containerStyle,
       ]}
     >

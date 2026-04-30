@@ -3,7 +3,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import type { StoreState, StoreAction } from '../store';
+import type { StoreState, StoreAction } from '@/store';
 
 const BACKUP_DIR = (FileSystem.documentDirectory ?? '') + 'backups/';
 const AUTO_KEY   = '@briefpilot_auto_backup';

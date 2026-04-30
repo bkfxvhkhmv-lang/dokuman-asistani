@@ -1,0 +1,51 @@
+/**
+ * Arama ekraninda kullanilan sabitler ve dis API tipleri.
+ *
+ * Tek dosyaya tasindi cunku bircok alt bilesen ayni listelere
+ * (SCHNELLSUCHE, TYPEN, RISIKEN) ihtiyac duyuyor; tekrar tanimlama
+ * yerine merkezi import.
+ */
+
+/** Arama ekrani aciliriken gosterilen onerilen aramalar. */
+export const SCHNELLSUCHE: { label: string; query: string }[] = [
+  { label: 'Überfällig',   query: 'überfällig' },
+  { label: 'Diese Woche',  query: 'diese Woche' },
+  { label: 'Dringend',     query: 'dringend' },
+  { label: 'Rechnung',     query: 'Rechnung' },
+  { label: 'Mahnung',      query: 'Mahnung' },
+  { label: 'Finanzamt',    query: 'Finanzamt' },
+  { label: 'Bußgeld',      query: 'Bußgeld' },
+  { label: 'Versicherung', query: 'Versicherung' },
+  { label: 'Über 100 €',   query: 'über 100€' },
+];
+
+/** Filtre modal'inde dokumenttip secimi. */
+export const TYPEN = [
+  'alle', 'Rechnung', 'Mahnung', 'Bußgeld', 'Behörde',
+  'Steuerbescheid', 'Termin', 'Versicherung', 'Vertrag', 'Sonstiges',
+] as const;
+
+/** Filtre modal'inde risk seviyesi secimi. */
+export const RISIKEN = ['alle', 'hoch', 'mittel', 'niedrig'] as const;
+
+/** Suchverlauf icinde tutulacak en fazla giris sayisi. */
+export const MAX_VERLAUF = 8;
+
+/** Chip animation spring config. */
+export const CHIP_SPRING = {
+  damping: 14,
+  stiffness: 420,
+  mass: 0.55,
+  useNativeDriver: true,
+} as const;
+
+/** V4 backend'inden donen semantik arama sonucu. */
+export interface SemanticResult {
+  doc_id?: string;
+  score?: number;
+  title?: string;
+  filename?: string;
+  snippet?: string;
+  doc_type?: string;
+  created_at?: string;
+}

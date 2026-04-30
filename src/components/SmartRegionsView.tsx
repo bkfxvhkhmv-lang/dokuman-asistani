@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, ScrollView, Linking, Animated } from 'rea
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as Calendar from 'expo-calendar';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
 
 interface Region {
   id: string;

@@ -1,5 +1,5 @@
-import { formatBetrag } from '../utils';
-import type { BudgetTarget, Dokument } from '../store';
+import { formatBetrag } from '@/utils';
+import type { BudgetTarget, Dokument } from '@/store';
 
 // ── Analysis result ────────────────────────────────────────────────────────
 

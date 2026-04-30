@@ -1,6 +1,6 @@
 import * as Speech from 'expo-speech';
-import { SpeechRecognizer } from './SpeechRecognizer';
-import type { VoiceCommand, VoiceCommandResult, VoiceEngineConfig } from '../types';
+import { SpeechRecognizer } from '@/modules/voice/engine/SpeechRecognizer';
+import type { VoiceCommand, VoiceCommandResult, VoiceEngineConfig } from '@/modules/voice/types';
 
 interface CommandPattern {
   command: VoiceCommand;

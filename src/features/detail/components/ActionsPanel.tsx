@@ -12,12 +12,13 @@ import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi'
 // ── Action metadata ───────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:    { label: 'Zahlung vorbereiten',   shortLabel: 'Bezahlen',  icon: '💶', tone: 'primary' },
-  einspruch: { label: 'Einspruch vorbereiten', shortLabel: 'Einspruch', icon: '✍️', tone: 'danger' },
-  kalender:  { label: 'Frist eintragen',       shortLabel: 'Kalender',  icon: '📅', tone: 'success' },
-  mail:      { label: 'Als E-Mail öffnen',     shortLabel: 'E-Mail',    icon: '📧', tone: 'neutral' },
-  review:    { label: 'Angaben prüfen',        shortLabel: 'Prüfen',    icon: '🧐', tone: 'warning' },
-  ai:        { label: 'Dokument verstehen',    shortLabel: 'Verstehen', icon: '🧠', tone: 'neutral' },
+  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',  icon: '💶', tone: 'primary' },
+  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch', icon: '✍️', tone: 'danger' },
+  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',  icon: '📅', tone: 'success' },
+  mail:      { label: 'Als E-Mail öffnen',        shortLabel: 'E-Mail',    icon: '📧', tone: 'neutral' },
+  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: '🧐', tone: 'warning' },
+  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: '🧠', tone: 'neutral' },
+  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: '✅', tone: 'success' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
@@ -136,7 +137,8 @@ export function getDetailActionPlan(
 
   const primary = { key: primaryKey, ...ACTION_META[primaryKey], onPress: onPress[primaryKey] };
 
-  const secondaryKeys = ([
+  const coreLimit = !dok.erledigt ? 1 : 2;
+  const coreSecondaryKeys = ([
     dok.aktionen?.includes('zahlen') && 'zahlen',
     dok.aktionen?.includes('einspruch') && 'einspruch',
     dok.frist && 'kalender',
@@ -145,7 +147,11 @@ export function getDetailActionPlan(
     .filter((k): k is string => Boolean(k))
     .filter((k, i, arr) => arr.indexOf(k) === i)
     .filter(k => k !== primaryKey)
-    .slice(0, 2);
+    .slice(0, coreLimit);
+
+  const secondaryKeys = !dok.erledigt
+    ? [...coreSecondaryKeys, 'erledigt']
+    : coreSecondaryKeys;
 
   const secondary = secondaryKeys.map(key => ({ key, ...ACTION_META[key], onPress: onPress[key] }));
 

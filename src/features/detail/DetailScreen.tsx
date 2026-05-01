@@ -34,6 +34,7 @@ import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
 
 const ENABLE_RELEASE_FLOATING_ACTION_PULSE = false;
 const ENABLE_RELEASE_PROCESS_TRACKER = false;
+const ENABLE_RELEASE_DEADLINE_BANNER = false;
 
 export default function Detailbildschirm() {
   const { Colors: C, isSimpleMode } = useTheme();
@@ -161,11 +162,12 @@ export default function Detailbildschirm() {
   }, [actionPlan, showDeadlineStrip, showPrimaryFab]);
 
   const releaseShowPrimaryFab = ENABLE_RELEASE_FLOATING_ACTION_PULSE && showPrimaryFab;
+  const releaseShowDeadlineBanner = ENABLE_RELEASE_DEADLINE_BANNER && showDeadlineStrip;
 
   const footerPad =
     132 +
     (releaseShowPrimaryFab ? 112 : 0) +
-    (showDeadlineStrip ? 84 : 0);
+    (releaseShowDeadlineBanner ? 84 : 0);
 
   return (
     <SafeAreaView style={[st.fill, { backgroundColor: C.bg }]}>
@@ -319,7 +321,7 @@ export default function Detailbildschirm() {
         />
       )}
 
-      {showDeadlineStrip && (
+      {releaseShowDeadlineBanner && (
         <DetailDeadlineBanner
           dok={dok}
           onCalendarPress={() => actions.handleKalender()}

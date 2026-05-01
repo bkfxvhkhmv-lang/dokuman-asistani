@@ -33,7 +33,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Erlaube die Kamera, um Briefe direkt zu scannen.",
-        "NSPhotoLibraryUsageDescription": "Wähle vorhandene Fotos oder Dokumente aus deiner Galerie."
+        "NSPhotoLibraryUsageDescription": "Wähle vorhandene Fotos oder Dokumente aus deiner Galerie.",
+        "NSPhotoLibraryAddUsageDescription": "BriefPilot speichert exportierte PDFs oder bearbeitete Dokumente nur, wenn du das ausdrücklich auswählst."
       }
     },
     "android": {

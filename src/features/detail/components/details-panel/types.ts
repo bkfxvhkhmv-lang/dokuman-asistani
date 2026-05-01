@@ -9,4 +9,7 @@ export interface DetailsPanelProps {
   ocrRisiken?: OcrRisikoItem[];
   /** Für künftige Graph-Ansicht reserviert. */
   graph?: BeziehungsGraph;
+  onEdit?: () => void;
+  onExport?: () => void;
+  onLoeschen?: () => void;
 }

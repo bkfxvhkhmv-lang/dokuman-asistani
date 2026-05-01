@@ -12,6 +12,9 @@ type Props = {
   onScrollLayout: (e: any) => void;
   onOpenPages?: (initialIndex?: number) => void;
   scrollBottomPadding?: number;
+  onEdit?: () => void;
+  onExport?: () => void;
+  onLoeschen?: () => void;
 };
 
 export default function DetailDetailsTab({
@@ -23,6 +26,9 @@ export default function DetailDetailsTab({
   onScrollLayout,
   onOpenPages,
   scrollBottomPadding = 132,
+  onEdit,
+  onExport,
+  onLoeschen,
 }: Props) {
   return (
     <ScrollView
@@ -42,6 +48,9 @@ export default function DetailDetailsTab({
         ocrRisiken={detail.ocrRisiken}
         graph={detail.graph}
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
+        onEdit={onEdit}
+        onExport={onExport}
+        onLoeschen={onLoeschen}
       />
     </ScrollView>
   );

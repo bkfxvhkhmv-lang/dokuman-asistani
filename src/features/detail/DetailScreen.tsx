@@ -12,6 +12,7 @@ import DetailProcessTracker from '@/features/detail/components/DetailProcessTrac
 import OzetTab from '@/features/detail/components/OzetTab';
 import DetailAnalysisTab from '@/features/detail/components/tabs/DetailAnalysisTab';
 import DetailActionsTab from '@/features/detail/components/tabs/DetailActionsTab';
+import DetailDetailsTab from '@/features/detail/components/tabs/DetailDetailsTab';
 
 import FloatingActionPulse from '@/components/FloatingActionPulse';
 import BudgetGrafikModal from '@/components/BudgetGrafikModal';
@@ -84,6 +85,8 @@ export default function Detailbildschirm() {
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,
+    smartLinks,
+    allDoksMap,
   } = L;
 
   useEffect(() => {
@@ -214,7 +217,7 @@ export default function Detailbildschirm() {
       )}
 
       <Animated.View style={{ flex: 1, opacity: tabOpacity, transform: [{ scale: tabScale }] }}>
-        {aktifTab === 'ozet' && (
+        {aktifTab === 'ozet' && isSimpleMode && (
           <OzetTab
             dok={detail.dok}
             info={detail.info}
@@ -234,7 +237,7 @@ export default function Detailbildschirm() {
             documentChain={detail.documentChain}
             onOpenPages={openPagesViewer}
             scrollBottomPadding={footerPad}
-            simpleLayout={isSimpleMode}
+            simpleLayout
             actionPlan={actionPlan}
             naechsterSchrittZeile={naechsterSchrittZeile}
             suppressNextStepBanner={suppressOzetNextStepBanner}
@@ -244,6 +247,22 @@ export default function Detailbildschirm() {
             onSimpleHilfe={() => modal.open('hilfe')}
             onRetryPipelineAnalysis={onRetryPipelineAnalysis}
             onKlassifikationBearbeiten={() => actions.handleEditKlassifikation()}
+          />
+        )}
+
+        {aktifTab === 'ozet' && !isSimpleMode && (
+          <DetailDetailsTab
+            smartLinks={smartLinks}
+            allDoksMap={allDoksMap}
+            detail={detail}
+            onTabScroll={onTabScroll}
+            onScrollContentSize={onScrollContentSize}
+            onScrollLayout={onScrollLayout}
+            onOpenPages={openPagesViewer}
+            scrollBottomPadding={footerPad}
+            onEdit={actions.handleEdit}
+            onExport={actions.handlePDF}
+            onLoeschen={actions.handleLoeschen}
           />
         )}
 

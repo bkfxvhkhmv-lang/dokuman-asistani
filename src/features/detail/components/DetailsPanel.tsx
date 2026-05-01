@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
@@ -24,10 +24,13 @@ export default function DetailsPanel({
   ocrRisiken = [],
   graph: _graph,
   onOpenFullscreen,
+  onEdit,
+  onExport,
+  onLoeschen,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
 
-  const { S, Colors: C, R, Shadow } = useTheme();
+  const { S, Colors: C, R } = useTheme();
   const { t: T } = useT();
 
   if (!dok) return null;
@@ -44,11 +47,15 @@ export default function DetailsPanel({
     ...(dok.risiko ? [{ icon: '🚦', label: T('field.priority'), value: dok.risiko === 'hoch' ? T('doc.urgent_label') : dok.risiko === 'mittel' ? T('doc.this_week') : T('doc.no_action') }] : []),
   ];
 
-  return (
-    <View style={{ padding: S.md, paddingBottom: 48 }}>
+  const hasContent = !!(dok.uri || smartFields.length > 0 || extrahierteFelder.length > 0 || dok.rohText);
 
+  return (
+    <View style={{ padding: S.md, paddingBottom: 16 }}>
+
+      {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
       <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
 
+      {/* ── 2. Kernfelder ────────────────────────────────────────────────── */}
       <SectionCard title={T('detail.section.doc_data')}>
         {coreRows.map((f, i) => (
           <FieldRow
@@ -61,7 +68,7 @@ export default function DetailsPanel({
         ))}
       </SectionCard>
 
-      {/* Smart extracted fields (IBAN, Aktenzeichen etc.) */}
+      {/* ── 3. KI-extrahierte Felder (IBAN, Aktenzeichen …) ─────────────── */}
       {smartFields.length > 0 && (
         <SectionCard title={T('detail.section.fields')}>
           {smartFields.map((f, i) => (
@@ -70,20 +77,26 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
+              aiSparkle={f.aiSparkle}
               isLast={i === smartFields.length - 1}
             />
           ))}
         </SectionCard>
       )}
 
-      {/* OCR quality warning — only when relevant */}
+      {/* ── 4. OCR-Qualitätshinweis ──────────────────────────────────────── */}
       <OcrConfidenceSection confidencePct={confidencePct} ocrRisiken={ocrRisiken} />
 
+      {/* ── 5. Etiketten ─────────────────────────────────────────────────── */}
       <EtikettenSection mevcutEtiketten={mevcutEtiketten} />
+
+      {/* ── 6. KI-Felder (extended) ──────────────────────────────────────── */}
       <ExtrahierteKiSection felder={extrahierteFelder} />
+
+      {/* ── 7. Ähnliche Dokumente ────────────────────────────────────────── */}
       <AehnlicheDocsSection dokumente={aehnlicheDoks} />
 
-      {/* Raw OCR text — collapsible */}
+      {/* ── 8. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
       {dok.rohText ? (
         <>
           <View style={{ height: S.md }} />
@@ -91,18 +104,64 @@ export default function DetailsPanel({
         </>
       ) : null}
 
-      {/* Fallback when absolutely nothing else rendered */}
-      {!dok.uri && smartFields.length === 0 && extrahierteFelder.length === 0 && !dok.rohText && (
+      {/* ── Fallback: noch keine Felder erkannt ──────────────────────────── */}
+      {!hasContent && (
         <View style={{
-          alignItems: 'center', paddingVertical: 32, gap: 8,
+          alignItems: 'center', paddingVertical: 32, gap: 10,
           borderRadius: R.lg, borderWidth: 1, borderStyle: 'dashed',
           borderColor: C.borderLight, marginTop: S.md,
         }}>
-          <Text style={{ fontSize: 20 }}>📄</Text>
-          <Text style={{ fontSize: 13, color: C.textTertiary, textAlign: 'center' }}>
-            Keine weiteren Details extrahiert.{'\n'}Scanne das Dokument erneut für mehr Infos.
+          <Text style={{ fontSize: 22 }}>📄</Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, textAlign: 'center' }}>
+            Noch nicht alle Felder erkannt.
           </Text>
+          <Text style={{ fontSize: 12, color: C.textTertiary, textAlign: 'center', lineHeight: 18 }}>
+            Du kannst die wichtigsten Angaben{'\n'}manuell prüfen oder bearbeiten.
+          </Text>
+          {onEdit && (
+            <TouchableOpacity
+              onPress={onEdit}
+              style={{ marginTop: 4, paddingHorizontal: 20, paddingVertical: 9,
+                borderRadius: 999, borderWidth: 1, borderColor: C.primary, backgroundColor: C.primaryLight }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>Felder bearbeiten</Text>
+            </TouchableOpacity>
+          )}
         </View>
+      )}
+
+      {/* ── Aktionsleiste: Bearbeiten | Exportieren ───────────────────────── */}
+      {(onEdit || onExport) && (
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: S.lg ?? S.md + 4 }}>
+          {onEdit && (
+            <TouchableOpacity
+              onPress={onEdit}
+              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+                alignItems: 'center', backgroundColor: C.primary }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Bearbeiten</Text>
+            </TouchableOpacity>
+          )}
+          {onExport && (
+            <TouchableOpacity
+              onPress={onExport}
+              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+                alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Exportieren</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* ── Löschen — destruktiv, bewusst klein ──────────────────────────── */}
+      {onLoeschen && (
+        <TouchableOpacity
+          onPress={onLoeschen}
+          style={{ alignItems: 'center', marginTop: 22, paddingVertical: 6 }}
+        >
+          <Text style={{ fontSize: 13, color: C.danger }}>Dokument löschen</Text>
+        </TouchableOpacity>
       )}
     </View>
   );

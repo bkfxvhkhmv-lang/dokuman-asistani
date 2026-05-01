@@ -13,6 +13,7 @@ import type {
   ActionHistoryEntry,
 } from '@/store/types';
 import { followKurzfassungMitKernfeldern } from '@/store/kurzfassungSync';
+import { createDemoDokumente } from '@/features/demo/demoDocuments';
 
 /** Versiyonlanmasi gereken alanlar — degistirildiginde
  *  Dokument.versionen icine snapshot dusurulur. */
@@ -40,6 +41,7 @@ export function documentReducer(state: StoreState, action: StoreAction): StoreSt
     case 'UPDATE_AUFGABE':         return updateAufgabe(state, action.dokId, action.payload);
     case 'DELETE_AUFGABE':         return deleteAufgabe(state, action.dokId, action.aufgabeId);
     case 'UPDATE_ETIKETTEN':       return updateEtiketten(state, action.id, action.etiketten);
+    case 'RESET_DEMO':             return resetDemo(state);
     default:                       return null;
   }
 }
@@ -208,6 +210,13 @@ function deleteAufgabe(state: StoreState, dokId: string, aufgabeId: string): Sto
       return { ...d, aufgaben: (d.aufgaben || []).filter(a => a.id !== aufgabeId) };
     }),
   };
+}
+
+/* -------------------------------- Demo --------------------------------- */
+function resetDemo(state: StoreState): StoreState {
+  const fresh = createDemoDokumente();
+  const nonDemo = state.dokumente.filter(d => !d.isDemo);
+  return { ...state, dokumente: [...fresh, ...nonDemo] };
 }
 
 /* ------------------------------ Etiketten ------------------------------ */

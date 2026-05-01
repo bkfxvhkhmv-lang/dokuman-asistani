@@ -128,6 +128,8 @@ export interface Dokument {
   pages?: ScannedPage[];
   /** Henuz OCR/analiz tamamlanmamis optimistic placeholder bayragi */
   isOptimistic?: boolean;
+  /** Demo modu belgeleri — kullanici verisine karistirilmaz */
+  isDemo?: boolean;
   /** Kullanicinin verdigi ozel baslik (otomatik uretilen titel'i ezerse) */
   customTitle?: string | null;
   /**

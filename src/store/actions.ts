@@ -59,4 +59,5 @@ export type StoreAction =
   | { type: 'DELETE_KISAYOL'; id: string }
   | { type: 'ADD_SABLON'; payload: AktiveSablon }
   | { type: 'REMOVE_SABLON'; dokId: string; sablonId: string }
-  | { type: 'UPDATE_ETIKETTEN'; id: string; etiketten: string[] };
+  | { type: 'UPDATE_ETIKETTEN'; id: string; etiketten: string[] }
+  | { type: 'RESET_DEMO' };

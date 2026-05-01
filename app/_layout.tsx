@@ -79,6 +79,14 @@ function ThemedNavigator() {
           contentStyle: { backgroundColor: Colors.bg },
         }}
       />
+      <Stack.Screen
+        name="profil"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
     </Stack>
   );
 }

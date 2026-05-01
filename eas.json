@@ -9,13 +9,49 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": { "simulator": false }
+    },
+    "testflight": {
+      "distribution": "store",
+      "ios": { "simulator": false },
+      "env": {
+        "APP_ENV": "beta",
+        "DEMO_MODE_ENABLED": "true",
+        "ENABLE_FEEDBACK": "true",
+        "SHOW_DEBUG_BADGES": "false"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "distribution": "store",
+      "ios": { "simulator": false },
+      "env": {
+        "APP_ENV": "production",
+        "DEMO_MODE_ENABLED": "true",
+        "ENABLE_FEEDBACK": "true",
+        "SHOW_DEBUG_BADGES": "false"
+      }
     }
   },
   "submit": {
-    "production": {}
+    "testflight": {
+      "ios": {
+        "appleId": "zeynepguel1977@gmail.com",
+        "ascAppId": "com.briefpilot.app",
+        "appleTeamId": "FILL_IN"
+      }
+    },
+    "production": {
+      "ios": {
+        "appleId": "zeynepguel1977@gmail.com",
+        "ascAppId": "com.briefpilot.app",
+        "appleTeamId": "FILL_IN"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-services-key.json",
+        "track": "production"
+      }
+    }
   }
 }

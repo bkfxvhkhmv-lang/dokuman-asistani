@@ -26,7 +26,7 @@ export interface ActionOutcome {
 
 const CORE_ACTION_DEFINITIONS: Record<string, ActionDefinition> = {
   pay: {
-    key: 'pay', label: 'Jetzt bezahlen', stamp: 'BEZAHLT',
+    key: 'pay', label: 'Zahlung vorbereiten', stamp: 'BEZAHLT',
     status: 'bezahlt', color: 'green',
     timelineLabel: 'Heute bezahlt',
     hideFromTasks: true, archiveBehavior: 'moveTo:Steuer',

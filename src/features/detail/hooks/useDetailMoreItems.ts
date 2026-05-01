@@ -53,14 +53,14 @@ export function useDetailMoreItems({
 
     if (!dok.erledigt && aktiv.includes('zahlen')) {
       rows.push({
-        key: 'menu_zahlen', icon: '💶', label: 'Jetzt bezahlen', group: 'main',
+        key: 'menu_zahlen', icon: '💶', label: 'Zahlung vorbereiten', group: 'main',
         onPress: tap(actions.handleZahlen),
       });
     }
 
     if (!dok.erledigt && aktiv.includes('einspruch')) {
       rows.push({
-        key: 'menu_einspruch', icon: '✍️', label: 'Einspruch starten', group: 'main',
+        key: 'menu_einspruch', icon: '✍️', label: 'Einspruch prüfen', group: 'main',
         onPress: tap(actions.handleEinspruch),
       });
     }

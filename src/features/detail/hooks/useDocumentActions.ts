@@ -58,8 +58,9 @@ export function useDocumentActions({
   }, [modal]);
 
   const handleLoeschen = useCallback(() => {
-    runHandleLoeschen({ dok, dokId, dispatch, modal, router, openConfirm });
-  }, [dispatch, dok, dokId, modal, openConfirm, router]);
+    if (!dok) return;
+    modal.open('loeschen');
+  }, [dok, modal]);
 
   const handleZahlen = useCallback(() => {
     runHandleZahlen({ dok, dokId, dispatch, modal, router, commitOutcome });

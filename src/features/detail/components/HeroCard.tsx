@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils';
 import { HIT_SLOP_LG } from '@/theme';
+import AiSparkle from '@/components/AiSparkle';
 import type { Dokument } from '@/store';
 import type { RiskEntry } from '@/utils/types';
 import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
@@ -74,9 +75,9 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.md, paddingVertical: S.sm }}>
         {([
-          { emoji: info.emoji ?? '🎯', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true },
-          { emoji: '⏳', label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist },
-          { emoji: '💶', label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag },
+          { emoji: info.emoji ?? '🎯', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true, aiField: false },
+          { emoji: '⏳', label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist, aiField: dok.confidence != null },
+          { emoji: '💶', label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag, aiField: dok.confidence != null },
         ] as const).filter(r => r.show && r.value).map((row, i, arr) => (
           <View key={`${row.label}-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7,
             borderBottomWidth: i < arr.length - 1 ? 0.5 : 0, borderBottomColor: C.borderLight }}>
@@ -87,7 +88,10 @@ export default function HeroCard({
             >
               {row.label}
             </Text>
-            <Text style={{ fontSize: fs(12), fontWeight: '700', color: row.color ?? C.text, flex: 1 }}>{row.value}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <Text style={{ fontSize: fs(12), fontWeight: '700', color: row.color ?? C.text }}>{row.value}</Text>
+              {row.aiField ? <AiSparkle /> : null}
+            </View>
           </View>
         ))}
         <View

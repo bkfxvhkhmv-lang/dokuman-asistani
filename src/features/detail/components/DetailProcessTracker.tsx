@@ -37,9 +37,9 @@ export default function DetailProcessTracker({ digitalTwin }: DetailProcessTrack
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.sm, borderRadius: R.lg,
       padding: S.md, backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: C.text }}>Vorgangsstatus</Text>
-        <Text style={{ fontSize: 11, color: C.textSecondary }} numberOfLines={1}>{summary}</Text>
+      <View style={{ marginBottom: 10 }}>
+        <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, marginBottom: 2 }}>Vorgangsstatus</Text>
+        <Text style={{ fontSize: 11, color: C.textSecondary }} numberOfLines={2}>{summary}</Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {STEP_KEYS.map((key, index) => {

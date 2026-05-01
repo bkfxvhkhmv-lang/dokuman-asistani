@@ -134,7 +134,7 @@ export default function SimpleDocumentOverview({
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff' }}>Jetzt bezahlen</Text>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff' }}>Zahlung vorbereiten</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.92)', marginTop: 2 }}>
               {formatBetrag(dok.betrag!, dok.waehrung || '€')}
             </Text>

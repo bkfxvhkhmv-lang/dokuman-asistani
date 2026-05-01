@@ -26,7 +26,7 @@ interface UseDetailScreenAnimationsResult {
   handleBack: (onBack: () => void) => void;
 }
 
-export function useDetailScreenAnimations(initialTab = 'ozet'): UseDetailScreenAnimationsResult {
+export function useDetailScreenAnimations(initialTab = 'analiz'): UseDetailScreenAnimationsResult {
   const [aktifTab, setAktifTab] = useState(initialTab);
 
   // ── Scroll-linked header ──────────────────────────────────────────────────
@@ -97,6 +97,11 @@ export function useDetailScreenAnimations(initialTab = 'ozet'): UseDetailScreenA
     // Reset progress bar on tab switch (new tab starts at top)
     headerProgress.setValue(0);
     scrollY.setValue(0);
+    // Analytics
+    import('@/services/BetaAnalytics').then(({ BetaAnalytics }) => {
+      if (tabId === 'analiz') void BetaAnalytics.trackEvent('analyse_viewed');
+      if (tabId === 'eylem')  void BetaAnalytics.trackEvent('actions_viewed');
+    });
 
     Animated.parallel([
       Animated.timing(tabOpacity, { toValue: 0, duration: 70,  useNativeDriver: true }),

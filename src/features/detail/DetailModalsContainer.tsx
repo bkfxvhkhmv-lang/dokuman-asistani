@@ -28,6 +28,7 @@ import ConfirmSheet from '@/features/detail/detail-modals/ConfirmSheet';
 import NoticeSheet from '@/features/detail/detail-modals/NoticeSheet';
 import OptionsSheet from '@/features/detail/detail-modals/OptionsSheet';
 import EinspruchSheet from '@/features/detail/detail-modals/EinspruchSheet';
+import LoeschenModal from '@/features/detail/modals/LoeschenModal';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 
 export type { MoreMenuItem };
@@ -97,11 +98,24 @@ export default function DetailModalsContainer({
     });
   }, [modal, beginActionSession]);
 
+  const handleDeleteConfirm = useCallback(() => {
+    modal.close();
+    dispatch({ type: 'DELETE_DOKUMENT', id: dokId });
+    router.back();
+    showToast({ message: 'Dokument gelöscht', icon: 'trash-outline' });
+  }, [modal, dispatch, dokId, router, showToast]);
+
   return (
     <>
       <PremiumToast config={toastConfig} onHide={hideToast} />
 
       <MoreMenuSheet visible={moreMenu} onClose={() => setMoreMenu(false)} items={moreItems} />
+
+      <LoeschenModal
+        visible={modal.isOpen('loeschen')}
+        onClose={modal.close}
+        onConfirm={handleDeleteConfirm}
+      />
 
       <PaymentPrepareSheet
         visible={modal.isOpen('payment')}

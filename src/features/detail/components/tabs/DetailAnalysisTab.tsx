@@ -10,6 +10,11 @@ import SmartRiskPanel from '@/components/SmartRiskPanel';
 import AnalyseHeaderCard from '@/features/detail/components/AnalyseHeaderCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
+const ENABLE_RELEASE_DIGITAL_TWIN_PANEL = false;
+const ENABLE_RELEASE_AI_BOX = false;
+const ENABLE_RELEASE_TASKS_PANEL = false;
+const ENABLE_RELEASE_CHAT_ENTRY_BAR = false;
+
 type Props = {
   smartSummary: any;
   detail: any;
@@ -58,61 +63,71 @@ export default function DetailAnalysisTab({
         onLoadDetailed={smartSummary.loadDetailed}
       />
 
-      {smartRisk && <SmartRiskPanel result={smartRisk} onAktion={handleSmartAction} />}
+      {smartRisk ? (
+        <SmartRiskPanel result={smartRisk} onAktion={handleSmartAction} />
+      ) : (
+        <RiskPanel
+          ocrRisiken={detail.ocrRisiken}
+          hukukiRisiken={detail.hukukiRisiken}
+          hukukiSkor={detail.hukukiSkor}
+          hukukiSkorColor={detail.hukukiSkorColor}
+          darkPatterns={detail.darkPatterns}
+          vertragRisiken={detail.vertragRisiken}
+          dokTyp={detail.dok?.typ}
+          rohText={detail.dok?.rohText}
+        />
+      )}
 
-      <RiskPanel
-        ocrRisiken={detail.ocrRisiken}
-        hukukiRisiken={detail.hukukiRisiken}
-        hukukiSkor={detail.hukukiSkor}
-        hukukiSkorColor={detail.hukukiSkorColor}
-        darkPatterns={detail.darkPatterns}
-        vertragRisiken={detail.vertragRisiken}
-        dokTyp={detail.dok?.typ}
-        rohText={detail.dok?.rohText}
-      />
+      {ENABLE_RELEASE_DIGITAL_TWIN_PANEL && (
+        <DigitalTwinPanel
+          dok={detail.dok}
+          digitalTwin={detail.digitalTwin}
+          institutionDesc={detail.institutionDesc?.description ?? detail.institutionDesc?.name ?? null}
+          isLoading={!detail.digitalTwin && !!detail.dok}
+        />
+      )}
 
-      <DigitalTwinPanel
-        dok={detail.dok}
-        digitalTwin={detail.digitalTwin}
-        institutionDesc={detail.institutionDesc?.description ?? detail.institutionDesc?.name ?? null}
-        isLoading={!detail.digitalTwin && !!detail.dok}
-      />
+      {ENABLE_RELEASE_AI_BOX && (
+        <AIBox
+          dok={detail.dok}
+          onMailTaslak={actions.handleMailTaslak}
+          ozetQuellenSichtbar={modal.ozetQuellenSichtbar}
+          setOzetQuellenSichtbar={modal.setOzetQuellenSichtbar}
+          ozetQuellen={detail.ozetQuellen || []}
+        />
+      )}
 
-      <AIBox
-        dok={detail.dok}
-        onMailTaslak={actions.handleMailTaslak}
-        ozetQuellenSichtbar={modal.ozetQuellenSichtbar}
-        setOzetQuellenSichtbar={modal.setOzetQuellenSichtbar}
-        ozetQuellen={detail.ozetQuellen || []}
-      />
+      {ENABLE_RELEASE_TASKS_PANEL && (
+        <TasksPanel
+          aufgaben={detail.aufgaben}
+          offeneAufgaben={detail.offeneAufgaben}
+          vorschlaege={detail.aufgabenVorschlaege}
+          onOpenAddModal={() => modal.open('aufgaben')}
+          onToggle={(a: { id: string; erledigt: boolean }) =>
+            detail.dispatch({
+              type: 'UPDATE_AUFGABE',
+              dokId,
+              payload: { id: a.id, erledigt: !a.erledigt },
+            })
+          }
+          onAdd={(v: { id?: string; titel: string; frist?: string | null }) =>
+            detail.dispatch({
+              type: 'ADD_AUFGABE',
+              dokId,
+              payload: {
+                id: v.id || Date.now().toString(36),
+                titel: v.titel,
+                faellig: v.frist || null,
+                erledigt: false,
+              },
+            })
+          }
+        />
+      )}
 
-      <TasksPanel
-        aufgaben={detail.aufgaben}
-        offeneAufgaben={detail.offeneAufgaben}
-        vorschlaege={detail.aufgabenVorschlaege}
-        onOpenAddModal={() => modal.open('aufgaben')}
-        onToggle={(a: { id: string; erledigt: boolean }) =>
-          detail.dispatch({
-            type: 'UPDATE_AUFGABE',
-            dokId,
-            payload: { id: a.id, erledigt: !a.erledigt },
-          })
-        }
-        onAdd={(v: { id?: string; titel: string; frist?: string | null }) =>
-          detail.dispatch({
-            type: 'ADD_AUFGABE',
-            dokId,
-            payload: {
-              id: v.id || Date.now().toString(36),
-              titel: v.titel,
-              faellig: v.frist || null,
-              erledigt: false,
-            },
-          })
-        }
-      />
-
-      <ChatEntryBar dok={detail.dok} onOpen={() => modal.open('chat')} />
+      {ENABLE_RELEASE_CHAT_ENTRY_BAR && (
+        <ChatEntryBar dok={detail.dok} onOpen={() => modal.open('chat')} />
+      )}
     </ScrollView>
   );
 }

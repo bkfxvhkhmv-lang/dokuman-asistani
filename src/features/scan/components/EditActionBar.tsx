@@ -109,9 +109,9 @@ export default function EditActionBar({
   adjustLabel = 'Anpassen',
 }: Props) {
   const actions: ActionItem[] = [
-    { key: 'crop',     label: 'Zuschneiden', icon: 'crop',            activeColor: '#34D399', onPress: onStartCrop },
     { key: 'optimize', label: 'Optimieren',  icon: 'magic-wand',      activeColor: ACCENT,    onPress: onOptimize },
-    { key: 'rotate',   label: 'Drehen',      icon: 'arrow-clockwise', activeColor: '#FBBF24', onPress: onRotate },
+    { key: 'crop',     label: 'Zuschneiden', icon: 'crop',             activeColor: '#34D399', onPress: onStartCrop },
+    { key: 'rotate',   label: 'Drehen',      icon: 'arrow-clockwise',  activeColor: '#FBBF24', onPress: onRotate },
   ];
   if (onAdjust) {
     actions.push({

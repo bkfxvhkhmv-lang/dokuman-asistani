@@ -86,6 +86,7 @@ export default function EditView(props: EditViewProps) {
       <EditViewHeader
         paddingTop={Math.max(20, insets.top)}
         title={t('scan.edit_page')}
+        reviewHint={editUiState.showsCropEditor ? undefined : t('scan.review_hint')}
         continueLabel={t('scan.continue')}
         showContinue={!!onDone && !editUiState.showsCropEditor}
         onBack={onBack}

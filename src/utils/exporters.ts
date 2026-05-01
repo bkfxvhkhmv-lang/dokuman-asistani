@@ -47,8 +47,7 @@ export async function exportiereEinspruchPDF(dok: Dokument, einspruchText: strin
   const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>body{font-family:Georgia,serif;max-width:680px;margin:60px auto;color:#222;font-size:14px;line-height:1.8}.header{border-bottom:2px solid #534AB7;padding-bottom:18px;margin-bottom:28px}.label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px}.betreff{font-size:16px;font-weight:bold;color:#534AB7;margin-bottom:24px}.body{white-space:pre-wrap}.footer{margin-top:40px;border-top:1px solid #eee;padding-top:16px;font-size:11px;color:#aaa;text-align:center}</style></head><body><div class="header"><div class="label">BriefPilot — Einspruch-Vorlage</div><h1 style="font-size:22px;margin:6px 0;color:#222;">${dok.titel}</h1><div style="color:#888;font-size:12px;">${dok.absender} &nbsp;·&nbsp; ${heute}</div></div><div class="betreff">Einspruch / Widerspruch</div><div class="body">${einspruchText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>')}</div><div class="footer">Erstellt mit BriefPilot · Unverbindliche Vorlage — kein Rechtsrat</div></body></html>`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   const dest = uri.replace(/\.pdf$/, '') + `_Einspruch_${dok.id}.pdf`;
-  const FileSystem = await import('expo-file-system');
-  await FileSystem.default.moveAsync({ from: uri, to: dest });
+  await FileSystem.moveAsync({ from: uri, to: dest });
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(dest, { mimeType: 'application/pdf' });
 }
 
@@ -154,14 +153,16 @@ export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string>
   const mergedBase =
     dokumente.length === 1 ? buildPdfExportBasename(dokumente[0]) : `Sammel_${dokumente.length}_${new Date().toISOString().slice(0, 10)}`;
 
-  // Copy to documentDirectory so Android's sharing can find the file
+  // Copy to documentDirectory so Android's sharing can find the file.
+  // shareUri starts as the temp printToFileAsync path; only updated if copy succeeds.
   const dest = `${FileSystem.documentDirectory ?? ''}${mergedBase}.pdf`;
+  let shareUri = uri;
   try {
     await FileSystem.copyAsync({ from: uri, to: dest });
+    shareUri = dest;
   } catch {
-    // If copy fails, share the original temp URI directly
+    // copy failed — fall back to the original temp URI
   }
-  const shareUri = dest || uri;
 
   const canShare = await Sharing.isAvailableAsync();
   if (canShare) {

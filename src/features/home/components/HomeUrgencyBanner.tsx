@@ -26,7 +26,7 @@ export default function HomeUrgencyBanner({
 }: HomeUrgencyBannerProps) {
   const { t: T } = useT();
 
-  if (!document || daysLeft == null || daysLeft > 3) return null;
+  if (!document || document.erledigt || daysLeft == null || daysLeft > 1) return null;
 
   const risk = daysLeft <= 1 ? riskColors.hoch : riskColors.mittel;
   const urgencyText =

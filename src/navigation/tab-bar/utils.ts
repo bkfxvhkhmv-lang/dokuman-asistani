@@ -12,5 +12,8 @@ export function resolveLabel(route: any, options: any): string {
 
 /** Routes ile gosterilmemesi gereken (eslemeyen) butonlari ayirir. */
 export function isHiddenRoute(options: any): boolean {
-  return options?.href === null || options?.tabBarButton === null;
+  if (options?.href === null || options?.tabBarButton === null) return true;
+  // Tabs without a tabBarIcon defined are intentionally hidden (e.g. Marktplatz)
+  if (typeof options?.tabBarIcon !== 'function') return true;
+  return false;
 }

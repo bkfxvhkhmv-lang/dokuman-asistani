@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { InstitutionSuggestion } from '@/core/intelligence/InstitutionBehaviorModel';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 
@@ -9,10 +10,11 @@ interface Props {
 
 export function AbsenderProfilSection({ institution }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   if (institution.totalDocs <= 0) return null;
 
   return (
-    <SectionCard title="ABSENDER-PROFIL (GELERNT)">
+    <SectionCard title={T('detail.section.sender')}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
           backgroundColor: institution.confidence === 'high'   ? '#22C55E22' :

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
-import { ScrollView, View, RefreshControl, Text } from 'react-native';
+import { ScrollView, View, RefreshControl, Text, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import AuroraBackground from '@/design/components/AuroraBackground';
 import { styles } from '@/features/home/styles';
 import HomeHeader from '@/features/home/components/HomeHeader';
 import HomeRecentList from '@/features/home/components/HomeRecentList';
@@ -24,6 +23,9 @@ import DashboardSummary from '@/design/components/DashboardSummary';
 import AppBottomSheet from '@/components/AppBottomSheet';
 import PdfMergeDragModal from '@/components/PdfMergeDragModal';
 import HomeSelectionBar from '@/features/home/components/HomeSelectionBar';
+import HomeStatsRow from '@/features/home/components/HomeStatsRow';
+import HomeSuggestionsStrip from '@/features/home/components/HomeSuggestionsStrip';
+import { useHomeSuggestions } from '@/hooks/useSmartSuggestions';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -38,6 +40,8 @@ export default function Home() {
 
   const budget  = useMemo(() => buildBudgetSnapshot(data.sichtbareDocs), [data.sichtbareDocs]);
   const hotDocs = useMemo(() => buildHotDocs(data.sichtbareDocs),        [data.sichtbareDocs]);
+  const { suggestions: homeSuggestions, handleHomeSuggestion } = useHomeSuggestions(data.alleDocs ?? []);
+  const scrollY = useRef(new Animated.Value(0)).current;
   const [refreshing, setRefreshing]           = useState(false);
   const [digestVisible, setDigestVisible]     = useState(false);
   const [digest, setDigest]                   = useState<DigestResult | null>(null);
@@ -98,12 +102,14 @@ export default function Home() {
 
   return (
     <View style={[styles.container, { backgroundColor: data.Colors.bg }]}>
-      <AuroraBackground primary={data.Colors.primary} success={data.Colors.success} />
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
-      onScroll={handleScroll}
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: false, listener: handleScroll }
+      )}
       scrollEventThrottle={16}
       refreshControl={
         <RefreshControl
@@ -114,7 +120,7 @@ export default function Home() {
         />
       }
     >
-      <HomeHeader data={data} />
+      <HomeHeader data={data} scrollY={scrollY} />
 
       <DashboardSummary
         urgent={data.dringend.length}
@@ -126,6 +132,20 @@ export default function Home() {
         onFrist={() => data.naechste?.id && router.push({ pathname: '/detail', params: { dokId: data.naechste!.id } })}
         onScan={() => router.push('/(tabs)/Kamera')}
       />
+
+      <HomeStatsRow
+        colors={data.Colors}
+        shadow={data.Shadow}
+        stats={data.dashStats}
+        spacing={data.S}
+      />
+
+      {homeSuggestions.length > 0 && (
+        <HomeSuggestionsStrip
+          suggestions={homeSuggestions}
+          onPress={handleHomeSuggestion}
+        />
+      )}
 
       <HomePullDigest
         digest={digest}

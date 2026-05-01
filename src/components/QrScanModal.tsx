@@ -55,7 +55,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
 
   if (!permission?.granted) {
     return (
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal visible={visible} transparent animationType="fade">
         <View style={[styles.overlay, { backgroundColor: C.bg }]}>
           <Text style={{ color: C.text, marginBottom: 12 }}>Kamera izni gerekli.</Text>
           <TouchableOpacity onPress={requestPermission} style={[styles.btn, { backgroundColor: C.primary }]}>
@@ -70,7 +70,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
   }
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal visible={visible} animationType="fade">
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         {tarama ? (
           <>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@/components/Icon';
 
 interface TabColors {
@@ -98,43 +99,71 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
   const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.45, 0.15, 0] });
 
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', width: 72, height: 72 }}>
+    <View style={{ alignItems: 'center', justifyContent: 'center', width: 80, height: 80 }}>
+      {/* Outer glow halo — iOS native shadow, Android larger radial gradient */}
+      {Platform.OS === 'ios' ? (
+        <View style={{
+          position: 'absolute',
+          width: 72, height: 72, borderRadius: 36,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: focused ? 0.55 : 0.22,
+          shadowRadius: focused ? 22 : 12,
+          backgroundColor: 'transparent',
+        }} />
+      ) : (
+        // Android: 140px radial gradient glow — mimics iOS shadow
+        <LinearGradient
+          colors={[
+            `${colors.primary}${focused ? '55' : '33'}`,
+            `${colors.primary}${focused ? '2A' : '16'}`,
+            `${colors.primary}${focused ? '11' : '08'}`,
+            'transparent',
+          ]}
+          style={{
+            position: 'absolute',
+            width: 140, height: 140, borderRadius: 70,
+            top: -30, left: -30,
+          }}
+          pointerEvents="none"
+        />
+      )}
+
       {/* Pulse ring */}
       <Animated.View
         style={{
           position: 'absolute',
-          width: 62, height: 62, borderRadius: 31,
-          borderWidth: 2, borderColor: colors.primary,
+          width: 64, height: 64, borderRadius: 32,
+          borderWidth: 1.5, borderColor: colors.primary,
           transform: [{ scale: pulseScale }],
           opacity: pulseOpacity,
         }}
       />
-      {/* Android glow halkası — colored elevation taklit */}
-      {Platform.OS === 'android' && (
-        <View style={{
-          position: 'absolute',
-          width: 68, height: 68, borderRadius: 34,
-          backgroundColor: focused ? `${colors.primary}28` : `${colors.primary}14`,
-          elevation: focused ? 14 : 6,
-        }} />
-      )}
+
       {/* Main button */}
       <Animated.View
         style={{
           transform: [{ scale: scanScale }],
-          width: 62, height: 62, borderRadius: 31,
+          width: 64, height: 64, borderRadius: 32,
           backgroundColor: focused ? colors.primary : '#FFFFFF',
           alignItems: 'center', justifyContent: 'center',
           shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: focused ? 0.45 : 0.22,
-          shadowRadius: focused ? 32 : 18,
-          elevation: focused ? 16 : 9,
-          borderWidth: Platform.OS === 'android' ? 1.5 : 0.8,
-          borderColor: `${colors.primary}${focused ? '60' : '30'}`,
+          shadowOffset: { width: 0, height: focused ? 10 : 4 },
+          shadowOpacity: focused ? 0.50 : 0.18,
+          shadowRadius: focused ? 20 : 10,
+          elevation: focused ? 18 : 8,
+          borderWidth: 0.8,
+          borderColor: `${colors.primary}${focused ? '70' : '28'}`,
         }}
       >
-        <Icon name="scan" size={24} color={focused ? '#fff' : colors.primary} />
+        {/* Inner shine (iOS Photos style top-gloss) */}
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 32,
+          borderTopLeftRadius: 32, borderTopRightRadius: 32,
+          backgroundColor: focused ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.55)',
+          overflow: 'hidden',
+        }} pointerEvents="none" />
+        <Icon name="scan" size={26} color={focused ? '#fff' : colors.primary} weight="bold" />
       </Animated.View>
     </View>
   );
@@ -187,9 +216,9 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'Profil',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Profil',
+      tabBarLabel: 'Einstellungen',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
-        <TabIcon name="user-circle" focused={focused} color={color} colors={colors} />
+        <TabIcon name="gear" focused={focused} color={color} colors={colors} />
       ),
     }),
   },

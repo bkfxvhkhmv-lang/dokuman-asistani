@@ -74,7 +74,7 @@ export default function AutoFillReviewModal({
   const overallConf = autoFillResult?.gesamtConfidence ?? 0;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' }}>
         <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,
           maxHeight: '92%', paddingBottom: 24 }}>

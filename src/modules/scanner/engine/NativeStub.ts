@@ -64,54 +64,73 @@ export function hasNativeMotor(): boolean {
     _native.applyFilter
   );
 }
-// ── REAL NATIVE OPENCV INTEGRATION (FAZ 1) ──────────────────────────────────
+// ── REAL NATIVE OPENCV INTEGRATION ──────────────────────────────────────────
 import { NativeModules } from 'react-native';
 
-const BriefPilotScanner = NativeModules.BriefPilotScanner;
+const RN = NativeModules.BriefPilotScanner;
 
 async function realOpenCVEdgeDetect(frame: any): Promise<DocumentCorners | null> {
-  // Eğer native modül henüz build edilmediyse (pod install yapılmadıysa) çökme, null döndür.
-  if (!BriefPilotScanner || !frame?.uri) return null;
-
+  if (!RN?.detectDocumentEdges || !frame?.uri) return null;
   try {
-    // 1. Expo Camera'nın verdiği URI'yi Base64'e çevir
-    const response = await fetch(frame.uri);
-    const blob = await response.blob();
-    
-    const base64data = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        // "data:image/jpeg;base64," kısmını kes at, sadece ham base64'i al
-        resolve(reader.result?.toString().split(',')[1] || '');
-      };
-      reader.readAsDataURL(blob);
-    });
-
-    if (!base64data) return null;
-
-    // 2. NATIVE MODÜLE GÖNDER (iOS veya Android)
-    const result = await BriefPilotScanner.processFrame(base64data);
-
-    // 3. Native'den gelen düz diziyi, DocumentCorners tipine çevir
-    if (result && result.points && result.points.length === 4) {
-      return {
-        topLeft:     { x: result.points[0].x, y: result.points[0].y },
-        topRight:    { x: result.points[1].x, y: result.points[1].y },
-        bottomRight: { x: result.points[2].x, y: result.points[2].y },
-        bottomLeft:  { x: result.points[3].x, y: result.points[3].y },
-        confidence:  result.confidence
-      };
-    }
-
-    // Native 4 köşe bulamadıysa null döndür (CameraEngine eski sahte kutuya geçecek)
-    return null;
-
-  } catch (error) {
-    console.warn("[BriefPilot] Native OpenCV Hatası:", error);
+    const result = await RN.detectDocumentEdges({ uri: frame.uri });
+    if (!result || result.confidence < 0.2) return null;
+    return {
+      topLeft:     { x: result.topLeft.x,     y: result.topLeft.y },
+      topRight:    { x: result.topRight.x,    y: result.topRight.y },
+      bottomRight: { x: result.bottomRight.x, y: result.bottomRight.y },
+      bottomLeft:  { x: result.bottomLeft.x,  y: result.bottomLeft.y },
+      confidence:  result.confidence,
+    };
+  } catch {
     return null;
   }
 }
 
-// ── MOTORU ÇALIŞTIR ─────────────────────────────────────────────────────────
-// Bu satır çalıştığında, NativeStub artık gerçek OpenCV'yi kullanacak!
-registerNativeEdgeDetect(realOpenCVEdgeDetect);
+async function realOpenCVWarp(imageUri: string, corners: DocumentCorners): Promise<string> {
+  if (!RN?.warpPerspective) return imageUri;
+  try {
+    const result = await RN.warpPerspective({
+      imageUri,
+      topLeft:     corners.topLeft,
+      topRight:    corners.topRight,
+      bottomRight: corners.bottomRight,
+      bottomLeft:  corners.bottomLeft,
+      outWidth:    2480,
+      outHeight:   3508,
+    });
+    return result?.uri ?? imageUri;
+  } catch {
+    return imageUri;
+  }
+}
+
+async function realOpenCVFilter(imageUri: string, filterId: string): Promise<string> {
+  if (!RN) return imageUri;
+  try {
+    // document/bw/magic/thresh → full magic filter (CLAHE + adaptive threshold + morph cleanup)
+    if (filterId === 'document' || filterId === 'bw' || filterId === 'magic' || filterId === 'thresh') {
+      const result = await RN.applyMagicFilter({ imageUri });
+      return result?.uri ?? imageUri;
+    }
+    // shadow → dedicated shadow removal
+    if (filterId === 'shadow') {
+      const result = await RN.applyFilter({ imageUri, filter: 'shadow' });
+      return result?.uri ?? imageUri;
+    }
+    // clean/enhance/clahe/contrast → CLAHE (local contrast boost, keeps colour)
+    const result = await RN.applyFilter({
+      imageUri,
+      filter: 'clahe',
+      clipLimit: filterId === 'contrast' ? 3.5 : 2.0,
+    });
+    return result?.uri ?? imageUri;
+  } catch {
+    return imageUri;
+  }
+}
+
+if (RN) {
+  registerNativeEdgeDetect(realOpenCVEdgeDetect);
+  registerNativeWarp(realOpenCVWarp);
+  registerNativeFilter(realOpenCVFilter);
+}

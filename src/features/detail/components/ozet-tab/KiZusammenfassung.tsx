@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
 import type { OzetQuelle } from '@/utils/types';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   zusammenfassung: string;
@@ -22,12 +23,13 @@ export default function KiZusammenfassung({
   onMailTaslak,
 }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t: T } = useT();
 
   return (
     <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.md,
       backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>KI-ZUSAMMENFASSUNG</Text>
+        <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>{T('detail.section.summary')}</Text>
         <TouchableOpacity onPress={() => onMailTaslak()}
           hitSlop={HIT_SLOP_LG}
           style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border }}>

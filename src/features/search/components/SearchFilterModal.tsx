@@ -15,6 +15,7 @@ import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
 import SpringChip from '@/features/search/components/SpringChip';
 import { TYPEN, RISIKEN } from '@/features/search/components/constants';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   visible: boolean;
@@ -41,8 +42,9 @@ export default function SearchFilterModal({
   mitErledigt, setMitErledigt,
   C,
 }: Props) {
+  const { t: T } = useT();
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} />
 
       <View
@@ -54,7 +56,7 @@ export default function SearchFilterModal({
       >
         <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.border, alignSelf: 'center', marginBottom: 20 }} />
         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 20 }}>
-          Erweiterte Suche
+          {T('search.advanced')}
         </Text>
 
         {/* BETRAG */}
@@ -171,7 +173,7 @@ export default function SearchFilterModal({
           >
             {mitErledigt && <Icon name="check" size={13} color="#fff" weight="bold" />}
           </View>
-          <Text style={{ fontSize: 14, color: C.text }}>Erledigte Dokumente einschließen</Text>
+          <Text style={{ fontSize: 14, color: C.text }}>{T('search.include_done')}</Text>
         </TouchableOpacity>
 
         {/* Reset / Anwenden */}
@@ -183,7 +185,7 @@ export default function SearchFilterModal({
             }}
             onPress={onReset}
           >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>Zurücksetzen</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>{T('common.retry')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -193,7 +195,7 @@ export default function SearchFilterModal({
             }}
             onPress={onClose}
           >
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Anwenden</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>{T('common.done')}</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -67,7 +67,7 @@ export default function KameraScreenView() {
   } = useDocumentPipeline(dispatch, () => state.einstellungen.lernRegeln ?? []);
   const [overlaySize, setOverlaySize] = useState({ w: 0, h: 0 });
   const { pages, pageCount, addPage, removePage, movePageUp, movePageDown, rotatePage, updatePage, clearPages, replacePages, attachOcr, attachMetadata, generatePdf } = useBatch();
-  const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges } = useScanner();
+  const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
   const { config: sheetConfig, showSheet, hideSheet, confirm: confirmSheet } = useSheet();
 
   const cameraRef = useRef<ExpoCameraView>(null);
@@ -155,6 +155,8 @@ export default function KameraScreenView() {
     scanLineY,
     editSlide,
     editOpacity,
+    startLiveEdgeDetection,
+    stopLiveEdgeDetection,
   });
 
   const {

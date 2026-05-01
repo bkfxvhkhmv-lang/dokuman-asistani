@@ -104,6 +104,14 @@ export function useScanner() {
     engineRef.current?.processFrame(frame);
   }, []);
 
+  const startLiveEdgeDetection = useCallback((intervalMs?: number) => {
+    engineRef.current?.startLiveEdgeDetection(intervalMs);
+  }, []);
+
+  const stopLiveEdgeDetection = useCallback(() => {
+    engineRef.current?.stopLiveEdgeDetection();
+  }, []);
+
   const distanceHint = useMemo(() => computeDistanceHint(detectedEdges), [detectedEdges]);
 
   return {
@@ -119,5 +127,7 @@ export function useScanner() {
     capture,
     updateConfig,
     processFrame,
+    startLiveEdgeDetection,
+    stopLiveEdgeDetection,
   };
 }

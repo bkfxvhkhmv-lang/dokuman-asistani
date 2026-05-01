@@ -96,7 +96,7 @@ export function usePasswordReset(
         message: 'Passwort wurde geändert. Bitte anmelden.',
         icon:    'checkmark-circle-outline',
         tone:    'success',
-        actions: [{ label: 'Weiter', onPress: () => {} }],
+        actions: [{ label: 'Weiter' }],
       });
       setResetModal(false);
       setResetSchritt(1);

@@ -12,6 +12,7 @@ import Constants from 'expo-constants';
 
 import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { useBackup } from '@/hooks/useBackup';
 import { useSheet } from '@/hooks/useSheet';
 import { useLangPreference } from '@/hooks/useLangPreference';
@@ -35,9 +36,10 @@ import {
 } from '@/features/settings/SettingsPrimitives';
 import { KontoShortcutsBlock, PrivacyLegalExtras } from '@/features/settings/SettingsGroupedBlocks';
 
-export default function EinstellungenScreen() {
+export default function EinstellungenScreen({ showBack = true }: { showBack?: boolean }) {
   const router = useRouter();
   const { Colors: C, fs } = useTheme();
+  const { t: T } = useT();
   const { state, dispatch } = useStore();
   const { logout } = useAuth();
 
@@ -111,27 +113,35 @@ export default function EinstellungenScreen() {
   );
 
   const onAbmelden = useCallback(() => {
-    Alert.alert('Abmelden?', 'Du kann dich jederzeit wieder anmelden.', [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Abmelden', style: 'destructive', onPress: () => void logout() },
+    Alert.alert(T('modal.logout.title'), T('settings.logout_info'), [
+      { text: T('common.cancel'), style: 'cancel' },
+      { text: T('settings.logout'), style: 'destructive', onPress: () => void logout() },
     ]);
-  }, [logout]);
+  }, [logout, T]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'left', 'right']}>
-      <View style={[sheetStyles.bar, { borderBottomColor: `${C.border}88` }]}>
-        <TouchableOpacity
-          onPress={() => safeBack(router)}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Zurück"
-          style={sheetStyles.backBtn}
-        >
-          <Icon name="chevron-back" size={24} color={C.primary} />
-        </TouchableOpacity>
-        <Text style={[sheetStyles.title, { color: C.text, fontSize: fs(18) }]}>Einstellungen</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      {showBack ? (
+        <View style={[sheetStyles.bar, { borderBottomColor: `${C.border}88` }]}>
+          <TouchableOpacity
+            onPress={() => safeBack(router)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={T('common.back')}
+            style={sheetStyles.backBtn}
+          >
+            <Icon name="chevron-back" size={24} color={C.primary} />
+          </TouchableOpacity>
+          <Text style={[sheetStyles.title, { color: C.text, fontSize: fs(18) }]}>{T('settings.title')}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+      ) : (
+        <View style={[sheetStyles.bar, { borderBottomColor: `${C.border}88` }]}>
+          <View style={{ width: 40 }} />
+          <Text style={[sheetStyles.title, { color: C.text, fontSize: fs(18) }]}>{T('settings.title')}</Text>
+          <View style={{ width: 40 }} />
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 44 }}
@@ -146,17 +156,17 @@ export default function EinstellungenScreen() {
             lineHeight: fs(12) * 1.45,
           }}
         >
-          Schnellzugriffe für Sprache und Benachrichtigungen — technische Details unter „Erweitert”.
+          {T('settings.lang_hint')}
         </Text>
 
-        <SettingsSectionTitle label="App" />
+        <SettingsSectionTitle label={T('settings.app')} />
         <FlatGroup>
-          <UILanguageCard bare lang={lang} changeLang={changeLang} />
+          <UILanguageCard bare />
           <DesignThemeCard flat suppressSectionTitle />
           <SimpleModeCard flat suppressSectionTitle />
         </FlatGroup>
 
-        <SettingsSectionTitle label="Benachrichtigungen" />
+        <SettingsSectionTitle label={T('settings.notifications')} />
         <FlatGroup>
           <NotificationsCard
             flat
@@ -170,12 +180,12 @@ export default function EinstellungenScreen() {
           />
         </FlatGroup>
 
-        <SettingsSectionTitle label="Dokumente" />
+        <SettingsSectionTitle label={T('settings.documents')} />
         <FlatGroup>
           <FlatRow
             icon="sparkles-outline"
-            label="Automatische Analyse"
-            sub="Briefe auswerten, sobald der Dienst aktiv ist."
+            label={T('settings.auto_analyse')}
+            sub={T('settings.auto_analyse_sub')}
             right={
               <Switch
                 value={prefs.autoAnalyse}
@@ -187,7 +197,7 @@ export default function EinstellungenScreen() {
           />
         </FlatGroup>
 
-        <SettingsSectionTitle label="KI & Vorlesen" />
+        <SettingsSectionTitle label={T('settings.ai')} />
         <Text
           style={{
             fontSize: fs(13),
@@ -203,12 +213,12 @@ export default function EinstellungenScreen() {
           <AILanguageCard bare aiLang={aiLang} changeAiLang={changeAiLang} />
         </FlatGroup>
 
-        <SettingsSectionTitle label="Sicherheit" />
+        <SettingsSectionTitle label={T('settings.security')} />
         <FlatGroup>
           <FlatRow
             icon="lock-closed-outline"
-            label="App sperren"
-            sub="Zusätzlicher Schutz beim Öffnen (Ausbau geplant)"
+            label={T('settings.app_lock')}
+            sub={T('settings.app_lock_sub')}
             right={
               <Switch
                 value={state.einstellungen.appSperre}
@@ -222,8 +232,8 @@ export default function EinstellungenScreen() {
           />
           <FlatRow
             icon="shield-checkmark-outline"
-            label="Datenschutz-Modus"
-            sub="Sensible Daten im Offline‑Rhythmus gekürzt (Platzhalter‑Logik)."
+            label={T('settings.privacy_mode')}
+            sub={T('settings.privacy_mode_sub')}
             right={
               <Switch
                 value={datenschutz}
@@ -237,7 +247,7 @@ export default function EinstellungenScreen() {
           />
         </FlatGroup>
 
-        <SettingsSectionTitle label="Daten" />
+        <SettingsSectionTitle label={T('settings.data')} />
         <FlatGroup>
           <BackupCard
             flat
@@ -250,7 +260,7 @@ export default function EinstellungenScreen() {
           />
         </FlatGroup>
 
-        <SettingsSectionTitle label="Konto" />
+        <SettingsSectionTitle label={T('settings.account')} />
         <FlatGroup>
           <KontoShortcutsBlock flat router={router} logout={logout} docCount={docCount} />
         </FlatGroup>
@@ -270,7 +280,7 @@ export default function EinstellungenScreen() {
             backgroundColor: C.dangerLight,
           }}
         >
-          <Text style={{ color: C.danger, fontSize: fs(15), fontWeight: '700' }}>Abmelden</Text>
+          <Text style={{ color: C.danger, fontSize: fs(15), fontWeight: '700' }}>{T('settings.logout')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -288,7 +298,7 @@ export default function EinstellungenScreen() {
           }}
         >
           <Text style={{ fontSize: fs(15), fontWeight: '700', color: C.text }}>
-            Erweitert · Profi‑Optionen
+            {T('settings.advanced')}
           </Text>
           <Icon name={experteEin ? 'chevron-up' : 'chevron-down'} size={22} color={C.textTertiary} />
         </TouchableOpacity>
@@ -308,7 +318,7 @@ export default function EinstellungenScreen() {
 
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontSize: fs(11), color: C.textTertiary }}>
-            BriefPilot · v{appVersion}
+            {T('settings.version', { v: appVersion })}
           </Text>
         </View>
       </ScrollView>

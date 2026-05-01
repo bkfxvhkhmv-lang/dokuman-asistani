@@ -124,7 +124,7 @@ export async function initNativeScannerBridge(): Promise<void> {
 
 /** Warp sonrası magic filter uygula — direkt çağrı */
 export async function applyMagicFilterToUri(uri: string): Promise<string> {
-  if (!RNScanner || Platform.OS !== 'ios') return uri;
+  if (!RNScanner) return uri;
   try {
     const res = await RNScanner.applyMagicFilter({ imageUri: uri });
     return res.uri;

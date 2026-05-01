@@ -1,15 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from '@/components/Icon';
 import { HIT_SLOP_LG } from '@/theme';
-import { styles } from '@/features/scan/styles';
-import { SUCCESS, WARNING } from '@/features/scan/constants';
-import { useScanI18n } from '@/hooks/useScanI18n';
-import type { StabilityState } from '@/features/scan/components/camera-view/types';
 
 interface Props {
   bottomInset: number;
-  stability: StabilityState;
+  stability: { isStable: boolean };
   isCapturing: boolean;
   pageCount: number;
   onCapture: () => void;
@@ -17,50 +13,41 @@ interface Props {
 }
 
 export default function CameraBottomBar({
-  bottomInset,
-  stability,
-  isCapturing,
-  pageCount,
-  onCapture,
-  onBatchPress,
+  bottomInset, isCapturing, pageCount, onCapture, onBatchPress,
 }: Props) {
-  const { t } = useScanI18n();
-
   return (
-    <View style={[styles.bottomBar, { bottom: bottomInset + 20 }]}>
-      <View style={{ width: 60 }} />
+    <View style={[st.bar, { bottom: bottomInset + 24 }]}>
+      {/* Sol — galeri / boş */}
+      <View style={st.side} />
 
+      {/* Ortada shutter */}
       <TouchableOpacity
-        style={[
-          styles.shutterBtn,
-          {
-            borderColor: stability.isStable ? SUCCESS : 'rgba(255,255,255,0.5)',
-            shadowColor: stability.isStable ? SUCCESS : 'transparent',
-            shadowOpacity: stability.isStable ? 0.8 : 0,
-            shadowRadius: stability.isStable ? 20 : 0,
-          },
-        ]}
+        style={st.shutter}
         onPress={onCapture}
         activeOpacity={0.8}
         disabled={isCapturing}
       >
-        <View
-          style={[
-            styles.shutterInner,
-            { backgroundColor: isCapturing ? WARNING : stability.isStable ? SUCCESS : '#fff' },
-          ]}
-        />
+        <View style={[st.shutterInner, isCapturing && { opacity: 0.6 }]} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.sideBtn} onPress={onBatchPress} hitSlop={HIT_SLOP_LG}>
-        <View style={styles.sideBtnCircle}>
-          {pageCount > 0
-            ? <Text style={styles.pageCountText}>{pageCount}</Text>
-            : <Icon name="albums-outline" size={20} color="#fff" />
-          }
-        </View>
-        <Text style={styles.sideBtnText}>{pageCount > 0 ? t('scan.pages') : t('scan.stack')}</Text>
-      </TouchableOpacity>
+      {/* Sağda — Sichern pill veya boş */}
+      <View style={st.side}>
+        {pageCount > 0 && (
+          <TouchableOpacity onPress={onBatchPress} hitSlop={HIT_SLOP_LG} style={st.sichernPill}>
+            <Icon name="checkmark" size={14} color="#fff" />
+            <Text style={st.sichernText}>Sichern ({pageCount})</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
+
+const st = StyleSheet.create({
+  bar:         { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24 },
+  side:        { flex: 1, alignItems: 'flex-end' },
+  shutter:     { width: 72, height: 72, borderRadius: 36, borderWidth: 3, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  shutterInner:{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff' },
+  sichernPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  sichernText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+});

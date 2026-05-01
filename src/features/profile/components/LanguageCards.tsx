@@ -7,20 +7,23 @@
  */
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
+import { useLangPreference } from '@/hooks/useLangPreference';
 import { LANGUAGES } from '@/i18n/langConfig';
 import { AI_LANGUAGES } from '@/i18n/aiLangConfig';
 
 /* ── UILanguageCard ──────────────────────────────────────────────── */
 
 interface UILangProps {
-  lang:       string;
-  changeLang: (code: any) => void;
-  /** Kein Karten‑Rahmen — für {@link FlatGroup}. */
+  /** Legacy props kept for compatibility — ignored, reads from context directly */
+  lang?:       string;
+  changeLang?: (code: any) => void;
   bare?: boolean;
 }
 
-export function UILanguageCard({ lang, changeLang, bare }: UILangProps) {
+export function UILanguageCard({ bare }: UILangProps) {
+  const { lang, changeLang } = useLangPreference();
   const { Colors: C, Shadow } = useTheme();
   const scroll = (
     <ScrollView
@@ -37,7 +40,10 @@ export function UILanguageCard({ lang, changeLang, bare }: UILangProps) {
             borderColor:     lang === l.code ? C.primary : C.border,
             backgroundColor: lang === l.code ? C.primaryLight : C.bgInput,
           }}
-          onPress={() => changeLang(l.code)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            changeLang(l.code);
+          }}
           activeOpacity={0.75}
         >
           <Text

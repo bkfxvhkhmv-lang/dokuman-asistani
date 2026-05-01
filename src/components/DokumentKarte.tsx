@@ -1,21 +1,21 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { WarningCircle, Money, PencilSimple, CalendarBlank, FileText, File, Clock, CheckCircle } from 'phosphor-react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
 import { excerptForDocumentListCard } from '@/utils/listCardSummary';
+import { useT } from '@/hooks/useT';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getTageText(frist: string | null | undefined): string | null {
+function getTageText(frist: string | null | undefined, T: (key: string, vars?: Record<string, string | number>) => string): string | null {
   if (!frist) return null;
   const diff = Math.ceil((new Date(frist).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (diff < 0)  return 'Überfällig';
-  if (diff === 0) return 'Heute';
-  if (diff === 1) return 'Morgen';
-  return `${diff} Tage`;
+  if (diff < 0)  return T('doc.overdue');
+  if (diff === 0) return T('doc.today');
+  if (diff === 1) return T('doc.tomorrow');
+  return T('doc.due_days', { n: diff });
 }
 
 function getAccentColor(dok: Dokument, C: ThemeColors): string {
@@ -49,13 +49,14 @@ interface DokumentKarteProps {
 
 function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: DokumentKarteProps) {
   const { Colors, fs, hitSlopScale } = useTheme();
+  const { t: T } = useT();
   const accentColor = getAccentColor(dok, Colors);
-  const tageText    = getTageText(dok.frist);
+  const tageText    = getTageText(dok.frist, T);
   const intent      = quickIntent(dok, Colors);
   const isDone      = dok.erledigt;
   const a11yLabel = [
     dok.typ, dok.titel, dok.absender,
-    isDone ? 'Erledigt' : tageText ? `Frist: ${tageText}` : null,
+    isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
     dok.betrag ? `${(dok.betrag as number).toFixed(2)} Euro` : null,
   ].filter(Boolean).join(', ');
 
@@ -79,7 +80,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     >
       {/* Header */}
       <View style={styles.header}>
-        <View style={[styles.iconBox, { backgroundColor: `${accentColor}18`, borderColor: `${accentColor}30`, marginTop: 2 }]}>
+        <View style={[styles.iconBox, { backgroundColor: Colors.bgInput, borderColor: Colors.borderLight, marginTop: 2 }]}>
           {isDone
             ? <CheckCircle size={22} color={Colors.textTertiary} weight="fill" />
             : <intent.PhIcon size={21} color={intent.color} weight="duotone" />
@@ -100,17 +101,13 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         </View>
 
         {tageText && !isDone ? (
-          <LinearGradient
-            colors={[`${accentColor}2A`, `${accentColor}10`]}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-            style={styles.dateBox}
-          >
+          <View style={[styles.dateBox, { backgroundColor: `${accentColor}12`, borderWidth: 1, borderColor: `${accentColor}55` }]}>
             <Clock size={11} color={accentColor} weight="regular" />
             <Text style={[styles.dateText, { color: accentColor }]}>{tageText}</Text>
-          </LinearGradient>
+          </View>
         ) : isDone ? (
           <View style={[styles.dateBox, { backgroundColor: Colors.bgInput }]}>
-            <Text style={[styles.dateText, { color: Colors.textTertiary }]}>Erledigt</Text>
+            <Text style={[styles.dateText, { color: Colors.textTertiary }]}>{T('doc.done')}</Text>
           </View>
         ) : null}
       </View>
@@ -124,7 +121,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       {/* Footer */}
       <View style={styles.footer}>
         {dok.betrag && dok.betrag > 0 ? (
-          <View style={[styles.amountBox, { backgroundColor: `${accentColor}12` }]}>
+          <View style={[styles.amountBox, { backgroundColor: `${accentColor}12`, borderWidth: 1, borderColor: `${accentColor}44` }]}>
             <Money size={12} color={accentColor} weight="regular" />
             <Text style={[styles.amount, { color: accentColor, fontVariant: ['tabular-nums'] }]}>
               {(dok.betrag as number).toFixed(2)} €

@@ -101,7 +101,7 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
   const riskColor = result ? (RISK_COLORS[result.risk] ?? RISK_COLORS.unknown) : null;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[st.container, { backgroundColor: C.bg }]}>
         <View style={[st.header, { borderBottomColor: C.border }]}>
           <TouchableOpacity onPress={onClose}>

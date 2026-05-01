@@ -11,9 +11,8 @@
  * Eski monolithic versiyon 444 satir tek dosyaydi; modulerlestirme
  * sonrasi her bilesen ayri test edilebilir.
  */
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Platform, View } from 'react-native';
-import { useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
@@ -21,10 +20,8 @@ import { useTheme } from '@/ThemeContext';
 import { getTabBarCollapsed, subscribeTabBarCollapsed } from '@/navigation/tabBarVisibility';
 
 import GlassLayer from '@/navigation/tab-bar/GlassLayer';
-import AuraGlow   from '@/navigation/tab-bar/AuraGlow';
 import TabItem    from '@/navigation/tab-bar/TabItem';
 import { isHiddenRoute } from '@/navigation/tab-bar/utils';
-import { PADDING_H } from '@/navigation/tab-bar/constants';
 import { tabStyles as st } from '@/navigation/tab-bar/styles';
 
 type TabBarProps = { state: any; descriptors: any; navigation: any };
@@ -33,52 +30,20 @@ export default function CustomBottomTab({ state, descriptors, navigation }: TabB
   const { Colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [collapsed, setCollapsed] = useState(getTabBarCollapsed());
-  const [tabSize, setTabSize]     = useState({ w: 0, h: 0 });
 
-  // Aura pozisyonu — ekran disinda baslar, ilk layout'ta snap eder
-  const auraX         = useSharedValue(-200);
-  const isFirstLayout = useRef(true);
-
-  const onTabLayout = useCallback((e: any) => {
-    const { width, height } = e.nativeEvent.layout;
-    setTabSize(s => (s.w === width && s.h === height ? s : { w: width, h: height }));
-  }, []);
+  const onTabLayout = useCallback((_e: any) => {}, []);
 
   const focusedRoute   = state.routes[state.index];
   const focusedOptions = descriptors[focusedRoute?.key]?.options || {};
   const hideBar        = focusedOptions?.tabBarStyle?.display === 'none';
 
-  // Sadece ana sayfada (index) bar tam goster/gizle calisir
   const collapseEnabled    = focusedRoute?.name === 'index';
   const effectiveCollapsed = collapseEnabled && collapsed;
-  const isScanFocused      = focusedRoute?.name === 'Kamera';
 
   const visibleRoutes = state.routes.filter((route: any) => {
     const options = descriptors[route.key]?.options || {};
     return !isHiddenRoute(options);
   });
-
-  // Aura'yi merkez tab koordinatina kaydir
-  useEffect(() => {
-    if (tabSize.w <= 0 || isScanFocused) return;
-
-    const focusedIdx = visibleRoutes.findIndex(
-      (r: any) => r.key === state.routes[state.index]?.key,
-    );
-    if (focusedIdx < 0) return;
-
-    const rowW    = tabSize.w - PADDING_H * 2;
-    const tabW    = rowW / visibleRoutes.length;
-    const centreX = PADDING_H + focusedIdx * tabW + tabW / 2;
-
-    if (isFirstLayout.current) {
-      auraX.value = centreX; // Ilk olcumde anlik snap (animasyonsuz)
-      isFirstLayout.current = false;
-    } else {
-      auraX.value = withSpring(centreX, { damping: 18, stiffness: 200, mass: 0.8 });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.index, tabSize.w, isScanFocused]);
 
   useEffect(() => {
     const sub = subscribeTabBarCollapsed(setCollapsed);
@@ -112,10 +77,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }: TabB
         ]}
       >
         {/* Glass arka plan (border-radius'a kirpilmis) */}
-        <GlassLayer colors={Colors} tabSize={tabSize} />
-
-        {/* Hareketli aura (glass ile ikonlar arasinda) */}
-        {!isScanFocused && <AuraGlow x={auraX} primaryColor={Colors.primary} />}
+        <GlassLayer colors={Colors} tabSize={{ w: 0, h: 0 }} />
 
         {/* Tab item'lar — scan butonu container'in overflow:visible'i ile tasar */}
         <View style={st.row}>

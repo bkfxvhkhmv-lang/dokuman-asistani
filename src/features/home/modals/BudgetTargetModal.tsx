@@ -63,7 +63,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="fade"
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >

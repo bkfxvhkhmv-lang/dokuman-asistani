@@ -21,7 +21,7 @@ platform :ios, podfile_properties['ios.deploymentTarget'] || '15.1'
 prepare_react_native_project!
 
 target 'BriefPilot' do
-  pod 'OpenCV', '~> 4.9.0'
+    pod "OpenCV", "~> 4.3.0"
 
   use_expo_modules!
 

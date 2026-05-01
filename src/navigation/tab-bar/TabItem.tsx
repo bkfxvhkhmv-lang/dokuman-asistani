@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { resolveLabel } from '@/navigation/tab-bar/utils';
 import { tabStyles as st } from '@/navigation/tab-bar/styles';
 
@@ -30,28 +31,30 @@ export default function TabItem({
   onPress, onLongPress,
 }: Props) {
   const { Colors, fs } = useTheme();
-  const label = resolveLabel(route, options);
-  const color = isFocused ? Colors.primary : Colors.textTertiary;
+  const { t: T } = useT();
+  // Translate tab label based on route name
+  const rawLabel = resolveLabel(route, options);
+  const label = route.name === 'index'    ? T('tab.documents')
+              : route.name === 'Suche'    ? T('tab.search')
+              : route.name === 'Kamera'   ? T('tab.scan')
+              : route.name === 'Export'   ? T('tab.export')
+              : route.name === 'Profil'   ? T('tab.settings')
+              : rawLabel;
+  const color = isFocused ? Colors.primary : Colors.textSecondary;
 
-  const floatY = useSharedValue(0);
-  const scale  = useSharedValue(1);
+  const scale = useSharedValue(1);
 
   useEffect(() => {
     if (isFocused) {
-      // Tap-feedback: kucul, sonra normal boyuta yaylan
-      scale.value  = withSequence(
-        withSpring(0.80, { damping: 10, stiffness: 340 }),
+      scale.value = withSequence(
+        withSpring(0.82, { damping: 10, stiffness: 340 }),
         withSpring(1,    { damping: 14, stiffness: 280 }),
       );
-      // Aktif tab'da ikon hafifce yukari kalksin (scan ucmaz)
-      floatY.value = isScan ? 0 : withSpring(-5, { damping: 14, stiffness: 260 });
-    } else {
-      floatY.value = withSpring(0, { damping: 14, stiffness: 260 });
     }
   }, [isFocused]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const iconAnim = useAnimatedStyle(() => ({
-    transform: [{ translateY: floatY.value }, { scale: scale.value }],
+    transform: [{ scale: scale.value }],
   }));
 
   const iconNode = options.tabBarIcon
@@ -73,7 +76,7 @@ export default function TabItem({
           <Text
             style={[
               st.label,
-              { fontSize: fs(10), color: isFocused ? Colors.primaryDark : Colors.textTertiary, opacity: effectiveCollapsed ? 0.82 : 1 },
+              { fontSize: fs(10), color: isFocused ? Colors.primaryDark : Colors.textSecondary, opacity: effectiveCollapsed ? 0.82 : 1 },
             ]}
             maxFontSizeMultiplier={1.0}
           >

@@ -50,7 +50,7 @@ export class PrivacyLayerV4 {
   /** Metni AES-256-GCM ile şifreler. Döner: base64(iv || ciphertext+tag) */
   static async encryptField(plaintext: string): Promise<string> {
     const key = await getOrCreateCryptoKey();
-    const iv  = await Crypto.getRandomBytesAsync(12);          // 96-bit GCM IV
+    const iv  = new Uint8Array(await Crypto.getRandomBytesAsync(12)); // 96-bit GCM IV — ArrayBuffer-backed
     const encoded = new TextEncoder().encode(plaintext);
 
     const cipherBuf = await crypto.subtle.encrypt(
@@ -63,7 +63,7 @@ export class PrivacyLayerV4 {
     const combined = new Uint8Array(12 + cipherBuf.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(cipherBuf), 12);
-    return bufToBase64(combined.buffer);
+    return bufToBase64(combined.buffer as ArrayBuffer);
   }
 
   /** base64(iv||ciphertext+tag) → düz metin */

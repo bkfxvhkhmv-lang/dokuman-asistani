@@ -1,10 +1,11 @@
 import React from 'react';
+import { Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import HomeHeaderCluster from '@/features/home/components/HomeHeaderCluster';
 import HomeSyncStrip from '@/features/home/components/HomeSyncStrip';
 import type { FilterParams } from '@/utils/search';
 
-export default function HomeHeader({ data }: { data: any }) {
+export default function HomeHeader({ data, scrollY }: { data: any; scrollY?: Animated.Value }) {
   const router = useRouter();
 
   return (
@@ -17,8 +18,8 @@ export default function HomeHeader({ data }: { data: any }) {
         onScopeChange={quickScope =>
           data.setFilter((f: FilterParams) => ({ ...f, quickScope }))
         }
-        onSettingsPress={() => router.push('/einstellungen')}
         onSearchPress={() => router.push('/(tabs)/Suche')}
+        scrollY={scrollY}
       />
       <HomeSyncStrip
         colors={data.Colors}

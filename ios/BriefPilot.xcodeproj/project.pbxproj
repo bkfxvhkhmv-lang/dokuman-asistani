@@ -12,11 +12,11 @@
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		A360F5ED27E9116D9A65860C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */; };
-		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB01 /* BriefPilotScannerModule.m */; };
 		BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB02 /* BriefPilotScannerModule.swift */; };
 		BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */; };
+		D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */; };
+		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,16 +26,16 @@
 		185B793D29E6F059740BECB5 /* Pods-BriefPilot.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.release.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.release.xcconfig"; sourceTree = "<group>"; };
 		7B2E0209E5485F233F5C5DFF /* Pods-BriefPilot.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.debug.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = BriefPilot/SplashScreen.storyboard; sourceTree = "<group>"; };
-		AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = BriefPilot/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = BriefPilot/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BriefPilot/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BriefPilot-Bridging-Header.h"; path = "BriefPilot/BriefPilot-Bridging-Header.h"; sourceTree = "<group>"; };
 		BP000000000000000000BB01 /* BriefPilotScannerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BriefPilotScannerModule.m; path = BriefPilot/BriefPilotScannerModule.m; sourceTree = "<group>"; };
 		BP000000000000000000BB02 /* BriefPilotScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotScannerModule.swift; path = BriefPilot/BriefPilotScannerModule.swift; sourceTree = "<group>"; };
 		BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BriefPilotOpenCVHelper.h; path = BriefPilot/BriefPilotOpenCVHelper.h; sourceTree = "<group>"; };
 		BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = BriefPilotOpenCVHelper.mm; path = BriefPilot/BriefPilotOpenCVHelper.mm; sourceTree = "<group>"; };
+		C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BriefPilot/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BriefPilot-Bridging-Header.h"; path = "BriefPilot/BriefPilot-Bridging-Header.h"; sourceTree = "<group>"; };
 		FDDBCB9DD79AB254EA55156B /* libPods-BriefPilot.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BriefPilot.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -122,7 +122,6 @@
 				7B2E0209E5485F233F5C5DFF /* Pods-BriefPilot.debug.xcconfig */,
 				185B793D29E6F059740BECB5 /* Pods-BriefPilot.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -367,6 +366,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = BriefPilot/BriefPilot.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4ZJBLHHFL6;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -403,6 +403,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = BriefPilot/BriefPilot.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4ZJBLHHFL6;
 				INFOPLIST_FILE = BriefPilot/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (

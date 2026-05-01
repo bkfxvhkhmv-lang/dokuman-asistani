@@ -77,7 +77,7 @@ const _defaultTheme: Theme = {
   hitSlopScale:      1,
   animationsEnabled: true,
 };
-const ThemeContext = createContext<Theme>(_defaultTheme);
+export const ThemeContext = createContext<Theme>(_defaultTheme);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme  = useColorScheme();

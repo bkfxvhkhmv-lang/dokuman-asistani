@@ -110,7 +110,7 @@ export default function ManualAdjustSheet({ visible, imageUri, onCancel, onApply
   const activePresetId = useMemo(() => findActivePreset(values), [values]);
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="overFullScreen" transparent>
+    <Modal visible={visible} animationType="fade" presentationStyle="overFullScreen" transparent>
       <Animated.View style={[st.root, { opacity: fadeAnim }]}>
         <PreviewArea
           imageUri={imageUri}

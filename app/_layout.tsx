@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StatusBar, View, StyleSheet } from 'react-native';
+import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { initNativeScannerBridge } from '../src/modules/scanner/engine/NativeScannerBridge';
 import HeroTransitionOverlay from '../src/navigation/HeroTransitionOverlay';
 import OfflineBanner from '../src/components/OfflineBanner';
@@ -17,6 +17,7 @@ import { useShareHandler } from '../src/hooks/useShareHandler';
 import { useWidgetSync } from '../src/hooks/useWidgetSync';
 import { useSpeechStopOnBackground } from '../src/hooks/useSpeechStopOnBackground';
 import BackendHealthBootstrap from '../src/providers/BackendHealthBootstrap';
+import { LanguageProvider } from '@/providers/LanguageProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,8 +66,8 @@ function ThemedNavigator() {
         name="detail"
         options={{
           headerShown: false,
-          animation: 'fade',
-          animationDuration: 180,
+          animation: Platform.OS === 'ios' ? 'ios_from_right' : 'fade_from_bottom',
+          animationDuration: 320,
           contentStyle: { backgroundColor: Colors.bg },
         }}
       />
@@ -141,6 +142,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <LanguageProvider>
           <ThemeProvider>
             <ThemedStatusBar />
             <AuthProvider>
@@ -166,6 +168,7 @@ export default function RootLayout() {
               </StoreProvider>
             </AuthProvider>
           </ThemeProvider>
+          </LanguageProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </GestureHandlerRootView>

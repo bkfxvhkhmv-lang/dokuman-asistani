@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 
@@ -50,7 +51,7 @@ export default function RiskPanel({
   return (
     <>
       {ocrRisiken.length > 0 && (
-        <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
+        <Animated.View entering={FadeInDown.springify().damping(16).stiffness(200)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning + '88', ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <Icon name="alert-circle" size={16} color={C.warningText} />
@@ -71,11 +72,11 @@ export default function RiskPanel({
               <Text style={{ fontSize: 11, color: C.textSecondary, flex: 1, lineHeight: 16 }}>{r.grund}</Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
       )}
 
       {hukukiRisiken.length > 0 && (
-        <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
+        <Animated.View entering={FadeInDown.delay(60).springify().damping(16)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -101,11 +102,11 @@ export default function RiskPanel({
               </Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
       )}
 
       {darkPatterns.length > 0 && (
-        <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
+        <Animated.View entering={FadeInDown.delay(120).springify().damping(16)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.danger + '66', ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Text style={{ fontSize: 16 }}>🚨</Text>
@@ -133,11 +134,11 @@ export default function RiskPanel({
               </Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
       )}
 
       {dokTyp === 'Vertrag' && (
-        <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
+        <Animated.View entering={FadeInDown.delay(180).springify().damping(16)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Text style={{ fontSize: 16 }}>📜</Text>
@@ -165,7 +166,7 @@ export default function RiskPanel({
               </View>
             ))
           )}
-        </View>
+        </Animated.View>
       )}
     </>
   );

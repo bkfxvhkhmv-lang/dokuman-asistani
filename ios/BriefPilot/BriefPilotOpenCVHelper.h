@@ -67,9 +67,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  * Gölge giderme — düzensiz aydınlatma düzeltmesi.
- * Algoritma: Blur → normalize → bölme
+ * Algoritma: Blur → normalize → bölme → unsharp-mask
  */
 + (nullable UIImage *)removeShadow:(UIImage *)image;
+
+/**
+ * Renkli belge iyileştirme — fişler, renkli formlar, fotoğraflar.
+ * Rengi korurken okunabilirliği artırır.
+ * Algoritma: CLAHE (Lab) → unsharp-mask → satürasyon artışı
+ */
++ (nullable UIImage *)applyColorEnhancement:(UIImage *)image;
 
 @end
 

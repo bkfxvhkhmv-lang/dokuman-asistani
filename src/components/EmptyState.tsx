@@ -7,6 +7,7 @@ import Animated, {
   cancelAnimation, Easing, FadeIn,
 } from 'react-native-reanimated';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 // ── Breathing illustration ─────────────────────────────────────────────────
 
@@ -124,50 +125,52 @@ interface VariantConfig {
   assistant:  string;   // voice of the assistant — personal, contextual
 }
 
-const VARIANTS: Record<EmptyVariant, VariantConfig> = {
-  docs: {
-    tintKey:   'primary',
-    title:     'Noch keine Belege',
-    subtitle:  'Scanne Rechnungen, Schreiben und Garantien — BriefPilot klassiert nach Typ und Datum.',
-    assistant: 'PDF-Export und Pakete für deine Buchhaltung findest du im Dokument unter „PDF exportieren“.',
-  },
-  search: {
-    tintKey:   'primary',
-    title:     'Keine Treffer',
-    subtitle:  'Versuche andere Begriffe oder aktiviere die semantische Suche.',
-    assistant: 'Ich verstehe auch Fragen wie „Welche Rechnungen sind diesen Monat überfällig?"',
-  },
-  tasks: {
-    tintKey:   'success',
-    title:     'Keine offenen Pflichten',
-    subtitle:  'Alle Belege erledigt oder ohne Handlungsbedarf.',
-    assistant: 'Neue eingescannte Pflicht-Stücke erscheinen hier mit Frist und nächstem Schritt.',
-  },
-  calendar: {
-    tintKey:   'warning',
-    title:     'Keine Frist in Sicht',
-    subtitle:  'Mit Fristdatum markierte Belege erscheinen hier chronologisch.',
-    assistant: 'Wir erinnern dich lokal — lass keine Behörden- oder Zahlungsfrist verstreichen.',
-  },
-  payments: {
-    tintKey:   'danger',
-    title:     'Keine Zahlungsbelege',
-    subtitle:  'Rechnungen, Mahnungen und Bußgelder landen hier mit Betrag und Frist.',
-    assistant: 'Sortiert und suchbar — ideal für Offene-Posten-Übersicht vor der Steuer.',
-  },
-  folder: {
-    tintKey:   'primary',
-    title:     'Ordner ist leer',
-    subtitle:  'Verschiebe Dokumente hierher, um sie zu organisieren.',
-    assistant: 'Ich kann Dokumente auch automatisch kategorisieren — probiere es aus.',
-  },
-  generic: {
-    tintKey:   'primary',
-    title:     'Nichts zu sehen',
-    subtitle:  'Hier erscheinen Einträge, sobald Daten vorliegen.',
-    assistant: 'Ich bin bereit — füge Daten hinzu und ich zeige dir alles.',
-  },
-};
+function buildVariants(T: (k: string) => string): Record<EmptyVariant, VariantConfig> {
+  return {
+    docs: {
+      tintKey:   'primary',
+      title:     T('home.no_docs'),
+      subtitle:  T('home.no_docs_sub'),
+      assistant: 'PDF-Export und Pakete für deine Buchhaltung findest du im Dokument unter „PDF exportieren”.',
+    },
+    search: {
+      tintKey:   'primary',
+      title:     T('search.empty_title'),
+      subtitle:  T('search.empty_sub'),
+      assistant: 'Ich verstehe auch Fragen wie „Welche Rechnungen sind diesen Monat überfällig?”',
+    },
+    tasks: {
+      tintKey:   'success',
+      title:     T('detail.no_tasks'),
+      subtitle:  T('doc.no_action'),
+      assistant: 'Neue eingescannte Pflicht-Stücke erscheinen hier mit Frist und nächstem Schritt.',
+    },
+    calendar: {
+      tintKey:   'warning',
+      title:     T('empty.title'),
+      subtitle:  T('empty.sub'),
+      assistant: 'Wir erinnern dich lokal — lass keine Behörden- oder Zahlungsfrist verstreichen.',
+    },
+    payments: {
+      tintKey:   'danger',
+      title:     T('empty.title'),
+      subtitle:  T('empty.sub'),
+      assistant: 'Sortiert und suchbar — ideal für Offene-Posten-Übersicht vor der Steuer.',
+    },
+    folder: {
+      tintKey:   'primary',
+      title:     T('empty.title'),
+      subtitle:  T('empty.sub'),
+      assistant: 'Ich kann Dokumente auch automatisch kategorisieren — probiere es aus.',
+    },
+    generic: {
+      tintKey:   'primary',
+      title:     T('empty.title'),
+      subtitle:  T('empty.sub'),
+      assistant: 'Ich bin bereit — füge Daten hinzu und ich zeige dir alles.',
+    },
+  };
+}
 
 // ── Component ──────────────────────────────────────────────────────────────
 
@@ -187,6 +190,8 @@ export default function EmptyState({
   compact = false,
 }: EmptyStateProps) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
+  const VARIANTS = buildVariants(T);
   const preset = VARIANTS[variant];
   const tint   = (Colors[preset.tintKey as keyof ThemeColors] as string | undefined) ?? Colors.primary;
 

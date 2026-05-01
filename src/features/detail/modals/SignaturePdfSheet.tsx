@@ -19,6 +19,7 @@ import { exportierePDFZuDatei } from '@/utils/exporters';
 import { stampSignatureOnLastPage } from '@/core/pdf/jsPdfGenerate';
 import { AppSheet } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { detailModalStyles as st } from '@/features/detail/detail-modals/styles';
 
 interface Props {
@@ -30,6 +31,7 @@ interface Props {
 
 export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Props) {
   const { Colors: C } = useTheme();
+  const { t } = useT();
   const { width: winW } = useWindowDimensions();
   const padW = Math.min(winW - 48, 400);
   const padH = 180;
@@ -73,7 +75,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const handleApply = useCallback(async () => {
     const ink = paths.some(s => s.length >= 2);
     if (!ink) {
-      Alert.alert('Unterschrift', 'Bitte zeichnen Sie zuerst Ihre Unterschrift.');
+      Alert.alert(t('signature.title'), t('signature.alert_empty'));
       return;
     }
 
@@ -86,7 +88,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       const out = await stampSignatureOnLastPage(basePdf, sigUri);
 
       if (!out?.uri) {
-        Alert.alert('Fehler', 'PDF konnte nicht erstellt werden.');
+        Alert.alert(t('common.error'), t('signature.error_pdf'));
         return;
       }
 
@@ -96,10 +98,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           dialogTitle: dok.titel ?? 'BriefPilot',
         });
       } else {
-        Alert.alert(
-          'Bereit',
-          'Das signierte PDF wurde erstellt, aber Teilen ist auf diesem Gerät nicht verfügbar.',
-        );
+        Alert.alert(t('common.done'), t('signature.success_no_share'));
       }
 
       reset();
@@ -108,7 +107,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (e: unknown) {
       console.warn('[SignaturePdf]', e);
-      Alert.alert('Fehler', (e as Error)?.message || 'PDF-Fehler');
+      Alert.alert(t('common.error'), (e as Error)?.message || t('signature.error_pdf'));
     } finally {
       setBusy(false);
     }
@@ -118,8 +117,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
     <AppSheet
       visible={visible}
       onClose={onClose}
-      title="Unterschrift"
-      subtitle="Zeichnen Sie im Feld — die Signatur erscheint unten rechts auf der letzten PDF‑Seite."
+      title={t('signature.title')}
+      subtitle={t('signature.subtitle')}
       footer={
         <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <TouchableOpacity
@@ -127,14 +126,14 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
             disabled={busy}
             style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
           >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Leeren</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{t('signature.clear')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={onClose}
             disabled={busy}
             style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
           >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Abbrechen</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{t('common.cancel')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleApply}
@@ -144,7 +143,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
             {busy ? (
               <ActivityIndicator color={C.primaryDark} />
             ) : (
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>PDF erstellen</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>{t('signature.create_pdf')}</Text>
             )}
           </TouchableOpacity>
         </View>

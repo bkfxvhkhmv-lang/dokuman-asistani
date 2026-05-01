@@ -21,7 +21,7 @@ export function MarktplatzRuleDetailModal({
   const { Colors: C } = useTheme();
 
   return (
-    <Modal visible={!!detailRegel} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={!!detailRegel} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onDismiss} />
       {detailRegel && (
         <View style={{

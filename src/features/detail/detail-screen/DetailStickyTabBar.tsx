@@ -1,6 +1,7 @@
 import { TouchableOpacity, Text, Animated } from 'react-native';
 import Icon from '@/components/Icon';
 import { DETAIL_SCREEN_TABS } from '@/features/detail/detail-screen/detailTabConfig';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   tabs?: readonly { id: string; label: string; icon: string }[];
@@ -25,6 +26,16 @@ export function DetailStickyTabBar({
   primary,
   headerShadowOpacity,
 }: Props) {
+  const { t: T } = useT();
+
+  const tabLabel = (id: string, fallback: string): string => {
+    if (id === 'ozet')   return T('detail.tab.overview');
+    if (id === 'analiz') return T('detail.tab.analysis');
+    if (id === 'detay')  return T('detail.tab.details');
+    if (id === 'eylem')  return T('detail.tab.actions');
+    return fallback;
+  };
+
   if (tabs.length <= 1) {
     return null;
   }
@@ -67,7 +78,7 @@ export function DetailStickyTabBar({
               color: aktifTab === tab.id ? primary : textTertiary,
             }}
           >
-            {tab.label}
+            {tabLabel(tab.id, tab.label)}
           </Text>
         </TouchableOpacity>
       ))}

@@ -206,7 +206,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
   const seciliDilObj = DILLER.find(d => d.code === seciliDil) || DILLER[0];
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <View style={styles.modalRoot}>
         <TouchableOpacity
           style={StyleSheet.absoluteFillObject}

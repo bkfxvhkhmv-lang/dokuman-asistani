@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import type { Dokument } from '@/store';
 import { useTheme } from '@/ThemeContext';
@@ -16,8 +17,8 @@ import { buildDocStacks } from '@/services/CardStackService';
 import {
   DOCUMENTS_SECTION_EYEBROW,
   DOCUMENTS_SECTION_SUBLINE,
-  DOCUMENTS_SECTION_TITLE,
 } from '@/product/strategyCopy';
+import { useT } from '@/hooks/useT';
 
 // Tabs where sender-based stacking improves readability
 const STACK_TABS = new Set(['Aufgaben', 'Zahlungen']);
@@ -45,6 +46,7 @@ const TAB_VARIANT: Record<string, EmptyVariant> = {
 function HomeRecentListInner({ data }: { data: any }) {
   const router = useRouter();
   const { fs } = useTheme();
+  const { t: T } = useT();
   const cardRefs = useRef<Map<string, View>>(new Map());
   const queryClient      = useQueryClient();
 
@@ -69,35 +71,40 @@ function HomeRecentListInner({ data }: { data: any }) {
   };
 
   const openFromList = (dok: Dokument) => {
-    if (data.secilenModus) data.handleSecim(dok);
-    else navigateWithHero(dok.id);
+    if (data.secilenModus) {
+      Haptics.selectionAsync();
+      data.handleSecim(dok);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      navigateWithHero(dok.id);
+    }
   };
 
   const sectionMap = {
     Aufgaben: {
-      title: 'Offene Aufgaben',
-      eyebrow: 'FOKUS',
+      title: T('detail.section.tasks'),
+      eyebrow: T('detail.status.action_needed').toUpperCase(),
       docs: data.aufgaben ?? [],
     },
     Dokumente: {
-      title: DOCUMENTS_SECTION_TITLE,
+      title: T('home.recent'),
       eyebrow: DOCUMENTS_SECTION_EYEBROW,
       subtitle: DOCUMENTS_SECTION_SUBLINE,
       docs: data.alleDocs ?? [],
     },
     Ordner: {
-      title: 'Ordner-Inhalte',
-      eyebrow: 'STRUKTUR',
+      title: T('empty.title'),
+      eyebrow: T('field.type').toUpperCase(),
       docs: data.ordnerDocs?.length ? data.ordnerDocs : data.alleDocs ?? [],
     },
     Kalender: {
-      title: 'Dokumente mit Frist',
-      eyebrow: 'ZEITFENSTER',
+      title: T('field.deadline'),
+      eyebrow: T('doc.this_week').toUpperCase(),
       docs: data.kalDocs ?? [],
     },
     Zahlungen: {
-      title: 'Weitere Zahlungsdokumente',
-      eyebrow: 'ZAHLUNGEN',
+      title: T('field.amount'),
+      eyebrow: T('dash.amount').toUpperCase(),
       docs: (data.zahlungsDocs ?? []).slice(2),
     },
   };
@@ -144,26 +151,8 @@ function HomeRecentListInner({ data }: { data: any }) {
   return (
     <View style={st.wrap}>
       <View style={st.header}>
-        <View>
-          <Text style={[st.eyebrow, { color: data.Colors.textTertiary, fontSize: fs(10), lineHeight: fs(10) * 1.35 }]}>{section.eyebrow}</Text>
-          <Text style={[st.title, { color: data.Colors.text, fontSize: fs(18) }]}>{section.title}</Text>
-          {!!section.subtitle && (
-            <Text
-              style={{
-                fontSize: fs(11),
-                fontWeight: '500',
-                color: data.Colors.textSecondary,
-                marginTop: 3,
-                lineHeight: fs(14),
-                letterSpacing: 0.05,
-              }}
-              numberOfLines={2}
-            >
-              {section.subtitle}
-            </Text>
-          )}
-        </View>
-        <View style={[st.countPill, { backgroundColor: data.Colors.bgCard, borderColor: `${data.Colors.border}D9` }]}>
+        <Text style={[st.title, { color: data.Colors.text, fontSize: fs(17) }]}>{section.title}</Text>
+        <View style={[st.countPill, { backgroundColor: data.Colors.bgCard, borderColor: data.Colors.borderLight }]}>
           <Text style={[st.countText, { color: data.Colors.textSecondary, fontSize: fs(12) }]}>{docs.length}</Text>
         </View>
       </View>
@@ -221,11 +210,6 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-  },
-  eyebrow: {
-    fontWeight: '800',
-    letterSpacing: 0.7,
-    marginBottom: 4,
   },
   title: {
     fontWeight: '800',

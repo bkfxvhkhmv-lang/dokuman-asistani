@@ -81,7 +81,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
   const canSend = inputText.trim().length > 0 && !loading;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={handleClose} activeOpacity={1} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 0 }}>
         <View style={[st.sheet, { backgroundColor: C.bgCard }]}>

@@ -34,15 +34,16 @@ export const styles = StyleSheet.create({
   stabilityBarWrap:   { width: 120, height: 4, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, overflow: 'hidden' },
   stabilityBar:       { height: '100%', borderRadius: 2 },
 
-  // Guide frame corners — screen-relative (A4 ratio, 88% screen width → ~25cm hold distance)
+  // Guide frame — full rectangle outline (Accountable style)
   guideFrame: {
     position: 'absolute', top: '10%', alignSelf: 'center', width: GUIDE_W, height: GUIDE_H,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.75)', borderRadius: 6,
   },
-  corner: { position: 'absolute', width: 34, height: 34, borderRadius: 2 },
-  cornerTL: { top: 0, left: 0,     borderTopWidth: 2.5, borderLeftWidth: 2.5  },
-  cornerTR: { top: 0, right: 0,    borderTopWidth: 2.5, borderRightWidth: 2.5 },
-  cornerBL: { bottom: 0, left: 0,  borderBottomWidth: 2.5, borderLeftWidth: 2.5  },
-  cornerBR: { bottom: 0, right: 0, borderBottomWidth: 2.5, borderRightWidth: 2.5 },
+  corner: { position: 'absolute', width: 28, height: 28, borderRadius: 3 },
+  cornerTL: { top: -1, left: -1,       borderTopWidth: 3, borderLeftWidth: 3,    borderColor: '#fff' },
+  cornerTR: { top: -1, right: -1,      borderTopWidth: 3, borderRightWidth: 3,   borderColor: '#fff' },
+  cornerBL: { bottom: -1, left: -1,    borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#fff' },
+  cornerBR: { bottom: -1, right: -1,   borderBottomWidth: 3, borderRightWidth: 3,borderColor: '#fff' },
 
   // Filter bar
   filterBar: {

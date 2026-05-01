@@ -29,7 +29,7 @@ export default function PartnerEmailModal({
   }, [visible, partnerEmail]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" presentationStyle="overFullScreen">
+    <Modal visible={visible} transparent animationType="fade" presentationStyle="overFullScreen">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}

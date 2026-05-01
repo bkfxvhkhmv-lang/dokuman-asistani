@@ -8,6 +8,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { AppInput } from '@/design/components';
 import Icon from '@/components/Icon';
+import { useT } from '@/hooks/useT';
 import type { ThemeColors } from '@/ThemeContext';
 
 interface Props {
@@ -29,9 +30,10 @@ export default function SearchHeader({
   v4Modus, filterAktiv, onToggleV4, onOpenFilter, onCancel,
   C, S,
 }: Props) {
+  const { t } = useT();
   return (
     <View style={{ paddingHorizontal: S.md, paddingTop: S.sm, paddingBottom: S.sm, gap: 8 }}>
-      <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.2 }}>Was suchst du?</Text>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary, letterSpacing: 0.2 }}>{t('search.question')}</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
       <View style={{ flex: 1 }}>
         <AppInput
@@ -81,7 +83,7 @@ export default function SearchHeader({
 
       {/* Geri donus */}
       <TouchableOpacity onPress={onCancel}>
-        <Text style={{ fontSize: 14, color: C.primary, fontWeight: '500' }}>Abbrechen</Text>
+        <Text style={{ fontSize: 14, color: C.primary, fontWeight: '500' }}>{t('search.cancel')}</Text>
       </TouchableOpacity>
       </View>
     </View>

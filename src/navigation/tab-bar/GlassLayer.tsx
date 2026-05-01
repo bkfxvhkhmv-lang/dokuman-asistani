@@ -23,8 +23,9 @@ export default function GlassLayer({ colors, tabSize }: Props) {
     <View style={[StyleSheet.absoluteFill, st.glassClip]}>
       {Platform.OS === 'ios' ? (
         <>
-          <BlurView intensity={72} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.06)' }]} />
+          <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
+          {/* Solid white base so tab bar always reads clearly regardless of screen bg color */}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.55)' }]} />
         </>
       ) : (
         <>
@@ -38,17 +39,18 @@ export default function GlassLayer({ colors, tabSize }: Props) {
               </SkBackdropBlur>
             </SkCanvas>
           ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(250,251,255,0.82)' }]} />
+            // Solid base — slightly opaque for readability without blur
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(249,250,255,0.88)' }]} />
           )}
 
-          {/* Android primary tint */}
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: `${colors.primary}0B` }]} />
+          {/* Android primary tint — subtle brand colour wash */}
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: `${colors.primary}0D` }]} />
 
-          {/* Android ust sheen */}
+          {/* Android top gloss — fakes the iOS glass top-edge catch-light */}
           <LinearGradient
-            colors={['rgba(255,255,255,0.90)', 'rgba(255,255,255,0.0)']}
+            colors={['rgba(255,255,255,0.92)', 'rgba(255,255,255,0.0)']}
             start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}
-            style={[StyleSheet.absoluteFill, { height: 18 }]}
+            style={[StyleSheet.absoluteFill, { height: 22 }]}
             pointerEvents="none"
           />
         </>

@@ -26,6 +26,7 @@ module.exports = ({ config }) => {
     extra: {
       ...config.extra,
       supabaseUrl: url,
+      APP_ENV: process.env.APP_ENV ?? 'device',
     },
   };
 };

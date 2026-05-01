@@ -36,7 +36,7 @@ export default function AppBottomSheet({
   const toneStyle = toneMap[tone] || toneMap.default;
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={st.backdrop} onPress={onClose} activeOpacity={1} />
       <View style={[st.sheet, { backgroundColor: Colors.bgCard, borderTopColor: Colors.border }]}>
         <View style={[st.handle, { backgroundColor: Colors.border }]} />

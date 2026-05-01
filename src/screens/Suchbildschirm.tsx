@@ -17,6 +17,7 @@
  */
 import React, { useCallback } from 'react';
 import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -71,13 +72,15 @@ export default function Suchbildschirm() {
       ? smartSearch.mergedResults.map(r => r.dok)
       : lokal;
 
-  const renderLokal = useCallback(({ item }: { item: Dokument }) => (
-    <DokumentKarte
-      dok={item}
-      onPress={() => router.push({ pathname: '/detail', params: { dokId: item.id } })}
-      onLongPress={() => {}}
-      secilen={false}
-    />
+  const renderLokal = useCallback(({ item, index }: { item: Dokument; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(Math.min(index * 45, 300)).springify().damping(18)}>
+      <DokumentKarte
+        dok={item}
+        onPress={() => router.push({ pathname: '/detail', params: { dokId: item.id } })}
+        onLongPress={() => {}}
+        secilen={false}
+      />
+    </Animated.View>
   ), [router]);
 
   const renderV4 = useCallback(({ item }: { item: SemanticResult }) => (

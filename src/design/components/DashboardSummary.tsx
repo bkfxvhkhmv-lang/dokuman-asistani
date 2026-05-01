@@ -1,21 +1,8 @@
-/**
- * DashboardSummary — Accountable-pattern: 3 contextual action tiles.
- * Kein Statistik-Text, sondern direkte Aktionspunkte.
- */
 import React from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
-import { formatBetrag } from '@/utils/formatters';
 import Icon from '@/components/Icon';
-
-type Tile = {
-  icon: string;
-  label: string;
-  sub: string;
-  badge?: number;
-  color?: string;
-  onPress?: () => void;
-};
+import { useT } from '@/hooks/useT';
 
 type Props = {
   urgent: number;
@@ -30,146 +17,75 @@ type Props = {
 };
 
 export default function DashboardSummary({
-  urgent,
-  openTasks,
-  amountOpen,
-  nextDeadlineDays,
-  nextDeadlineTitle,
-  currency = '€',
-  onPruefe,
-  onFrist,
-  onScan,
+  urgent, openTasks, nextDeadlineDays, nextDeadlineTitle,
+  onPruefe, onFrist, onScan,
 }: Props) {
-  const { Colors: C, R } = useTheme();
+  const { Colors: C, fs } = useTheme();
+  const { t: T } = useT();
 
-  // Tile 1 — dringende Belege prüfen
-  const tile1: Tile = urgent > 0
-    ? {
-        icon: 'warning-circle',
-        label: `${urgent} prüfen`,
-        sub: `Dringend${urgent === 1 ? '' : 'e'} Belege`,
-        badge: urgent,
-        color: C.danger,
-        onPress: onPruefe,
-      }
-    : openTasks > 0
-    ? {
-        icon: 'checkmark-circle',
-        label: `${openTasks} offen`,
-        sub: 'Aufgaben',
-        badge: openTasks,
-        color: C.warning,
-        onPress: onPruefe,
-      }
-    : {
-        icon: 'checkmark-circle',
-        label: 'Alles klar',
-        sub: 'Keine offenen Aufgaben',
-        color: C.success,
-        onPress: onPruefe,
-      };
-
-  // Tile 2 — nächste Frist
-  const fristText = nextDeadlineDays == null
-    ? 'Keine Frist'
-    : nextDeadlineDays < 0
-    ? 'Überfällig!'
-    : nextDeadlineDays === 0
-    ? 'Heute fällig'
-    : nextDeadlineDays === 1
-    ? 'Morgen fällig'
-    : `${nextDeadlineDays} Tage`;
+  const fristLabel = nextDeadlineDays == null ? T('dash.next_due')
+    : nextDeadlineDays < 0  ? T('doc.overdue')
+    : nextDeadlineDays === 0 ? T('doc.today')
+    : nextDeadlineDays === 1 ? T('doc.tomorrow')
+    : T('doc.due_days', { n: nextDeadlineDays });
 
   const fristColor = nextDeadlineDays != null && nextDeadlineDays <= 3 ? C.danger
     : nextDeadlineDays != null && nextDeadlineDays <= 7 ? C.warning
-    : C.primary;
+    : C.textSecondary;
 
-  const tile2: Tile = {
-    icon: 'calendar',
-    label: fristText,
-    sub: nextDeadlineTitle ? (nextDeadlineTitle.length > 18 ? nextDeadlineTitle.slice(0, 16) + '…' : nextDeadlineTitle) : 'Nächste Frist',
-    color: fristColor,
-    onPress: onFrist,
-  };
-
-  // Tile 3 — Beleg scannen (immer)
-  const tile3: Tile = {
-    icon: 'scan',
-    label: 'Scan',
-    sub: 'Beleg hinzufügen',
-    color: C.primary,
-    onPress: onScan,
-  };
-
-  const tiles = [tile1, tile2, tile3];
+  const hasAlert = urgent > 0 || (nextDeadlineDays != null && nextDeadlineDays <= 3);
 
   return (
-    <View style={{ paddingHorizontal: 16, marginBottom: 14 }}>
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        {tiles.map((tile, i) => (
-          <TouchableOpacity
-            key={i}
-            onPress={tile.onPress}
-            activeOpacity={0.75}
-            style={{
-              flex: 1,
-              backgroundColor: C.bgCard,
-              borderRadius: R.lg,
-              borderWidth: 1,
-              borderColor: C.borderLight,
-              padding: 14,
-              alignItems: 'center',
-              gap: 8,
-              // subtle shadow
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 1 },
-              shadowOpacity: 0.06,
-              shadowRadius: 4,
-              elevation: 2,
-              position: 'relative',
-            }}
-          >
-            {/* Badge */}
-            {tile.badge !== undefined && tile.badge > 0 && (
-              <View style={{
-                position: 'absolute', top: 8, right: 8,
-                backgroundColor: tile.color ?? C.primary,
-                borderRadius: 999, minWidth: 18, height: 18,
-                alignItems: 'center', justifyContent: 'center',
-                paddingHorizontal: 5,
-              }}>
-                <Text style={{ fontSize: 10, fontWeight: '900', color: '#fff' }}>
-                  {tile.badge > 99 ? '99+' : tile.badge}
-                </Text>
-              </View>
-            )}
+    <View style={st.wrap}>
+      {/* Alert row — nur wenn etwas dringend */}
+      {hasAlert && (
+        <TouchableOpacity
+          onPress={urgent > 0 ? onPruefe : onFrist}
+          activeOpacity={0.7}
+          style={[st.alertRow, { backgroundColor: `${C.danger}0D`, borderColor: `${C.danger}20` }]}
+        >
+          <View style={[st.alertDot, { backgroundColor: C.danger }]} />
+          <Text style={[st.alertText, { color: C.danger, fontSize: fs(13) }]}>
+            {urgent > 0
+              ? `${urgent} ${urgent === 1 ? T('home.doc_singular') : T('home.doc_plural')} zur Prüfung`
+              : `${T('dash.next_due')}: ${fristLabel}`}
+          </Text>
+          <Icon name="chevron-right" size={14} color={C.danger} />
+        </TouchableOpacity>
+      )}
 
-            {/* Icon */}
-            <View style={{
-              width: 40, height: 40, borderRadius: 20,
-              backgroundColor: `${tile.color ?? C.primary}18`,
-              alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Icon name={tile.icon} size={20} color={tile.color ?? C.primary} />
-            </View>
+      {/* Action row */}
+      <View style={st.row}>
+        {/* Frist */}
+        <TouchableOpacity onPress={onFrist} activeOpacity={0.7} style={[st.card, { backgroundColor: C.bgCard, borderColor: C.borderLight }]}>
+          <Icon name="calendar" size={18} color={fristColor} />
+          <Text style={[st.cardValue, { color: fristColor, fontSize: fs(15) }]} numberOfLines={1}>
+            {fristLabel}
+          </Text>
+          <Text style={[st.cardSub, { color: C.textSecondary, fontSize: fs(11) }]} numberOfLines={1}>
+            {nextDeadlineTitle ?? T('dash.next_due')}
+          </Text>
+        </TouchableOpacity>
 
-            <View style={{ alignItems: 'center', gap: 2 }}>
-              <Text style={{
-                fontSize: 14, fontWeight: '800', color: C.text,
-                textAlign: 'center',
-              }} numberOfLines={1}>
-                {tile.label}
-              </Text>
-              <Text style={{
-                fontSize: 11, color: C.textSecondary,
-                textAlign: 'center',
-              }} numberOfLines={1}>
-                {tile.sub}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        {/* Scan CTA */}
+        <TouchableOpacity onPress={onScan} activeOpacity={0.75} style={[st.scanCard, { backgroundColor: C.primary }]}>
+          <Icon name="scan" size={22} color="#fff" />
+          <Text style={[st.scanLabel, { fontSize: fs(13) }]}>{T('dash.scan_now')}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+const st = StyleSheet.create({
+  wrap:      { paddingHorizontal: 20, marginBottom: 8, gap: 10 },
+  alertRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, borderWidth: 1 },
+  alertDot:  { width: 6, height: 6, borderRadius: 3 },
+  alertText: { flex: 1, fontWeight: '600' },
+  row:       { flexDirection: 'row', gap: 10 },
+  card:      { flex: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 4 },
+  cardValue: { fontWeight: '700', letterSpacing: -0.3 },
+  cardSub:   { fontWeight: '500' },
+  scanCard:  { width: 80, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14 },
+  scanLabel: { color: '#fff', fontWeight: '700' },
+});

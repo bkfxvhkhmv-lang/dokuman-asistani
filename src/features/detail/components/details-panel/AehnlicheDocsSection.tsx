@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { Dokument } from '@/store';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 
@@ -9,12 +10,13 @@ interface Props {
 
 export function AehnlicheDocsSection({ dokumente }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   if (!dokumente.length) return null;
 
   const liste = dokumente.slice(0, 3);
 
   return (
-    <SectionCard title="ÄHNLICHE DOKUMENTE">
+    <SectionCard title={T('detail.section.similar')}>
       {liste.map((d, i) => (
         <View key={d.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
           borderBottomWidth: i < liste.length - 1 ? 0.5 : 0, borderBottomColor: C.border }}>

@@ -38,24 +38,26 @@ export const DocumentOverlay: React.FC<Props> = ({
 
   if (corners) {
     const { topLeft, topRight, bottomRight, bottomLeft, confidence } = corners;
+    const { width: W, height: H } = Dimensions.get('window');
     // Beyaz: kenar yok/çok düşük | Sarı: eğik/kötü açı | Yeşil: mükemmel
     const edgeColor = confidence > 0.65 ? '#22C55E' : confidence > 0.35 ? '#EAB308' : 'rgba(255,255,255,0.7)';
 
+    // Corners are normalized 0-1 — multiply by screen dimensions for SVG pixel coords
+    const pts = [topLeft, topRight, bottomRight, bottomLeft].map(p => ({
+      x: p.x * W,
+      y: p.y * H,
+    }));
+
     return (
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Svg style={StyleSheet.absoluteFill}>
+        <Svg style={StyleSheet.absoluteFill} width={W} height={H}>
           <Polygon
-            points={`
-              ${topLeft.x},${topLeft.y}
-              ${topRight.x},${topRight.y}
-              ${bottomRight.x},${bottomRight.y}
-              ${bottomLeft.x},${bottomLeft.y}
-            `}
+            points={pts.map(p => `${p.x},${p.y}`).join(' ')}
             fill={`${edgeColor}15`}
             stroke={edgeColor}
             strokeWidth="2.5"
           />
-          {[topLeft, topRight, bottomRight, bottomLeft].map((point, index) => (
+          {pts.map((point, index) => (
             <Circle
               key={index}
               cx={point.x}

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Linking } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   onRequest: () => void;
@@ -9,6 +10,7 @@ interface Props {
 
 export default function PermissionView({ onRequest }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, backgroundColor: C.bg, paddingHorizontal: 40 }}>
       <View style={{ width: 80, height: 80, borderRadius: 28, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
@@ -18,18 +20,18 @@ export default function PermissionView({ onRequest }: Props) {
         Kamerazugriff
       </Text>
       <Text style={{ fontSize: 14, color: C.textSecondary, textAlign: 'center', lineHeight: 22 }}>
-        Um Dokumente zu scannen, benötigt BriefPilot Zugriff auf Ihre Kamera. Auf dem iPhone kannst du den Zugriff unter Einstellungen · BriefPilot erlauben.
+        {T('scan.permission_body')}
       </Text>
       <TouchableOpacity
         style={{ marginTop: 12, backgroundColor: C.primary, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40, alignItems: 'center' }}
         onPress={onRequest}
         activeOpacity={0.85}
       >
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Kamera erlauben</Text>
+        <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Kamerazugriff erlauben</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => void Linking.openSettings()} style={{ marginTop: 4, paddingVertical: 10 }}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, textDecorationLine: 'underline' }}>
-          In den Einstellungen öffnen
+          {T('scan.open_settings')}
         </Text>
       </TouchableOpacity>
     </View>

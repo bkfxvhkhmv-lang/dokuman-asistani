@@ -1,0 +1,14 @@
+#!/bin/bash
+echo "🩺 BRIEFPILOT KONTROL"
+echo "====================="
+echo -n "Dosya Sayisi: "
+find src -type f -name "*.js" -o -name "*.ts" -o -name "*.tsx" 2>/dev/null | wc -l
+echo -n "Toplam LOC: "
+find src -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" \) -exec cat {} \; 2>/dev/null | wc -l
+echo "✅ Bitti."
+echo ""
+echo "🔴 Büyük Dosyalar (>500 satır):"
+find src -type f \( -name "*.js" -o -name "*.jsx" \) -exec wc -l {} \; 2>/dev/null | sort -rn | awk '$1>500 {print "   " $2 " (" $1 " satır)"}' | head -5
+echo ""
+echo "📦 En Çok Import Edilenler:"
+grep -rh "^import.*from " src --include="*.js" --include="*.ts" --include="*.tsx" 2>/dev/null | sed "s/.*from ['"]//; s/['"].*//" | grep -v "^@\?/" | sort | uniq -c | sort -rn | head -5

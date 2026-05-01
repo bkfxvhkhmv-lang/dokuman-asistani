@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Modal, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Dimensions, Modal, TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, runOnJS, interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 const SCREEN_H = Dimensions.get('window').height;
 const SPRING   = { damping: 22, stiffness: 240, mass: 0.85 };
@@ -23,6 +26,7 @@ export default function AppSheet({
   visible, onClose, title, subtitle, children, footer,
 }: AppSheetProps) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const [mounted, setMounted] = useState(false);
 
   const translateY    = useSharedValue(SCREEN_H);
@@ -85,8 +89,27 @@ export default function AppSheet({
 
         {/* Sheet */}
         <Animated.View
-          style={[st.sheet, { backgroundColor: Colors.bgCard, borderTopColor: Colors.border }, sheetStyle]}
+          style={[st.sheet, { borderTopColor: Colors.borderLight }, sheetStyle]}
         >
+          {/* Glass background */}
+          {Platform.OS === 'ios' ? (
+            <BlurView
+              intensity={88}
+              tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
+              style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
+            />
+          ) : (
+            <>
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: `${Colors.primary}08`, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
+              <LinearGradient
+                colors={['rgba(255,255,255,0.12)', 'transparent']}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+                pointerEvents="none"
+              />
+            </>
+          )}
+
           {/* Handle — gesture target */}
           <GestureDetector gesture={pan}>
             <Animated.View style={st.handleArea}>
@@ -105,7 +128,7 @@ export default function AppSheet({
               activeOpacity={0.82}
               style={[st.closeButton, { backgroundColor: Colors.bg, borderColor: Colors.border }]}
             >
-              <Text style={[st.closeLabel, { color: Colors.textSecondary }]}>Schließen</Text>
+              <Text style={[st.closeLabel, { color: Colors.textSecondary }]}>{T('common.close')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -128,9 +151,10 @@ const st = StyleSheet.create({
     right:                0,
     borderTopLeftRadius:  24,
     borderTopRightRadius: 24,
-    borderTopWidth:       1,
+    borderTopWidth:       0.5,
     paddingHorizontal:    20,
     paddingBottom:        34,
+    overflow:             'hidden',
     maxHeight:            '88%',
   },
   handleArea: {

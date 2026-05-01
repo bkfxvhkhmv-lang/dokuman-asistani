@@ -36,14 +36,22 @@ export function usePrivacyGate(): PrivacyGateState {
       const prev = appStateRef.current;
       appStateRef.current = next;
 
-      if (next === 'background' || next === 'inactive') {
+      if (next === 'background') {
         // Show opaque cover immediately → App Switcher never sees content
         setOverlayVisible(true);
         wasBackground.current = true;
-      } else if (next === 'active' && wasBackground.current) {
-        wasBackground.current = false;
-        // Overlay stays visible — SperrBildschirm (biometric) will dismiss it on success
-        setLockVisible(true);
+      } else if (next === 'inactive') {
+        // System dialogs (camera permission, calls) — cover but don't arm biometric
+        setOverlayVisible(true);
+      } else if (next === 'active') {
+        if (wasBackground.current) {
+          wasBackground.current = false;
+          // Overlay stays visible — SperrBildschirm (biometric) will dismiss it on success
+          setLockVisible(true);
+        } else {
+          // Returning from system dialog (permission, Face ID prompt) — just lift the cover
+          setOverlayVisible(false);
+        }
       }
     });
 

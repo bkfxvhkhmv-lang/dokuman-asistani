@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import AppSheet from '@/design/components/AppSheet';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { HIT_SLOP } from '@/theme';
 import type { Dokument } from '@/store';
 
@@ -42,38 +43,39 @@ export default function DocumentContextSheet({
   onLoeschen,
 }: DocumentContextSheetProps) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
 
   if (!dok) return null;
 
   const actions: Action[] = [
     {
       key: 'anzeigen',
-      label: 'Dokument öffnen',
+      label: T('detail.action.understand'),
       icon: 'document-text-outline',
       tone: 'primary',
       onPress: onNavigate,
     },
     {
       key: 'erledigt',
-      label: dok.erledigt ? 'Als offen markieren' : 'Als erledigt markieren',
+      label: T('detail.action.mark_done'),
       icon: dok.erledigt ? 'refresh-circle-outline' : 'checkmark-circle-outline',
       onPress: onErledigt,
     },
     {
       key: 'teilen',
-      label: 'Teilen',
+      label: T('common.share'),
       icon: 'share-outline',
       onPress: onTeilen,
     },
     {
       key: 'pdf',
-      label: 'Als PDF exportieren',
+      label: T('detail.action.share'),
       icon: 'document-outline',
       onPress: onPDF,
     },
     {
       key: 'loeschen',
-      label: 'Löschen',
+      label: T('common.delete'),
       icon: 'trash-outline',
       tone: 'danger',
       onPress: onLoeschen,

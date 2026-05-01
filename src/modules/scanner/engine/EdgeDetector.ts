@@ -40,8 +40,9 @@ export class EdgeDetector {
 
     this.processing = true;
     try {
-      let corners = await nativeDetectDocumentEdges(frame);
-      if (!corners) corners = null; // JS frame-level fallback not practical — use analyzeCapture instead
+      // Accept precomputed corners injected by CameraEngine.detectLiveEdges to avoid double call
+      let corners: DocumentCorners | null = frame?._precomputedCorners ?? null;
+      if (!corners) corners = await nativeDetectDocumentEdges(frame);
 
       if (corners && corners.confidence > 0.3) {
         const stabilityScore = this.calculateStabilityScore(corners, this.lastCorners);

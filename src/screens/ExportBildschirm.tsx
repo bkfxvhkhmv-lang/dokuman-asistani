@@ -5,12 +5,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Alert, Platform,
+  Alert, Platform, StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
 import { exportiereTopluPDF, exportiereDatavCSV } from '@/utils/exporters';
@@ -36,36 +37,38 @@ type ExportOption = {
   disabled?: boolean;
 };
 
-const EXPORT_OPTIONS: ExportOption[] = [
-  {
-    id: 'steuerpaket',
-    label: 'Steuerpaket',
-    description: 'Alle Steuerbelege des gewählten Jahres als PDF',
-    icon: 'calculator',
-    premium: true,
-  },
-  {
-    id: 'pdf_alle',
-    label: 'Alle Belege als PDF',
-    description: 'Alle deine Rechnungen und Belege als PDFs',
-    icon: 'file-pdf',
-    premium: false,
-  },
-  {
-    id: 'originaldokumente',
-    label: 'Originaldokumente',
-    description: 'Alle Anhänge und gescannten Belege',
-    icon: 'files',
-    premium: false,
-  },
-  {
-    id: 'datev',
-    label: 'DATEV-CSV',
-    description: 'Buchführungs-CSV für Steuerberater:innen',
-    icon: 'table',
-    premium: false,
-  },
-];
+function buildExportOptions(T: (k: string) => string): ExportOption[] {
+  return [
+    {
+      id: 'steuerpaket',
+      label: 'Steuerpaket',
+      description: T('export.no_steuer_body').replace('{year}', String(new Date().getFullYear())),
+      icon: 'calculator',
+      premium: true,
+    },
+    {
+      id: 'pdf_alle',
+      label: T('tab.documents'),
+      description: T('export.subtitle'),
+      icon: 'file-pdf',
+      premium: false,
+    },
+    {
+      id: 'originaldokumente',
+      label: T('doc.scanned'),
+      description: T('export.subtitle'),
+      icon: 'files',
+      premium: false,
+    },
+    {
+      id: 'datev',
+      label: 'DATEV-CSV',
+      description: T('export.subtitle'),
+      icon: 'table',
+      premium: false,
+    },
+  ];
+}
 
 function PremiumStar() {
   return (
@@ -89,6 +92,7 @@ function ExportCheckRow({
   onToggle: () => void;
   count?: number;
 }) {
+  const { Colors: C } = useTheme();
   return (
     <TouchableOpacity
       onPress={onToggle}
@@ -100,14 +104,14 @@ function ExportCheckRow({
         paddingHorizontal: 20,
         gap: 16,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: C.borderLight,
       }}
     >
       {/* Checkbox */}
       <View style={{
         width: 24, height: 24, borderRadius: 6,
         borderWidth: 2,
-        borderColor: checked ? EXPORT_COLOR : '#D1D5DB',
+        borderColor: checked ? EXPORT_COLOR : C.border,
         backgroundColor: checked ? EXPORT_COLOR : 'transparent',
         alignItems: 'center', justifyContent: 'center',
       }}>
@@ -116,15 +120,15 @@ function ExportCheckRow({
 
       <View style={{ flex: 1, gap: 3 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>
             {option.label}
           </Text>
           {option.premium && <PremiumStar />}
           {count !== undefined && count > 0 && (
-            <Text style={{ fontSize: 12, color: '#6B7280' }}>({count})</Text>
+            <Text style={{ fontSize: 12, color: C.textSecondary }}>({count})</Text>
           )}
         </View>
-        <Text style={{ fontSize: 13, color: '#6B7280', lineHeight: 18 }}>
+        <Text style={{ fontSize: 13, color: C.textSecondary, lineHeight: 18 }}>
           {option.description}
         </Text>
       </View>
@@ -132,11 +136,12 @@ function ExportCheckRow({
   );
 }
 
-const StyleSheet = { hairlineWidth: Platform.OS === 'ios' ? 0.5 : 1 } as any;
 
 export default function ExportBildschirm() {
   const { state } = useStore();
-  const { S } = useTheme();
+  const { S, Colors: C } = useTheme();
+  const { t: T } = useT();
+  const EXPORT_OPTIONS = buildExportOptions(T);
 
   const [aktJahr, setAktJahr]     = useState(AKTUELLES_JAHR);
   const [selected, setSelected]   = useState<Set<string>>(new Set());
@@ -171,14 +176,14 @@ export default function ExportBildschirm() {
 
   const handleExport = useCallback(async () => {
     if (selected.size === 0) {
-      Alert.alert('Nichts ausgewählt', 'Wähle mindestens eine Exportoption aus.');
+      Alert.alert(T('export.nothing'), T('export.nothing_body'));
       return;
     }
     setLoading(true);
     try {
       if (selected.has('steuerpaket')) {
         if (steuerDoks.length === 0) {
-          Alert.alert('Keine Steuerbelege', `Für ${aktJahr} keine Steuerbelege gefunden.`);
+          Alert.alert(T('export.no_steuer'), `Für ${aktJahr} keine Steuerbelege gefunden.`);
         } else {
           await exportiereTopluPDF(steuerDoks);
         }
@@ -186,7 +191,7 @@ export default function ExportBildschirm() {
       if (selected.has('pdf_alle') || selected.has('originaldokumente')) {
         const docs = selected.has('pdf_alle') ? jahresDoks : alleDoks.filter(d => !!d.uri);
         if (docs.length === 0) {
-          Alert.alert('Keine Belege', `Für ${aktJahr} keine Belege gefunden.`);
+          Alert.alert(T('export.no_docs'), `Für ${aktJahr} keine Belege gefunden.`);
         } else {
           await exportiereTopluPDF(docs);
         }
@@ -195,7 +200,7 @@ export default function ExportBildschirm() {
         await exportiereDatavCSV(alleDoks);
       }
     } catch (e: any) {
-      Alert.alert('Export fehlgeschlagen', e?.message ?? 'Unbekannter Fehler');
+      Alert.alert(T('export.failed'), e?.message ?? 'Unbekannter Fehler');
     } finally {
       setLoading(false);
     }
@@ -204,17 +209,17 @@ export default function ExportBildschirm() {
   const canExport = selected.size > 0 && !loading;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F9FAFB' }} edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top']}>
       {/* Lila Header — Sektionsfarbe Export */}
       <LinearGradient
         colors={[EXPORT_GRAD_A, EXPORT_GRAD_B]}
         style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}
       >
         <Text style={{ fontSize: 28, fontWeight: '900', color: '#fff', letterSpacing: -0.5 }}>
-          Datenexport
+          {T('export.title')}
         </Text>
         <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
-          Wähle, was du exportieren möchtest
+          {T('export.subtitle')}
         </Text>
 
         {/* Jahr-Chips */}
@@ -250,9 +255,9 @@ export default function ExportBildschirm() {
         {/* Checkbox Liste */}
         <View style={{
           marginHorizontal: 16, marginTop: 20,
-          backgroundColor: '#fff',
+          backgroundColor: C.bgCard,
           borderRadius: 16,
-          borderWidth: 1, borderColor: '#E5E7EB',
+          borderWidth: 1, borderColor: C.borderLight,
           overflow: 'hidden',
         }}>
           {EXPORT_OPTIONS.map((opt, idx) => (
@@ -268,8 +273,8 @@ export default function ExportBildschirm() {
 
         {/* Info */}
         <View style={{ marginHorizontal: 16, marginTop: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-          <Icon name="information-circle" size={16} color="#9CA3AF" />
-          <Text style={{ flex: 1, fontSize: 12, color: '#9CA3AF', lineHeight: 18 }}>
+          <Icon name="information-circle" size={16} color={C.textTertiary} />
+          <Text style={{ flex: 1, fontSize: 12, color: C.textTertiary, lineHeight: 18 }}>
             Nicht sicher, was du brauchst? Für die Steuer empfehlen wir das{' '}
             <Text style={{ fontWeight: '700' }}>Steuerpaket</Text> — es enthält alle relevanten Belege des Jahres.
           </Text>
@@ -282,12 +287,12 @@ export default function ExportBildschirm() {
         paddingBottom: Platform.OS === 'ios' ? 30 : 20,
         paddingTop: 12,
         paddingHorizontal: 16,
-        backgroundColor: '#F9FAFB',
-        borderTopWidth: 1, borderTopColor: '#E5E7EB',
+        backgroundColor: C.bg,
+        borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.borderLight,
       }}>
         {selected.size > 0 && (
-          <Text style={{ textAlign: 'center', fontSize: 12, color: '#6B7280', marginBottom: 8 }}>
-            {selected.size} Option{selected.size !== 1 ? 'en' : ''} ausgewählt · Zeitraum: {aktJahr}
+          <Text style={{ textAlign: 'center', fontSize: 12, color: C.textSecondary, marginBottom: 8 }}>
+            {T('export.cta_selected', { n: selected.size, s: selected.size !== 1 ? 'en' : '', year: String(aktJahr) })}
           </Text>
         )}
         <TouchableOpacity
@@ -295,7 +300,7 @@ export default function ExportBildschirm() {
           disabled={!canExport}
           activeOpacity={0.85}
           style={{
-            backgroundColor: canExport ? EXPORT_COLOR : '#D1D5DB',
+            backgroundColor: canExport ? EXPORT_COLOR : C.borderLight,
             borderRadius: 14,
             paddingVertical: 17,
             alignItems: 'center',
@@ -309,7 +314,7 @@ export default function ExportBildschirm() {
             : <Icon name="export" size={20} color="#fff" />
           }
           <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff' }}>
-            {loading ? 'Wird exportiert…' : 'Exportieren'}
+            {loading ? 'Wird exportiert…' : T('export.cta')}
           </Text>
         </TouchableOpacity>
       </View>

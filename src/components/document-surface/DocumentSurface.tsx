@@ -70,13 +70,18 @@ export default function DocumentSurface({
         style={[
           st.card,
           {
-            backgroundColor: selected ? Colors.bgCard : `${accent}${Platform.OS === 'android' ? '14' : '09'}`,
-            borderColor: selected ? Colors.primary : 'transparent',
+            backgroundColor: Colors.bgCard,
+            borderColor: selected
+              ? Colors.primary
+              : isUrgent
+              ? `${accent}55`
+              : Colors.borderLight,
+            borderWidth: selected ? 1.5 : isUrgent ? 1 : 1,
             shadowColor,
-            shadowOpacity: selected ? 0.16 : isUrgent ? 0.22 : 0.07,
-            shadowRadius: selected ? 20 : isUrgent ? 20 : 14,
-            shadowOffset: { width: 0, height: selected ? 8 : isUrgent ? 10 : 5 },
-            elevation: selected ? 6 : isUrgent ? 5 : 3,
+            shadowOpacity: selected ? 0.16 : isUrgent ? 0.18 : 0.05,
+            shadowRadius: selected ? 16 : isUrgent ? 14 : 10,
+            shadowOffset: { width: 0, height: selected ? 6 : isUrgent ? 4 : 3 },
+            elevation: selected ? 5 : isUrgent ? 5 : 2,
           },
           selected && st.selected,
         ]}

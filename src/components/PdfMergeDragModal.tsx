@@ -67,7 +67,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={st.overlay} activeOpacity={1} onPress={onClose} />
       <View style={[st.sheet, { backgroundColor: C.bgCard }]}>
         <View style={[st.handle, { backgroundColor: C.border }]} />

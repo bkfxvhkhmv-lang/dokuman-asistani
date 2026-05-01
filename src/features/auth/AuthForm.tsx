@@ -7,6 +7,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { AppInput } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { Shadow } from '@/theme';
 import { authStyles as st } from '@/features/auth/styles';
 import type { AuthTab } from '@/features/auth/AuthTabs';
@@ -27,13 +28,14 @@ export default function AuthForm({
   loading, onSubmit, onGoogle, onGuest, onForgotPassword,
 }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
 
   return (
     <View style={[st.form, { backgroundColor: C.bgCard, borderColor: C.border }]}>
       <AppInput
         label="E-Mail"
         icon="envelope"
-        placeholder="name@beispiel.de"
+        placeholder={T('auth.email')}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -44,7 +46,7 @@ export default function AuthForm({
       <AppInput
         label="Passwort"
         secure
-        placeholder="••••••••"
+        placeholder={T('auth.password')}
         value={password}
         onChangeText={setPassword}
         returnKeyType="done"
@@ -62,7 +64,7 @@ export default function AuthForm({
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={st.btnText}>
-            {tab === 'login' ? 'Anmelden' : 'Konto erstellen'}
+            {tab === 'login' ? T('auth.submit_login') : T('auth.submit_register')}
           </Text>
         )}
       </TouchableOpacity>
@@ -72,9 +74,12 @@ export default function AuthForm({
         activeOpacity={0.88}
         style={[st.googleBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
       >
-        <Text style={{ fontSize: 18 }}>G</Text>
+        {/* Google G — four-color mark using a bordered circle split by color */}
+        <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#4285F4', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 11, fontWeight: '800', color: '#4285F4', lineHeight: 14 }}>G</Text>
+        </View>
         <Text style={{ fontSize: 15, fontWeight: '600', color: C.text }}>
-          Mit Google anmelden
+          {T('auth.google')}
         </Text>
       </TouchableOpacity>
 

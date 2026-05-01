@@ -37,6 +37,8 @@ export function useKameraScreenEffects(opts: {
   scanLineY: SharedValue<number>;
   editSlide: Animated.Value;
   editOpacity: Animated.Value;
+  startLiveEdgeDetection?: (intervalMs?: number) => void;
+  stopLiveEdgeDetection?: () => void;
 }): void {
   const lastHandledCapture = useRef<number | null>(null);
   const {
@@ -56,6 +58,8 @@ export function useKameraScreenEffects(opts: {
     scanLineY,
     editSlide,
     editOpacity,
+    startLiveEdgeDetection,
+    stopLiveEdgeDetection,
   } = opts;
 
   useEffect(() => {
@@ -73,6 +77,16 @@ export function useKameraScreenEffects(opts: {
       enablePerspectiveCorrection: profile.perspectiveCorrection,
     });
   }, [autoCapture, captureFilterId, flash, mode, qualityPreset, updateConfig]);
+
+  // Live corner detection — snapshot every 900ms while camera is active
+  useEffect(() => {
+    if (mode === 'camera') {
+      startLiveEdgeDetection?.(900);
+    } else {
+      stopLiveEdgeDetection?.();
+    }
+    return () => stopLiveEdgeDetection?.();
+  }, [mode, startLiveEdgeDetection, stopLiveEdgeDetection]);
 
   useEffect(() => {
     const profile = getScanQualityProfile(qualityPreset as ScanQualityPresetId);

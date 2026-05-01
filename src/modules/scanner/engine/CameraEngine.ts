@@ -1,6 +1,8 @@
 import type { RefObject } from 'react';
 import { CameraView } from 'expo-camera';
 import { Dimensions } from 'react-native';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system/legacy';
 import { AutoCaptureReadiness, CaptureConfig, CaptureResult, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
 import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
 import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
@@ -42,6 +44,8 @@ export class CameraEngine {
     enablePerspectiveCorrection: false,
   };
   private isCapturing = false;
+  private liveDetectTimer: ReturnType<typeof setInterval> | null = null;
+  private liveDetectRunning = false;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -268,7 +272,60 @@ export class CameraEngine {
     };
   }
 
+  startLiveEdgeDetection(intervalMs = 900) {
+    this.stopLiveEdgeDetection();
+    this.liveDetectTimer = setInterval(() => { void this.detectLiveEdges(); }, intervalMs);
+  }
+
+  stopLiveEdgeDetection() {
+    if (this.liveDetectTimer) {
+      clearInterval(this.liveDetectTimer);
+      this.liveDetectTimer = null;
+    }
+    this.liveDetectRunning = false;
+  }
+
+  private async detectLiveEdges() {
+    if (this.liveDetectRunning || this.isCapturing || !this.config.enableEdgeDetection) return;
+    if (!this.cameraRef?.current) return;
+
+    this.liveDetectRunning = true;
+    let thumbUri: string | null = null;
+    let resizedUri: string | null = null;
+
+    try {
+      const photo = await (this.cameraRef.current as any).takePictureAsync({
+        quality: 0.01,
+        skipProcessing: true,
+      });
+      thumbUri = photo.uri;
+
+      const resized = await manipulateAsync(
+        thumbUri!,
+        [{ resize: { width: 600 } }],
+        { compress: 0.5, format: SaveFormat.JPEG },
+      );
+      resizedUri = resized.uri;
+
+      const corners = await nativeDetectDocumentEdges({ uri: resizedUri });
+      if (corners && corners.confidence > 0.30) {
+        this.edgeDetector.processFrame({ uri: resizedUri, _precomputedCorners: corners });
+      } else {
+        this.emit({ type: 'edge_state_changed', state: { corners: null, confidence: 0, stabilityScore: 0, detected: false } });
+      }
+    } catch {
+      // ignore — camera not ready, app backgrounded, etc.
+    } finally {
+      this.liveDetectRunning = false;
+      if (thumbUri) void FileSystem.deleteAsync(thumbUri, { idempotent: true }).catch(() => {});
+      if (resizedUri && resizedUri !== thumbUri) {
+        void FileSystem.deleteAsync(resizedUri, { idempotent: true }).catch(() => {});
+      }
+    }
+  }
+
   dispose() {
+    this.stopLiveEdgeDetection();
     this.autoCapture.stop();
     this.listeners = [];
   }

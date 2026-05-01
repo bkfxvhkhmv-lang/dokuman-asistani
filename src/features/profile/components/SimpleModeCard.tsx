@@ -1,7 +1,7 @@
-/** Einfacher Modus — größere Schrift nur Start + Detail wie beschrieben. */
 import React from 'react';
 import { Switch } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { SectionCard, SectionTitle, Row } from '@/features/profile/components/ProfileSection';
 import { FlatRow } from '@/features/settings/SettingsPrimitives';
 
@@ -12,6 +12,7 @@ interface SimpleProps {
 
 export default function SimpleModeCard({ suppressSectionTitle = false, flat = false }: SimpleProps) {
   const { Colors: C, isSimpleMode, toggleSimpleMode } = useTheme();
+  const { t: T } = useT();
   const sw = (
     <Switch
       value={isSimpleMode}
@@ -24,19 +25,19 @@ export default function SimpleModeCard({ suppressSectionTitle = false, flat = fa
     return (
       <FlatRow
         icon="glasses-outline"
-        label="Einfacher Modus"
-        sub="Größere Schrift auf Start- und Dokumentdetail."
+        label={T('settings.simple_mode')}
+        sub={T('settings.simple_mode_sub')}
         right={sw}
       />
     );
   }
   return (
     <SectionCard color={C.success}>
-      {!suppressSectionTitle ? <SectionTitle label="EINFACH" color={C.success} /> : null}
+      {!suppressSectionTitle ? <SectionTitle label={T('settings.simple')} color={C.success} /> : null}
       <Row
         icon="glasses-outline"
-        label="Einfacher Modus"
-        sub="Mehr Luft und größere Schrift nur auf Start- und Dokumentdetail. Übersicht statt mehrerer Reiter dort."
+        label={T('settings.simple_mode')}
+        sub={T('settings.simple_mode_sub')}
         right={sw}
       />
     </SectionCard>

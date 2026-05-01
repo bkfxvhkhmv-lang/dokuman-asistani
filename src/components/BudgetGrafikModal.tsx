@@ -61,7 +61,7 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
     .toLocaleString('de-DE', { month: 'long' });
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} />
 
       <View

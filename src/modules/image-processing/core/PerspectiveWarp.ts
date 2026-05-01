@@ -161,7 +161,7 @@ export async function warpPerspective(
     TileMode.Decal,
     FilterMode.Linear,
     MipmapMode.None,
-    H_inv, // localMatrix: output space → source image space
+    Skia.Matrix(Array.from(H_inv)), // localMatrix: output space → source image space
   );
 
   const paint = Skia.Paint();
@@ -173,7 +173,7 @@ export async function warpPerspective(
 
   // 8. Encode and save
   const snapshot  = surface.makeImageSnapshot();
-  const dir       = (FileSystem as any).cacheDirectory ?? (FileSystem.default as any)?.cacheDirectory ?? '';
+  const dir       = FileSystem.cacheDirectory ?? '';
   const outPath   = `${dir}warp_${Date.now()}.jpg`;
 
   const jpegBytes = snapshot.encodeToBytes(ImageFormat.JPEG, 92);

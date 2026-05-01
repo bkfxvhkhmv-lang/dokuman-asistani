@@ -1,7 +1,7 @@
-/** Nur dunkles Erscheinungsbild — „Design“ unter Allgemein. */
 import React from 'react';
 import { Switch } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { SectionCard, SectionTitle, Row } from '@/features/profile/components/ProfileSection';
 import { FlatRow } from '@/features/settings/SettingsPrimitives';
 
@@ -12,6 +12,7 @@ interface DesignProps {
 
 export default function DesignThemeCard({ suppressSectionTitle = false, flat = false }: DesignProps) {
   const { Colors: C, isDark, toggleTheme } = useTheme();
+  const { t: T } = useT();
   const sw = (
     <Switch
       value={isDark}
@@ -21,18 +22,12 @@ export default function DesignThemeCard({ suppressSectionTitle = false, flat = f
     />
   );
   if (flat) {
-    return (
-      <FlatRow icon="moon-outline" label="Dunkelmodus" right={sw} />
-    );
+    return <FlatRow icon="moon-outline" label={T('settings.dark_mode')} right={sw} />;
   }
   return (
     <SectionCard color={C.primary}>
-      {!suppressSectionTitle ? <SectionTitle label="DESIGN" color={C.primary} /> : null}
-      <Row
-        icon="moon-outline"
-        label="Dunkelmodus"
-        right={sw}
-      />
+      {!suppressSectionTitle ? <SectionTitle label={T('settings.design')} color={C.primary} /> : null}
+      <Row icon="moon-outline" label={T('settings.dark_mode')} right={sw} />
     </SectionCard>
   );
 }

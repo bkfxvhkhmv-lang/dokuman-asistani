@@ -1,5 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { OcrRisikoItem } from '@/utils/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 
@@ -11,11 +12,12 @@ interface Props {
 /** Nur bei niedriger Confidence oder Risiko-Zeilen — keine technische Punktzahl für V1. */
 export function OcrConfidenceSection({ confidencePct, ocrRisiken }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const zweifel = confidencePct < 70 || ocrRisiken.length > 0;
   if (!zweifel) return null;
 
   return (
-    <SectionCard title="HINWEIS">
+    <SectionCard title={T('detail.section.hint')}>
       <Text style={{ fontSize: 12, color: C.textSecondary, lineHeight: 19 }}>
         Die Texterkennung könnte ungenau sein — bitte den Text kurz prüfen.
       </Text>

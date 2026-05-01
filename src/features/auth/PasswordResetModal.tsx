@@ -10,6 +10,7 @@ import { Modal, View, Text, TouchableOpacity, ActivityIndicator } from 'react-na
 import { AppInput } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
 import { authStyles as st } from '@/features/auth/styles';
+import { useT } from '@/hooks/useT';
 import type { UsePasswordResetResult } from '@/features/auth/usePasswordReset';
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 
 export default function PasswordResetModal({ reset }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const {
     resetModal, setResetModal,
     resetSchritt, setResetSchritt,
@@ -30,7 +32,7 @@ export default function PasswordResetModal({ reset }: Props) {
   } = reset;
 
   return (
-    <Modal visible={resetModal} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={resetModal} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
         onPress={() => setResetModal(false)}
@@ -44,16 +46,16 @@ export default function PasswordResetModal({ reset }: Props) {
       >
         <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.border, alignSelf: 'center', marginBottom: 20 }} />
         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 4 }}>
-          Passwort zurücksetzen
+          {T('auth.reset_title')}
         </Text>
 
         {resetSchritt === 1 ? (
           <>
             <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 16 }}>
-              Geben Sie Ihre E-Mail-Adresse ein. Sie erhalten einen Reset-Code.
+              {T('auth.reset_body1')}
             </Text>
             <AppInput
-              label="E-Mail"
+              label={T('auth.email_label')}
               icon="envelope"
               placeholder="name@beispiel.de"
               value={resetEmail}
@@ -69,16 +71,16 @@ export default function PasswordResetModal({ reset }: Props) {
             >
               {resetLoading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={st.btnText}>Code anfordern</Text>}
+                : <Text style={st.btnText}>{T('auth.reset_request')}</Text>}
             </TouchableOpacity>
           </>
         ) : (
           <>
             <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 16 }}>
-              Reset-Code eingeben und neues Passwort festlegen.
+              {T('auth.reset_body2')}
             </Text>
             <AppInput
-              label="Reset-Code"
+              label={T('auth.reset_code_label')}
               icon="key"
               placeholder="Token eingeben"
               value={resetToken}
@@ -87,7 +89,7 @@ export default function PasswordResetModal({ reset }: Props) {
               autoCorrect={false}
             />
             <AppInput
-              label="Neues Passwort"
+              label={T('auth.password_label')}
               secure
               placeholder="••••••••"
               value={resetNewPw}
@@ -101,10 +103,10 @@ export default function PasswordResetModal({ reset }: Props) {
             >
               {resetLoading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={st.btnText}>Passwort ändern</Text>}
+                : <Text style={st.btnText}>{T('auth.reset_change')}</Text>}
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setResetSchritt(1)} style={{ marginTop: 10, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, color: C.textTertiary }}>← Zurück</Text>
+              <Text style={{ fontSize: 13, color: C.textTertiary }}>← {T('common.back')}</Text>
             </TouchableOpacity>
           </>
         )}

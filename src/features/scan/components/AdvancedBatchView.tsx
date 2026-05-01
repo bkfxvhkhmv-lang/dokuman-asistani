@@ -15,7 +15,7 @@ import type { AdvancedBatchPageData, UndoEntry } from '@/features/scan/component
 import { clonePages } from '@/features/scan/components/advanced-batch/types';
 import AdvancedBatchHeader     from '@/features/scan/components/advanced-batch/AdvancedBatchHeader';
 import AdvancedBatchToolbar    from '@/features/scan/components/advanced-batch/AdvancedBatchToolbar';
-import AdvancedBatchPageRow    from '@/features/scan/components/advanced-batch/AdvancedBatchPageRow';
+import DraggableBatchPageRow   from '@/features/scan/components/advanced-batch/DraggableBatchPageRow';
 import AdvancedBatchUndoBar    from '@/features/scan/components/advanced-batch/AdvancedBatchUndoBar';
 import { advancedBatchStyles as st } from '@/features/scan/components/advanced-batch/styles';
 
@@ -233,7 +233,7 @@ export default function AdvancedBatchView({
           {sortedPages.map((page, index) => {
             const uri = page.imageSession?.finalUri ?? page.uri;
             return (
-              <AdvancedBatchPageRow
+              <DraggableBatchPageRow
                 key={page.id}
                 index={index}
                 totalRows={sortedPages.length}

@@ -153,16 +153,31 @@ export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string>
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   const mergedBase =
     dokumente.length === 1 ? buildPdfExportBasename(dokumente[0]) : `Sammel_${dokumente.length}_${new Date().toISOString().slice(0, 10)}`;
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/pdf',
-    dialogTitle: `BriefPilot — ${dokumente.length} Dokumente · ${mergedBase}`,
-  });
-  return uri;
+
+  // Copy to documentDirectory so Android's sharing can find the file
+  const dest = `${FileSystem.documentDirectory ?? ''}${mergedBase}.pdf`;
+  try {
+    await FileSystem.copyAsync({ from: uri, to: dest });
+  } catch {
+    // If copy fails, share the original temp URI directly
+  }
+  const shareUri = dest || uri;
+
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Sharing.shareAsync(shareUri, {
+      mimeType: 'application/pdf',
+      dialogTitle: `BriefPilot — ${dokumente.length} Dokument${dokumente.length !== 1 ? 'e' : ''}`,
+      UTI: 'com.adobe.pdf',
+    });
+  } else {
+    await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+  }
+  return shareUri;
 }
 
 export async function exportiereDatavCSV(dokumente: Dokument[]): Promise<void> {
-  const FileSystem = await import('expo-file-system');
-  const Sharing    = await import('expo-sharing');
+  const Sharing   = await import('expo-sharing');
   const header = ['Umsatz','Soll/Haben','WKZ','Kurs','Basisumsatz','Basis-WKZ','Konto','Gegenkonto','BU-Schlüssel','Belegdatum','Belegfeld1','Belegfeld2','Skonto','Buchungstext'].join(';');
   const KONTO_MAP: Record<string, string> = {
     Rechnung: '1600', Rechnungen: '1600',
@@ -182,8 +197,16 @@ export async function exportiereDatavCSV(dokumente: Dokument[]): Promise<void> {
     return [betrag, 'S', 'EUR', '', '', '', konto, '1200', '', datum, d.id.substring(0, 12), '', '', (d.titel || '').replace(/;/g, ',').substring(0, 60)].join(';');
   });
   const inhalt = [header, ...rows].join('\r\n');
-  const FS = FileSystem as any;
-  const datei = (FS.default?.documentDirectory ?? FS.documentDirectory) + `DATEV_BriefPilot_${Date.now()}.csv`;
-  await (FS.default?.writeAsStringAsync ?? FS.writeAsStringAsync)(datei, '﻿' + inhalt, { encoding: 'utf8' });
-  if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(datei, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
+  const dir = FileSystem.documentDirectory;
+  if (!dir) throw new Error('Kein Speicherzugriff auf diesem Gerät.');
+  const datei = `${dir}DATEV_BriefPilot_${Date.now()}.csv`;
+  await FileSystem.writeAsStringAsync(datei, '﻿' + inhalt, { encoding: 'utf8' } as any);
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Sharing.shareAsync(datei, { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' });
+  } else {
+    // Android fallback: MediaLibrary veya native share sheet
+    const { Share } = await import('react-native');
+    await Share.share({ message: inhalt, title: 'DATEV_BriefPilot.csv' });
+  }
 }

@@ -16,6 +16,7 @@ import { useFilterPreview } from '@/modules/image-processing/hooks/useFilterPrev
 import { getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
 import { useOcr } from '@/hooks/useOcr';
 import { useDocumentPipeline } from '@/hooks/useDocumentPipeline';
+import { useSmartDocumentPipeline } from '@/hooks/useSmartDocumentPipeline';
 import { useScanner } from '@/hooks/useScanner';
 import { useSheet } from '@/hooks/useSheet';
 
@@ -31,6 +32,7 @@ import { executeScanAction } from '@/modules/scanner/flow/scanActions';
 import { finishScanFlow } from '@/features/scan/kamera-screen/scanNavigate';
 import { clearPendingFirstValueNavigation } from '@/product/onboardingStorage';
 import KameraScreenBody from '@/features/scan/kamera-screen/KameraScreenBody';
+import AutoFillReviewModal from '@/components/auto-fill-review/AutoFillReviewModal';
 
 import type { CameraView as ExpoCameraView } from 'expo-camera';
 import type { BatchPage } from '@/modules/batch/types';
@@ -65,6 +67,7 @@ export default function KameraScreenView() {
   const {
     finalizeDocument, dispatchOptimistic, flyingCardUri, clearFlyingCard,
   } = useDocumentPipeline(dispatch, () => state.einstellungen.lernRegeln ?? []);
+  const smartPipeline = useSmartDocumentPipeline(dispatch);
   const [overlaySize, setOverlaySize] = useState({ w: 0, h: 0 });
   const { pages, pageCount, addPage, removePage, movePageUp, movePageDown, rotatePage, updatePage, clearPages, replacePages, attachOcr, attachMetadata, generatePdf } = useBatch();
   const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
@@ -223,6 +226,7 @@ export default function KameraScreenView() {
 
   const { handleProcessAll } = useProcessingHandler({
     pages: sessionPages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata,
+    analyzeAndReview: smartPipeline.analyzeAndReview,
     clearPages, setMode, showSheet, hideSheet,
     onComplete: (savedId) => { void finishScanFlow(router, savedId); },
     dispatchOptimistic,
@@ -268,8 +272,24 @@ export default function KameraScreenView() {
     setOverlaySize({ w: width, h: height });
   }, []);
 
+  const handleReviewConfirm = useCallback(async (edits: Parameters<typeof smartPipeline.confirmAndSave>[0]) => {
+    const saved = await smartPipeline.confirmAndSave(edits);
+    if (saved) {
+      clearPages();
+      void finishScanFlow(router, saved.id);
+    }
+  }, [smartPipeline, clearPages, router]);
+
   return (
     <ScanProvider value={scanContextValue}>
+      <AutoFillReviewModal
+        visible={smartPipeline.showReview}
+        onClose={smartPipeline.dismissReview}
+        onBestaetigen={handleReviewConfirm}
+        autoFillResult={smartPipeline.autoFillResult}
+        categoryResult={smartPipeline.categoryResult}
+        isProcessing={smartPipeline.isSaving}
+      />
       <KameraScreenBody
         overlaySize={overlaySize}
         onRootLayout={onRootLayout}

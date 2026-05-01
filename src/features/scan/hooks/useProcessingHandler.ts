@@ -22,6 +22,8 @@ interface Deps {
   recognizeCaptures: (inputs: OcrInput[]) => Promise<any>;
   attachOcr: (id: string, data: any) => void;
   finalizeDocument: (data: any) => Promise<any>;
+  /** V12: if provided, replaces finalizeDocument — opens review modal instead of saving directly */
+  analyzeAndReview?: (data: { rawText: string; confidence: number | null; pages: Array<{ uri: string }> }) => Promise<void>;
   attachMetadata: (id: string, data: any) => void;
   clearPages: () => void;
   setMode: (mode: 'camera' | 'batch' | 'processing') => void;
@@ -33,9 +35,9 @@ interface Deps {
 }
 
 export function useProcessingHandler({
-  pages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata,
-  clearPages, setMode, showSheet, hideSheet, onComplete, dispatchOptimistic,
-  onOptimisticFail,
+  pages, recognizeCaptures, attachOcr, finalizeDocument, analyzeAndReview,
+  attachMetadata, clearPages, setMode, showSheet, hideSheet, onComplete,
+  dispatchOptimistic, onOptimisticFail,
 }: Deps) {
   const handleProcessAll = useCallback(async () => {
     if (pages.length === 0) return;
@@ -78,6 +80,16 @@ export function useProcessingHandler({
         );
       }
 
+      if (analyzeAndReview) {
+        // V12 smart pipeline: OCR done → open AutoFillReviewModal
+        // Modal's onBestaetigen will call confirmAndSave → clearPages → navigate
+        if (optimisticId) onOptimisticFail?.(optimisticId);
+        hideSheet();
+        setMode('camera');
+        await analyzeAndReview({ rawText, confidence: ocrResult.confidence ?? null, pages: pageUris });
+        return;
+      }
+
       const savedDocument = await finalizeDocument({
         rawText,
         confidence:  ocrResult.confidence ?? null,
@@ -112,7 +124,7 @@ export function useProcessingHandler({
         ],
       });
     }
-  }, [pages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata, clearPages, setMode, showSheet, hideSheet, onComplete, dispatchOptimistic, onOptimisticFail]);
+  }, [pages, recognizeCaptures, attachOcr, finalizeDocument, analyzeAndReview, attachMetadata, clearPages, setMode, showSheet, hideSheet, onComplete, dispatchOptimistic, onOptimisticFail]);
 
   return { handleProcessAll };
 }

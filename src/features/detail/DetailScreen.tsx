@@ -11,7 +11,6 @@ import DetailHeader from '@/features/detail/components/DetailHeader';
 import DetailProcessTracker from '@/features/detail/components/DetailProcessTracker';
 import OzetTab from '@/features/detail/components/OzetTab';
 import DetailAnalysisTab from '@/features/detail/components/tabs/DetailAnalysisTab';
-import DetailDetailsTab from '@/features/detail/components/tabs/DetailDetailsTab';
 import DetailActionsTab from '@/features/detail/components/tabs/DetailActionsTab';
 
 import FloatingActionPulse from '@/components/FloatingActionPulse';
@@ -52,11 +51,9 @@ export default function Detailbildschirm() {
     modal,
     actions,
     smartActions,
-    smartLinks,
     smartReminders,
     smartSummary,
     smartRisk,
-    allDoksMap,
     handleSmartAction,
     handleBack,
     moreMenu,
@@ -263,23 +260,11 @@ export default function Detailbildschirm() {
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}
             scrollBottomPadding={footerPad}
+            actionPlan={actionPlan}
           />
         )}
 
-        {aktifTab === 'detay' && (
-          <DetailDetailsTab
-            smartLinks={smartLinks}
-            allDoksMap={allDoksMap}
-            detail={detail}
-            onTabScroll={onTabScroll}
-            onScrollContentSize={onScrollContentSize}
-            onScrollLayout={onScrollLayout}
-            onOpenPages={openPagesViewer}
-            scrollBottomPadding={footerPad}
-          />
-        )}
-
-        {aktifTab === 'eylem' && (
+{aktifTab === 'eylem' && (
           <DetailActionsTab
             smartActions={smartActions}
             smartReminders={smartReminders}

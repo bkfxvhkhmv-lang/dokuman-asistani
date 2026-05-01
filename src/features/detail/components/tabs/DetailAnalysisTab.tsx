@@ -7,6 +7,8 @@ import TasksPanel from '@/features/detail/components/TasksPanel';
 import ChatEntryBar from '@/features/detail/components/ChatEntryBar';
 import SmartSummaryCard from '@/components/SmartSummaryCard';
 import SmartRiskPanel from '@/components/SmartRiskPanel';
+import AnalyseHeaderCard from '@/features/detail/components/AnalyseHeaderCard';
+import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 type Props = {
   smartSummary: any;
@@ -20,6 +22,7 @@ type Props = {
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
   scrollBottomPadding?: number;
+  actionPlan: ActionPlan | null;
 };
 
 export default function DetailAnalysisTab({
@@ -34,6 +37,7 @@ export default function DetailAnalysisTab({
   onScrollContentSize,
   onScrollLayout,
   scrollBottomPadding = 132,
+  actionPlan,
 }: Props) {
   return (
     <ScrollView
@@ -44,12 +48,27 @@ export default function DetailAnalysisTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
+      <AnalyseHeaderCard dok={detail.dok} actionPlan={actionPlan} />
+
       <SmartSummaryCard
         result={smartSummary.result}
         loading={smartSummary.loading}
         currentMode={smartSummary.mode}
         onModeChange={smartSummary.setMode}
         onLoadDetailed={smartSummary.loadDetailed}
+      />
+
+      {smartRisk && <SmartRiskPanel result={smartRisk} onAktion={handleSmartAction} />}
+
+      <RiskPanel
+        ocrRisiken={detail.ocrRisiken}
+        hukukiRisiken={detail.hukukiRisiken}
+        hukukiSkor={detail.hukukiSkor}
+        hukukiSkorColor={detail.hukukiSkorColor}
+        darkPatterns={detail.darkPatterns}
+        vertragRisiken={detail.vertragRisiken}
+        dokTyp={detail.dok?.typ}
+        rohText={detail.dok?.rohText}
       />
 
       <DigitalTwinPanel
@@ -65,19 +84,6 @@ export default function DetailAnalysisTab({
         ozetQuellenSichtbar={modal.ozetQuellenSichtbar}
         setOzetQuellenSichtbar={modal.setOzetQuellenSichtbar}
         ozetQuellen={detail.ozetQuellen || []}
-      />
-
-      {smartRisk && <SmartRiskPanel result={smartRisk} onAktion={handleSmartAction} />}
-
-      <RiskPanel
-        ocrRisiken={detail.ocrRisiken}
-        hukukiRisiken={detail.hukukiRisiken}
-        hukukiSkor={detail.hukukiSkor}
-        hukukiSkorColor={detail.hukukiSkorColor}
-        darkPatterns={detail.darkPatterns}
-        vertragRisiken={detail.vertragRisiken}
-        dokTyp={detail.dok?.typ}
-        rohText={detail.dok?.rohText}
       />
 
       <TasksPanel

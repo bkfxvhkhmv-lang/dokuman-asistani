@@ -32,6 +32,9 @@ import { useStore } from '@/store';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
 
+const ENABLE_RELEASE_FLOATING_ACTION_PULSE = false;
+const ENABLE_RELEASE_PROCESS_TRACKER = false;
+
 export default function Detailbildschirm() {
   const { Colors: C, isSimpleMode } = useTheme();
   const { dispatch } = useStore();
@@ -157,9 +160,11 @@ export default function Detailbildschirm() {
     return showPrimaryFab ? k : null;
   }, [actionPlan, showDeadlineStrip, showPrimaryFab]);
 
+  const releaseShowPrimaryFab = ENABLE_RELEASE_FLOATING_ACTION_PULSE && showPrimaryFab;
+
   const footerPad =
     132 +
-    (showPrimaryFab ? 112 : 0) +
+    (releaseShowPrimaryFab ? 112 : 0) +
     (showDeadlineStrip ? 84 : 0);
 
   return (
@@ -212,7 +217,9 @@ export default function Detailbildschirm() {
         primary={C.primary}
       />
 
-      <DetailProcessTracker digitalTwin={detail.digitalTwin} />
+      {ENABLE_RELEASE_PROCESS_TRACKER && (
+        <DetailProcessTracker digitalTwin={detail.digitalTwin} />
+      )}
       </>
       )}
 
@@ -301,14 +308,16 @@ export default function Detailbildschirm() {
         )}
       </Animated.View>
 
-      <FloatingActionPulse
-        visible={showPrimaryFab}
-        label={actionPlan?.primary?.label ?? ''}
-        sublabel={dok.absender || dok.typ || undefined}
-        urgency={pulseUrgency}
-        onPress={handlePrimaryAction}
-        extraBottomInset={showDeadlineStrip ? 76 : 0}
-      />
+      {ENABLE_RELEASE_FLOATING_ACTION_PULSE && (
+        <FloatingActionPulse
+          visible={releaseShowPrimaryFab}
+          label={actionPlan?.primary?.label ?? ''}
+          sublabel={dok.absender || dok.typ || undefined}
+          urgency={pulseUrgency}
+          onPress={handlePrimaryAction}
+          extraBottomInset={showDeadlineStrip ? 76 : 0}
+        />
+      )}
 
       {showDeadlineStrip && (
         <DetailDeadlineBanner

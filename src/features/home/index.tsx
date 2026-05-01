@@ -33,6 +33,10 @@ import { useTheme } from '@/ThemeContext';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
+const ENABLE_RELEASE_STATS_ROW = false;
+const ENABLE_RELEASE_SUGGESTIONS_STRIP = false;
+const ENABLE_RELEASE_PULL_DIGEST = false;
+const ENABLE_RELEASE_SKIA_REFRESH_INDICATOR = false;
 
 
 export default function Home() {
@@ -142,25 +146,29 @@ export default function Home() {
         onScan={() => router.push('/(tabs)/Kamera')}
       />
 
-      <HomeStatsRow
-        colors={data.Colors}
-        shadow={data.Shadow}
-        stats={data.dashStats}
-        spacing={data.S}
-      />
+      {ENABLE_RELEASE_STATS_ROW && (
+        <HomeStatsRow
+          colors={data.Colors}
+          shadow={data.Shadow}
+          stats={data.dashStats}
+          spacing={data.S}
+        />
+      )}
 
-      {homeSuggestions.length > 0 && (
+      {ENABLE_RELEASE_SUGGESTIONS_STRIP && homeSuggestions.length > 0 && (
         <HomeSuggestionsStrip
           suggestions={homeSuggestions}
           onPress={handleHomeSuggestion}
         />
       )}
 
-      <HomePullDigest
-        digest={digest}
-        visible={digestVisible}
-        onDismiss={() => { setDigestVisible(false); setDigest(null); }}
-      />
+      {ENABLE_RELEASE_PULL_DIGEST && (
+        <HomePullDigest
+          digest={digest}
+          visible={digestVisible}
+          onDismiss={() => { setDigestVisible(false); setDigest(null); }}
+        />
+      )}
 
       {ENABLE_HOT && (
         <HotCardSection
@@ -223,7 +231,9 @@ export default function Home() {
         </View>
       )}
       {/* #41 Skia pull-to-refresh aura */}
-      <SkiaRefreshIndicator refreshing={refreshing} topOffset={60} />
+      {ENABLE_RELEASE_SKIA_REFRESH_INDICATOR && (
+        <SkiaRefreshIndicator refreshing={refreshing} topOffset={60} />
+      )}
 
       <AppBottomSheet
         visible={!!data.sheetConfig}

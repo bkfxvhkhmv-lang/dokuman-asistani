@@ -5,6 +5,7 @@ import type { Dokument } from '@/store';
 import type { ThemeColors } from '@/ThemeContext';
 import type { RiskPalette } from '@/theme';
 import { useT } from '@/hooks/useT';
+import { getDocTypeConfig } from '@/constants/docTypeConfig';
 
 interface HomeUrgencyBannerProps {
   colors: ThemeColors;
@@ -15,35 +16,145 @@ interface HomeUrgencyBannerProps {
   onPress: () => void;
 }
 
-export default function HomeUrgencyBanner({ colors: C, riskColors, document, daysLeft, extraCount = 0, onPress }: HomeUrgencyBannerProps) {
+export default function HomeUrgencyBanner({
+  colors: C,
+  riskColors,
+  document,
+  daysLeft,
+  extraCount = 0,
+  onPress,
+}: HomeUrgencyBannerProps) {
   const { t: T } = useT();
+
   if (!document || daysLeft == null || daysLeft > 3) return null;
 
   const risk = daysLeft <= 1 ? riskColors.hoch : riskColors.mittel;
-  const urgencyText = daysLeft === 0 ? T('doc.today') : daysLeft === 1 ? T('doc.tomorrow') : T('doc.due_days', { n: daysLeft });
+  const urgencyText =
+    daysLeft === 0
+      ? T('doc.today')
+      : daysLeft === 1
+      ? T('doc.tomorrow')
+      : T('doc.due_days', { n: daysLeft });
+
+  const cfg = getDocTypeConfig(document.typ);
+  const PhIcon = cfg.PhIcon;
 
   return (
     <TouchableOpacity
-      style={[st.banner, { backgroundColor: risk.bg, borderColor: risk.border }]}
+      style={[st.card, { backgroundColor: C.bgCard, borderColor: risk.border }]}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
     >
-      <View style={[st.dot, { backgroundColor: risk.color }]} />
-      <View style={st.body}>
-        <Text style={[st.title, { color: C.text }]} numberOfLines={1}>{document.titel}</Text>
-        <Text style={[st.sub, { color: risk.color }]}>
-          {urgencyText}{extraCount > 0 ? `  ·  ${T('home.urgency_more', { n: extraCount })}` : ''}
-        </Text>
+      {/* Left accent bar */}
+      <View style={[st.accentBar, { backgroundColor: risk.color }]} />
+
+      {/* Icon box */}
+      <View style={[st.iconBox, { backgroundColor: cfg.bg }]}>
+        <PhIcon size={20} color={cfg.color} weight="fill" />
       </View>
-      <Icon name="chevron-forward" size={14} color={risk.color} />
+
+      {/* Body */}
+      <View style={st.body}>
+        <Text style={[st.title, { color: C.text }]} numberOfLines={1}>
+          {document.titel}
+        </Text>
+        <View style={st.metaRow}>
+          <View style={[st.deadlinePill, { backgroundColor: risk.bg, borderColor: risk.border }]}>
+            <Icon name="time" size={11} color={risk.color} />
+            <Text style={[st.deadlineText, { color: risk.color }]}>{urgencyText}</Text>
+          </View>
+          {extraCount > 0 && (
+            <Text style={[st.extra, { color: C.textSecondary }]}>
+              {T('home.urgency_more', { n: extraCount })}
+            </Text>
+          )}
+        </View>
+      </View>
+
+      {/* CTA */}
+      <View style={[st.ctaBtn, { backgroundColor: risk.color }]}>
+        <Text style={st.ctaText}>Prüfen</Text>
+        <Icon name="chevron-forward" size={11} color="#fff" />
+      </View>
     </TouchableOpacity>
   );
 }
 
 const st = StyleSheet.create({
-  banner: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 10, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1 },
-  dot:    { width: 8, height: 8, borderRadius: 4, flexShrink: 0 },
-  body:   { flex: 1, gap: 2 },
-  title:  { fontSize: 14, fontWeight: '700', letterSpacing: -0.2 },
-  sub:    { fontSize: 12, fontWeight: '600' },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    paddingRight: 12,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  accentBar: {
+    width: 4,
+    alignSelf: 'stretch',
+    borderRadius: 0,
+    flexShrink: 0,
+  },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  body: {
+    flex: 1,
+    gap: 5,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  deadlinePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  deadlineText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  extra: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    flexShrink: 0,
+  },
+  ctaText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+  },
 });

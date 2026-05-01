@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
-  ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert,
+  ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert, Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
 import { useStore } from '@/store';
+import { BetaAnalytics } from '@/services/BetaAnalytics';
 import { PRIORITY_LANGS, OTHER_LANGS, DEFAULT_LANG } from '@/i18n/langConfig';
 import { LANG_KEY } from '@/hooks/useLangPreference';
 import {
@@ -72,6 +73,7 @@ export default function OnboardingScreen() {
         return;
       }
       dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
+      void BetaAnalytics.trackEvent('onboarding_completed');
       router.replace('/(tabs)');
       router.push({ pathname: '/first-value', params: { dokId: result.dokument.id } });
     } finally {
@@ -84,6 +86,14 @@ export default function OnboardingScreen() {
     await setAutoNotificationBlocked(false);
     router.replace('/login');
   };
+
+  const openDemo = useCallback(async () => {
+    await AsyncStorage.multiSet([[LANG_KEY, selectedLang], [ONBOARDING_DONE_KEY, 'true']]);
+    await setAutoNotificationBlocked(true);
+    void BetaAnalytics.trackEvent('demo_opened');
+    void BetaAnalytics.trackEvent('onboarding_completed');
+    router.replace('/(tabs)/');
+  }, [router, selectedLang]);
 
   if (step === 'lang') {
     return (
@@ -153,24 +163,7 @@ export default function OnboardingScreen() {
   }
 
   if (step === 'splash') {
-    return (
-      <View style={[st.root, { backgroundColor: C.bg, paddingTop: insets.top + 40, paddingBottom: insets.bottom + 28, paddingHorizontal: 28, justifyContent: 'center' }]}>
-        <View style={{ alignItems: 'center' }}>
-          <View style={[st.brandMark, { backgroundColor: C.primary }]}>
-            <View style={st.brandFrame} />
-            <Text style={st.brandPlane}>➤</Text>
-            <Text style={st.brandSpark}>✦</Text>
-          </View>
-          <Text style={[st.pulseBrand, { color: C.text }]}>BriefPilot</Text>
-          <Text style={[st.pulseLine, { color: C.textSecondary }]}>
-            Sagt dir, was du mit deinem Beleg tun sollst — in wenigen Sekunden.
-          </Text>
-          <Text style={[st.splashHint, { color: C.textTertiary, marginTop: 18 }]}>
-            gleich weiter …
-          </Text>
-        </View>
-      </View>
-    );
+    return <SplashStep colors={C} insets={insets} />;
   }
 
   /* activation — nur zwei Wege + Login */
@@ -207,6 +200,16 @@ export default function OnboardingScreen() {
           disabled={picking}
         >
           <Text style={[st.secondaryTxt, { color: C.primary }]}>📄  PDF oder Foto aus Dateien</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ alignItems: 'center', paddingVertical: 10, opacity: picking ? 0.5 : 1 }}
+          onPress={openDemo}
+          disabled={picking}
+        >
+          <Text style={{ fontSize: 13, color: C.textTertiary }}>
+            Demo ansehen — <Text style={{ color: C.primary, fontWeight: '700' }}>ohne Scan</Text>
+          </Text>
         </TouchableOpacity>
 
         <Text style={[st.miniTrust, { color: C.textTertiary }]}>
@@ -252,3 +255,67 @@ const st = StyleSheet.create({
   secondaryBtn: { width: '100%', paddingVertical: 16, borderRadius: 16, alignItems: 'center', borderWidth: 2, backgroundColor: 'transparent' },
   secondaryTxt: { fontSize: 15, fontWeight: '800' },
 });
+
+// ── Splash step (animated) ────────────────────────────────────────────────────
+
+const VALUE_PROPS = [
+  '📄  Brief scannen',
+  '✦  KI erkennt alles',
+  '✅  Nächster Schritt klar',
+];
+
+function SplashStep({ colors: C, insets }: { colors: any; insets: any }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale   = useRef(new Animated.Value(0.88)).current;
+  const rowFade = useRef(VALUE_PROPS.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 420, useNativeDriver: true }),
+      Animated.spring(scale,   { toValue: 1, friction: 7, tension: 70, useNativeDriver: true }),
+    ]).start();
+
+    VALUE_PROPS.forEach((_, i) => {
+      Animated.timing(rowFade[i], {
+        toValue: 1, duration: 340, delay: 480 + i * 180, useNativeDriver: true,
+      }).start();
+    });
+  }, []);
+
+  return (
+    <View style={[st.root, { backgroundColor: C.bg, paddingTop: insets.top + 40, paddingBottom: insets.bottom + 28, paddingHorizontal: 28, justifyContent: 'center' }]}>
+      <Animated.View style={{ alignItems: 'center', opacity, transform: [{ scale }] }}>
+        <View style={[st.brandMark, { backgroundColor: C.primary }]}>
+          <View style={st.brandFrame} />
+          <Text style={st.brandPlane}>➤</Text>
+          <Text style={st.brandSpark}>✦</Text>
+        </View>
+        <Text style={[st.pulseBrand, { color: C.text }]}>BriefPilot</Text>
+        <Text style={[st.pulseLine, { color: C.textSecondary }]}>
+          Sagt dir, was du mit deinem Beleg tun sollst — in wenigen Sekunden.
+        </Text>
+      </Animated.View>
+
+      <View style={{ marginTop: 32, gap: 12 }}>
+        {VALUE_PROPS.map((label, i) => (
+          <Animated.View
+            key={label}
+            style={{
+              opacity: rowFade[i],
+              transform: [{ translateY: rowFade[i].interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }],
+              flexDirection: 'row', alignItems: 'center', gap: 12,
+              backgroundColor: C.bgCard, borderRadius: 14, padding: 14,
+              borderWidth: 1, borderColor: C.borderLight,
+            }}
+          >
+            <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>{label}</Text>
+          </Animated.View>
+        ))}
+      </View>
+
+      <Animated.Text style={[st.splashHint, { color: C.textTertiary, textAlign: 'center', marginTop: 28, opacity }]}>
+        gleich weiter …
+      </Animated.Text>
+    </View>
+  );
+}

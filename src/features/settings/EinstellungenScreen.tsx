@@ -29,12 +29,14 @@ import BackupCard from '@/features/profile/components/BackupCard';
 import AutomationCard from '@/features/profile/components/AutomationCard';
 import PartnerEmailModal from '@/features/profile/components/PartnerEmailModal';
 import { usePersistedPrefs } from '@/features/profile/usePersistedPrefs';
+import BriefPilotPlusSheet from '@/features/premium/BriefPilotPlusSheet';
 import {
   FlatGroup,
   FlatRow,
   SettingsSectionTitle,
 } from '@/features/settings/SettingsPrimitives';
 import { KontoShortcutsBlock, PrivacyLegalExtras } from '@/features/settings/SettingsGroupedBlocks';
+import FeedbackModal from '@/features/feedback/FeedbackModal';
 
 export default function EinstellungenScreen({ showBack = true }: { showBack?: boolean }) {
   const router = useRouter();
@@ -43,7 +45,9 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const { state, dispatch } = useStore();
   const { logout } = useAuth();
 
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailModalOpen,   setEmailModalOpen]   = useState(false);
+  const [plusVisible,      setPlusVisible]      = useState(false);
+  const [feedbackVisible,  setFeedbackVisible]  = useState(false);
 
   const { exportBackup, importBackup, loading: backupLoading } = useBackup();
   const { lang, changeLang } = useLangPreference();
@@ -262,8 +266,60 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
 
         <SettingsSectionTitle label={T('settings.account')} />
         <FlatGroup>
-          <KontoShortcutsBlock flat router={router} logout={logout} docCount={docCount} />
+          <KontoShortcutsBlock flat router={router} logout={logout} docCount={docCount} onPlusPress={() => setPlusVisible(true)} />
         </FlatGroup>
+
+        {/* Beta-Feedback */}
+        {state.dokumente.some(d => d.isDemo) && (
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                'Demo zurücksetzen?',
+                'Die Demo-Dokumente werden auf den ursprünglichen Stand zurückgesetzt. Deine eigenen Dokumente bleiben erhalten.',
+                [
+                  { text: 'Abbrechen', style: 'cancel' },
+                  { text: 'Zurücksetzen', onPress: () => dispatch({ type: 'RESET_DEMO' }) },
+                ],
+              );
+            }}
+            activeOpacity={0.75}
+            style={{
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+              paddingVertical: 12, borderRadius: 12, marginTop: 4,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: C.border,
+              backgroundColor: C.bgInput,
+            }}
+          >
+            <Icon name="refresh" size={16} color={C.textSecondary} />
+            <Text style={{ color: C.textSecondary, fontSize: fs(13), fontWeight: '600' }}>
+              Demo zurücksetzen
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={() => setFeedbackVisible(true)}
+          activeOpacity={0.75}
+          style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+            paddingVertical: 14, borderRadius: 12, marginTop: 4,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: C.primary + '44',
+            backgroundColor: C.primaryLight,
+          }}
+        >
+          <Icon name="envelope" size={18} color={C.primary} />
+          <Text style={{ color: C.primary, fontSize: fs(14), fontWeight: '700' }}>
+            Beta-Feedback senden
+          </Text>
+        </TouchableOpacity>
+
+        <FeedbackModal
+          visible={feedbackVisible}
+          onClose={() => setFeedbackVisible(false)}
+          initialScreen="Einstellungen"
+        />
 
         <TouchableOpacity
           onPress={onAbmelden}
@@ -274,7 +330,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
             alignItems: 'center',
             paddingVertical: 14,
             borderRadius: 12,
-            marginTop: 4,
+            marginTop: 8,
             borderWidth: StyleSheet.hairlineWidth,
             borderColor: C.dangerBorder,
             backgroundColor: C.dangerLight,
@@ -329,6 +385,8 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
         onSave={prefs.setPartnerEmail}
         onClose={() => setEmailModalOpen(false)}
       />
+
+      <BriefPilotPlusSheet visible={plusVisible} onClose={() => setPlusVisible(false)} />
 
       <AppBottomSheet
         visible={!!sheetConfig}

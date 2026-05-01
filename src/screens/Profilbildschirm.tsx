@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, TouchableOpacity, View, Text, Alert, Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, TouchableOpacity, View, Text, Alert, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/store';
@@ -104,8 +103,8 @@ export default function Profilbildschirm() {
     Constants.expoConfig?.version ??
     (Constants.manifest as { version?: string } | undefined)?.version ?? '–';
 
-  const showPremiumAlert = () =>
-    Alert.alert('BriefPilot Plus', 'Erweiterte Funktionen – Steuerpaket-Export, unbegrenzte Belege und mehr.\n\nKommt bald.', [{ text: 'OK' }]);
+  const [plusSheetVisible, setPlusSheetVisible] = useState(false);
+  const openPlusSheet = () => Alert.alert('BriefPilot Plus', 'Plus-Funktionen kommen bald. ✦');
 
   const showDatenschutz = () =>
     Alert.alert('Datenschutz', 'Deine Daten bleiben auf deinem Gerät.\nDie vollständige Datenschutzerklärung findest du auf briefpilot.de.', [{ text: 'OK' }]);
@@ -118,10 +117,12 @@ export default function Profilbildschirm() {
 
   const initialName = userEmail ? userEmail.charAt(0).toUpperCase() : '?';
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={[st.safe, { backgroundColor: C.bg }]} edges={['top']}>
+    <View style={[st.safe, { backgroundColor: C.bg }]}>
       {/* Header */}
-      <LinearGradient colors={[C.primaryDark, C.primary]} style={st.header}>
+      <View style={[st.header, { backgroundColor: C.primaryDark, paddingTop: insets.top + 16 }]}>
         <View style={st.headerRow}>
           <View style={st.avatar}>
             <Text style={st.avatarText}>
@@ -133,21 +134,23 @@ export default function Profilbildschirm() {
               {userEmail || 'Mein Profil'}
             </Text>
             <Text style={st.headerSub}>{state.dokumente.length} Belege gespeichert</Text>
-            <TouchableOpacity onPress={showPremiumAlert} style={st.upgradePill} activeOpacity={0.8}>
-              <Text style={st.upgradeText}>Basis · Auf Plus upgraden</Text>
+            <TouchableOpacity onPress={openPlusSheet} style={st.upgradePill} activeOpacity={0.8}>
+              <Text style={st.upgradeText}>
+                Basis · Auf Plus upgraden
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView contentContainerStyle={[st.scroll, { backgroundColor: C.bg }]} showsVerticalScrollIndicator={false}>
         <MenuSection rows={[
           {
             icon: 'sparkle',
             label: 'BriefPilot Plus',
-            sub: 'Steuerpaket, unbegrenzte Belege & mehr',
+            sub: 'Steuerpaket, KI-Zusammenfassung & mehr',
             premium: true,
-            onPress: showPremiumAlert,
+            onPress: openPlusSheet,
           },
           {
             icon: 'calendar',
@@ -195,7 +198,8 @@ export default function Profilbildschirm() {
 
         <Text style={[st.version, { color: C.textTertiary }]}>BriefPilot {appVersion}</Text>
       </ScrollView>
-    </SafeAreaView>
+
+    </View>
   );
 }
 

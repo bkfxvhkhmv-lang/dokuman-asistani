@@ -31,12 +31,13 @@ type KontoProps = {
   logout: () => void | Promise<void>;
   docCount: number;
   flat?: boolean;
+  onPlusPress?: () => void;
 };
 
-export function KontoShortcutsBlock({ router, logout, docCount, flat = false }: KontoProps) {
+export function KontoShortcutsBlock({ router, logout, docCount, flat = false, onPlusPress }: KontoProps) {
   const { Colors: C, Shadow, fs } = useTheme();
   const { t: T } = useT();
-  const goProfil = () => router.push('/(tabs)/Profil');
+  const goProfil = () => router.push('/profil');
 
   if (flat) {
     return (
@@ -50,7 +51,8 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false }: 
         <FlatRow icon="sparkle"
           label={T('settings.konto_premium')}
           sub={T('settings.konto_premium_sub')}
-          right={<Icon name="ellipsis-horizontal" size={18} color={C.textTertiary} />}
+          onPress={onPlusPress}
+          right={<Icon name="chevron-forward" size={18} color={C.textTertiary} />}
         />
       </>
     );
@@ -73,12 +75,13 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false }: 
         <Icon name="chevron-forward" size={20} color={C.textTertiary} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={[kz.row, { opacity: 0.72 }]} disabled>
-        <Icon name="sparkle" size={22} color={C.textTertiary} weight="fill" />
+      <TouchableOpacity style={[kz.row, { borderColor: C.borderLight }]} onPress={onPlusPress} activeOpacity={0.75}>
+        <Icon name="sparkle" size={22} color={C.primary} weight="fill" />
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontSize: fs(14), fontWeight: '700', color: C.text }}>{T('settings.konto_premium')}</Text>
           <Text style={{ fontSize: fs(11), color: C.textTertiary, marginTop: 2 }}>{T('settings.konto_premium_sub')}</Text>
         </View>
+        <Icon name="chevron-forward" size={20} color={C.textTertiary} />
       </TouchableOpacity>
 
       <TouchableOpacity

@@ -6,9 +6,10 @@ import { useT } from '@/hooks/useT';
 
 interface Props {
   onRequest: () => void;
+  onOpenGallery?: () => void;
 }
 
-export default function PermissionView({ onRequest }: Props) {
+export default function PermissionView({ onRequest, onOpenGallery }: Props) {
   const { Colors: C } = useTheme();
   const { t: T } = useT();
   return (
@@ -23,12 +24,21 @@ export default function PermissionView({ onRequest }: Props) {
         {T('scan.permission_body')}
       </Text>
       <TouchableOpacity
-        style={{ marginTop: 12, backgroundColor: C.primary, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40, alignItems: 'center' }}
+        style={{ marginTop: 12, backgroundColor: C.primary, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40, alignItems: 'center', width: '100%' }}
         onPress={onRequest}
         activeOpacity={0.85}
       >
         <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Kamerazugriff erlauben</Text>
       </TouchableOpacity>
+      {onOpenGallery ? (
+        <TouchableOpacity
+          style={{ backgroundColor: C.bgInput, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40, alignItems: 'center', width: '100%' }}
+          onPress={onOpenGallery}
+          activeOpacity={0.85}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '600', color: C.text }}>Galerie öffnen</Text>
+        </TouchableOpacity>
+      ) : null}
       <TouchableOpacity onPress={() => void Linking.openSettings()} style={{ marginTop: 4, paddingVertical: 10 }}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.primary, textDecorationLine: 'underline' }}>
           {T('scan.open_settings')}

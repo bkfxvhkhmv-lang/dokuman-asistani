@@ -7,23 +7,20 @@ import {
   View, Text, TouchableOpacity, Modal, Animated,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WARNING } from '@/features/scan/constants';
 import { useScanI18n } from '@/hooks/useScanI18n';
 import { useScan } from '@/features/scan/context/ScanContext';
 
 import PostCaptureHeader from '@/features/scan/components/post-capture-sheet/PostCaptureHeader';
-import PostCaptureInsightCard from '@/features/scan/components/post-capture-sheet/PostCaptureInsightCard';
 import PostCapturePrimaryDiagnose from '@/features/scan/components/post-capture-sheet/PostCapturePrimaryDiagnose';
 import PostCaptureSecondaryList from '@/features/scan/components/post-capture-sheet/PostCaptureSecondaryList';
 import { usePostCapturePresence } from '@/features/scan/components/post-capture-sheet/usePostCapturePresence';
-import { SHEET_CYAN } from '@/features/scan/components/post-capture-sheet/constants';
 import { postCaptureSheetStyles as st } from '@/features/scan/components/post-capture-sheet/styles';
 
 import type { PostCaptureAction, PostCaptureActionSheetProps } from '@/features/scan/components/post-capture-sheet/types';
 
 export type { PostCaptureAction } from '@/features/scan/components/post-capture-sheet/types';
 
-export default function PostCaptureActionSheet({ pageCount, briefInsight, onSelect }: PostCaptureActionSheetProps) {
+export default function PostCaptureActionSheet({ pageCount, onSelect }: PostCaptureActionSheetProps) {
   const { t } = useScanI18n();
   const { showActionPicker, closeActionPicker } = useScan();
   const insets = useSafeAreaInsets();
@@ -33,8 +30,6 @@ export default function PostCaptureActionSheet({ pageCount, briefInsight, onSele
   const pageLabel = pageCount === 1
     ? `1 ${t('scan.page')}`
     : `${pageCount} ${t('scan.pages')}`;
-
-  const insightColor = briefInsight ? WARNING : SHEET_CYAN;
 
   return (
     <Modal visible={showActionPicker} transparent animationType="none" onRequestClose={closeActionPicker}>
@@ -56,23 +51,17 @@ export default function PostCaptureActionSheet({ pageCount, briefInsight, onSele
           readyTitle={t('scan.ready_title')}
         />
 
-        <PostCaptureInsightCard
-          insightText={briefInsight ?? t('scan.ai_preparing')}
-          dotColor={insightColor}
-        />
-
         <PostCapturePrimaryDiagnose
           glowOpacity={glowOp}
-          title={t('scan.action_diagnose')}
-          subtitle={t('scan.action_diagnose_sub')}
+          title="Weiter zur Analyse"
+          subtitle="KI erkennt Felder, Frist und Risiko."
           onDiagnose={() => onSelect('diagnose')}
         />
 
         <PostCaptureSecondaryList
           labels={{
-            archive: t('scan.action_archive'),
-            export:  t('scan.action_export'),
-            advanced: t('scan.action_advanced'),
+            add_page: 'Weitere Seite scannen',
+            edit:     'Bearbeiten',
           }}
           onSelect={onSelect}
         />

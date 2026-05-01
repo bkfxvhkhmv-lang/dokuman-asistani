@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, AppState, type AppStateStatus } from 'react-native';
+import { View, Text, StyleSheet, AppState, type AppStateStatus } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { CameraView as ExpoCameraView } from 'expo-camera';
 import PermissionView from '@/features/scan/components/PermissionView';
@@ -19,9 +19,18 @@ export type {
   CameraViewProps,
 } from '@/features/scan/components/camera-view/types';
 
+const hintStyles = StyleSheet.create({
+  wrap: { position: 'absolute', bottom: 140, left: 0, right: 0, alignItems: 'center' },
+  text: {
+    color: '#fff', fontSize: 14, fontWeight: '600',
+    backgroundColor: 'rgba(0,0,0,0.40)', overflow: 'hidden',
+    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999,
+  },
+});
+
 export default function CameraView(props: CameraViewProps) {
   const {
-    cameraRef, hasPermission, onRequestPermission,
+    cameraRef, hasPermission, onRequestPermission, onOpenGallery,
     stability,
     isCapturing, onCapture,
     pageCount, pages, onBatchPress, onRemovePage, onOpenPageEditor,
@@ -53,13 +62,13 @@ export default function CameraView(props: CameraViewProps) {
     return () => sub.remove();
   }, [bumpSession, isFocused]);
 
-  if (!hasPermission) return <PermissionView onRequest={onRequestPermission} />;
+  if (!hasPermission) return <PermissionView onRequest={onRequestPermission} onOpenGallery={onOpenGallery} />;
 
   const cameraActive = isFocused && hasPermission;
   const cornerColor = stability.isStable ? SUCCESS : 'rgba(255,255,255,0.85)';
 
   return (
-    <View style={styles.fill}>
+    <View style={[styles.fill, { backgroundColor: '#000' }]}>
       <ExpoCameraView
         key={`cam-${sessionKey}`}
         ref={cameraRef}
@@ -90,6 +99,13 @@ export default function CameraView(props: CameraViewProps) {
 
       <CameraTopBar topInset={insets.top} onClose={onClose} />
 
+      {/* Hint text — centered above the bottom bar */}
+      <View style={hintStyles.wrap} pointerEvents="none">
+        <Text style={hintStyles.text}>
+          {stability.isStable ? 'Dokument erkannt' : 'Dokument in den Rahmen'}
+        </Text>
+      </View>
+
       <CameraBottomBar
         bottomInset={insets.bottom}
         stability={stability}
@@ -97,6 +113,7 @@ export default function CameraView(props: CameraViewProps) {
         pageCount={pageCount}
         onCapture={onCapture}
         onBatchPress={onBatchPress}
+        onOpenGallery={onOpenGallery}
       />
 
       {pageCount > 0 && (

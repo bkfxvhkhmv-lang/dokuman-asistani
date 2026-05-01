@@ -41,6 +41,7 @@ export type KameraScreenBodyProps = {
   cameraRef: React.RefObject<ExpoCameraView | null>;
   hasPermission: boolean;
   requestPermission: () => void | Promise<unknown>;
+  onOpenGallery?: () => void;
   activeFilter: string;
   committedFilterId: string;
   handleFilterChange: (id: string) => void;
@@ -98,13 +99,17 @@ export type KameraScreenBodyProps = {
   sheetConfig: SheetConfig | null;
   hideSheet: () => void;
   handleActionSelect: (action: PostCaptureAction) => void;
+  onAnalysisContinueAnyway?: () => void;
+  onAnalysisCancel?: () => void;
+  /** Called by EditView "Weiter" — skips PostCaptureActionSheet and starts OCR directly. */
+  onStartProcessing: () => void;
 };
 
 export default function KameraScreenBody(props: KameraScreenBodyProps) {
   const {
     overlaySize, onRootLayout,
     mode, stability, isCapturing, flyingCardUri, clearFlyingCard,
-    cameraRef, hasPermission, requestPermission,
+    cameraRef, hasPermission, requestPermission, onOpenGallery,
     activeFilter, committedFilterId, handleFilterChange, handleApplyFilter, handleToggleFilters,
     filterPresets, handleCapture, pageCount, sessionPages, goToBatch, removePage, handleOpenPageEditor,
     scanLineStyle, insets, onCloseCamera, distanceHint, detectedCorners,
@@ -118,6 +123,9 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
     showActionPicker,
     sheetConfig, hideSheet,
     handleActionSelect,
+    onAnalysisContinueAnyway,
+    onAnalysisCancel,
+    onStartProcessing,
   } = props;
 
   return (
@@ -137,6 +145,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
           cameraRef={cameraRef as React.RefObject<ExpoCameraView>}
           hasPermission={hasPermission}
           onRequestPermission={requestPermission}
+          onOpenGallery={onOpenGallery}
           stability={stability}
           isCapturing={isCapturing}
           onCapture={handleCapture}
@@ -203,7 +212,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
             onAcceptOptimize={handleAcceptOptimize}
             onRevertOptimize={handleRevertOptimize}
             onBack={handleCloseEdit}
-            onDone={() => { handleCloseEdit(); openActionPicker(); }}
+            onDone={() => { handleCloseEdit(); onStartProcessing(); }}
             onStartCrop={handleStartCrop}
             onOptimize={handleOptimize}
             onRotate={handleRotateInEdit}
@@ -215,7 +224,13 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
         </Animated.View>
       ) : null}
 
-      {mode === 'processing' ? <AnalysisView pageCount={pageCount} /> : null}
+      {mode === 'processing' ? (
+        <AnalysisView
+          pageCount={pageCount}
+          onContinueAnyway={onAnalysisContinueAnyway}
+          onCancel={onAnalysisCancel}
+        />
+      ) : null}
 
       {showActionPicker ? (
         <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0D1117' }]} />

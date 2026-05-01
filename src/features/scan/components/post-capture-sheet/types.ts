@@ -1,4 +1,4 @@
-/** Post-capture seçim sheet aksiyon türleri (archive / export / advanced / diagnose …). */
+/** Post-capture seçim sheet aksiyon türleri. */
 
 export type PostCaptureAction =
   | 'diagnose'
@@ -8,7 +8,8 @@ export type PostCaptureAction =
   | 'advanced'
   | 'brief'
   | 'analyse'
-  | 'save_only';
+  | 'save_only'
+  | 'add_page';
 
 export interface PostCaptureActionSheetProps {
   pageCount: number;

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { Animated } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useSharedValue, useAnimatedStyle, interpolate,
@@ -9,6 +10,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { safeBack } from '@/navigation/safeBack';
 
 import { useStore } from '@/store';
+import { ERROR_COPY } from '@/features/detail/constants/documentStatus';
 import { useBatch } from '@/hooks/useBatch';
 import { useImagePipeline } from '@/modules/image-processing/hooks/useImagePipeline';
 import { useImageSession } from '@/modules/image-processing/hooks/useImageSession';
@@ -224,6 +226,40 @@ export default function KameraScreenView() {
     capture, isCapturing, prepareCapture, activeFilter: captureFilterId, showSheet, hideSheet, confirmSheet, clearPages,
   });
 
+  // Saves a minimal needs_review document from supplied page URIs, then navigates to it.
+  const saveAsNeedsReview = useCallback(async (pageUris: Array<{ uri: string }>) => {
+    try {
+      const saved = await finalizeDocument({ rawText: '', confidence: null, pages: pageUris });
+      clearPages();
+      setMode('camera');
+      void finishScanFlow(router, saved.id);
+    } catch {
+      clearPages();
+      setMode('camera');
+    }
+  }, [finalizeDocument, clearPages, setMode, router]);
+
+  // Called by AnalysisView visual-timeout buttons ("Felder prüfen" / "Trotzdem weiter").
+  const handleContinueAnyway = useCallback(async () => {
+    const ordered  = [...sessionPages].sort((a, b) => a.order - b.order);
+    const pageUris = ordered.map(p => ({ uri: p.imageSession?.finalUri ?? p.uri }));
+    await saveAsNeedsReview(pageUris);
+  }, [sessionPages, saveAsNeedsReview]);
+
+  // Called by useProcessingHandler when OCR yields no usable result.
+  const handleNeedsReview = useCallback((pageUris: Array<{ uri: string }>) => {
+    showSheet({
+      title:   'Bitte kurz prüfen',
+      message: ERROR_COPY.ocr_failed,
+      icon:    'document-text',
+      tone:    'warning',
+      actions: [
+        { label: 'Felder prüfen', variant: 'primary',   onPress: () => { hideSheet(); void saveAsNeedsReview(pageUris); } },
+        { label: 'Neu scannen',   variant: 'secondary', onPress: () => { hideSheet(); clearPages(); setMode('camera'); } },
+      ],
+    });
+  }, [showSheet, hideSheet, saveAsNeedsReview, clearPages, setMode]);
+
   const { handleProcessAll } = useProcessingHandler({
     pages: sessionPages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata,
     analyzeAndReview: smartPipeline.analyzeAndReview,
@@ -231,12 +267,22 @@ export default function KameraScreenView() {
     onComplete: (savedId) => { void finishScanFlow(router, savedId); },
     dispatchOptimistic,
     onOptimisticFail: (id) => dispatch({ type: 'DELETE_DOKUMENT', id }),
+    onNeedsReview: handleNeedsReview,
   });
 
   const handleActionSelect = useCallback(async (action: PostCaptureAction) => {
     closeActionPicker();
     if (action === 'advanced') {
       setMode('advanced');
+      return;
+    }
+    if (action === 'add_page') {
+      backToCamera();
+      return;
+    }
+    if (action === 'edit') {
+      const lastPage = [...sessionPages].sort((a, b) => b.order - a.order)[0];
+      if (lastPage) startEditing(lastPage.id, mode);
       return;
     }
     const sourceUris = [...sessionPages]
@@ -265,7 +311,7 @@ export default function KameraScreenView() {
     });
   }, [
     closeActionPicker, sessionPages, pageCount, handleProcessAll, clearPages,
-    showSheet, hideSheet, generatePdf, router, dispatch, setMode,
+    showSheet, hideSheet, generatePdf, router, dispatch, setMode, backToCamera, startEditing, mode,
   ]);
 
   const onRootLayout = useCallback((width: number, height: number) => {
@@ -279,6 +325,28 @@ export default function KameraScreenView() {
       void finishScanFlow(router, saved.id);
     }
   }, [smartPipeline, clearPages, router]);
+
+  const handleOpenGallery = useCallback(async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+      allowsMultipleSelection: false,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+    const asset = result.assets[0];
+    addPage({
+      uri: asset.uri,
+      filter: 'none',
+      corners: undefined,
+      enhanced: false,
+      capture: undefined,
+      imageSession: undefined,
+      ocr: undefined,
+      metadata: undefined,
+      selected: false,
+    });
+    goToBatch();
+  }, [addPage, goToBatch]);
 
   return (
     <ScanProvider value={scanContextValue}>
@@ -301,6 +369,7 @@ export default function KameraScreenView() {
         cameraRef={cameraRef}
         hasPermission={hasPermission}
         requestPermission={requestPermission}
+        onOpenGallery={handleOpenGallery}
         activeFilter={activeFilter}
         committedFilterId={committedFilterId}
         handleFilterChange={handleFilterChange}
@@ -348,6 +417,9 @@ export default function KameraScreenView() {
         sheetConfig={sheetConfig}
         hideSheet={hideSheet}
         handleActionSelect={handleActionSelect}
+        onStartProcessing={handleProcessAll}
+        onAnalysisContinueAnyway={handleContinueAnyway}
+        onAnalysisCancel={() => { clearPages(); setMode('camera'); }}
       />
     </ScanProvider>
   );

@@ -6,7 +6,7 @@ import { postCaptureSheetStyles as st } from '@/features/scan/components/post-ca
 import type { PostCaptureAction } from '@/features/scan/components/post-capture-sheet/types';
 
 interface Props {
-  labels: Record<'archive' | 'export' | 'advanced', string>;
+  labels: Record<'add_page' | 'edit', string>;
   onSelect: (action: PostCaptureAction) => void;
 }
 

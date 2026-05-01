@@ -10,15 +10,23 @@ interface Props {
   pageCount: number;
   onCapture: () => void;
   onBatchPress: () => void;
+  onOpenGallery?: () => void;
 }
 
 export default function CameraBottomBar({
-  bottomInset, isCapturing, pageCount, onCapture, onBatchPress,
+  bottomInset, isCapturing, pageCount, onCapture, onBatchPress, onOpenGallery,
 }: Props) {
   return (
     <View style={[st.bar, { bottom: bottomInset + 24 }]}>
-      {/* Sol — galeri / boş */}
-      <View style={st.side} />
+      {/* Sol — galeri */}
+      <View style={st.side}>
+        {onOpenGallery && (
+          <TouchableOpacity onPress={onOpenGallery} hitSlop={HIT_SLOP_LG} style={st.galleryBtn}>
+            <Icon name="image-outline" size={24} color="#fff" />
+            <Text style={st.galleryText}>Galerie</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Ortada shutter */}
       <TouchableOpacity
@@ -50,4 +58,6 @@ const st = StyleSheet.create({
   shutterInner:{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff' },
   sichernPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
   sichernText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  galleryBtn:  { alignItems: 'center', gap: 4 },
+  galleryText: { color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: '600' },
 });

@@ -21,6 +21,7 @@ export interface CameraViewProps {
   cameraRef: RefObject<ExpoCameraView>;
   hasPermission: boolean;
   onRequestPermission: () => void;
+  onOpenGallery?: () => void;
 
   stability: StabilityState;
 

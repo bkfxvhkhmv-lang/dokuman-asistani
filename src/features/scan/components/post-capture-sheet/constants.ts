@@ -4,13 +4,13 @@ export const SHEET_CYAN  = '#00C8FF';
 export const SHEET_NAVY  = '#0D1117';
 
 export interface SecondaryActionDef {
-  id: Extract<PostCaptureAction, 'archive' | 'export' | 'advanced'>;
+  id: Extract<PostCaptureAction, 'add_page' | 'edit'>;
   icon: string;
   color: string;
 }
 
+/** MVP: show only multi-page and edit options — export/archive/advanced live in the detail screen. */
 export const SECONDARY_ACTIONS: SecondaryActionDef[] = [
-  { id: 'archive',  icon: 'archive',    color: '#34D399' },
-  { id: 'export',   icon: 'share',      color: '#94A3B8' },
-  { id: 'advanced', icon: 'construct',  color: '#60A5FA' },
+  { id: 'add_page', icon: 'add-circle-outline', color: '#94A3B8' },
+  { id: 'edit',     icon: 'create-outline',     color: '#94A3B8' },
 ];

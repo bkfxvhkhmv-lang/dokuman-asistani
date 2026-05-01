@@ -58,6 +58,8 @@ export interface ActionsResult {
   alleAktionen: SmartAction[];
 }
 
+const ENABLE_RELEASE_DATEV_EXPORT = false;
+
 // ── Action definitions ─────────────────────────────────────────────────────────
 
 function makeAction(
@@ -161,7 +163,7 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   actions.push(makeAction('pdf_export', 'Als PDF exportieren', '📄', 'Professioneller PDF-Export', 'export', 42));
   actions.push(makeAction('teilen', 'Teilen', '⬆', 'Dokument sicher teilen', 'export', 38));
   actions.push(makeAction('teilen_anonym', 'Anonym teilen', '🔒', 'Persönliche Daten werden maskiert', 'export', 32));
-  if (dok.betrag && (dok.betrag as number) > 0) {
+  if (ENABLE_RELEASE_DATEV_EXPORT && dok.betrag && (dok.betrag as number) > 0) {
     actions.push(makeAction('datev_export', 'DATEV Export', '📊', 'Für Steuerberater exportieren', 'export', 28));
   }
 

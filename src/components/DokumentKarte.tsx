@@ -129,7 +129,11 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
           </View>
         ) : <View />}
 
-        {!!dok.workflowStamp && workflowTone ? (
+        {dok.isDemo ? (
+          <View style={[styles.demoBadge, { backgroundColor: Colors.primaryLight, borderColor: Colors.primary + '33' }]}>
+            <Text style={[styles.demoBadgeText, { color: Colors.primaryDark }]}>DEMO</Text>
+          </View>
+        ) : !!dok.workflowStamp && workflowTone ? (
           <View style={[styles.workflowBox, { backgroundColor: workflowTone.bg }]}>
             <View style={[styles.workflowDot, { backgroundColor: workflowTone.text }]} />
             <Text style={[styles.workflowStamp, { color: workflowTone.text }]}>
@@ -160,4 +164,6 @@ const styles = StyleSheet.create({
   workflowBox:   { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '60%', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
   workflowDot:   { width: 6, height: 6, borderRadius: 3 },
   workflowStamp: { fontSize: 11, fontWeight: '800', letterSpacing: 0.1 },
+  demoBadge:     { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
+  demoBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
 });

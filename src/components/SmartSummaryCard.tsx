@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import AiSparkle from '@/components/AiSparkle';
 import { useTheme } from '@/ThemeContext';
 import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
 import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
@@ -72,9 +73,10 @@ export default function SmartSummaryCard({
 
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, flex: 1 }}>
-          🤖 Zusammenfassung
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>🤖 Zusammenfassung</Text>
+          <AiSparkle size={10} />
+        </View>
         {result && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4,
             backgroundColor: sourceColor + '18', borderRadius: 999,

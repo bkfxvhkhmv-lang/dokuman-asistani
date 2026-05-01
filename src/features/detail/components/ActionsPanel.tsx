@@ -6,11 +6,13 @@ import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
 import { getTageVerbleibend } from '@/utils/formatters';
+import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
+import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 
 // ── Action metadata ───────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:    { label: 'Jetzt bezahlen',       shortLabel: 'Bezahlen',  icon: '💶', tone: 'primary' },
+  zahlen:    { label: 'Zahlung vorbereiten',   shortLabel: 'Bezahlen',  icon: '💶', tone: 'primary' },
   einspruch: { label: 'Einspruch vorbereiten', shortLabel: 'Einspruch', icon: '✍️', tone: 'danger' },
   kalender:  { label: 'Frist eintragen',       shortLabel: 'Kalender',  icon: '📅', tone: 'success' },
   mail:      { label: 'Als E-Mail öffnen',     shortLabel: 'E-Mail',    icon: '📧', tone: 'neutral' },
@@ -83,13 +85,23 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
     }
   }
 
-  const fallback = ['zahlen', 'einspruch', 'kalender', 'mail'].find(a => dok.aktionen?.includes(a)) || 'ai';
-  if (fallback === 'kalender' && bannerKalender) {
+  // Use type-based primary action as fallback before generic 'ai'
+  const typeAction = getPrimaryAction(dok.typ);
+  const typeKey = typeAction.id === 'prepare_payment'   ? 'zahlen'
+                : typeAction.id === 'check_objection'   ? 'einspruch'
+                : typeAction.id === 'add_to_calendar'   ? 'kalender'
+                : typeAction.id === 'review_summary'    ? 'ai'
+                : null;
+  const fallbackWithType = typeKey && dok.aktionen?.includes(typeKey)
+    ? typeKey
+    : (['zahlen', 'einspruch', 'kalender', 'mail'] as string[]).find(a => dok.aktionen?.includes(a)) || 'ai';
+
+  if (fallbackWithType === 'kalender' && bannerKalender) {
     if (dok.aktionen?.includes('zahlen')) return 'zahlen';
     if (dok.aktionen?.includes('einspruch')) return 'einspruch';
     return 'mail';
   }
-  return fallback;
+  return fallbackWithType;
 }
 
 function buildPressMap(handlers: Record<string, (() => void) | undefined>) {
@@ -168,7 +180,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
   const processColors = toneColors(processTone, C);
 
   return (
-    <View style={{ paddingHorizontal: S.md, paddingTop: S.md, paddingBottom: 132 }}>
+    <View style={{ paddingHorizontal: S.md, paddingTop: S.md }}>
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 }}>
         <AppButton label="Zur Übersicht" variant="secondary" onPress={onBack} style={{ minWidth: 150 }} />
       </View>
@@ -190,8 +202,13 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 4 }}>
                 {primary.key === 'review'
                   ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'
-                  : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || 'BriefPilot schlägt diesen nächsten Schritt vor.'}
+                  : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
               </Text>
+              {(primary.key === 'einspruch') && (
+                <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
+                  {NO_LEGAL_ADVICE_DISCLAIMER}
+                </Text>
+              )}
             </View>
             {primary.onPress && <Text style={{ fontSize: 16, color: processColors.text }}>›</Text>}
           </View>
@@ -218,21 +235,20 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
         </>
       )}
 
-      <TouchableOpacity onPress={onOpenMore}
-        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-          borderRadius: R.lg, paddingHorizontal: S.md, paddingVertical: 14,
-          borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bgCard }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text style={{ fontSize: 16 }}>⋯</Text>
-          <View>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Mehr</Text>
-            <Text style={{ fontSize: 11, color: C.textSecondary }}>
-              {extras} weitere Aktionen gruppiert (Hauptschritt oben immer sichtbar)
+      {extras > 0 && (
+        <TouchableOpacity onPress={onOpenMore}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            borderRadius: R.lg, paddingHorizontal: S.md, paddingVertical: 14,
+            borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bgCard }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Text style={{ fontSize: 16 }}>⋯</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
+              Weitere Werkzeuge
             </Text>
           </View>
-        </View>
-        <Text style={{ fontSize: 18, color: C.textTertiary }}>›</Text>
-      </TouchableOpacity>
+          <Text style={{ fontSize: 18, color: C.textTertiary }}>›</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

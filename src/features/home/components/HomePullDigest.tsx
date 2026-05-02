@@ -121,7 +121,7 @@ export default function HomePullDigest({ digest, visible, onDismiss }: Props) {
               <View style={st.footer}>
                 <View style={[st.sourceBadge, { backgroundColor: `${severityColor}18` }]}>
                   <Text style={[st.sourceText, { color: severityColor }]}>
-                    {digest.source === 'ai' ? '🤖 KI-Analyse' : '⚡ Sofort-Analyse'}
+                    {digest.source === 'ai' ? 'KI-Analyse' : 'Sofort-Analyse'}
                   </Text>
                 </View>
               </View>

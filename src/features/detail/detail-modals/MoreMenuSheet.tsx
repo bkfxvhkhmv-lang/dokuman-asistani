@@ -140,7 +140,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
               {!extraCommOpen ? (
                 <TouchableOpacity onPress={() => setExtraCommOpen(true)} style={{ paddingVertical: 10 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
-                    ↓ Chat & Antwort (+{commRest.length})
+                    Chat & Antwort (+{commRest.length})
                   </Text>
                 </TouchableOpacity>
               ) : null}
@@ -167,7 +167,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
             <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.5 }}>
               {SECTION_WEITERE_WERKZEUGE}
             </Text>
-            <Text style={{ fontSize: 13, fontWeight: '800', color: C.primary }}>{weitereOpen ? '▴' : '▾'}</Text>
+            <Icon name={weitereOpen ? 'caret-up' : 'caret-down'} size={13} color={C.primary} />
           </TouchableOpacity>
           {!weitereOpen ? (
             <Text style={{ fontSize: 12, color: C.textTertiary, marginBottom: 0, lineHeight: 17 }}>

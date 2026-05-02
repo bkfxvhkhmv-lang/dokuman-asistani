@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
 import type { Dokument } from '@/store';
@@ -135,7 +136,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
                 : speechA11yLabel(lang, 'full')
             }
           >
-            <Text style={{ fontSize: prominent ? 22 : 16 }}>🔊</Text>
+            <Icon name="speaker-high" size={prominent ? 22 : 16} color={C.primary} />
             {busyKind === 'full' ? <ActivityIndicator size="small" color={C.primary} /> : null}
             <Text style={{ fontSize: prominent ? 15 : 13, fontWeight: '800', color: C.primary }}>
               {playingKind === 'full'

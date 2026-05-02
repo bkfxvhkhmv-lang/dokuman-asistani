@@ -1,14 +1,15 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 import { AppInput } from '@/design/components';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 import type { StoreState } from '@/store';
 import { CANONICAL_DOCUMENT_TYPES } from '@/product/canonicalDocTypes';
 const RISIKEN = [
-  { id: 'hoch',    label: '🔴 Dringend' },
-  { id: 'mittel',  label: '🟡 Diese Woche' },
-  { id: 'niedrig', label: '🟢 Kein Handlungsbedarf' },
+  { id: 'hoch',    label: 'Dringend' },
+  { id: 'mittel',  label: 'Diese Woche' },
+  { id: 'niedrig', label: 'Kein Handlungsbedarf' },
 ];
 
 interface EditDocumentModalProps {
@@ -61,7 +62,10 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
                       style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5,
                         borderColor: !modal.editProfilId ? C.primary : C.border,
                         backgroundColor: !modal.editProfilId ? C.primaryLight : 'transparent' }}>
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: !modal.editProfilId ? C.primaryDark : C.textSecondary }}>👥 Alle</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Icon name="people-outline" size={12} color={!modal.editProfilId ? C.primaryDark : C.textSecondary} />
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: !modal.editProfilId ? C.primaryDark : C.textSecondary }}>Alle</Text>
+                      </View>
                     </TouchableOpacity>
                     {(state.einstellungen?.profile || []).map((p: any) => (
                       <TouchableOpacity key={p.id} onPress={() => modal.setEditProfilId(p.id)}
@@ -108,7 +112,7 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
                       backgroundColor: modal.editRisiko === r.id ? C.primaryLight : C.bgCard }}>
                     <Text style={{ fontSize: 14, fontWeight: modal.editRisiko === r.id ? '700' : '400',
                       color: modal.editRisiko === r.id ? C.primaryDark : C.text }}>{r.label}</Text>
-                    {modal.editRisiko === r.id && <Text style={{ color: C.primary }}>✓</Text>}
+                    {modal.editRisiko === r.id && <Icon name="check" size={16} color={C.primary} />}
                   </TouchableOpacity>
                 ))}
               </View>

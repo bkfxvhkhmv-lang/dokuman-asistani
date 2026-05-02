@@ -209,7 +209,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
                 </Text>
               )}
             </View>
-            {primary.onPress && <Text style={{ fontSize: 16, color: processColors.text }}>›</Text>}
+            {primary.onPress && <Icon name="caret-right" size={16} color={processColors.text} />}
           </View>
         </AppCard>
       </TouchableOpacity>
@@ -240,12 +240,12 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
             borderRadius: R.lg, paddingHorizontal: S.md, paddingVertical: 14,
             borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bgCard }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text style={{ fontSize: 16 }}>⋯</Text>
+            <Icon name="dots-three" size={18} color={C.textSecondary} />
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
               Weitere Werkzeuge
             </Text>
           </View>
-          <Text style={{ fontSize: 18, color: C.textTertiary }}>›</Text>
+          <Icon name="caret-right" size={18} color={C.textTertiary} />
         </TouchableOpacity>
       )}
     </View>

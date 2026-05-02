@@ -145,7 +145,10 @@ export default function HeroCard({
         </View>
         {dok.erledigt && (
           <View style={{ marginTop: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, backgroundColor: C.successLight }}>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: C.successText }}>✓ Erledigt</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Icon name="check" size={12} color={C.successText} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: C.successText }}>Erledigt</Text>
+            </View>
           </View>
         )}
         {!!dok.workflowStamp && (

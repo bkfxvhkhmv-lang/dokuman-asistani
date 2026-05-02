@@ -71,7 +71,7 @@ export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
             {fristStr} — Tippen zum Eintragen und lokale Erinnerungen aktivieren
           </Text>
         </View>
-        <Text style={{ fontSize: 18, color: 'rgba(255,255,255,0.9)' }}>›</Text>
+        <Icon name="caret-right" size={18} color="rgba(255,255,255,0.9)" />
       </TouchableOpacity>
     </View>
   );

@@ -109,7 +109,7 @@ export default function RiskPanel({
         <Animated.View entering={FadeInDown.delay(120).springify().damping(16)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.danger + '66', ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Text style={{ fontSize: 16 }}>🚨</Text>
+            <Icon name="warning-octagon" size={16} color={C.danger} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>Verdächtige Praktiken</Text>
               <Text style={{ fontSize: 10, color: C.textTertiary }}>Mögliche Gesetzesverstöße erkannt</Text>
@@ -124,13 +124,16 @@ export default function RiskPanel({
               borderWidth: 0.5, borderColor: w.schwere === 'hoch' ? C.danger + '55' : C.warning + '55' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: w.schwere === 'hoch' ? C.danger : C.warning }}>
-                  {w.schwere === 'hoch' ? '🔴' : '🟡'} {w.titel}
+                  {w.titel}
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: C.text, lineHeight: 18, marginBottom: 4 }}>{w.beschreibung}</Text>
-              <Text style={{ fontSize: 10, color: C.textTertiary, marginBottom: 4 }}>📖 {w.rechtsgrundlage}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                <Icon name="book-outline" size={10} color={C.textTertiary} />
+                <Text style={{ fontSize: 10, color: C.textTertiary, flex: 1 }}>{w.rechtsgrundlage}</Text>
+              </View>
               <Text style={{ fontSize: 11, fontWeight: '600', color: w.schwere === 'hoch' ? C.danger : C.warning }}>
-                → {w.empfehlung}
+                {w.empfehlung}
               </Text>
             </View>
           ))}
@@ -146,7 +149,7 @@ export default function RiskPanel({
           </View>
           {vertragRisiken.length === 0 ? (
             <Text style={{ fontSize: 13, color: C.textSecondary }}>
-              {rohText ? '✓ Keine kritischen Klauseln erkannt' : 'Kein OCR-Text — Risiken können nicht analysiert werden'}
+              {rohText ? 'Keine kritischen Klauseln erkannt' : 'Kein OCR-Text — Risiken können nicht analysiert werden'}
             </Text>
           ) : (
             vertragRisiken.map((r, i) => (

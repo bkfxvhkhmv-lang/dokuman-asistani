@@ -76,6 +76,7 @@ import {
   Calculator,
   FilePdf,
   DoorOpen,
+  SpeakerSimpleHigh,
 } from 'phosphor-react-native';
 
 export type IconWeight = 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
@@ -236,6 +237,7 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   'file-pdf':                  FilePdf,
   'log-out':                   DoorOpen,
   'door-open':                 DoorOpen,
+  'speaker-high':              SpeakerSimpleHigh,
   // Edit / Pencil
   'create':                    PencilSimple,
   'create-outline':            PencilSimple,

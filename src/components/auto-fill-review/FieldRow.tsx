@@ -5,6 +5,18 @@ import type { AutoFillField, ExtractedFields } from '@/services/SmartAutoFillSer
 
 import { ConfidencePill } from './ConfidencePill';
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
+function formatDisplayValue(raw: string): string {
+  if (ISO_DATE_RE.test(raw)) {
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  }
+  return raw;
+}
+
 interface FieldRowProps {
   field: AutoFillField;
   onEdit: (key: keyof ExtractedFields, val: string) => void;
@@ -25,9 +37,10 @@ export function FieldRow({
   onEndEdit,
   C, R,
 }: FieldRowProps) {
-  const wertStr = field.wert === null ? '' : String(field.wert);
-  const isEmpty = field.wert === null || wertStr === '';
-  const conf = isEmpty ? 'fehlt' : field.confidence;
+  const wertStr        = field.wert === null ? '' : String(field.wert);
+  const wertDisplay    = wertStr ? formatDisplayValue(wertStr) : '';
+  const isEmpty        = field.wert === null || wertStr === '';
+  const conf           = isEmpty ? 'fehlt' : field.confidence;
 
   return (
     <View style={{ marginBottom: 12 }}>
@@ -63,14 +76,14 @@ export function FieldRow({
             }}
           >
             <Text style={{ fontSize: 14, color: isEmpty ? C.textTertiary : C.text, flex: 1 }}>
-              {isEmpty ? `${field.label} eingeben…` : wertStr}
+              {isEmpty ? `${field.label} eingeben…` : wertDisplay}
             </Text>
             <Text style={{ fontSize: 11, color: C.primary }}>✏️</Text>
           </TouchableOpacity>
         )
       ) : (
         <View style={{ backgroundColor: C.bgInput, borderRadius: R.md, padding: 10, borderWidth: 1, borderColor: C.border }}>
-          <Text style={{ fontSize: 14, color: C.text }}>{wertStr || '–'}</Text>
+          <Text style={{ fontSize: 14, color: C.text }}>{wertDisplay || '–'}</Text>
         </View>
       )}
     </View>

@@ -53,56 +53,49 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
   const border    = isError ? colors.dangerBorder : `${colors.primary}33`;
   const textColor = isError ? colors.danger : colors.primaryDark;
 
-  const iconName = isSyncing ? 'sync-outline' : 'alert-circle';
   const syncedAt = letzterSync ? `  ·  ${formatSyncTime(letzterSync)}` : '';
   const label    = isSyncing ? T('home.sync.running') : `${T('home.sync.error')}${syncedAt}`;
-
-  const strip = (
-    <View style={[st.pill, { backgroundColor: bg, borderColor: border }]}>
-      {isSyncing && (
-        <Animated.View style={[st.dot, { backgroundColor: accent, opacity: pulse }]} />
-      )}
-      <Icon name={iconName} size={isError ? 15 : 12} color={textColor} />
-      <Text style={[st.label, { color: textColor, fontSize: isError ? 12 : 11 }]} numberOfLines={1}>{label}</Text>
-      {isError && (
-        <Text style={[st.retryHint, { color: textColor }]}>{T('home.sync.retry')}</Text>
-      )}
-    </View>
-  );
 
   if (isError) {
     return (
       <TouchableOpacity
         onPress={onPress}
-        style={[st.errorStrip, { backgroundColor: bg, borderColor: border }]}
+        style={[st.errorBadge, { backgroundColor: bg, borderColor: border }]}
         accessibilityRole="button"
         accessibilityLabel="Synchronisierung fehlgeschlagen. Tippen zum Wiederholen."
         activeOpacity={0.75}
       >
-        {strip}
+        <Icon name="alert-circle" size={15} color={textColor} />
+        <Text style={[st.errorLabel, { color: textColor }]} numberOfLines={1}>{label}</Text>
+        <Text style={[st.retryHint, { color: textColor }]}>{T('home.sync.retry')}</Text>
       </TouchableOpacity>
     );
   }
 
   return (
     <TouchableOpacity
-      onPress={isSyncing ? undefined : onPress}
-      activeOpacity={isSyncing ? 1 : 0.75}
+      onPress={undefined}
+      activeOpacity={1}
       style={st.wrap}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ busy: isSyncing }}
+      accessibilityState={{ busy: true }}
     >
-      {strip}
+      <View style={[st.pill, { backgroundColor: bg, borderColor: border }]}>
+        <Animated.View style={[st.dot, { backgroundColor: accent, opacity: pulse }]} />
+        <Icon name="sync-outline" size={12} color={textColor} />
+        <Text style={[st.label, { color: textColor, fontSize: 11 }]} numberOfLines={1}>{label}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
 const st = StyleSheet.create({
-  wrap:       { marginHorizontal: 16, marginTop: 6, marginBottom: 2 },
-  pill:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, alignSelf: 'flex-start' },
-  dot:        { width: 6, height: 6, borderRadius: 3 },
-  label:      { fontWeight: '700', letterSpacing: 0.1 },
-  retryHint:  { fontSize: 11, fontWeight: '600', opacity: 0.7 },
-  errorStrip: { marginHorizontal: 16, marginTop: 6, marginBottom: 2, borderRadius: 14, borderWidth: 1.5, ...Shadow.md },
+  wrap:        { marginHorizontal: 16, marginTop: 6, marginBottom: 2 },
+  pill:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, alignSelf: 'flex-start' },
+  dot:         { width: 6, height: 6, borderRadius: 3 },
+  label:       { fontWeight: '700', letterSpacing: 0.1 },
+  retryHint:   { fontSize: 11, fontWeight: '600', opacity: 0.7 },
+  errorBadge:  { flexDirection: 'row', alignItems: 'center', gap: 7, marginHorizontal: 16, marginTop: 6, marginBottom: 2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1.5, alignSelf: 'flex-start', ...Shadow.sm },
+  errorLabel:  { fontSize: 13, fontWeight: '700', letterSpacing: 0.1 },
 });

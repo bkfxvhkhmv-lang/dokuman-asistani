@@ -11,7 +11,7 @@ const GROUP_LABEL: Record<MoreMenuGroup, string> = {
   advanced:       'Weitere Werkzeuge',
 };
 
-/** Sichtbar ohne Scroll: Haupt + genug Chat — alles andere unter „Weitere Werkzeuge“. */
+/** Sichtbar ohne Scroll: Haupt + genug Chat — alles andere unter „Weitere Werkzeuge". */
 const FIRST_SCREEN_TOTAL = 5;
 
 const SECTION_WEITERE_WERKZEUGE = 'Weitere Werkzeuge';
@@ -105,10 +105,6 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
       visible={visible}
       onClose={onClose}
       title="Mehr"
-      subtitle="Zuerst siehst du, was zählt — Teilen, Export, Hilfe und mehr stehen unter „Weitere Werkzeuge“."
-      footer={
-        <AppButton label="Schließen" variant="secondary" onPress={onClose} />
-      }
     >
       {main.length > 0 && (
         <View>
@@ -168,7 +164,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.5 }}>
-              {SECTION_WEITERE_WERKZEUGE} ({weitereWerkzeuge.length})
+              {SECTION_WEITERE_WERKZEUGE}
             </Text>
             <Text style={{ fontSize: 13, fontWeight: '800', color: C.primary }}>{weitereOpen ? '▴' : '▾'}</Text>
           </TouchableOpacity>
@@ -186,7 +182,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
 
       {items.length === 0 && (
         <Text style={{ paddingVertical: 16, fontSize: 13, color: C.textSecondary }}>
-          Keine weiteren Schnellaktionen — nutze „Aktionen“ oben oder die Übersicht.
+          Keine weiteren Schnellaktionen — nutze „Aktionen" oben oder die Übersicht.
         </Text>
       )}
     </AppSheet>

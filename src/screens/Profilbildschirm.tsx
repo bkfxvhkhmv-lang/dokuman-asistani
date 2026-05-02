@@ -79,7 +79,8 @@ function SectionLabel({ text }: { text: string }) {
 export default function Profilbildschirm() {
   const router = useRouter();
   const { state } = useStore();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const isGuest = user?.isGuest === true;
   const { getUser } = useAuthFlow();
   const { Colors: C } = useTheme();
   const [userEmail, setUserEmail] = useState('');
@@ -109,11 +110,13 @@ export default function Profilbildschirm() {
   const showDatenschutz = () =>
     Alert.alert('Datenschutz', 'Deine Daten bleiben auf deinem Gerät.\nDie vollständige Datenschutzerklärung findest du auf briefpilot.de.', [{ text: 'OK' }]);
 
-  const showAbmelden = () =>
+  const showAbmelden = () => {
+    if (isGuest) { router.push('/login'); return; }
     Alert.alert('Abmelden?', 'Du wirst aus deinem Konto ausgeloggt.', [
       { text: 'Abbrechen', style: 'cancel' },
       { text: 'Abmelden', style: 'destructive', onPress: logout },
     ]);
+  };
 
   const initialName = userEmail ? userEmail.charAt(0).toUpperCase() : '?';
 
@@ -178,9 +181,9 @@ export default function Profilbildschirm() {
 
         <MenuSection rows={[
           {
-            icon: 'log-out',
-            label: 'Abmelden',
-            danger: true,
+            icon: isGuest ? 'key' : 'log-out',
+            label: isGuest ? 'Anmelden' : 'Abmelden',
+            danger: !isGuest,
             onPress: showAbmelden,
           },
         ]} />

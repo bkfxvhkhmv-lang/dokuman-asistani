@@ -4,6 +4,7 @@ import { SectionCard, Row } from '@/features/profile/components/ProfileSection';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
+import { useAuth } from '@/providers/AuthContext';
 import type { Router } from 'expo-router';
 import { FlatRow } from '@/features/settings/SettingsPrimitives';
 
@@ -37,6 +38,8 @@ type KontoProps = {
 export function KontoShortcutsBlock({ router, logout, docCount, flat = false, onPlusPress }: KontoProps) {
   const { Colors: C, Shadow, fs } = useTheme();
   const { t: T } = useT();
+  const { user } = useAuth();
+  const isGuest = user?.isGuest === true;
   const goProfil = () => router.push('/profil');
 
   if (flat) {
@@ -85,14 +88,21 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false, on
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => Alert.alert(T('modal.logout.title'), T('modal.logout.body'), [
-          { text: T('common.cancel'), style: 'cancel' },
-          { text: T('settings.logout'), style: 'destructive', onPress: () => { void logout(); } },
-        ])}
+        onPress={() => {
+          if (isGuest) { router.push('/login'); return; }
+          Alert.alert(T('modal.logout.title'), T('modal.logout.body'), [
+            { text: T('common.cancel'), style: 'cancel' },
+            { text: T('settings.logout'), style: 'destructive', onPress: () => { void logout(); } },
+          ]);
+        }}
         style={{ marginTop: 8, alignItems: 'center', paddingVertical: 14,
-          borderRadius: 14, borderWidth: 1, borderColor: C.dangerBorder, backgroundColor: C.dangerLight }}
+          borderRadius: 14, borderWidth: 1,
+          borderColor: isGuest ? `${C.primary}55` : C.dangerBorder,
+          backgroundColor: isGuest ? C.primaryLight : C.dangerLight }}
       >
-        <Text style={{ color: C.danger, fontSize: fs(14), fontWeight: '700' }}>{T('settings.logout')}</Text>
+        <Text style={{ color: isGuest ? C.primaryDark : C.danger, fontSize: fs(14), fontWeight: '700' }}>
+          {isGuest ? T('auth.login') : T('settings.logout')}
+        </Text>
       </TouchableOpacity>
     </SectionCard>
   );

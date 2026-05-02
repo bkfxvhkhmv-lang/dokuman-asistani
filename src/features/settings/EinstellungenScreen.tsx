@@ -43,7 +43,8 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const { Colors: C, fs } = useTheme();
   const { t: T } = useT();
   const { state, dispatch } = useStore();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const isGuest = user?.isGuest === true;
 
   const [emailModalOpen,   setEmailModalOpen]   = useState(false);
   const [plusVisible,      setPlusVisible]      = useState(false);
@@ -117,11 +118,15 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   );
 
   const onAbmelden = useCallback(() => {
+    if (isGuest) {
+      router.push('/login');
+      return;
+    }
     Alert.alert(T('modal.logout.title'), T('settings.logout_info'), [
       { text: T('common.cancel'), style: 'cancel' },
       { text: T('settings.logout'), style: 'destructive', onPress: () => void logout() },
     ]);
-  }, [logout, T]);
+  }, [isGuest, logout, router, T]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={['top', 'left', 'right']}>
@@ -325,18 +330,20 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           onPress={onAbmelden}
           activeOpacity={0.75}
           accessibilityRole="button"
-          accessibilityLabel="Abmelden"
+          accessibilityLabel={isGuest ? T('auth.login') : T('settings.logout')}
           style={{
             alignItems: 'center',
             paddingVertical: 14,
             borderRadius: 12,
             marginTop: 8,
             borderWidth: StyleSheet.hairlineWidth,
-            borderColor: C.dangerBorder,
-            backgroundColor: C.dangerLight,
+            borderColor: isGuest ? `${C.primary}55` : C.dangerBorder,
+            backgroundColor: isGuest ? C.primaryLight : C.dangerLight,
           }}
         >
-          <Text style={{ color: C.danger, fontSize: fs(15), fontWeight: '700' }}>{T('settings.logout')}</Text>
+          <Text style={{ color: isGuest ? C.primaryDark : C.danger, fontSize: fs(15), fontWeight: '700' }}>
+            {isGuest ? T('auth.login') : T('settings.logout')}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity

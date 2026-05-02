@@ -23,6 +23,7 @@ function ReminderRow({ suggestion, scheduled, isScheduling, onSchedule, onCancel
   C: ThemeColors; R: RadiusTokens;
 }) {
   const isSet = !!scheduled;
+  const isToday = suggestion.datum.toDateString() === new Date().toDateString();
 
   const iconName = suggestion.dringend ? 'warning-octagon' : 'bell';
   const iconColor = isSet ? C.primary : (suggestion.dringend ? C.danger : C.textSecondary);
@@ -53,12 +54,16 @@ function ReminderRow({ suggestion, scheduled, isScheduling, onSchedule, onCancel
         <TouchableOpacity
           onPress={onSchedule}
           disabled={isScheduling}
-          style={{ backgroundColor: suggestion.dringend ? C.danger : C.primary, borderRadius: R.sm,
-            paddingHorizontal: 12, paddingVertical: 6, minHeight: 36, justifyContent: 'center' }}>
+          style={{
+            backgroundColor: isToday ? C.danger : C.primaryLight,
+            borderRadius: R.sm,
+            paddingHorizontal: 12, paddingVertical: 6, minHeight: 36, justifyContent: 'center',
+            borderWidth: isToday ? 0 : 1, borderColor: C.primary + '55',
+          }}>
           {isScheduling ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size="small" color={isToday ? '#fff' : C.primary} />
           ) : (
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>+ Setzen</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: isToday ? '#fff' : C.primaryDark }}>+ Setzen</Text>
           )}
         </TouchableOpacity>
       )}

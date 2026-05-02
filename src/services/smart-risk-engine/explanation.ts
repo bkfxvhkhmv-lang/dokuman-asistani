@@ -16,11 +16,11 @@ export function buildErklaerung(
 
   let text = `Dieses Dokument (${dok.typ}) hat ein ${LEVEL_LABELS[level].split('—')[0].trim().toLowerCase()} Risiko`;
 
-  if (hauptGrund) text += ` hauptsächlich wegen: ${hauptGrund.beschreibung.toLowerCase()}`;
-  if (tage !== null && tage < 0) text += `. Die Frist ist bereits abgelaufen — sofortiges Handeln erforderlich!`;
+  if (hauptGrund) text += ` hauptsächlich wegen: ${hauptGrund.beschreibung}`;
+  if (tage !== null && tage < 0) text += `. Die Frist ist bereits abgelaufen — sofortiges Handeln erforderlich`;
   else if (tage !== null && tage <= 3) text += `. Nur noch ${tage} Tag${tage !== 1 ? 'e' : ''} bis zur Frist`;
   if (darkPatterns.length > 0) text += `. ${darkPatterns.length} rechtliche Auffälligkeit${darkPatterns.length > 1 ? 'en' : ''} erkannt`;
-  text += '.';
+  if (!text.endsWith('!') && !text.endsWith('?')) text += '.';
 
   return text;
 }

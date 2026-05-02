@@ -35,6 +35,7 @@ import {
   ChartBar,
   Money,
   PencilSimple, PencilLine,
+  CurrencyEur,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown,
   DotsThree,
   Gear,
@@ -220,6 +221,7 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   'cash':                      Money,
   'card':                      Money,
   'currency':                  Money,
+  'currency-eur':              CurrencyEur,
   'bank':                      Buildings,
   // Export / Table / Calculator / PDF / Logout
   'export':                    Export,

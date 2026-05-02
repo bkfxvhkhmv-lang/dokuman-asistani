@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { AppButton, AppCard } from '@/design/components';
+import Icon from '@/components/Icon';
 import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
@@ -12,13 +13,13 @@ import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi'
 // ── Action metadata ───────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',  icon: '💶', tone: 'primary' },
-  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch', icon: '✍️', tone: 'danger' },
-  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',  icon: '📅', tone: 'success' },
-  mail:      { label: 'Als E-Mail öffnen',        shortLabel: 'E-Mail',    icon: '📧', tone: 'neutral' },
-  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: '🧐', tone: 'warning' },
-  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: '🧠', tone: 'neutral' },
-  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: '✅', tone: 'success' },
+  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',  icon: 'currency-eur',    tone: 'primary' },
+  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch', icon: 'pencil-line',     tone: 'danger' },
+  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',  icon: 'calendar-blank',  tone: 'success' },
+  mail:      { label: 'Als E-Mail öffnen',        shortLabel: 'E-Mail',    icon: 'envelope-simple', tone: 'neutral' },
+  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: 'magnifying-glass', tone: 'warning' },
+  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: 'sparkle',         tone: 'neutral' },
+  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: 'check-circle',    tone: 'success' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
@@ -194,7 +195,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
       <TouchableOpacity onPress={primary.onPress} disabled={!primary.onPress} activeOpacity={primary.onPress ? 0.8 : 1}>
         <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text style={{ fontSize: 20 }}>{primary.icon}</Text>
+            <Icon name={primary.icon} size={22} color={processColors.text} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, fontWeight: '800', color: processColors.text }}>{primary.label}</Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 4 }}>
@@ -224,7 +225,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
                   style={{ flex: 1, borderRadius: R.lg, paddingVertical: 12, paddingHorizontal: 10,
                     alignItems: 'center', borderWidth: 1.2, borderColor: tone.border, backgroundColor: C.bgCard }}
                   onPress={action.onPress}>
-                  <Text style={{ fontSize: 16, marginBottom: 4 }}>{action.icon}</Text>
+                  <Icon name={action.icon} size={20} color={tone.text} style={{ marginBottom: 4 }} />
                   <Text style={{ fontSize: 12, fontWeight: '700', color: tone.text }}>{action.shortLabel}</Text>
                 </TouchableOpacity>
               );

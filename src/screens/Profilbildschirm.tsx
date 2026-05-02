@@ -134,24 +134,13 @@ export default function Profilbildschirm() {
               {userEmail || 'Mein Profil'}
             </Text>
             <Text style={st.headerSub}>{state.dokumente.length} Belege gespeichert</Text>
-            <TouchableOpacity onPress={openPlusSheet} style={st.upgradePill} activeOpacity={0.8}>
-              <Text style={st.upgradeText}>
-                Basis · Auf Plus upgraden
-              </Text>
-            </TouchableOpacity>
+            {/* upgrade pill hidden until Plus is available */}
           </View>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={[st.scroll, { backgroundColor: C.bg }]} showsVerticalScrollIndicator={false}>
         <MenuSection rows={[
-          {
-            icon: 'sparkle',
-            label: 'BriefPilot Plus',
-            sub: 'Steuerpaket, KI-Zusammenfassung & mehr',
-            premium: true,
-            onPress: openPlusSheet,
-          },
           {
             icon: 'calendar',
             label: 'Offene Fristen',
@@ -162,7 +151,7 @@ export default function Profilbildschirm() {
           {
             icon: 'export',
             label: 'Datenexport',
-            sub: 'PDF, DATEV-CSV, Steuerpaket',
+            sub: 'PDF-Export & Steuerpaket',
             onPress: () => router.push('/(tabs)/Export'),
           },
         ]} />

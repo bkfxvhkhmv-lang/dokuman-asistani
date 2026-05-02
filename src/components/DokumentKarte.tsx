@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
-import { WarningCircle, Money, PencilSimple, CalendarBlank, FileText, File, Clock, CheckCircle } from 'phosphor-react-native';
+import { WarningCircle, Money, PencilSimple, CalendarBlank, FileText, File, Clock, CheckCircle, ShieldCheck } from 'phosphor-react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
@@ -34,7 +34,9 @@ function quickIntent(dok: Dokument, C: ThemeColors) {
   if (/widerspruch|einspruch/.test(t)) return { PhIcon: PencilSimple, color: C.primaryDark };
   if (/termin|um\s+\d+:\d+/.test(t) || dok.typ === 'Termin') return { PhIcon: CalendarBlank, color: C.success };
   if (/bescheid|entscheidung/.test(t) || dok.typ === 'Behörde') return { PhIcon: FileText, color: C.primary };
-  return { PhIcon: File, color: C.textTertiary };
+  if (dok.typ === 'Versicherung') return { PhIcon: ShieldCheck, color: C.success };
+  if (dok.typ === 'Vertrag') return { PhIcon: FileText, color: C.primaryDark };
+  return { PhIcon: File, color: C.textSecondary };
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -80,10 +82,14 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     >
       {/* Header */}
       <View style={styles.header}>
-        <View style={[styles.iconBox, { backgroundColor: Colors.bgInput, borderColor: Colors.borderLight, marginTop: 2 }]}>
+        <View style={[styles.iconBox, {
+          backgroundColor: isDone ? Colors.bgInput : `${intent.color}14`,
+          borderColor: isDone ? Colors.borderLight : `${intent.color}35`,
+          marginTop: 2,
+        }]}>
           {isDone
-            ? <CheckCircle size={22} color={Colors.textTertiary} weight="fill" />
-            : <intent.PhIcon size={21} color={intent.color} weight="duotone" />
+            ? <CheckCircle size={24} color={Colors.textTertiary} weight="fill" />
+            : <intent.PhIcon size={24} color={intent.color} weight="regular" />
           }
         </View>
 
@@ -101,8 +107,8 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         </View>
 
         {tageText && !isDone ? (
-          <View style={[styles.dateBox, { backgroundColor: `${accentColor}12`, borderWidth: 1, borderColor: `${accentColor}55` }]}>
-            <Clock size={11} color={accentColor} weight="regular" />
+          <View style={[styles.dateBox, { backgroundColor: `${accentColor}1e`, borderWidth: 1, borderColor: `${accentColor}80` }]}>
+            <Clock size={13} color={accentColor} weight="regular" />
             <Text style={[styles.dateText, { color: accentColor }]}>{tageText}</Text>
           </View>
         ) : isDone ? (
@@ -113,7 +119,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       </View>
 
       {!!listSnippet && (
-        <Text style={[styles.summary, { color: Colors.textTertiary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+        <Text style={[styles.summary, { color: Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
           {listSnippet}
         </Text>
       )}
@@ -121,9 +127,9 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       {/* Footer */}
       <View style={styles.footer}>
         {dok.betrag && dok.betrag > 0 ? (
-          <View style={[styles.amountBox, { backgroundColor: `${accentColor}12`, borderWidth: 1, borderColor: `${accentColor}44` }]}>
-            <Money size={12} color={accentColor} weight="regular" />
-            <Text style={[styles.amount, { color: accentColor, fontVariant: ['tabular-nums'] }]}>
+          <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}55` }]}>
+            <Money size={13} color={intent.color} weight="regular" />
+            <Text style={[styles.amount, { color: intent.color, fontVariant: ['tabular-nums'] }]}>
               {(dok.betrag as number).toFixed(2)} €
             </Text>
           </View>
@@ -151,7 +157,7 @@ export default DokumentKarte;
 
 const styles = StyleSheet.create({
   header:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  iconBox:       { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1 },
+  iconBox:       { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1 },
   titleBox:      { flex: 1, gap: 3, minWidth: 0, justifyContent: 'center' },
   title:         { fontSize: 14, fontWeight: '700', letterSpacing: -0.3 },
   absender:      { fontSize: 12, letterSpacing: -0.1 },

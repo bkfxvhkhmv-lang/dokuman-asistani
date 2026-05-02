@@ -197,14 +197,6 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
             <Text style={{ fontSize: 20 }}>{primary.icon}</Text>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 12, fontWeight: '800', color: processColors.text }}>{primary.label}</Text>
-              {digitalTwin?.intelligence?.lifecycle?.phaseLabel ? (
-                <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 4 }}>
-                  Stand: {digitalTwin.intelligence.lifecycle.phaseLabel}
-                  {digitalTwin?.intelligence?.lifecycle?.phaseIcon
-                    ? ` ${digitalTwin.intelligence.lifecycle.phaseIcon}`
-                    : ''}
-                </Text>
-              ) : null}
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 4 }}>
                 {primary.key === 'review'
                   ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'

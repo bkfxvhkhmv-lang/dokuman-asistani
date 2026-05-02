@@ -5,6 +5,28 @@ import { useTheme } from '@/ThemeContext';
 import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
 import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
 
+// ── Simple inline markdown renderer (bold only) ───────────────────────────────
+
+function MarkdownText({ text, style }: { text: string; style?: object }) {
+  const lines = text.split('\n');
+  return (
+    <View style={{ gap: 2 }}>
+      {lines.map((line, li) => {
+        const parts = line.split(/(\*\*[^*]+\*\*)/g);
+        return (
+          <Text key={li} style={style}>
+            {parts.map((part, i) =>
+              part.startsWith('**') && part.endsWith('**')
+                ? <Text key={i} style={{ fontWeight: '700' }}>{part.slice(2, -2)}</Text>
+                : part,
+            )}
+          </Text>
+        );
+      })}
+    </View>
+  );
+}
+
 // ── TypewriterText ────────────────────────────────────────────────────────────
 
 function TypewriterText({ text, speed = 18, style }: { text: string; speed?: number; style?: any }) {
@@ -143,9 +165,8 @@ export default function SmartSummaryCard({
 
           {currentMode === 'detailliert' && result.detailText && (
             <>
-              <TypewriterText
+              <MarkdownText
                 text={stripLlmLanguageMetaLines(result.detailText)}
-                speed={8}
                 style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
               />
               {result.handlungsempfehlungen.length > 0 && (

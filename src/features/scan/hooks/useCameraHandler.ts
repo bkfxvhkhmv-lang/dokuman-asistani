@@ -26,25 +26,25 @@ export function useCameraHandler({
   const handleCapture = useCallback(async () => {
     if (isCapturing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const captureFail = t('scan.camera.capture_fail');
+    const captureTitle = t('scan.camera.capture_title');
+    const captureBody  = t('scan.camera.capture_body');
     try {
       const result = await capture();
       if (!result) {
-        const message = __DEV__
-          ? `${captureFail}\n\n(Dev) Kein Ergebnis — oft: Capture-Timeout, fehlende Kamera-Ref oder takePictureAsync-Fehler. Metro-Log prüfen.`
-          : captureFail;
-        showSheet({ title: t('common.error'), message, icon: 'alert-circle', tone: 'danger', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
+        if (__DEV__) console.warn('[Camera] capture returned null — Capture-Timeout oder fehlende Ref. Metro-Log prüfen.');
+        showSheet({ title: captureTitle, message: captureBody, icon: 'alert-circle', tone: 'danger', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
         return;
       }
       if (!result.qualityMetrics && result.originalUri) {
         const prepared = await prepareCapture({ uri: result.originalUri, width: result.width, height: result.height, filter: activeFilter });
         if (!prepared.accepted) {
-          showSheet({ title: t('scan.camera.low_quality'), message: prepared.reason || t('scan.camera.low_quality'), icon: 'alert-circle', tone: 'warning', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
+          if (__DEV__) console.warn('[Camera] low quality:', prepared.reason);
+          showSheet({ title: t('scan.camera.low_quality'), message: captureBody, icon: 'alert-circle', tone: 'warning', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
         }
       }
     } catch (e) {
-      const message = __DEV__ ? `${captureFail}\n\n(Dev) ${describeCaptureError(e)}` : captureFail;
-      showSheet({ title: t('common.error'), message, icon: 'alert-circle', tone: 'danger', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
+      if (__DEV__) console.error('[Camera] capture error:', describeCaptureError(e));
+      showSheet({ title: captureTitle, message: captureBody, icon: 'alert-circle', tone: 'danger', actions: [{ label: t('common.ok'), variant: 'primary', onPress: hideSheet }] });
     }
   }, [isCapturing, capture, prepareCapture, activeFilter, showSheet, hideSheet, t]);
 

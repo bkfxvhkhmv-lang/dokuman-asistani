@@ -38,15 +38,15 @@ export interface VertragRisiko { level: 'hoch' | 'mittel' | 'niedrig'; icon: str
 export function analysiereVertragRisiken(rohText: string | null | undefined): VertragRisiko[] {
   if (!rohText || rohText.length < 20) return [];
   const risiken: VertragRisiko[] = [];
-  if (/automatisch.*verl[äa]ngert|verl[äa]ngerung.*automatisch/i.test(rohText)) risiken.push({ level: 'hoch', icon: '⚠️', text: 'Automatische Verlängerungsklausel' });
+  if (/automatisch.*verl[äa]ngert|verl[äa]ngerung.*automatisch/i.test(rohText)) risiken.push({ level: 'hoch', icon: 'warning-circle', text: 'Automatische Verlängerungsklausel' });
   const fristM = rohText.match(/k[üu]ndigungs(?:frist)?[:\s]+(\d+)\s*(monat|woche|tag)/i);
-  if (fristM) risiken.push({ level: 'mittel', icon: '📋', text: `Kündigungsfrist: ${fristM[1]} ${fristM[2]}` });
-  else if (/k[üu]ndigung/i.test(rohText)) risiken.push({ level: 'mittel', icon: '📋', text: 'Kündigungsfrist im Vertrag prüfen' });
-  if (/preiserh[öo]hung|preisanpassung/i.test(rohText)) risiken.push({ level: 'hoch', icon: '💸', text: 'Preiserhöhungsklausel erkannt' });
+  if (fristM) risiken.push({ level: 'mittel', icon: 'clipboard-text', text: `Kündigungsfrist: ${fristM[1]} ${fristM[2]}` });
+  else if (/k[üu]ndigung/i.test(rohText)) risiken.push({ level: 'mittel', icon: 'clipboard-text', text: 'Kündigungsfrist im Vertrag prüfen' });
+  if (/preiserh[öo]hung|preisanpassung/i.test(rohText)) risiken.push({ level: 'hoch', icon: 'currency-eur', text: 'Preiserhöhungsklausel erkannt' });
   const laufM = rohText.match(/mindestlaufzeit[:\s]+(\d+)\s*(monat|jahr)/i);
-  if (laufM) risiken.push({ level: 'mittel', icon: '🔒', text: `Mindestlaufzeit: ${laufM[1]} ${laufM[2]}` });
-  if (/datenweitergabe|daten.*dritte/i.test(rohText)) risiken.push({ level: 'hoch', icon: '', text: 'Datenweitergabe an Dritte' });
-  if (/haftungsausschluss|haftungsbesch/i.test(rohText)) risiken.push({ level: 'niedrig', icon: 'ℹ️', text: 'Haftungsbeschränkung vorhanden' });
+  if (laufM) risiken.push({ level: 'mittel', icon: 'lock', text: `Mindestlaufzeit: ${laufM[1]} ${laufM[2]}` });
+  if (/datenweitergabe|daten.*dritte/i.test(rohText)) risiken.push({ level: 'hoch', icon: 'warning-circle', text: 'Datenweitergabe an Dritte' });
+  if (/haftungsausschluss|haftungsbesch/i.test(rohText)) risiken.push({ level: 'niedrig', icon: 'info', text: 'Haftungsbeschränkung vorhanden' });
   return risiken;
 }
 
@@ -59,13 +59,13 @@ export function berechneHukukiRiskSkoru(risiken: VertragRisiko[]): number {
 export function analysiereAllgemeinRisiken(dok: Dokument): VertragRisiko[] {
   const risiken: VertragRisiko[] = [];
   const tage = getTageVerbleibend(dok.frist);
-  if (dok.risiko === 'hoch' && tage !== null && tage <= 3) risiken.push({ level: 'hoch', icon: '⏰', text: 'Frist in weniger als 3 Tagen' });
-  if (dok.risiko === 'hoch' && tage !== null && tage < 0) risiken.push({ level: 'hoch', icon: '🚨', text: 'Frist bereits abgelaufen' });
-  if (dok.typ === 'Mahnung') risiken.push({ level: 'hoch', icon: '⚠️', text: 'Mahnung — Vollstreckung möglich' });
-  if (dok.typ === 'Bußgeld' && tage !== null && tage <= 14) risiken.push({ level: 'hoch', icon: '🚔', text: 'Einspruchsfrist läuft ab' });
-  if (dok.typ === 'Steuerbescheid') risiken.push({ level: 'mittel', icon: '📊', text: 'Einspruch innerhalb 30 Tage möglich' });
-  if (dok.typ === 'Kündigung') risiken.push({ level: 'hoch', icon: '✂️', text: 'Kündigung — Fristen und Rechte prüfen' });
-  if (!dok.betrag && ['Rechnung', 'Mahnung', 'Bußgeld'].includes(dok.typ)) risiken.push({ level: 'mittel', icon: '❓', text: 'Betrag nicht erkannt — manuell prüfen' });
+  if (dok.risiko === 'hoch' && tage !== null && tage <= 3) risiken.push({ level: 'hoch', icon: 'clock', text: 'Frist in weniger als 3 Tagen' });
+  if (dok.risiko === 'hoch' && tage !== null && tage < 0) risiken.push({ level: 'hoch', icon: 'warning-octagon', text: 'Frist bereits abgelaufen' });
+  if (dok.typ === 'Mahnung') risiken.push({ level: 'hoch', icon: 'warning-circle', text: 'Mahnung — Vollstreckung möglich' });
+  if (dok.typ === 'Bußgeld' && tage !== null && tage <= 14) risiken.push({ level: 'hoch', icon: 'warning-octagon', text: 'Einspruchsfrist läuft ab' });
+  if (dok.typ === 'Steuerbescheid') risiken.push({ level: 'mittel', icon: 'chart-bar', text: 'Einspruch innerhalb 30 Tage möglich' });
+  if (dok.typ === 'Kündigung') risiken.push({ level: 'hoch', icon: 'scissors', text: 'Kündigung — Fristen und Rechte prüfen' });
+  if (!dok.betrag && ['Rechnung', 'Mahnung', 'Bußgeld'].includes(dok.typ)) risiken.push({ level: 'mittel', icon: 'warning-circle', text: 'Betrag nicht erkannt — manuell prüfen' });
   if (dok.typ === 'Vertrag') risiken.push(...analysiereVertragRisiken((dok as any).rohText));
   return risiken;
 }

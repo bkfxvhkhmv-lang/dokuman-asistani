@@ -96,7 +96,7 @@ export default function SmartSummaryCard({
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>🤖 Zusammenfassung</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Zusammenfassung</Text>
           <AiSparkle size={10} />
         </View>
         {result && (
@@ -153,7 +153,7 @@ export default function SmartSummaryCard({
           {currentMode === 'mittel' && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 20 }}>{p}</Text>
+                <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 20 }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
               ))}
             </View>
           )}
@@ -170,7 +170,7 @@ export default function SmartSummaryCard({
                     EMPFEHLUNGEN
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 12, color: C.text, marginBottom: 3 }}>{e}</Text>
+                    <Text key={i} style={{ fontSize: 12, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
                   ))}
                 </View>
               )}
@@ -183,7 +183,7 @@ export default function SmartSummaryCard({
               style={{ backgroundColor: C.primary, borderRadius: R.md,
                 padding: 12, alignItems: 'center' }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
-                🤖 KI-Analyse laden
+                KI-Analyse laden
               </Text>
             </TouchableOpacity>
           )}

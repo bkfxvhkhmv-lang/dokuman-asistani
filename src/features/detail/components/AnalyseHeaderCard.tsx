@@ -7,6 +7,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import AiSparkle from '@/components/AiSparkle';
+import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import {
   computeDocumentStatus,
@@ -144,7 +145,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
           borderTopWidth: 0.5, borderTopColor: C.borderLight,
           backgroundColor: C.bgInput,
         }}>
-          <Text style={{ fontSize: 14 }}>{actionPlan.primary.icon}</Text>
+          <Icon name={actionPlan.primary.icon} size={16} color={C.textSecondary} />
           <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, flex: 1 }}>
             {actionPlan.primary.label}
           </Text>

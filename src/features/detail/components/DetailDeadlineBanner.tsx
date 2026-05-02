@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
+import Icon from '@/components/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/ThemeContext';
@@ -63,7 +64,7 @@ export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
           elevation: 6,
         }}
       >
-        <Text style={{ fontSize: 18 }}>📅</Text>
+        <Icon name="calendar-blank" size={18} color="#fff" />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>Frist ins Kalender</Text>
           <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', marginTop: 2 }} numberOfLines={2}>

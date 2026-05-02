@@ -17,7 +17,7 @@ export function buildReductionSuggestions(
       beschreibung: 'Zahlung sofort ausführen',
       wirkung: '−30 Punkte',
       dringlichkeit: 'sofort',
-      icon: '💶',
+      icon: 'currency-eur',
     });
   }
 
@@ -27,7 +27,7 @@ export function buildReductionSuggestions(
       beschreibung: 'Einspruch prüfen und ggf. einlegen',
       wirkung: '−25 Punkte wenn berechtigt',
       dringlichkeit: tage !== null && tage <= 5 ? 'sofort' : 'diese_woche',
-      icon: '✍️',
+      icon: 'pencil-simple',
     });
   }
 
@@ -38,7 +38,7 @@ export function buildReductionSuggestions(
       beschreibung: 'Fehlende Felder ergänzen (Betrag, Frist)',
       wirkung: '−15 Punkte',
       dringlichkeit: 'bald',
-      icon: '✏️',
+      icon: 'pencil-simple',
     });
   }
 
@@ -48,7 +48,7 @@ export function buildReductionSuggestions(
       beschreibung: `${darkPatterns.length} rechtliche Auffälligkeit${darkPatterns.length > 1 ? 'en' : ''} prüfen`,
       wirkung: '−20 Punkte nach Klärung',
       dringlichkeit: 'diese_woche',
-      icon: '⚖️',
+      icon: 'gavel',
     });
   }
 
@@ -60,7 +60,7 @@ export function buildReductionSuggestions(
         beschreibung: 'Erinnerung einrichten',
         wirkung: '−5 Punkte (proaktive Kontrolle)',
         dringlichkeit: 'bald',
-        icon: '🔔',
+        icon: 'bell',
       });
     }
   }

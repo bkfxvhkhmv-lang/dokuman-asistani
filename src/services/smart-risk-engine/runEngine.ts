@@ -30,7 +30,7 @@ export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): Ri
     faktoren.push({
       id: 'rechtlich', kategorie: 'rechtlich',
       beschreibung: `${allgemeinRisiken.length + darkPatterns.length} rechtliche Risiken erkannt`,
-      gewicht: 25, score: Math.min(100, rechtlichScore), icon: '⚖️',
+      gewicht: 25, score: Math.min(100, rechtlichScore), icon: 'gavel',
     });
   }
 

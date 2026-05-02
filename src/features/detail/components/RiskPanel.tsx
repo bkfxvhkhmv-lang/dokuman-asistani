@@ -80,7 +80,7 @@ export default function RiskPanel({
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ fontSize: 16 }}>⚖️</Text>
+              <Icon name="gavel" size={16} color={C.text} />
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Rechtliches Risiko</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -96,7 +96,7 @@ export default function RiskPanel({
               backgroundColor: r.level === 'hoch' ? C.dangerLight : r.level === 'mittel' ? C.warningLight : C.bgInput,
               borderWidth: 0.5,
               borderColor: r.level === 'hoch' ? C.dangerBorder : r.level === 'mittel' ? C.warning + '44' : C.border }}>
-              <Text style={{ fontSize: 15 }}>{r.icon}</Text>
+              <Icon name={r.icon} size={15} color={r.level === 'hoch' ? C.danger : r.level === 'mittel' ? C.warning : C.textSecondary} />
               <Text style={{ fontSize: 12, color: r.level === 'hoch' ? C.danger : r.level === 'mittel' ? C.warning : C.textSecondary, flex: 1 }}>
                 {r.text}
               </Text>
@@ -141,7 +141,7 @@ export default function RiskPanel({
         <Animated.View entering={FadeInDown.delay(180).springify().damping(16)} style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, padding: S.lg,
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Text style={{ fontSize: 16 }}>📜</Text>
+            <Icon name="file-text" size={16} color={C.text} />
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Vertragsrisiken</Text>
           </View>
           {vertragRisiken.length === 0 ? (
@@ -155,7 +155,7 @@ export default function RiskPanel({
                 backgroundColor: r.level === 'hoch' ? C.dangerLight : r.level === 'mittel' ? C.warningLight : C.bgInput,
                 borderWidth: 0.5,
                 borderColor: r.level === 'hoch' ? C.dangerBorder : r.level === 'mittel' ? C.warning + '44' : C.border }}>
-                <Text style={{ fontSize: 16 }}>{r.icon}</Text>
+                <Icon name={r.icon} size={15} color={r.level === 'hoch' ? C.danger : r.level === 'mittel' ? C.warning : C.textSecondary} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600',
                     color: r.level === 'hoch' ? C.danger : r.level === 'mittel' ? C.warning : C.textSecondary }}>

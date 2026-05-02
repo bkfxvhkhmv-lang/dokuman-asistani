@@ -21,13 +21,13 @@ export function MarktplatzCategoryChips({ kategorie, setKategorie }: Props) {
               paddingHorizontal: 14,
               paddingVertical: 7,
               borderRadius: 20,
-              borderWidth: 1,
+              borderWidth: isActive ? 1.5 : 1,
               borderColor: isActive ? kColor : `${kColor}38`,
-              backgroundColor: isActive ? `${kColor}18` : `${kColor}08`,
+              backgroundColor: isActive ? `${kColor}22` : `${kColor}08`,
             }}
             onPress={() => setKategorie(k)}
           >
-            <Text style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: isActive ? C.text : C.textSecondary }}>
+            <Text style={{ fontSize: 12, fontWeight: isActive ? '700' : '500', color: isActive ? kColor : C.textSecondary }}>
               {KAT_LABELS[k] ?? k}
             </Text>
           </TouchableOpacity>

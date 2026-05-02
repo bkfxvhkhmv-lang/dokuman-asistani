@@ -2,6 +2,7 @@ import { View, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import type { MarketplaceRule } from '@/services/v4Api';
 import { SheetDragger } from '@/screens/marktplatz/SheetDragger';
+import Icon from '@/components/Icon';
 
 interface Props {
   rule: MarketplaceRule | null;
@@ -33,8 +34,19 @@ export function MarktplatzRuleDetailModal({
           maxHeight: '80%',
         }}>
           <SheetDragger />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 4 }}>
+            <Text style={{ fontSize: 18, fontWeight: '700', color: C.text, flex: 1 }}>{detailRegel.name}</Text>
+            <TouchableOpacity
+              onPress={onDismiss}
+              accessibilityLabel="Schließen"
+              accessibilityRole="button"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={{ padding: 4, marginLeft: 8 }}
+            >
+              <Icon name="x" size={20} color={C.textSecondary} />
+            </TouchableOpacity>
+          </View>
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: C.text, marginBottom: 4 }}>{detailRegel.name}</Text>
             {detailRegel.author && (
               <Text style={{ fontSize: 12, color: C.textTertiary, marginBottom: 12 }}>von {detailRegel.author}</Text>
             )}

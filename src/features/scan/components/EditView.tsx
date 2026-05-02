@@ -3,7 +3,7 @@
  * Üst başlık, kırpma editörü, önizleme + araç çubuğu/modüller `edit-view/` altında.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Animated } from 'react-native';
+import { View, Animated, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CropEditor from '@/components/image-processing/CropEditor';
 import EditActionBar from '@/features/scan/components/EditActionBar';
@@ -57,6 +57,21 @@ export default function EditView(props: EditViewProps) {
 
   const previewUri = (compareUri && showOriginal) ? compareUri : getSessionUri(session);
 
+  const handleBack = () => {
+    if (compareUri && onBack) {
+      Alert.alert(
+        'Bearbeitung verlassen?',
+        'Die Verbesserung wurde noch nicht übernommen und geht verloren.',
+        [
+          { text: 'Hierbleiben', style: 'cancel' },
+          { text: 'Verlassen', style: 'destructive', onPress: onBack },
+        ],
+      );
+    } else {
+      onBack?.();
+    }
+  };
+
   const handleRotate = () => {
     anim.triggerRotateHint();
     onRotate();
@@ -89,7 +104,7 @@ export default function EditView(props: EditViewProps) {
         reviewHint={editUiState.showsCropEditor ? undefined : t('scan.review_hint')}
         continueLabel={t('scan.continue')}
         showContinue={!!onDone && !editUiState.showsCropEditor}
-        onBack={onBack}
+        onBack={handleBack}
         onDone={onDone}
         quality={typeof quality === 'number' ? quality : null}
       />

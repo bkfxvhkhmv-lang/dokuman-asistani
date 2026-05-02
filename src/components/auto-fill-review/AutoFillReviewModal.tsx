@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   View, Text, Modal, ScrollView, TouchableOpacity,
-  ActivityIndicator,
+  ActivityIndicator, Alert,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import type {
@@ -61,6 +61,21 @@ export default function AutoFillReviewModal({
     setEditingKey(null);
   };
 
+  const handleClose = () => {
+    if (Object.keys(edits).length > 0) {
+      Alert.alert(
+        'Änderungen verwerfen?',
+        'Deine Korrekturen gehen verloren.',
+        [
+          { text: 'Weiterbearbeiten', style: 'cancel' },
+          { text: 'Verwerfen', style: 'destructive', onPress: onClose },
+        ],
+      );
+    } else {
+      onClose();
+    }
+  };
+
   const missing = useMemo(() => {
     if (!autoFillResult) return [];
     return autoFillResult.fehlendePflichtfelder.filter(label => {
@@ -90,7 +105,7 @@ export default function AutoFillReviewModal({
                 Alles stimmt? Tippe auf ein Feld zum Bearbeiten.
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose}
+            <TouchableOpacity onPress={handleClose}
               style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.bgInput,
                 alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontSize: 16, color: C.textSecondary }}>✕</Text>
@@ -155,7 +170,7 @@ export default function AutoFillReviewModal({
                   ✅ Bestätigen & Speichern
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={onClose}
+              <TouchableOpacity onPress={handleClose}
                 style={{ alignItems: 'center', padding: 10 }}>
                 <Text style={{ fontSize: 13, color: C.textSecondary }}>Abbrechen</Text>
               </TouchableOpacity>

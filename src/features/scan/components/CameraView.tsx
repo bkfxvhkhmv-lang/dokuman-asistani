@@ -97,7 +97,7 @@ export default function CameraView(props: CameraViewProps) {
         </View>
       )}
 
-      <CameraTopBar topInset={insets.top} onClose={onClose} />
+      <CameraTopBar topInset={insets.top} pageCount={pageCount} onClose={onClose} />
 
       {/* Hint text — centered above the bottom bar */}
       <View style={hintStyles.wrap} pointerEvents="none">

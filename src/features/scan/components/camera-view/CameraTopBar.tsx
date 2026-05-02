@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Icon from '@/components/Icon';
 import { HIT_SLOP_LG } from '@/theme';
 import { useScan } from '@/features/scan/context/ScanContext';
@@ -7,16 +7,32 @@ import { useT } from '@/hooks/useT';
 
 interface TopBarProps {
   topInset: number;
+  pageCount: number;
   onClose: () => void;
 }
 
-export default function CameraTopBar({ topInset, onClose }: TopBarProps) {
+export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarProps) {
   const { flash, toggleFlash } = useScan();
   const { t: T } = useT();
 
+  const handleClose = () => {
+    if (pageCount > 0) {
+      Alert.alert(
+        'Scan abbrechen?',
+        `${pageCount} ${pageCount === 1 ? 'Seite' : 'Seiten'} werden verworfen.`,
+        [
+          { text: 'Weiterscannen', style: 'cancel' },
+          { text: 'Abbrechen', style: 'destructive', onPress: onClose },
+        ],
+      );
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <View style={[st.bar, { top: topInset }]}>
-      <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP_LG} style={st.textBtn}>
+      <TouchableOpacity onPress={handleClose} hitSlop={HIT_SLOP_LG} style={st.textBtn}>
         <Text style={st.textBtnLabel}>{T('common.cancel')}</Text>
       </TouchableOpacity>
 

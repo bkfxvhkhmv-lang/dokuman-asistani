@@ -91,7 +91,7 @@ export default function AppSheet({
           style={[
             st.sheet,
             { borderTopColor: Colors.border },
-            Platform.OS === 'android' && { elevation: 12, borderTopWidth: 1 },
+            Platform.OS === 'android' && { elevation: 8, borderTopWidth: 1 },
             sheetStyle,
           ]}
         >

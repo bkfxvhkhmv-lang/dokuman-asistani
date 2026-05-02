@@ -8,7 +8,7 @@ const de: Dict = {
   'home.urgent': 'dringend', 'home.doc_singular': 'Beleg', 'home.doc_plural': 'Belege',
   'home.all_good_title': 'Alles erledigt', 'home.all_good_body': 'Keine offenen Fristen oder dringenden Dokumente.',
   'home.sync.running': 'Synchronisierung läuft…', 'home.sync.ok': 'Synchronisiert',
-  'home.sync.error': 'Synchronisierung fehlgeschlagen', 'home.sync.retry': '· Tippen',
+  'home.sync.error': 'Sync fehlgeschlagen', 'home.sync.retry': '· Erneut versuchen',
   'home.recent': 'Zuletzt erfasst', 'home.no_docs': 'Noch keine Dokumente',
   'home.no_docs_sub': 'Tippe auf Scan, um deinen ersten Brief zu erfassen.',
   'home.urgency_more': '+{n} weitere', 'home.selection_count': '{n} ausgewählt',

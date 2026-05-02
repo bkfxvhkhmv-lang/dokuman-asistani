@@ -419,6 +419,7 @@ export default function KameraScreenView() {
         handleActionSelect={handleActionSelect}
         onStartProcessing={handleProcessAll}
         onAnalysisContinueAnyway={handleContinueAnyway}
+        onAnalysisRetry={handleProcessAll}
         onAnalysisCancel={() => { clearPages(); setMode('camera'); }}
       />
     </ScanProvider>

@@ -151,7 +151,7 @@ export default function AnalysisView({
 
               <TouchableOpacity
                 style={[st.fallbackBtn, { backgroundColor: C.bgInput, borderWidth: 1, borderColor: C.border }]}
-                onPress={onContinueAnyway}
+                onPress={onRetry ?? onContinueAnyway}
                 activeOpacity={0.8}
               >
                 <Text style={[st.fallbackBtnText, { color: C.text, fontSize: fs(14) }]}>

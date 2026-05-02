@@ -101,6 +101,7 @@ export type KameraScreenBodyProps = {
   handleActionSelect: (action: PostCaptureAction) => void;
   onAnalysisContinueAnyway?: () => void;
   onAnalysisCancel?: () => void;
+  onAnalysisRetry?: () => void;
   /** Called by EditView "Weiter" — skips PostCaptureActionSheet and starts OCR directly. */
   onStartProcessing: () => void;
 };
@@ -125,6 +126,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
     handleActionSelect,
     onAnalysisContinueAnyway,
     onAnalysisCancel,
+    onAnalysisRetry,
     onStartProcessing,
   } = props;
 
@@ -228,6 +230,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
         <AnalysisView
           pageCount={pageCount}
           onContinueAnyway={onAnalysisContinueAnyway}
+          onRetry={onAnalysisRetry}
           onCancel={onAnalysisCancel}
         />
       ) : null}

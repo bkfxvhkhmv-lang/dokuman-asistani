@@ -111,7 +111,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         </View>
 
         {tageText && !isDone ? (
-          <View style={[styles.dateBox, { backgroundColor: `${accentColor}1e`, borderWidth: 1, borderColor: `${accentColor}80` }]}>
+          <View style={[styles.dateBox, { backgroundColor: `${accentColor}0d`, borderWidth: 1, borderColor: `${accentColor}44` }]}>
             <Clock size={13} color={accentColor} weight="regular" />
             <Text style={[styles.dateText, { color: accentColor }]}>{tageText}</Text>
           </View>
@@ -131,7 +131,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       {/* Footer */}
       <View style={styles.footer}>
         {dok.betrag && dok.betrag > 0 ? (
-          <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}55` }]}>
+          <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}33` }]}>
             <Money size={13} color={intent.color} weight="regular" />
             <Text style={[styles.amount, { color: intent.color, fontVariant: ['tabular-nums'] }]}>
               {(dok.betrag as number).toFixed(2)} €
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   summary:       { fontSize: 12, lineHeight: 18, marginBottom: 10, letterSpacing: -0.1 },
   footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   amountBox:     { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
-  amount:        { fontSize: 14, fontWeight: '800', letterSpacing: -0.2 },
+  amount:        { fontSize: 14, fontWeight: '600', letterSpacing: -0.2 },
   workflowBox:   { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '60%', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
   workflowDot:   { width: 6, height: 6, borderRadius: 3 },
   workflowStamp: { fontSize: 11, fontWeight: '800', letterSpacing: 0.1 },

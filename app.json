@@ -34,7 +34,10 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Erlaube die Kamera, um Briefe direkt zu scannen.",
         "NSPhotoLibraryUsageDescription": "Wähle vorhandene Fotos oder Dokumente aus deiner Galerie.",
-        "NSPhotoLibraryAddUsageDescription": "BriefPilot speichert exportierte PDFs oder bearbeitete Dokumente nur, wenn du das ausdrücklich auswählst."
+        "NSPhotoLibraryAddUsageDescription": "BriefPilot speichert exportierte PDFs oder bearbeitete Dokumente nur, wenn du das ausdrücklich auswählst.",
+        "NSFaceIDUsageDescription": "Face ID schützt deine gespeicherten Dokumente vor unbefugtem Zugriff.",
+        "NSCalendarsUsageDescription": "BriefPilot trägt Fristen auf Wunsch direkt in deinen Kalender ein.",
+        "NSContactsUsageDescription": "BriefPilot liest Kontakte nur, wenn du eine Antwort oder ein Formular direkt an eine Person sendest."
       }
     },
     "android": {

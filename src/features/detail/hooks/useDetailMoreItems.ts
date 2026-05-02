@@ -124,13 +124,15 @@ export function useDetailMoreItems({
       onPress: tap(actions.handleEdit),
     });
 
-    rows.push({
-      key: 'menu_erl',
-      icon: dok.erledigt ? '↩️' : '✅',
-      label: dok.erledigt ? 'Als offen markieren' : 'Als erledigt markieren',
-      group: 'secondary',
-      onPress: tap(actions.handleErledigt),
-    });
+    if (dok.erledigt) {
+      rows.push({
+        key: 'menu_erl',
+        icon: '↩️',
+        label: 'Als offen markieren',
+        group: 'secondary',
+        onPress: tap(actions.handleErledigt),
+      });
+    }
 
     if (partnerEmailEnabled) {
       rows.push({

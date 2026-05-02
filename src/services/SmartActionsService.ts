@@ -167,10 +167,8 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
     actions.push(makeAction('datev_export', 'DATEV Export', '📊', 'Für Steuerberater exportieren', 'export', 28));
   }
 
-  // ── Erledigt / Archivieren ─────────────────────────────────────────────────
-  if (!dok.erledigt) {
-    actions.push({ ...makeAction('erledigt', 'Als erledigt markieren', '✅', 'Dokument abschließen', 'organisation', 30), isDestructive: false });
-  } else {
+  // ── Archivieren (erledigt is already in SCHNELLE AKTIONEN) ────────────────
+  if (dok.erledigt) {
     actions.push({ ...makeAction('archivieren', 'Archivieren', '📁', 'Ins Archiv verschieben', 'organisation', 25), isDestructive: false });
   }
 

@@ -16,7 +16,7 @@
  * sonrasi her bilesen test edilebilir hale geldi.
  */
 import React, { useCallback } from 'react';
-import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -206,19 +206,43 @@ export default function Suchbildschirm() {
               </Text>
             }
             ListEmptyComponent={
-              <EmptyState
-                variant="search"
-                subtitle={
-                  smartSearch.correctionHint
-                    ? `Meinten Sie "${smartSearch.correctionHint}"?`
-                    : 'Versuchen Sie andere Suchbegriffe oder aktivieren Sie die semantische Suche.'
-                }
-                action={
-                  smartSearch.correctionHint
-                    ? { label: `„${smartSearch.correctionHint}" suchen`, onPress: () => handleSearchWithSmart(smartSearch.correctionHint!) }
-                    : { label: 'Semantische Suche', onPress: toggleV4 }
-                }
-              />
+              <View>
+                <EmptyState
+                  variant="search"
+                  title="Keine Treffer gefunden"
+                  subtitle={
+                    smartSearch.correctionHint
+                      ? `Meinten Sie "${smartSearch.correctionHint}"?`
+                      : 'Du kannst semantisch weitersuchen oder eine andere Formulierung probieren.'
+                  }
+                  action={
+                    smartSearch.correctionHint
+                      ? { label: `„${smartSearch.correctionHint}" suchen`, onPress: () => handleSearchWithSmart(smartSearch.correctionHint!) }
+                      : { label: 'Semantisch suchen', onPress: toggleV4 }
+                  }
+                />
+                {/* Vorschlaege — nur anzeigen wenn kein Korrekturhinweis vorliegt */}
+                {!smartSearch.correctionHint && (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 16, paddingHorizontal: S.lg }}>
+                    {['Rechnung Januar', 'Mahnung Strom', 'Bußgeld 2024', 'Versicherung AXA'].map(vorschlag => (
+                      <TouchableOpacity
+                        key={vorschlag}
+                        onPress={() => handleSearchWithSmart(vorschlag)}
+                        style={{
+                          paddingVertical: 7,
+                          paddingHorizontal: S.md,
+                          backgroundColor: C.bgCard,
+                          borderRadius: 20,
+                          borderWidth: 0.5,
+                          borderColor: C.border,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, color: C.textSecondary }}>{vorschlag}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
             }
             renderItem={renderLokal}
           />

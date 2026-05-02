@@ -20,6 +20,7 @@ import { useAiLangPreference } from '@/hooks/useAiLangPreference';
 import { useAuth } from '@/providers/AuthContext';
 import AppBottomSheet from '@/components/AppBottomSheet';
 import Icon from '@/components/Icon';
+import { DocumentMemory } from '@/core/intelligence/DocumentMemory';
 
 import DesignThemeCard from '@/features/profile/components/DesignThemeCard';
 import SimpleModeCard from '@/features/profile/components/SimpleModeCard';
@@ -283,7 +284,11 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
                 'Die Demo-Dokumente werden auf den ursprünglichen Stand zurückgesetzt. Deine eigenen Dokumente bleiben erhalten.',
                 [
                   { text: 'Abbrechen', style: 'cancel' },
-                  { text: 'Zurücksetzen', onPress: () => dispatch({ type: 'RESET_DEMO' }) },
+                  { text: 'Zurücksetzen', onPress: async () => {
+                    const oldDemoIds = state.dokumente.filter(d => d.isDemo).map(d => d.id);
+                    dispatch({ type: 'RESET_DEMO' });
+                    await DocumentMemory.deleteAll(oldDemoIds);
+                  }},
                 ],
               );
             }}

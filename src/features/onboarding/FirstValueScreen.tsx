@@ -108,15 +108,26 @@ export default function FirstValueScreen() {
   }
 
   return (
-    <ScrollView
-      style={[st.root, { backgroundColor: C.bg }]}
-      contentContainerStyle={{
-        paddingTop: insets.top + 20,
-        paddingBottom: insets.bottom + 28,
-        paddingHorizontal: 22,
-      }}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={[st.root, { backgroundColor: C.bg }]}>
+      <TouchableOpacity
+        onPress={finishActivation}
+        disabled={busy === 'done'}
+        accessibilityLabel="Überspringen"
+        accessibilityRole="button"
+        hitSlop={{ top: 8, bottom: 8, left: 16, right: 8 }}
+        style={{ position: 'absolute', top: insets.top + 12, right: 22, zIndex: 10, padding: 8 }}
+      >
+        <Text style={{ fontSize: 14, fontWeight: '600', color: C.textSecondary }}>Überspringen</Text>
+      </TouchableOpacity>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 20,
+          paddingBottom: insets.bottom + 28,
+          paddingHorizontal: 22,
+        }}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={[st.kicker, { color: C.primary }]}>JETZT BIST DU DRAN</Text>
       <Text style={[st.headline, { color: C.text }]}>Dein nächster Schritt</Text>
       <Text style={[st.subhead, { color: C.textSecondary }]}>
@@ -175,7 +186,8 @@ export default function FirstValueScreen() {
           <Text style={st.primaryTxt}>Weiter zur Übersicht</Text>
         </TouchableOpacity>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

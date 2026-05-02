@@ -153,12 +153,7 @@ export default function SmartSummaryCard({
           {currentMode === 'mittel' && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <TypewriterText
-                  key={i}
-                  text={p}
-                  speed={10}
-                  style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
-                />
+                <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 20 }}>{p}</Text>
               ))}
             </View>
           )}

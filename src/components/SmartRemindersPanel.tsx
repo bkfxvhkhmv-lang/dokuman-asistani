@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import Icon from '@/components/Icon';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import type { RadiusTokens } from '@/theme';
 import type { ReminderSuggestion, ScheduledReminder } from '@/services/SmartRemindersService';
@@ -23,38 +24,41 @@ function ReminderRow({ suggestion, scheduled, isScheduling, onSchedule, onCancel
 }) {
   const isSet = !!scheduled;
 
+  const iconName = suggestion.dringend ? 'warning-octagon' : 'bell';
+  const iconColor = isSet ? C.primary : (suggestion.dringend ? C.danger : C.textSecondary);
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10,
-      borderBottomWidth: 0.5, borderColor: C.border }}>
-      <View style={{ width: 36, height: 36, borderRadius: 10,
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14,
+      minHeight: 56, borderBottomWidth: 0.5, borderColor: C.border }}>
+      <View style={{ width: 40, height: 40, borderRadius: 10,
         backgroundColor: isSet ? C.primaryLight : (suggestion.dringend ? C.dangerLight : C.bgInput),
         alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 16 }}>{suggestion.icon}</Text>
+        <Icon name={iconName} size={22} color={iconColor} />
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{suggestion.label}</Text>
-        <Text style={{ fontSize: 11, color: C.textSecondary }}>{suggestion.datumLabel}</Text>
+        <Text style={{ fontSize: 15, fontWeight: '600', color: C.text }}>{suggestion.label}</Text>
+        <Text style={{ fontSize: 14, color: C.textSecondary }}>{suggestion.datumLabel}</Text>
       </View>
 
       {isSet ? (
         <TouchableOpacity
           onPress={onCancel}
           style={{ backgroundColor: C.bgInput, borderRadius: R.sm,
-            paddingHorizontal: 10, paddingVertical: 6,
+            paddingHorizontal: 12, paddingVertical: 6, minHeight: 36, justifyContent: 'center',
             borderWidth: 1, borderColor: C.border }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: C.textSecondary }}>✓ Gesetzt</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.textSecondary }}>✓ Gesetzt</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
           onPress={onSchedule}
           disabled={isScheduling}
           style={{ backgroundColor: suggestion.dringend ? C.danger : C.primary, borderRadius: R.sm,
-            paddingHorizontal: 10, paddingVertical: 6 }}>
+            paddingHorizontal: 12, paddingVertical: 6, minHeight: 36, justifyContent: 'center' }}>
           {isScheduling ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff' }}>+ Setzen</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>+ Setzen</Text>
           )}
         </TouchableOpacity>
       )}
@@ -76,10 +80,12 @@ export default function SmartRemindersPanel({
       borderWidth: 0.5, borderColor: C.border, marginBottom: 12 }}>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: C.textTertiary,
-          letterSpacing: 0.6, flex: 1 }}>
-          ⏰ ERINNERUNGEN ({suggestions.length})
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+          <Icon name="bell" size={16} color={C.textSecondary} />
+          <Text style={{ fontSize: 15, fontWeight: '700', color: C.text, letterSpacing: 0.3 }}>
+            Erinnerungen
+          </Text>
+        </View>
         {scheduledCount > 0 && (
           <View style={{ backgroundColor: C.primaryLight, borderRadius: 999,
             paddingHorizontal: 8, paddingVertical: 3,

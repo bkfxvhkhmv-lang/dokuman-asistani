@@ -6,7 +6,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 
@@ -89,9 +88,14 @@ export default function AppSheet({
 
         {/* Sheet */}
         <Animated.View
-          style={[st.sheet, { borderTopColor: Colors.borderLight }, sheetStyle]}
+          style={[
+            st.sheet,
+            { borderTopColor: Colors.border },
+            Platform.OS === 'android' && { elevation: 12, borderTopWidth: 1 },
+            sheetStyle,
+          ]}
         >
-          {/* Glass background */}
+          {/* Surface background */}
           {Platform.OS === 'ios' ? (
             <BlurView
               intensity={88}
@@ -99,15 +103,7 @@ export default function AppSheet({
               style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
             />
           ) : (
-            <>
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: `${Colors.primary}08`, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
-              <LinearGradient
-                colors={['rgba(255,255,255,0.12)', 'transparent']}
-                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
-                pointerEvents="none"
-              />
-            </>
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
           )}
 
           {/* Handle — gesture target */}

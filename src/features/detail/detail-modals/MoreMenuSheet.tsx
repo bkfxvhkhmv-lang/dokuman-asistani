@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { AppSheet, AppButton } from '@/design/components';
+import Icon from '@/components/Icon';
 import type { MoreMenuGroup, MoreMenuItem } from '@/features/detail/detail-modals/types';
 
 const GROUP_LABEL: Record<MoreMenuGroup, string> = {
@@ -86,7 +87,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
         borderBottomColor: C.border,
       }}
     >
-      <Text style={{ fontSize: 17 }}>{item.icon}</Text>
+      <Icon name={item.icon} size={20} color={item.destructive ? C.danger : C.text} />
       <Text
         style={{
           flex: 1,

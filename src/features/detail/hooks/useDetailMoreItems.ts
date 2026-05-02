@@ -53,28 +53,28 @@ export function useDetailMoreItems({
 
     if (!dok.erledigt && aktiv.includes('zahlen')) {
       rows.push({
-        key: 'menu_zahlen', icon: '💶', label: 'Zahlung vorbereiten', group: 'main',
+        key: 'menu_zahlen', icon: 'currency-eur', label: 'Zahlung vorbereiten', group: 'main',
         onPress: tap(actions.handleZahlen),
       });
     }
 
     if (!dok.erledigt && aktiv.includes('einspruch')) {
       rows.push({
-        key: 'menu_einspruch', icon: '✍️', label: 'Einspruch prüfen', group: 'main',
+        key: 'menu_einspruch', icon: 'pencil-line', label: 'Einspruch prüfen', group: 'main',
         onPress: tap(actions.handleEinspruch),
       });
     }
 
     if (!dok.erledigt && dok.frist) {
       rows.push({
-        key: 'menu_kalender', icon: '📅', label: 'Frist ins Kalender', group: 'main',
+        key: 'menu_kalender', icon: 'calendar-blank', label: 'Frist ins Kalender', group: 'main',
         onPress: tapAsync(actions.handleKalender),
       });
     }
 
     rows.push({
       key:       'menu_chat',
-      icon:      '💬',
+      icon:      'chat-circle',
       label:     'Mit KI chatten',
       group:     'communication',
       onPress:   () => { close(); openModal('chat'); },
@@ -82,7 +82,7 @@ export function useDetailMoreItems({
 
     rows.push({
       key:       'menu_vorlage',
-      icon:      '✉️',
+      icon:      'envelope-simple',
       label:     'Antwort schreiben',
       group:     'communication',
       onPress:   () => { close(); openModal('yanitSablon'); },
@@ -90,7 +90,7 @@ export function useDetailMoreItems({
 
     rows.push({
       key:       'menu_formular',
-      icon:      '📋',
+      icon:      'clipboard-text',
       label:     'Formular ausfüllen',
       group:     'communication',
       onPress:   () => { close(); openModal('formular'); },
@@ -98,36 +98,36 @@ export function useDetailMoreItems({
 
     rows.push({
       key: 'menu_teilen',
-      icon: '📤',
+      icon: 'upload',
       label: 'Teilen',
       group: 'secondary',
       onPress: () => { close(); actions.handleTeilen(anonModus); },
     });
 
     rows.push({
-      key: 'menu_sicher', icon: '🔗', label: 'Sicher teilen', group: 'secondary',
+      key: 'menu_sicher', icon: 'share-network', label: 'Sicher teilen', group: 'secondary',
       onPress: tap(actions.handleGuvenliPaylasim),
     });
 
     rows.push({
-      key: 'menu_pdf', icon: '📄', label: 'PDF exportieren', group: 'secondary',
+      key: 'menu_pdf', icon: 'file-pdf', label: 'PDF exportieren', group: 'secondary',
       onPress: tapAsync(actions.handlePDF),
     });
 
     rows.push({
-      key: 'menu_orig', icon: '📎', label: 'Original teilen', group: 'secondary',
+      key: 'menu_orig', icon: 'paperclip', label: 'Original teilen', group: 'secondary',
       onPress: tapAsync(actions.handleOriginalTeilen),
     });
 
     rows.push({
-      key: 'menu_edit', icon: '📝', label: 'Dokument bearbeiten', group: 'secondary',
+      key: 'menu_edit', icon: 'pencil-simple', label: 'Dokument bearbeiten', group: 'secondary',
       onPress: tap(actions.handleEdit),
     });
 
     if (dok.erledigt) {
       rows.push({
         key: 'menu_erl',
-        icon: '↩️',
+        icon: 'arrow-counter-clockwise',
         label: 'Als offen markieren',
         group: 'secondary',
         onPress: tap(actions.handleErledigt),
@@ -137,7 +137,7 @@ export function useDetailMoreItems({
     if (partnerEmailEnabled) {
       rows.push({
         key: 'menu_partner',
-        icon: '🤝',
+        icon: 'users',
         label: 'Partner informieren',
         group: 'secondary',
         onPress: tap(actions.handleZahlenMitPartner),
@@ -146,19 +146,19 @@ export function useDetailMoreItems({
 
     rows.push({
       key:       'anon',
-      icon:      anonModus ? '🙈' : '🕵️',
+      icon:      anonModus ? 'eye-slash' : 'eye',
       label:     anonModus ? 'Anonymisierung ausschalten' : 'Anonymisierung einschalten',
       group:     'advanced',
       onPress:   () => { close(); setAnonModus(v => !v); },
     });
 
     rows.push({
-      key: 'menu_signpdf', icon: '✒️', label: 'PDF mit Unterschrift', group: 'advanced',
+      key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF mit Unterschrift', group: 'advanced',
       onPress: () => { close(); openModal('signatur'); },
     });
 
     rows.push({
-      key: 'menu_budget', icon: '📊', label: 'Ausgaben-Übersicht', group: 'advanced',
+      key: 'menu_budget', icon: 'chart-bar', label: 'Ausgaben-Übersicht', group: 'advanced',
       onPress: () => {
         close();
         setBudgetModalVisible(true);
@@ -166,18 +166,18 @@ export function useDetailMoreItems({
     });
 
     rows.push({
-      key: 'menu_kur', icon: '🏛️', label: 'Behörden & Institutionen', group: 'advanced',
+      key: 'menu_kur', icon: 'buildings', label: 'Behörden & Institutionen', group: 'advanced',
       onPress: () => { close(); openModal('kurumlar'); },
     });
 
     rows.push({
-      key: 'menu_h', icon: '🆘', label: 'Hilfe & Beratung', group: 'advanced',
+      key: 'menu_h', icon: 'lifebuoy', label: 'Hilfe & Beratung', group: 'advanced',
       onPress: () => { close(); openModal('hilfe'); },
     });
 
     rows.push({
       key:         'del',
-      icon:        '🗑️',
+      icon:        'trash',
       label:       'Dokument löschen',
       group:       'advanced',
       destructive: true,

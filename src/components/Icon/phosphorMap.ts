@@ -36,6 +36,11 @@ import {
   Money,
   PencilSimple, PencilLine,
   CurrencyEur,
+  ClipboardText,
+  Paperclip,
+  PenNib,
+  Lifebuoy,
+  PlusCircle,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown,
   DotsThree,
   Gear,
@@ -293,6 +298,17 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   'scissors':                  Scissors,
   'crop':                      Scissors,
   'gavel':                     Gavel,
+  // Clipboard
+  'clipboard-text':            ClipboardText,
+  // Paperclip / Attachment
+  'paperclip':                 Paperclip,
+  'attach-outline':            Paperclip,
+  // Pen / Signature
+  'pen-nib':                   PenNib,
+  // Lifebuoy / Help
+  'lifebuoy':                  Lifebuoy,
+  // Plus Circle
+  'plus-circle':               PlusCircle,
   // Map
   'location-outline':          MapPin,
   'map-pin':                   MapPin,

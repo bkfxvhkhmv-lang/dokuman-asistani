@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
@@ -39,12 +40,12 @@ export default function DetailsPanel({
   const confidencePct = dok.confidence ?? 100;
 
   const coreRows: { icon: string; label: string; value: string }[] = [
-    { icon: '🏷️', label: T('field.category'), value: dok.typ || '–' },
-    { icon: '🏢', label: T('field.sender'),   value: dok.absender || '–' },
-    { icon: '📅', label: T('field.date'),     value: formatDatum(dok.datum) || '–' },
-    ...(dok.betrag != null ? [{ icon: '💶', label: T('field.amount'),   value: formatBetrag(dok.betrag as number) ?? '–' }] : []),
-    ...(dok.frist  ? [{ icon: '⏰', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
-    ...(dok.risiko ? [{ icon: '🚦', label: T('field.priority'), value: dok.risiko === 'hoch' ? T('doc.urgent_label') : dok.risiko === 'mittel' ? T('doc.this_week') : T('doc.no_action') }] : []),
+    { icon: 'tag',           label: T('field.category'), value: dok.typ || '–' },
+    { icon: 'buildings',     label: T('field.sender'),   value: dok.absender || '–' },
+    { icon: 'calendar-blank',label: T('field.date'),     value: formatDatum(dok.datum) || '–' },
+    ...(dok.betrag != null ? [{ icon: 'currency-eur',    label: T('field.amount'),   value: formatBetrag(dok.betrag as number) ?? '–' }] : []),
+    ...(dok.frist  ? [{ icon: 'clock',                   label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
+    ...(dok.risiko ? [{ icon: 'warning-circle',          label: T('field.priority'), value: dok.risiko === 'hoch' ? T('doc.urgent_label') : dok.risiko === 'mittel' ? T('doc.this_week') : T('doc.no_action') }] : []),
   ];
 
   const hasContent = !!(dok.uri || smartFields.length > 0 || extrahierteFelder.length > 0 || dok.rohText);
@@ -111,7 +112,7 @@ export default function DetailsPanel({
           borderRadius: R.lg, borderWidth: 1, borderStyle: 'dashed',
           borderColor: C.borderLight, marginTop: S.md,
         }}>
-          <Text style={{ fontSize: 22 }}>📄</Text>
+          <Icon name="document-text" size={22} color={C.textTertiary} />
           <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, textAlign: 'center' }}>
             Noch nicht alle Felder erkannt.
           </Text>

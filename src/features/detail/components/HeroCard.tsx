@@ -5,15 +5,21 @@ import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils';
 import { HIT_SLOP_LG } from '@/theme';
 import AiSparkle from '@/components/AiSparkle';
+import Icon from '@/components/Icon';
 import type { Dokument } from '@/store';
 import type { RiskEntry } from '@/utils/types';
 import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
 import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
 
-const TYP_EMOJI: Record<string, string> = {
-  Mahnung: '⚠️', Rechnung: '💶', Bußgeld: '🚔',
-  Behörde: '🏛️', Termin: '📅', Vertrag: '📝',
-  Versicherung: '🛡️', Sonstiges: '📄',
+const TYP_ICON: Record<string, string> = {
+  Mahnung:     'warning-circle',
+  Rechnung:    'receipt',
+  Bußgeld:     'warning-octagon',
+  Behörde:     'buildings',
+  Termin:      'calendar-blank',
+  Vertrag:     'file-text',
+  Versicherung:'shield-check',
+  Sonstiges:   'document-text',
 };
 
 interface HeroCardProps {
@@ -62,7 +68,7 @@ export default function HeroCard({
         />
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
           <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 26 }}>{TYP_EMOJI[dok.typ] || '📄'}</Text>
+            <Icon name={TYP_ICON[dok.typ] || 'document-text'} size={28} color="rgba(255,255,255,0.9)" />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
@@ -75,13 +81,15 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.md, paddingVertical: S.sm }}>
         {([
-          { emoji: info.emoji ?? '🎯', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true, aiField: false },
-          { emoji: '⏳', label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist, aiField: dok.confidence != null },
-          { emoji: '💶', label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag, aiField: dok.confidence != null },
+          { iconName: 'warning-circle', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true, aiField: false },
+          { iconName: 'clock',          label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist, aiField: dok.confidence != null },
+          { iconName: 'currency-eur',   label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag, aiField: dok.confidence != null },
         ] as const).filter(r => r.show && r.value).map((row, i, arr) => (
           <View key={`${row.label}-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7,
             borderBottomWidth: i < arr.length - 1 ? 0.5 : 0, borderBottomColor: C.borderLight }}>
-            <Text style={{ fontSize: fs(14), width: 22, textAlign: 'center' }}>{row.emoji}</Text>
+            <View style={{ width: 22, alignItems: 'center' }}>
+              <Icon name={row.iconName} size={20} color={row.color ?? C.text} />
+            </View>
             <Text
               style={{ fontSize: fs(11), color: C.textTertiary, width: simpleLayout ? 92 : 54 }}
               numberOfLines={simpleLayout ? 2 : undefined}
@@ -105,7 +113,7 @@ export default function HeroCard({
             borderTopColor: C.borderLight,
           }}
         >
-          <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary }}>ℹ️</Text>
+          <Icon name="info" size={12} color={C.textTertiary} />
           <Text style={{ fontSize: 11, color: C.textTertiary, flex: 1, lineHeight: 15 }}>
             {dok.confidence == null
               ? 'Automatisch erkannt · Angaben bitte kurz prüfen'
@@ -125,9 +133,14 @@ export default function HeroCard({
             hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
               backgroundColor: kontaktName ? C.successLight : C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
-            <Text style={{ fontSize: 10, fontWeight: '600', color: kontaktName ? C.success : C.textTertiary }}>
-              {kontaktName ? `👤 ${kontaktName}` : '+ Kontakt'}
-            </Text>
+            {kontaktName ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Icon name="user" size={10} color={C.success} />
+                <Text style={{ fontSize: 10, fontWeight: '600', color: C.success }}>{kontaktName}</Text>
+              </View>
+            ) : (
+              <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary }}>+ Kontakt</Text>
+            )}
           </TouchableOpacity>
         </View>
         {dok.erledigt && (

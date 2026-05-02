@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
 import { WarningCircle, Money, PencilSimple, CalendarBlank, FileText, File, Clock, CheckCircle, ShieldCheck } from 'phosphor-react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { RiskPalette } from '@/theme';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
 import { excerptForDocumentListCard } from '@/utils/listCardSummary';
@@ -18,13 +19,13 @@ function getTageText(frist: string | null | undefined, T: (key: string, vars?: R
   return T('doc.due_days', { n: diff });
 }
 
-function getAccentColor(dok: Dokument, C: ThemeColors): string {
+function getAccentColor(dok: Dokument, C: ThemeColors, Risk: RiskPalette): string {
   if (dok.erledigt) return C.textTertiary;
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
-  if (tage !== null && tage <= 0) return C.danger;   // bugün / gecikmiş → kırmızı
-  if (tage !== null && tage <= 3) return C.warning;  // 1-3 gün → amber
-  if (dok.risiko === 'hoch') return C.warning;        // yüksek risk → amber
-  return C.border;                                    // normal → nötr
+  if (tage !== null && tage <= 0) return Risk.hoch.color;   // overdue → urgency red (not UI danger)
+  if (tage !== null && tage <= 3) return Risk.mittel.color; // soon → urgency amber
+  if (dok.risiko === 'hoch') return Risk.mittel.color;
+  return C.border;
 }
 
 function quickIntent(dok: Dokument, C: ThemeColors) {
@@ -50,11 +51,13 @@ interface DokumentKarteProps {
 }
 
 function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: DokumentKarteProps) {
-  const { Colors, fs, hitSlopScale } = useTheme();
+  const { Colors, RiskColors, fs, hitSlopScale } = useTheme();
   const { t: T } = useT();
-  const accentColor = getAccentColor(dok, Colors);
+  const accentColor = getAccentColor(dok, Colors, RiskColors);
   const tageText    = getTageText(dok.frist, T);
   const intent      = quickIntent(dok, Colors);
+  const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
+  const isUrgent    = !dok.erledigt && (tage !== null && tage <= 3 || dok.risiko === 'hoch');
   const isDone      = dok.erledigt;
   const a11yLabel = [
     dok.typ, dok.titel, dok.absender,
@@ -78,6 +81,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       onLongPress={() => onLongPress?.(dok)}
       selected={!!secilen}
       accentColor={accentColor}
+      urgent={isUrgent}
       accessibilityLabel={a11yLabel}
     >
       {/* Header */}

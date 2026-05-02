@@ -14,6 +14,7 @@ interface DocumentSurfaceProps {
   onLongPress?: () => void;
   selected?: boolean;
   accentColor?: string;
+  urgent?: boolean;
   style?: ViewStyle;
   accessibilityLabel?: string;
 }
@@ -21,7 +22,7 @@ interface DocumentSurfaceProps {
 const SPRING = { damping: 22, stiffness: 320, mass: 0.7 };
 
 export default function DocumentSurface({
-  children, onPress, onLongPress, selected = false, accentColor, style, accessibilityLabel,
+  children, onPress, onLongPress, selected = false, accentColor, urgent = false, style, accessibilityLabel,
 }: DocumentSurfaceProps) {
   const { Colors } = useTheme();
   const scale = useSharedValue(1);
@@ -53,7 +54,7 @@ export default function DocumentSurface({
 
   const accent = accentColor || Colors.border;
   const shadowColor = selected ? Colors.primary : accent;
-  const isUrgent = accent === Colors.danger || accent === Colors.warning;
+  const isUrgent = urgent;
 
   return (
     <Animated.View style={[animStyle, style]}>

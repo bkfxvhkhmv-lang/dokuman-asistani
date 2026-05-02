@@ -196,7 +196,7 @@ export default function SmartSummaryCard({
       ) : null}
 
       {/* Processing time */}
-      {result && result.verarbeitungMs > 0 && (
+      {__DEV__ && result && result.verarbeitungMs > 0 && (
         <Text style={{ fontSize: 9, color: C.textTertiary, marginTop: 8, textAlign: 'right' }}>
           {result.verarbeitungMs}ms
         </Text>

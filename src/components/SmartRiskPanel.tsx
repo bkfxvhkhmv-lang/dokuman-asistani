@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 import type { RiskEngineResult, RiskLevel, RiskTrend } from '@/services/SmartRiskEngineService';
 
 interface SmartRiskPanelProps {
@@ -10,7 +11,7 @@ interface SmartRiskPanelProps {
 }
 
 const TREND_ICON: Record<RiskTrend, string> = {
-  verschlechtert: '↑', stabil: '→', verbessert: '↓',
+  verschlechtert: 'arrow-up', stabil: 'minus', verbessert: 'arrow-down',
 };
 
 function ScoreGauge({ score, color, bg, textColor }: { score: number; color: string; bg: string; textColor: string }) {
@@ -71,9 +72,10 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
           <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
             {result.erklaerung}
           </Text>
-          <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], marginTop: 4, fontWeight: '700' }}>
-            {TREND_ICON[result.trend]} {result.trendLabel}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
+            <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
+            <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], fontWeight: '700' }}>{result.trendLabel}</Text>
+          </View>
         </View>
       </View>
     );
@@ -91,9 +93,10 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             <Text style={{ fontSize: 14, fontWeight: '800', color: textColor, flex: 1 }}>
               {result.levelLabel}
             </Text>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>
-              {TREND_ICON[result.trend]} {result.trendLabel}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+              <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>{result.trendLabel}</Text>
+            </View>
           </View>
           <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4, lineHeight: 16 }}>
             {result.erklaerung}
@@ -113,7 +116,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
               onPress={() => onAktion?.(v.aktion)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 6,
                 borderTopWidth: i > 0 ? 0.5 : 0, borderColor: border + '33' }}>
-              <Text style={{ fontSize: 14 }}>{v.icon}</Text>
+              <Icon name={v.icon} size={16} color={textColor} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 12, fontWeight: '600', color: C.text }}>{v.beschreibung}</Text>
                 <Text style={{ fontSize: 10, color: C.textTertiary }}>{v.wirkung}</Text>
@@ -134,7 +137,10 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
       <TouchableOpacity
         onPress={() => setExpanded(v => !v)}
         style={{ alignItems: 'center', paddingTop: 6, borderTopWidth: 0.5, borderColor: border + '44' }}>
-        <Text style={{ fontSize: 11, color: textColor }}>{expanded ? 'Weniger Details' : 'Alle Risikofaktoren'} {expanded ? '▴' : '▾'}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{ fontSize: 11, color: textColor }}>{expanded ? 'Weniger Details' : 'Alle Risikofaktoren'}</Text>
+          <Icon name={expanded ? 'caret-up' : 'caret-down'} size={11} color={textColor} />
+        </View>
       </TouchableOpacity>
 
       {expanded && (
@@ -145,7 +151,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             <View key={f.id} style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Text style={{ fontSize: 11 }}>{f.icon}</Text>
+                  <Icon name={f.icon} size={13} color={C.textSecondary} />
                   <Text style={{ fontSize: 11, color: C.text }}>{f.beschreibung}</Text>
                 </View>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: factorColor(f.score) }}>
@@ -168,7 +174,10 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
                   marginBottom: 6, borderWidth: 1, borderColor: LEVEL_BORDER[dp.schwere as RiskLevel] + '44' }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: C.text }}>{dp.titel}</Text>
                   <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>{dp.beschreibung}</Text>
-                  <Text style={{ fontSize: 10, color: C.primary, marginTop: 4 }}>⚖️ {dp.rechtsgrundlage}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <Icon name="gavel" size={12} color={C.primary} />
+                    <Text style={{ fontSize: 10, color: C.primary, flex: 1 }}>{dp.rechtsgrundlage}</Text>
+                  </View>
                 </View>
               ))}
             </View>

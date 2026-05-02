@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 import type { ColorPalette } from '@/theme';
 import type { Dokument } from '@/store';
 
 interface GuidanceCard {
   id: string;
-  emoji: string;
+  icon: string;
   title: string;
   sub: string;
   color: string;
@@ -22,10 +23,10 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
 
   const kritisch = docs.filter(d => d.risiko === 'hoch' && !d.erledigt);
   if (kritisch.length > 0) {
-    cards.push({ id: 'kritisch', emoji: '🔴',
+    cards.push({ id: 'kritisch', icon: 'warning-circle',
       title: `${kritisch.length} dringende${kritisch.length === 1 ? 's Dokument' : ' Dokumente'}`,
       sub: kritisch.slice(0, 2).map(d => d.absender || d.titel).join(', '),
-      color: C.danger, bg: C.dangerLight, action: () => {}, actionLabel: 'Jetzt ansehen →', priority: 10 });
+      color: C.danger, bg: C.dangerLight, action: () => {}, actionLabel: 'Jetzt ansehen', priority: 10 });
   }
 
   const heuteUndMorgen = docs.filter(d => {
@@ -34,22 +35,22 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
     return days >= 0 && days <= 1;
   });
   if (heuteUndMorgen.length > 0) {
-    cards.push({ id: 'heutemorgen', emoji: '⏰',
+    cards.push({ id: 'heutemorgen', icon: 'clock',
       title: `${heuteUndMorgen.length} Frist${heuteUndMorgen.length === 1 ? '' : 'en'} heute / morgen`,
       sub: heuteUndMorgen[0].titel,
       color: C.warning, bg: C.warningLight,
       action: () => router.push({ pathname: '/detail', params: { dokId: heuteUndMorgen[0].id } }),
-      actionLabel: 'Öffnen →', priority: 9 });
+      actionLabel: 'Öffnen', priority: 9 });
   }
 
   const ungelesen = docs.filter(d => !d.gelesen && !d.erledigt);
   if (ungelesen.length > 0) {
-    cards.push({ id: 'ungelesen', emoji: '📬',
+    cards.push({ id: 'ungelesen', icon: 'envelope-simple',
       title: `${ungelesen.length} ungelesen${ungelesen.length === 1 ? 'es Dokument' : 'e Dokumente'}`,
       sub: 'Ein erster Blick ist meist der wichtigste Schritt',
       color: C.primary, bg: C.primaryLight,
       action: () => router.push({ pathname: '/detail', params: { dokId: ungelesen[0].id } }),
-      actionLabel: 'Öffnen →', priority: 7 });
+      actionLabel: 'Öffnen', priority: 7 });
   }
 
   const dieseWoche = docs.filter(d => {
@@ -58,12 +59,12 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
     return days > 1 && days <= 7;
   });
   if (dieseWoche.length > 0) {
-    cards.push({ id: 'deadline', emoji: '📅',
+    cards.push({ id: 'deadline', icon: 'calendar-blank',
       title: `${dieseWoche.length} Frist${dieseWoche.length === 1 ? '' : 'en'} diese Woche`,
       sub: dieseWoche.map(d => d.absender || d.titel).slice(0, 2).join(', '),
       color: C.success, bg: C.successLight,
       action: () => router.push({ pathname: '/detail', params: { dokId: dieseWoche[0].id } }),
-      actionLabel: 'Im Kalender eintragen →', priority: 6 });
+      actionLabel: 'Im Kalender eintragen', priority: 6 });
   }
 
   const mitAufgaben = docs.filter(d => d.aufgaben?.some(a => !a.erledigt));
@@ -73,21 +74,21 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
       mitAufgaben
         .map(d => (d.aufgaben ?? []).find(a => !a.erledigt)?.titel)
         .find(Boolean) ?? '';
-    cards.push({ id: 'aufgaben', emoji: '✅',
+    cards.push({ id: 'aufgaben', icon: 'check-circle',
       title: `${total} offene${total === 1 ? ' Aufgabe' : ' Aufgaben'}`,
       sub: ersteOffeneZeile,
-      color: C.primaryDark, bg: C.primaryLight, action: () => {}, actionLabel: 'Zu den Aufgaben →', priority: 5 });
+      color: C.primaryDark, bg: C.primaryLight, action: () => {}, actionLabel: 'Zu den Aufgaben', priority: 5 });
   }
 
   if (cards.length === 0 && docs.length === 0) {
-    cards.push({ id: 'willkommen', emoji: '📷', title: 'Erstes Dokument einlesen',
+    cards.push({ id: 'willkommen', icon: 'camera', title: 'Erstes Dokument einlesen',
       sub: 'Fotografieren Sie einen Brief — BriefPilot analysiert ihn sofort',
       color: C.primary, bg: C.primaryLight,
-      action: () => router.push('/(tabs)/Kamera'), actionLabel: 'Kamera öffnen →', priority: 4 });
+      action: () => router.push('/(tabs)/Kamera'), actionLabel: 'Kamera öffnen', priority: 4 });
   }
 
   if (cards.length === 0) {
-    cards.push({ id: 'allgut', emoji: '✨', title: 'Alles unter Kontrolle',
+    cards.push({ id: 'allgut', icon: 'check-circle', title: 'Alles unter Kontrolle',
       sub: 'Wir benachrichtigen Sie, sobald ein neues Dokument eintrifft',
       color: C.success, bg: C.successLight, action: null, actionLabel: null, priority: 1 });
   }
@@ -121,7 +122,9 @@ export default function ContextualGuidance({ docs = [], router }: ContextualGuid
             accessibilityLabel={card.actionLabel ? `${card.title}. ${card.actionLabel}` : card.title}
             style={{ width: 200, borderRadius: R.lg, padding: S.md, backgroundColor: card.bg,
               borderWidth: 1, borderColor: card.color + '40', ...Shadow.sm }}>
-            <Text style={{ fontSize: 22, marginBottom: 6 }}>{card.emoji}</Text>
+            <View style={{ marginBottom: 6 }}>
+              <Icon name={card.icon} size={22} color={card.color} />
+            </View>
             <Text style={{ fontSize: 13, fontWeight: '700', color: card.color, lineHeight: 18, marginBottom: 3 }}>{card.title}</Text>
             {card.sub ? (
               <Text style={{ fontSize: 11, color: card.color + 'BB', lineHeight: 15, marginBottom: 8 }} numberOfLines={2}>{card.sub}</Text>

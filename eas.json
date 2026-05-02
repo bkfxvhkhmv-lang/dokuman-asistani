@@ -13,6 +13,7 @@
       "ios": { "simulator": false }
     },
     "testflight": {
+      "autoIncrement": true,
       "distribution": "store",
       "ios": { "simulator": false },
       "env": {

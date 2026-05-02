@@ -24,7 +24,7 @@ export function createDemoDokumente(): Dokument[] {
     {
       id: 'demo-vodafone-rechnung',
       isDemo: true,
-      titel: 'Vodafone — Rechnung April 2026',
+      titel: 'Vodafone — Monatliche Rechnung',
       typ: 'Rechnungen',
       absender: 'Vodafone GmbH',
       zusammenfassung:

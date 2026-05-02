@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
@@ -38,19 +37,16 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
   if (!dok) return null;
 
   return (
-    <Animated.View style={[animStyle, aiBoxSt.wrapper, { marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, borderWidth: 0.5, borderColor: C.borderLight, ...Shadow.sm }]}>
-      {/* Glass background */}
+    <Animated.View style={[
+      animStyle, aiBoxSt.wrapper,
+      { marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg, borderWidth: 0.5, borderColor: C.borderLight, ...Shadow.sm },
+      Platform.OS === 'android' && { elevation: 3, borderWidth: 1, borderColor: C.border },
+    ]}>
+      {/* Surface background */}
       {Platform.OS === 'ios' ? (
         <BlurView intensity={64} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: R.lg }]} />
       ) : (
-        <>
-          <View style={[StyleSheet.absoluteFill, { borderRadius: R.lg, backgroundColor: C.bgCard }]} />
-          <LinearGradient
-            colors={[`${C.primary}0A`, 'transparent']}
-            style={[StyleSheet.absoluteFill, { borderRadius: R.lg }]}
-            pointerEvents="none"
-          />
-        </>
+        <View style={[StyleSheet.absoluteFill, { borderRadius: R.lg, backgroundColor: C.bgCard }]} />
       )}
       <View style={{ padding: S.lg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -72,8 +68,9 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
           )}
           <TouchableOpacity onPress={onMailTaslak}
             hitSlop={HIT_SLOP_LG}
-            style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>📧 E-Mail</Text>
+            style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Icon name="envelope-simple" size={12} color={C.textSecondary} />
+            <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>E-Mail</Text>
           </TouchableOpacity>
         </View>
       </View>

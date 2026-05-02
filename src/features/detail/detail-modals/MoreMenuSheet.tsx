@@ -140,7 +140,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
               {!extraCommOpen ? (
                 <TouchableOpacity onPress={() => setExtraCommOpen(true)} style={{ paddingVertical: 10 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
-                    Chat & Antwort (+{commRest.length})
+                    Alle anzeigen
                   </Text>
                 </TouchableOpacity>
               ) : null}

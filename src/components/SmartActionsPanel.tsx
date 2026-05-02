@@ -124,7 +124,7 @@ export default function SmartActionsPanel({
             style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}>
             <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary,
               letterSpacing: 0.6, flex: 1 }}>
-              {GRUPPE_LABEL[gruppe]} ({actions.length})
+              {GRUPPE_LABEL[gruppe]}
             </Text>
             <Text style={{ fontSize: 11, color: C.textTertiary }}>
               {expandedGruppe === gruppe ? '▴' : '▾'}

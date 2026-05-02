@@ -123,7 +123,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
       router.push('/login');
       return;
     }
-    Alert.alert(T('modal.logout.title'), T('settings.logout_info'), [
+    Alert.alert(T('modal.logout.title'), T('modal.logout.body'), [
       { text: T('common.cancel'), style: 'cancel' },
       { text: T('settings.logout'), style: 'destructive', onPress: () => void logout() },
     ]);

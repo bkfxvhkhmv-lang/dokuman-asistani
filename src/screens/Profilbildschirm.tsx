@@ -104,9 +104,6 @@ export default function Profilbildschirm() {
     Constants.expoConfig?.version ??
     (Constants.manifest as { version?: string } | undefined)?.version ?? '–';
 
-  const [plusSheetVisible, setPlusSheetVisible] = useState(false);
-  const openPlusSheet = () => Alert.alert('BriefPilot Plus', 'Plus-Funktionen kommen bald. ✦');
-
   const showDatenschutz = () =>
     Alert.alert('Datenschutz', 'Deine Daten bleiben auf deinem Gerät.\nDie vollständige Datenschutzerklärung findest du auf briefpilot.de.', [{ text: 'OK' }]);
 

@@ -7,12 +7,12 @@ import {
   User, Users,
   Camera, CameraSlash,
   CheckCircle, Check,
-  WarningCircle, Warning,
+  WarningCircle, Warning, WarningOctagon,
   X, XCircle,
   CaretRight, CaretLeft, CaretDown, CaretUp,
   Clock,
   CalendarBlank, CalendarCheck,
-  Envelope,
+  Envelope, EnvelopeSimple,
   Lightning, LightningSlash,
   Images, Stack,
   Scan,
@@ -28,8 +28,10 @@ import {
   Key,
   Folder, FolderOpen,
   Sparkle,
+  Gavel,
   Cpu,
   ChatTeardrop,
+  ChatCircleText,
   ChartBar,
   Money,
   PencilSimple, PencilLine,
@@ -38,7 +40,7 @@ import {
   Gear,
   Trash,
   Eye, EyeSlash,
-  Share,
+  Share, ShareNetwork,
   Download,
   Upload,
   MapPin,
@@ -109,12 +111,14 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   // Checkmark
   'checkmark-circle':          CheckCircle,
   'checkmark-circle-outline':  CheckCircle,
+  'check-circle':              CheckCircle,
   'checkmark':                 Check,
   'check':                     Check,
   // Warning
   'alert-circle':              WarningCircle,
   'alert-circle-outline':      WarningCircle,
   'warning-circle':            WarningCircle,
+  'warning-octagon':           WarningOctagon,
   'alert':                     Warning,
   'warning-outline':           Warning,
   // Close / X
@@ -140,11 +144,13 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   // Calendar
   'calendar':                  CalendarBlank,
   'calendar-outline':          CalendarBlank,
+  'calendar-blank':            CalendarBlank,
   'calendar-check':            CalendarCheck,
   // Mail / Envelope
   'mail':                      Envelope,
   'mail-outline':              Envelope,
   'envelope':                  Envelope,
+  'envelope-simple':           EnvelopeSimple,
   // Flash / Lightning / Bolt
   'flash':                     Lightning,
   'bolt':                      Lightning,
@@ -205,6 +211,7 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   // Chat
   'chatbubble-outline':        ChatTeardrop,
   'chatbubble-ellipses-outline': ChatTeardrop,
+  'chat-circle':               ChatCircleText,
   // Analytics / Chart
   'analytics-outline':         ChartBar,
   'chart-bar':                 ChartBar,
@@ -261,6 +268,7 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   'share-social-outline':      Share,
   'share-social':              Share,
   'share':                     Share,
+  'share-network':             ShareNetwork,
   // Download / Upload
   'download-outline':          Download,
   'download':                  Download,
@@ -278,10 +286,11 @@ export const PHOSPHOR_ICON_MAP: Record<string, React.ComponentType<any>> = {
   // Building / Business
   'business-outline':          Buildings,
   'buildings':                 Buildings,
-  // Scissors / Crop
+  // Scissors / Crop / Gavel
   'cut-outline':               Scissors,
   'scissors':                  Scissors,
   'crop':                      Scissors,
+  'gavel':                     Gavel,
   // Map
   'location-outline':          MapPin,
   'map-pin':                   MapPin,

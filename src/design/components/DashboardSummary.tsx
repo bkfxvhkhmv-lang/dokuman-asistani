@@ -58,7 +58,7 @@ export default function DashboardSummary({
       <View style={st.row}>
         {/* Frist */}
         <TouchableOpacity onPress={onFrist} activeOpacity={0.7} style={[st.card, { backgroundColor: C.bgCard, borderColor: C.borderLight }]}>
-          <Icon name="calendar" size={18} color={fristColor} />
+          <Icon name="calendar" size={20} color={fristColor} />
           <Text style={[st.cardValue, { color: fristColor, fontSize: fs(15) }]} numberOfLines={1}>
             {fristLabel}
           </Text>

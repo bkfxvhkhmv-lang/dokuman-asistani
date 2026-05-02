@@ -58,7 +58,7 @@ function ActionButton({ action, onPress, C, R, large }: {
         borderBottomWidth: 0.5, borderColor: C.border }}>
       <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.bgInput,
         alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={action.icon} size={18} color={C.text} />
+        <Icon name={action.icon} size={20} color={C.text} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{action.label}</Text>

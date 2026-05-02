@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 import type { RadiusTokens } from '@/theme';
 import type { SmartAction, ActionGruppe, ActionKey, ActionsResult } from '@/services/SmartActionsService';
 
@@ -32,7 +33,7 @@ function ActionButton({ action, onPress, C, R, large }: {
         style={{ flexDirection: 'row', alignItems: 'center', gap: 12,
           backgroundColor: C.primary, borderRadius: R.lg,
           padding: 16, marginBottom: 12 }}>
-        <Text style={{ fontSize: 22 }}>{action.icon}</Text>
+        <Icon name={action.icon} size={22} color="#fff" />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff' }}>{action.label}</Text>
           <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
@@ -45,7 +46,7 @@ function ActionButton({ action, onPress, C, R, large }: {
             <Text style={{ fontSize: 10, fontWeight: '800', color: '#fff' }}>{action.badge}</Text>
           </View>
         )}
-        <Text style={{ fontSize: 18, color: 'rgba(255,255,255,0.8)' }}>→</Text>
+        <Icon name="arrow-right" size={18} color="rgba(255,255,255,0.8)" />
       </TouchableOpacity>
     );
   }
@@ -57,7 +58,7 @@ function ActionButton({ action, onPress, C, R, large }: {
         borderBottomWidth: 0.5, borderColor: C.border }}>
       <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: C.bgInput,
         alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 16 }}>{action.icon}</Text>
+        <Icon name={action.icon} size={18} color={C.text} />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{action.label}</Text>
@@ -105,7 +106,7 @@ export default function SmartActionsPanel({
         <View style={{ marginBottom: 8 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary,
             letterSpacing: 0.6, marginBottom: 8 }}>
-            ⚡ NÄCHSTER SCHRITT
+            NÄCHSTER SCHRITT
           </Text>
           <ActionButton
             action={primary}

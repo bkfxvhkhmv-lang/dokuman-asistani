@@ -43,19 +43,19 @@ const PHASE_LABELS: Record<LifecyclePhase, string> = {
 };
 
 const PHASE_ICONS: Record<LifecyclePhase, string> = {
-  received:      '📬',
-  reviewing:     '👁',
-  action_needed: '⚡',
-  waiting:       '⏳',
-  resolved:      '✅',
-  overdue:       '🔴',
+  received:      'envelope-simple',
+  reviewing:     'eye',
+  action_needed: 'warning-circle',
+  waiting:       'clock',
+  resolved:      'check-circle',
+  overdue:       'warning-octagon',
 };
 
 const NEXT_ACTION_MAP: Partial<Record<string, { action: string; emoji: string }>> = {
-  zahlen:    { action: 'Zahlung erforderlich',     emoji: '💶' },
-  einspruch: { action: 'Einspruch prüfen',         emoji: '✍️' },
-  kalender:  { action: 'In Kalender eintragen',   emoji: '📅' },
-  mail:      { action: 'E-Mail-Entwurf öffnen',     emoji: '📧' },
+  zahlen:    { action: 'Zahlung erforderlich',   emoji: 'currency-eur' },
+  einspruch: { action: 'Einspruch prüfen',       emoji: 'pencil-simple' },
+  kalender:  { action: 'Kalender eintragen',     emoji: 'calendar-blank' },
+  mail:      { action: 'E-Mail-Entwurf öffnen', emoji: 'envelope-simple' },
 };
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────
@@ -165,11 +165,11 @@ export class LifecyclePredictionEngine {
 
   static async summarize(dok: Record<string, any>): Promise<string> {
     const p = await this.predict(dok);
-    const parts = [`${p.phaseIcon} ${p.phaseLabel}`];
-    if (p.nextAction) parts.push(`→ ${p.nextAction}`);
+    const parts = [p.phaseLabel];
+    if (p.nextAction) parts.push(p.nextAction);
     if (p.predictedFristDays !== null) {
-      if (p.predictedFristDays < 0) parts.push('⚠️ Frist abgelaufen');
-      else if (p.predictedFristDays === 0) parts.push('⚠️ Heute fällig');
+      if (p.predictedFristDays < 0) parts.push('Frist abgelaufen');
+      else if (p.predictedFristDays === 0) parts.push('Heute fällig');
       else parts.push(`${p.predictedFristDays} Tage verbleibend`);
     }
     return parts.join(' · ');

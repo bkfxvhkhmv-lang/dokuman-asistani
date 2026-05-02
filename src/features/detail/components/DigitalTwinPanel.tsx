@@ -59,7 +59,7 @@ export default function DigitalTwinPanel({ digitalTwin, dok, institutionDesc, is
     }}>
       <View style={{ paddingHorizontal: S.md, paddingVertical: S.sm, backgroundColor: C.bgInput,
         flexDirection: 'row', alignItems: 'center', gap: 8, borderBottomWidth: 0.5, borderColor: C.borderLight }}>
-        <Text style={{ fontSize: 18 }}>{icon}</Text>
+        <Icon name={icon} size={18} color={C.textSecondary} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: C.text }}>Überblick</Text>
           <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }}>Situation · Handlung · Frist</Text>

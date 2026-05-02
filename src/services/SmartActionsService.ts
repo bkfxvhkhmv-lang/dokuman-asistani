@@ -87,7 +87,7 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   if (dok.betrag && (dok.betrag as number) > 0 && !dok.erledigt) {
     const urgent = tage !== null && tage <= 3;
     actions.push(makeAction(
-      'zahlen', 'Zahlung vorbereiten', '💶',
+      'zahlen', 'Zahlung vorbereiten', 'currency-eur',
       hatIBAN ? 'IBAN erkannt — Banking-App öffnen' : 'Zahlungsdaten vorbereiten',
       'zahlung', urgent ? 95 : 60, urgent,
       tage !== null && tage < 0 ? 'ÜBERFÄLLIG' : tage !== null && tage <= 3 ? `${tage}T` : undefined,
@@ -98,14 +98,14 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   if (['Bußgeld', 'Steuerbescheid', 'Behördenbescheid', 'Mahnung'].includes(dok.typ) && !dok.erledigt) {
     const einspruchTage = dok.typ === 'Bußgeld' ? 14 : 30;
     actions.push(makeAction(
-      'einspruch', 'Einspruch erstellen', '✍️',
+      'einspruch', 'Einspruch erstellen', 'pencil-simple',
       `Vorlage in ${einspruchTage > 14 ? '1 Monat' : '14 Tagen'} einreichen`,
       'rechtlich', tage !== null && tage <= 5 ? 90 : 65,
       false,
       `${einspruchTage} Tage`,
     ));
     actions.push(makeAction(
-      'einspruch_mail', 'Einspruch per Mail', '📧',
+      'einspruch_mail', 'Einspruch per Mail', 'envelope-simple',
       'Vorgefertigte E-Mail an Behörde',
       'rechtlich', 58,
     ));
@@ -114,7 +114,7 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   // ── Kalender ───────────────────────────────────────────────────────────────
   if (dok.frist && !dok.erledigt && tage !== null && tage > 0) {
     actions.push(makeAction(
-      'kalender', 'Zum Kalender', '📅',
+      'kalender', 'Zum Kalender', 'calendar-blank',
       `Frist am ${new Date(dok.frist).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })} eintragen`,
       'organisation', 55,
     ));
@@ -123,7 +123,7 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   // ── Erinnerung ─────────────────────────────────────────────────────────────
   if (dok.frist && !dok.erledigt && tage !== null && tage > 0 && tage <= 30) {
     actions.push(makeAction(
-      'erinnerung', 'Erinnerung setzen', '🔔',
+      'erinnerung', 'Erinnerung setzen', 'bell',
       '1–3 Tage vor Frist erinnern lassen',
       'organisation', 50,
     ));
@@ -131,45 +131,45 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
 
   // ── Vertrag ────────────────────────────────────────────────────────────────
   if (dok.typ === 'Vertrag') {
-    actions.push(makeAction('kündigen',   'Kündigung vorbereiten', '✂️', 'Kündigungsschreiben erstellen', 'rechtlich', 48));
-    actions.push(makeAction('verlängern', 'Verlängerung notieren', '🔄', 'Vertragsverlängerung im Blick behalten', 'organisation', 35));
+    actions.push(makeAction('kündigen',   'Kündigung vorbereiten', 'scissors',       'Kündigungsschreiben erstellen',             'rechtlich',    48));
+    actions.push(makeAction('verlängern', 'Verlängerung notieren', 'arrow-clockwise', 'Vertragsverlängerung im Blick behalten',   'organisation', 35));
   }
 
   // ── KI-Assistent ──────────────────────────────────────────────────────────
   if (dok.rohText && dok.rohText.length > 50) {
     actions.push(makeAction(
-      'ai_erklären', 'Dokument verstehen', '🧠',
+      'ai_erklären', 'Dokument verstehen', 'sparkle',
       'KI fasst zusammen — Sprache wählbar',
       'ki_assistent', 62,
     ));
     actions.push(makeAction(
-      'ai_chat', 'Mit KI besprechen', '💬',
+      'ai_chat', 'Mit KI besprechen', 'chat-circle',
       'Fragen zum Dokument stellen',
       'ki_assistent', 55,
     ));
     actions.push(makeAction(
-      'risiko_analyse', 'Risikoanalyse', '🎯',
+      'risiko_analyse', 'Risikoanalyse', 'chart-bar',
       'Detaillierte Risikoeinschätzung',
       'ki_assistent', 48,
     ));
   }
 
   // ── Organisation ──────────────────────────────────────────────────────────
-  actions.push(makeAction('aufgabe_hinzufügen', 'Aufgabe hinzufügen', '✅', 'Manuelle Aufgabe erstellen', 'organisation', 40));
-  actions.push(makeAction('bearbeiten', 'Dokument bearbeiten', '✏️', 'Felder manuell korrigieren', 'organisation', 38));
-  actions.push(makeAction('links_anzeigen', 'Verknüpfte Dokumente', '🔗', 'Ähnliche und verknüpfte Dokumente', 'organisation', 35));
+  actions.push(makeAction('aufgabe_hinzufügen', 'Aufgabe hinzufügen',  'check-circle',  'Manuelle Aufgabe erstellen',          'organisation', 40));
+  actions.push(makeAction('bearbeiten',          'Dokument bearbeiten', 'pencil-simple', 'Felder manuell korrigieren',           'organisation', 38));
+  actions.push(makeAction('links_anzeigen',      'Verknüpfte Dokumente','paperclip',     'Ähnliche und verknüpfte Dokumente',   'organisation', 35));
 
   // ── Export ────────────────────────────────────────────────────────────────
-  actions.push(makeAction('pdf_export', 'Als PDF exportieren', '📄', 'Professioneller PDF-Export', 'export', 42));
-  actions.push(makeAction('teilen', 'Teilen', '⬆', 'Dokument sicher teilen', 'export', 38));
-  actions.push(makeAction('teilen_anonym', 'Anonym teilen', '🔒', 'Persönliche Daten werden maskiert', 'export', 32));
+  actions.push(makeAction('pdf_export',    'Als PDF exportieren', 'file-pdf',   'Professioneller PDF-Export',          'export', 42));
+  actions.push(makeAction('teilen',        'Teilen',              'share',      'Dokument sicher teilen',               'export', 38));
+  actions.push(makeAction('teilen_anonym', 'Anonym teilen',       'lock',       'Persönliche Daten werden maskiert',    'export', 32));
   if (ENABLE_RELEASE_DATEV_EXPORT && dok.betrag && (dok.betrag as number) > 0) {
-    actions.push(makeAction('datev_export', 'DATEV Export', '📊', 'Für Steuerberater exportieren', 'export', 28));
+    actions.push(makeAction('datev_export', 'DATEV Export',       'chart-bar',  'Für Steuerberater exportieren',        'export', 28));
   }
 
   // ── Archivieren (erledigt is already in SCHNELLE AKTIONEN) ────────────────
   if (dok.erledigt) {
-    actions.push({ ...makeAction('archivieren', 'Archivieren', '📁', 'Ins Archiv verschieben', 'organisation', 25), isDestructive: false });
+    actions.push({ ...makeAction('archivieren', 'Archivieren',    'folder',     'Ins Archiv verschieben',               'organisation', 25), isDestructive: false });
   }
 
   // Sort by score

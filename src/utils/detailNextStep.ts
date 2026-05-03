@@ -55,6 +55,14 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
   if (key === 'review') {
     return 'Angaben wurden nicht vollständig erkannt. Bitte prüfen.';
   }
+  if (key === 'mail') {
+    return fristStr
+      ? `Antwort per E-Mail vorbereiten — Frist bis ${fristStr}.`
+      : 'Antwort oder Weiterleitung per E-Mail vorbereiten.';
+  }
+  if (key === 'ai') {
+    return 'Dokument analysieren lassen — KI erklärt Inhalt und Risiken.';
+  }
 
-  return plan.primary?.label ?? null;
+  return null;
 }

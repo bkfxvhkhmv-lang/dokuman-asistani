@@ -193,28 +193,32 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 }}>
         <AppButton label="Zur Übersicht" variant="secondary" onPress={onBack} style={{ minWidth: 150 }} />
       </View>
-      <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>
-      <TouchableOpacity onPress={primary.onPress} disabled={!primary.onPress} activeOpacity={primary.onPress ? 0.8 : 1}>
-        <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Icon name={primary.icon} size={22} color={processColors.text} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: processColors.text }}>{primary.label}</Text>
-              <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 4 }}>
-                {primary.key === 'review'
-                  ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'
-                  : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
-              </Text>
-              {(primary.key === 'einspruch') && (
-                <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
-                  {NO_LEGAL_ADVICE_DISCLAIMER}
-                </Text>
-              )}
-            </View>
-            {primary.onPress && <Icon name="caret-right" size={16} color={processColors.text} />}
-          </View>
-        </AppCard>
-      </TouchableOpacity>
+      {primary.onPress && (
+        <>
+          <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>
+          <TouchableOpacity onPress={primary.onPress} activeOpacity={0.8}>
+            <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Icon name={primary.icon} size={22} color={processColors.text} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: processColors.text }}>{primary.label}</Text>
+                  <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 4 }}>
+                    {primary.key === 'review'
+                      ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'
+                      : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
+                  </Text>
+                  {(primary.key === 'einspruch') && (
+                    <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 6, fontStyle: 'italic' }}>
+                      {NO_LEGAL_ADVICE_DISCLAIMER}
+                    </Text>
+                  )}
+                </View>
+                <Icon name="caret-right" size={16} color={processColors.text} />
+              </View>
+            </AppCard>
+          </TouchableOpacity>
+        </>
+      )}
 
       {secondary.length > 0 && (
         <>

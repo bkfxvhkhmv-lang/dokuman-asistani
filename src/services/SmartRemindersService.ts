@@ -15,6 +15,7 @@ import {
   withAndroidNotificationChannel,
 } from '@/services/SmartNotificationsService';
 import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '@/utils';
+import * as Notifications from 'expo-notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -149,7 +150,6 @@ export async function scheduleReminder(
   if (__DEV__) console.log('[ReminderTrace] SmartRemindersService.scheduleReminder entered', suggestion);
   if (suggestion.datum <= new Date()) return null;
   try {
-    const { default: Notifications } = await import('expo-notifications');
     await ensureAndroidDefaultNotificationChannel();
     if (__DEV__) console.log('[ReminderTrace] calling scheduleNotificationAsync', suggestion.datum);
     const id = await Notifications.scheduleNotificationAsync({
@@ -183,7 +183,6 @@ export async function scheduleTemplateReminder(
   datum.setHours(9, 0, 0, 0);
   if (datum <= new Date()) return null;
   try {
-    const { default: Notifications } = await import('expo-notifications');
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({

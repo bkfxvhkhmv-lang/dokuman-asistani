@@ -20,6 +20,15 @@ export function runDetailSmartAction(
     case 'einspruch':
       actions.handleEinspruch();
       break;
+    case 'einspruch_mail':
+      actions.handleMailTaslak();
+      break;
+    case 'erinnerung':
+      actions.handleKalender();
+      break;
+    case 'kündigen':
+      modal.open('yanitSablon');
+      break;
     case 'kalender':
       actions.handleKalender();
       break;

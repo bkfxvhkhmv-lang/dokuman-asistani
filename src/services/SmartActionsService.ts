@@ -131,8 +131,8 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
 
   // ── Vertrag ────────────────────────────────────────────────────────────────
   if (dok.typ === 'Vertrag') {
-    actions.push(makeAction('kündigen',   'Kündigung vorbereiten', 'scissors',       'Kündigungsschreiben erstellen',             'rechtlich',    48));
-    actions.push(makeAction('verlängern', 'Verlängerung notieren', 'arrow-clockwise', 'Vertragsverlängerung im Blick behalten',   'organisation', 35));
+    actions.push(makeAction('kündigen', 'Kündigung vorbereiten', 'scissors', 'Kündigungsschreiben erstellen', 'rechtlich', 48));
+    // verlängern removed — no real extension flow exists
   }
 
   // ── KI-Assistent ──────────────────────────────────────────────────────────
@@ -147,17 +147,13 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
       'Fragen zum Dokument stellen',
       'ki_assistent', 55,
     ));
-    actions.push(makeAction(
-      'risiko_analyse', 'Risikoanalyse', 'chart-bar',
-      'Detaillierte Risikoeinschätzung',
-      'ki_assistent', 48,
-    ));
+    // risiko_analyse removed — no dedicated risk analysis screen exists
   }
 
   // ── Organisation ──────────────────────────────────────────────────────────
   actions.push(makeAction('aufgabe_hinzufügen', 'Aufgabe hinzufügen',  'check-circle',  'Manuelle Aufgabe erstellen',          'organisation', 40));
   actions.push(makeAction('bearbeiten',          'Dokument bearbeiten', 'pencil-simple', 'Felder manuell korrigieren',           'organisation', 38));
-  actions.push(makeAction('links_anzeigen',      'Verknüpfte Dokumente','paperclip',     'Ähnliche und verknüpfte Dokumente',   'organisation', 35));
+  // links_anzeigen removed — no linked-documents screen exists
 
   // ── Export ────────────────────────────────────────────────────────────────
   actions.push(makeAction('pdf_export',    'Als PDF exportieren', 'file-pdf',   'Professioneller PDF-Export',          'export', 42));
@@ -167,10 +163,7 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
     actions.push(makeAction('datev_export', 'DATEV Export',       'chart-bar',  'Für Steuerberater exportieren',        'export', 28));
   }
 
-  // ── Archivieren (erledigt is already in SCHNELLE AKTIONEN) ────────────────
-  if (dok.erledigt) {
-    actions.push({ ...makeAction('archivieren', 'Archivieren',    'folder',     'Ins Archiv verschieben',               'organisation', 25), isDestructive: false });
-  }
+  // archivieren removed — doc already erledigt; no separate archive concept exists
 
   // Sort by score
   actions.sort((a, b) => b.score - a.score);

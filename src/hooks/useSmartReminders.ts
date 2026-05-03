@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import {
   buildReminderSuggestions,
   scheduleReminder,
@@ -22,16 +23,28 @@ export function useSmartReminders(dok: Dokument | null) {
     setIsScheduling(true);
     try {
       console.warn('[ReminderTrace] before getPermissionsAsync');
-      const { default: Notifications } = await import('expo-notifications');
-
       const permissions = await Notifications.getPermissionsAsync();
-      if (__DEV__) console.log('[ReminderTrace] permission before', permissions);
+      console.warn('[ReminderTrace] permission before', permissions.status, 'canAskAgain:', permissions.canAskAgain);
 
       let finalStatus = permissions.status;
+
       if (permissions.status !== 'granted') {
-        if (__DEV__) console.log('[ReminderTrace] requesting permission');
+        if (!permissions.canAskAgain) {
+          // User previously denied — guide to Settings
+          console.warn('[ReminderTrace] canAskAgain false, opening settings');
+          Alert.alert(
+            'Benachrichtigungen deaktiviert',
+            'Öffne die Einstellungen und aktiviere Benachrichtigungen für BriefPilot.',
+            [
+              { text: 'Abbrechen', style: 'cancel' },
+              { text: 'Einstellungen öffnen', onPress: () => Linking.openURL('app-settings:') },
+            ],
+          );
+          return;
+        }
+        console.warn('[ReminderTrace] requesting permission');
         const requestResult = await Notifications.requestPermissionsAsync();
-        if (__DEV__) console.log('[ReminderTrace] permission after', requestResult);
+        console.warn('[ReminderTrace] permission after', requestResult.status);
         finalStatus = requestResult.status;
       }
 
@@ -43,14 +56,14 @@ export function useSmartReminders(dok: Dokument | null) {
         return;
       }
 
-      if (__DEV__) console.log('[ReminderTrace] scheduling notification');
+      console.warn('[ReminderTrace] scheduling notification');
       const result = await scheduleReminder(dok, suggestion);
       if (result) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setScheduled(prev => [...prev, result]);
       }
     } catch (error) {
-      if (__DEV__) console.warn('[ReminderTrace] schedule failed original error', error);
+      console.warn('[ReminderTrace] schedule failed', error);
       Alert.alert(
         'Erinnerung nicht gesetzt',
         'Bitte prüfe die Benachrichtigungsberechtigung und versuche es erneut.',

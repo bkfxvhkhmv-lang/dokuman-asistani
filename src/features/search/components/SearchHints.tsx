@@ -112,7 +112,7 @@ export function IntentBadge({ label, processingMs, C, S }: IntentBadgeProps) {
           <Text style={{ fontSize: 10, fontWeight: '800', color: C.primaryDark }}>{label}</Text>
         </View>
       </View>
-      {processingMs > 0 && (
+      {__DEV__ && processingMs > 0 && (
         <Text style={{ fontSize: 9, color: C.textTertiary }}>{processingMs}ms</Text>
       )}
     </View>

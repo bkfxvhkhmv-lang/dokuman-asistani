@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
-import { Animated } from 'react-native';
+import { Animated, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -227,17 +227,19 @@ export default function KameraScreenView() {
   });
 
   // Saves a minimal needs_review document from supplied page URIs, then navigates to it.
-  const saveAsNeedsReview = useCallback(async (pageUris: Array<{ uri: string }>) => {
+  // Pass optimisticId to UPDATE the existing placeholder instead of creating a new doc.
+  const saveAsNeedsReview = useCallback(async (pageUris: Array<{ uri: string }>, optimisticId?: string) => {
     try {
-      const saved = await finalizeDocument({ rawText: '', confidence: null, pages: pageUris });
+      const saved = await finalizeDocument({ rawText: '', confidence: null, pages: pageUris, optimisticId });
       clearPages();
       setMode('camera');
       void finishScanFlow(router, saved.id);
     } catch {
+      if (optimisticId) dispatch({ type: 'DELETE_DOKUMENT', id: optimisticId });
       clearPages();
       setMode('camera');
     }
-  }, [finalizeDocument, clearPages, setMode, router]);
+  }, [finalizeDocument, clearPages, setMode, router, dispatch]);
 
   // Called by AnalysisView visual-timeout buttons ("Felder prüfen" / "Trotzdem weiter").
   const handleContinueAnyway = useCallback(async () => {
@@ -247,18 +249,32 @@ export default function KameraScreenView() {
   }, [sessionPages, saveAsNeedsReview]);
 
   // Called by useProcessingHandler when OCR yields no usable result.
-  const handleNeedsReview = useCallback((pageUris: Array<{ uri: string }>) => {
+  const handleNeedsReview = useCallback((pageUris: Array<{ uri: string }>, optimisticId?: string) => {
     showSheet({
       title:   'Bitte kurz prüfen',
       message: ERROR_COPY.ocr_failed,
       icon:    'document-text',
       tone:    'warning',
       actions: [
-        { label: 'Felder prüfen', variant: 'primary',   onPress: () => { hideSheet(); void saveAsNeedsReview(pageUris); } },
-        { label: 'Neu scannen',   variant: 'secondary', onPress: () => { hideSheet(); clearPages(); setMode('camera'); } },
+        { label: 'Felder prüfen', variant: 'primary',   onPress: () => { hideSheet(); void saveAsNeedsReview(pageUris, optimisticId); } },
+        { label: 'Neu scannen',   variant: 'secondary', onPress: () => {
+          hideSheet();
+          Alert.alert(
+            'Scan verwerfen?',
+            'Der aufgenommene Scan wird gelöscht.',
+            [
+              { text: 'Behalten',   style: 'cancel' },
+              { text: 'Verwerfen',  style: 'destructive', onPress: () => {
+                if (optimisticId) dispatch({ type: 'DELETE_DOKUMENT', id: optimisticId });
+                clearPages();
+                setMode('camera');
+              }},
+            ],
+          );
+        }},
       ],
     });
-  }, [showSheet, hideSheet, saveAsNeedsReview, clearPages, setMode]);
+  }, [showSheet, hideSheet, saveAsNeedsReview, clearPages, setMode, dispatch]);
 
   const { handleProcessAll } = useProcessingHandler({
     pages: sessionPages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata,

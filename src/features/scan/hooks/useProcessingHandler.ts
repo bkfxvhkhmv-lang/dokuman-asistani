@@ -34,7 +34,7 @@ interface Deps {
   dispatchOptimistic?: (pages: Array<{ uri: string }>) => string;
   onOptimisticFail?: (id: string) => void;
   /** Called when OCR yields no usable result — saves a minimal needs_review document. */
-  onNeedsReview?: (pageUris: Array<{ uri: string }>) => void;
+  onNeedsReview?: (pageUris: Array<{ uri: string }>, optimisticId?: string) => void;
 }
 
 export function useProcessingHandler({
@@ -70,19 +70,19 @@ export function useProcessingHandler({
 
       // OCR yielded no usable content — route to needs_review instead of crashing
       if (!ocrResult || rawText.length < 10) {
-        if (optimisticId) onOptimisticFail?.(optimisticId);
         if (onNeedsReview) {
-          onNeedsReview(pageUris);
+          onNeedsReview(pageUris, optimisticId);
           return;
         }
+        // Fallback: no recovery handler — explicit user actions only, no silent delete
         showSheet({
-          title:   'Analyse nicht vollständig',
+          title:   'Analyse nicht abgeschlossen',
           message: ERROR_COPY.ocr_failed,
           icon:    'document-text',
           tone:    'warning',
           actions: [
-            { label: 'Erneut versuchen', variant: 'primary',   onPress: () => { hideSheet(); handleProcessAll(); } },
-            { label: 'Neu scannen',      variant: 'secondary', onPress: () => { hideSheet(); clearPages(); setMode('camera'); } },
+            { label: 'Erneut versuchen', variant: 'primary',   onPress: () => { hideSheet(); if (optimisticId) onOptimisticFail?.(optimisticId); void handleProcessAll(); } },
+            { label: 'Scan verwerfen',   variant: 'secondary', onPress: () => { hideSheet(); if (optimisticId) onOptimisticFail?.(optimisticId); clearPages(); setMode('camera'); } },
           ],
         });
         return;
@@ -126,18 +126,17 @@ export function useProcessingHandler({
       setMode('camera');
       onComplete(savedDocument.id);
     } catch (e) {
-      if (optimisticId) onOptimisticFail?.(optimisticId);
       showSheet({
-        title:   'Bitte kurz prüfen',
-        message: ERROR_COPY.ocr_failed,
+        title:   'Analyse nicht abgeschlossen',
+        message: 'Du kannst es erneut versuchen oder die erkannten Felder manuell prüfen.',
         icon:    'document-text',
         tone:    'warning',
         actions: [
-          { label: 'Erneut versuchen', variant: 'primary',   onPress: () => { hideSheet(); handleProcessAll(); } },
+          { label: 'Erneut versuchen', variant: 'primary',   onPress: () => { hideSheet(); if (optimisticId) onOptimisticFail?.(optimisticId); void handleProcessAll(); } },
           ...(onNeedsReview
-            ? [{ label: 'Felder prüfen', variant: 'secondary' as const, onPress: () => { hideSheet(); onNeedsReview(rawPageUris); } }]
+            ? [{ label: 'Felder prüfen', variant: 'secondary' as const, onPress: () => { hideSheet(); onNeedsReview(rawPageUris, optimisticId); } }]
             : []),
-          { label: 'Neu scannen',      variant: 'secondary', onPress: () => { hideSheet(); clearPages(); setMode('camera'); } },
+          { label: 'Scan verwerfen',   variant: 'secondary', onPress: () => { hideSheet(); if (optimisticId) onOptimisticFail?.(optimisticId); clearPages(); setMode('camera'); } },
         ],
       });
     }

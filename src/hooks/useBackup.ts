@@ -26,12 +26,14 @@ export function useBackup() {
     }
   }, []);
 
-  const importBackup = useCallback(async (dispatch: any): Promise<boolean> => {
+  const importBackup = useCallback(async (
+    dispatch: any,
+    currentState?: { dokumente: any; einstellungen: any },
+  ): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      await importYedek(dispatch);
-      return true;
+      return await importYedek(dispatch, currentState);
     } catch (e: any) {
       setError(e?.message ?? 'Import fehlgeschlagen');
       return false;

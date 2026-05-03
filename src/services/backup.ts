@@ -51,7 +51,10 @@ export async function exportYedek(state: StoreState): Promise<boolean> {
   }
 }
 
-export async function importYedek(dispatch: Dispatch): Promise<boolean> {
+export async function importYedek(
+  dispatch: Dispatch,
+  currentState?: { dokumente: StoreState['dokumente']; einstellungen: StoreState['einstellungen'] },
+): Promise<boolean> {
   try {
     const result = await DocumentPicker.getDocumentAsync({
       type: 'application/json',
@@ -76,13 +79,32 @@ export async function importYedek(dispatch: Dispatch): Promise<boolean> {
           { text: 'Abbrechen', style: 'cancel', onPress: () => resolve(false) },
           {
             text: 'Wiederherstellen', style: 'destructive',
-            onPress: async () => {
+            onPress: () => {
               dispatch({ type: 'LOAD', payload: {
                 dokumente: payload.dokumente,
                 einstellungen: payload.einstellungen || {} as StoreState['einstellungen'],
               }});
-              Alert.alert('✓ Wiederhergestellt', `${payload.dokumente.length} Dokumente geladen.`);
               resolve(true);
+
+              // Post-import undo alert — snapshot was captured before any dispatch
+              Alert.alert(
+                'Backup importiert',
+                'Du kannst den vorherigen Zustand kurz wiederherstellen.',
+                [
+                  {
+                    text: 'Rückgängig',
+                    onPress: () => {
+                      if (currentState) {
+                        dispatch({ type: 'LOAD', payload: {
+                          dokumente:     currentState.dokumente,
+                          einstellungen: currentState.einstellungen,
+                        }});
+                      }
+                    },
+                  },
+                  { text: 'OK', style: 'cancel' },
+                ],
+              );
             },
           },
         ],

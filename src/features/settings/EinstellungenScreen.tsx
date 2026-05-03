@@ -6,8 +6,6 @@ import { ScrollView, TouchableOpacity, Text, View, StyleSheet, Switch, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { safeBack } from '@/navigation/safeBack';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
 import Constants from 'expo-constants';
 
 import { useStore } from '@/store';
@@ -85,28 +83,9 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   }, [exportBackup, hideSheet, showSheet, state]);
 
   const handleImport = useCallback(async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({ type: 'application/json' });
-      if (result.canceled || !result.assets?.length) return;
-      const content = await FileSystem.readAsStringAsync(result.assets[0].uri);
-      await importBackup({ data: JSON.parse(content), dispatch });
-      showSheet({
-        title: 'Erfolg',
-        message: 'Backup wiederhergestellt',
-        icon: 'checkmark-circle',
-        tone: 'success',
-        actions: [{ label: 'OK', variant: 'primary', onPress: hideSheet }],
-      });
-    } catch (err: unknown) {
-      showSheet({
-        title: 'Fehler',
-        message: (err as Error).message,
-        icon: 'alert-circle',
-        tone: 'danger',
-        actions: [{ label: 'OK', variant: 'primary', onPress: hideSheet }],
-      });
-    }
-  }, [dispatch, hideSheet, importBackup, showSheet]);
+    const snapshot = { dokumente: state.dokumente, einstellungen: state.einstellungen };
+    await importBackup(dispatch, snapshot);
+  }, [dispatch, importBackup, state.dokumente, state.einstellungen]);
 
   const docCount = state.dokumente.length;
 

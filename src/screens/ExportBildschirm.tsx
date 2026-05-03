@@ -7,6 +7,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   Alert, Platform, StyleSheet,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '@/store';
@@ -14,8 +15,7 @@ import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
-import { exportiereTopluPDF, exportiereDatavCSV } from '@/utils/exporters';
-import { documentMatchesTypChip } from '@/product/canonicalDocTypes';
+import { exportiereTopluPDF } from '@/utils/exporters';
 import type { Dokument } from '@/store';
 
 // Export-Lila — eigene Sektionsfarbe (wie Accountable: jede Sektion hat eigene Farbe)
@@ -60,13 +60,7 @@ function buildExportOptions(T: (k: string) => string): ExportOption[] {
       icon: 'files',
       premium: false,
     },
-    {
-      id: 'datev',
-      label: 'DATEV-CSV',
-      description: T('export.subtitle'),
-      icon: 'table',
-      premium: false,
-    },
+    // DATEV hidden — ENABLE_RELEASE_DATEV_EXPORT is false in SmartActionsService
   ];
 }
 
@@ -160,23 +154,23 @@ export default function ExportBildschirm() {
     [alleDoks, aktJahr]);
 
   const counts: Record<string, number> = {
-    steuerpaket:     steuerDoks.length,
-    pdf_alle:        jahresDoks.length,
+    steuerpaket:       steuerDoks.length,
+    pdf_alle:          jahresDoks.length,
     originaldokumente: alleDoks.filter(d => !!d.uri).length,
-    datev:           alleDoks.filter(d => (d.betrag ?? 0) > 0).length,
   };
 
-  const toggle = (id: string) => {
+  const toggle = useCallback((id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelected(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-  };
+  }, []);
 
   const handleExport = useCallback(async () => {
     if (selected.size === 0) {
-      Alert.alert(T('export.nothing'), T('export.nothing_body'));
+      Alert.alert('Keine Dokumente ausgewählt', 'Wähle mindestens ein Dokument aus, um den Export zu starten.');
       return;
     }
     setLoading(true);
@@ -195,9 +189,6 @@ export default function ExportBildschirm() {
         } else {
           await exportiereTopluPDF(docs);
         }
-      }
-      if (selected.has('datev')) {
-        await exportiereDatavCSV(alleDoks);
       }
     } catch (e: any) {
       console.warn('[ExportBildschirm]', e);

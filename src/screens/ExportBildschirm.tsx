@@ -183,7 +183,7 @@ export default function ExportBildschirm() {
     try {
       if (selected.has('steuerpaket')) {
         if (steuerDoks.length === 0) {
-          Alert.alert(T('export.no_steuer'), `Für ${aktJahr} keine Steuerbelege gefunden.`);
+          Alert.alert('Keine Steuernachweise', 'Es gibt aktuell keine Dokumente, die für ein Steuerpaket exportiert werden können.');
         } else {
           await exportiereTopluPDF(steuerDoks);
         }
@@ -200,7 +200,12 @@ export default function ExportBildschirm() {
         await exportiereDatavCSV(alleDoks);
       }
     } catch (e: any) {
-      Alert.alert(T('export.failed'), e?.message ?? 'Unbekannter Fehler');
+      console.warn('[ExportBildschirm]', e);
+      if (e?.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
+        Alert.alert('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
+      } else {
+        Alert.alert(T('export.failed'), 'Bitte versuche es erneut.');
+      }
     } finally {
       setLoading(false);
     }

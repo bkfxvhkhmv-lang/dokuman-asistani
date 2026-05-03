@@ -125,6 +125,9 @@ export async function exportierePDF(dok: Dokument): Promise<void> {
   const Sharing = await import('expo-sharing');
   const uri = await exportierePDFZuDatei(dok);
   const base = buildPdfExportBasename(dok);
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('BRIEFPILOT_SHARING_UNAVAILABLE');
+  }
   const dir = FileSystem.documentDirectory;
   if (!dir?.length) {
     await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: base });
@@ -164,16 +167,14 @@ export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string>
     // copy failed — fall back to the original temp URI
   }
 
-  const canShare = await Sharing.isAvailableAsync();
-  if (canShare) {
-    await Sharing.shareAsync(shareUri, {
-      mimeType: 'application/pdf',
-      dialogTitle: `BriefPilot — ${dokumente.length} Dokument${dokumente.length !== 1 ? 'e' : ''}`,
-      UTI: 'com.adobe.pdf',
-    });
-  } else {
-    await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('BRIEFPILOT_SHARING_UNAVAILABLE');
   }
+  await Sharing.shareAsync(shareUri, {
+    mimeType: 'application/pdf',
+    dialogTitle: `BriefPilot — ${dokumente.length} Dokument${dokumente.length !== 1 ? 'e' : ''}`,
+    UTI: 'com.adobe.pdf',
+  });
   return shareUri;
 }
 

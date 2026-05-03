@@ -71,11 +71,14 @@ export async function runHandlePDF(dok: Dokument | undefined): Promise<void> {
   try {
     await exportierePDF(dok);
   } catch (e) {
-    const msg =
-      e instanceof Error && e.message === 'BRIEFPILOT_PDF_TOO_SMALL'
-        ? 'PDF-Datei wirkt leer oder zu klein.\nDosya çok küçük / boş olabilir — bitte erneut versuchen.'
-        : (e as Error)?.message || 'PDF konnte nicht exportiert werden.';
-    Alert.alert('PDF', msg);
+    if (e instanceof Error && e.message === 'BRIEFPILOT_PDF_TOO_SMALL') {
+      Alert.alert('PDF', 'Die Datei wirkt leer oder zu klein. Bitte erneut versuchen.');
+    } else if (e instanceof Error && e.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
+      Alert.alert('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
+    } else {
+      console.warn('[runHandlePDF]', e);
+      Alert.alert('Export fehlgeschlagen', 'Bitte versuche es erneut.');
+    }
   }
 }
 

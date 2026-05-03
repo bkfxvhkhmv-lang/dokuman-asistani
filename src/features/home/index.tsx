@@ -143,7 +143,6 @@ export default function Home() {
         nextDeadlineTitle={data.naechste?.titel ?? data.naechste?.absender ?? undefined}
         onPruefe={() => data.handleTabPress('Dokumente')}
         onFrist={openTimeline}
-        onScan={() => router.push('/(tabs)/Kamera')}
       />
 
       {ENABLE_RELEASE_STATS_ROW && (

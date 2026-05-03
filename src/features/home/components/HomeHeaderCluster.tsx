@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppIconButton } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 
@@ -11,13 +10,11 @@ interface HomeHeaderClusterProps {
   totalOpen: number;
   quickScope: 'offen' | 'alle';
   onScopeChange: (s: 'offen' | 'alle') => void;
-  onSearchPress: () => void;
   scrollY?: Animated.Value;
 }
 
 export default function HomeHeaderCluster({
-  colors, dringend, totalOpen, quickScope, onScopeChange,
-  onSearchPress, scrollY,
+  colors, dringend, totalOpen, quickScope, onScopeChange, scrollY,
 }: HomeHeaderClusterProps) {
   const insets = useSafeAreaInsets();
   const { fs } = useTheme();
@@ -40,7 +37,7 @@ export default function HomeHeaderCluster({
 
   return (
     <View style={[st.wrap, { paddingTop: Math.max(insets.top + 12, 24), backgroundColor: colors.bg }]}>
-      {/* Top row — search + sticky compact title */}
+      {/* Top row — sticky compact title */}
       <View style={st.topRow}>
         <View style={st.titleArea}>
           <Text style={[st.greeting, { color: colors.textSecondary, fontSize: fs(13) }]}>
@@ -54,9 +51,6 @@ export default function HomeHeaderCluster({
             {totalOpen} {totalOpen === 1 ? T('home.doc_singular') : T('home.doc_plural')}
             {dringend > 0 ? `  ·  ${dringend} ${T('home.urgent')}` : ''}
           </Animated.Text>
-        </View>
-        <View style={st.actions}>
-          <AppIconButton name="magnifying-glass" onPress={onSearchPress} size={20} accessibilityLabel="Suche" />
         </View>
       </View>
 
@@ -110,7 +104,6 @@ const st = StyleSheet.create({
   titleArea:   { flex: 1 },
   greeting:    { fontWeight: '600', letterSpacing: 0.1 },
   stickyTitle: { fontWeight: '800', letterSpacing: -0.4, marginTop: 2 },
-  actions:     { flexDirection: 'row', gap: 4, marginTop: 2 },
   heroRow:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   heroNumber:  { fontWeight: '800', letterSpacing: -2, lineHeight: 64 },
   urgentPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },

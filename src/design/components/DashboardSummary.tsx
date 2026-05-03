@@ -13,12 +13,11 @@ type Props = {
   currency?: string;
   onPruefe?: () => void;
   onFrist?: () => void;
-  onScan?: () => void;
 };
 
 export default function DashboardSummary({
   urgent, openTasks, nextDeadlineDays, nextDeadlineTitle,
-  onPruefe, onFrist, onScan,
+  onPruefe, onFrist,
 }: Props) {
   const { Colors: C, fs } = useTheme();
   const { t: T } = useT();
@@ -66,12 +65,6 @@ export default function DashboardSummary({
             {nextDeadlineTitle ?? T('dash.next_due')}
           </Text>
         </TouchableOpacity>
-
-        {/* Scan CTA */}
-        <TouchableOpacity onPress={onScan} activeOpacity={0.75} style={[st.scanCard, { backgroundColor: C.primary }]}>
-          <Icon name="scan" size={22} color="#fff" />
-          <Text style={[st.scanLabel, { fontSize: fs(13) }]}>{T('dash.scan_now')}</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -86,6 +79,4 @@ const st = StyleSheet.create({
   card:      { flex: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 4 },
   cardValue: { fontWeight: '700', letterSpacing: -0.3 },
   cardSub:   { fontWeight: '500' },
-  scanCard:  { width: 80, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14 },
-  scanLabel: { color: '#fff', fontWeight: '700' },
 });

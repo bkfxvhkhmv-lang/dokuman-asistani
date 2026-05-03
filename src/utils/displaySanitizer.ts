@@ -23,7 +23,7 @@ export function safeDisplayAbsender(
   confidence?: number | null,
 ): string {
   if (!absender || absender.trim().length === 0) return 'Unbekannter Absender';
-  if (confidence !== null && confidence !== undefined && confidence < 0.45) {
+  if (confidence !== null && confidence !== undefined && confidence < 45) {
     return 'Unbekannter Absender';
   }
   if (isLikelyGarbled(absender)) return 'Unbekannter Absender';
@@ -42,6 +42,6 @@ export function safeDisplayTitel(
 ): string {
   const fallback = typ ? `${typ} · Angaben prüfen` : 'Dokument · Angaben prüfen';
   if (!titel || titel.trim().length === 0) return typ || 'Unbekanntes Dokument';
-  if (confidence !== null && confidence !== undefined && confidence < 0.45) return fallback;
+  if (confidence !== null && confidence !== undefined && confidence < 45) return fallback;
   return titel.trim();
 }

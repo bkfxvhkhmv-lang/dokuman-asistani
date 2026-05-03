@@ -73,7 +73,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
     const version = Constants.expoConfig?.version ?? '?';
 
     const subject = encodeURIComponent(
-      `[BriefPilot Beta ${sevOpt.emoji} ${sevOpt.label}] ${screen || 'Allgemein'} — v${version}`
+      `[BriefPilot ${sevOpt.emoji} ${sevOpt.label}] ${screen || 'Allgemein'} — v${version}`
     );
 
     const body = encodeURIComponent([
@@ -111,7 +111,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
     <AppSheet
       visible={visible}
       onClose={handleClose}
-      title="Beta-Feedback"
+      title="Feedback"
       subtitle="Deine Meinung hilft uns, BriefPilot besser zu machen."
     >
       <ScrollView

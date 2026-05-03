@@ -34,7 +34,7 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
   if (dok.erledigt) return null;
 
   const conf = dok.confidence ?? null;
-  if (conf !== null && conf < 0.55) {
+  if (conf !== null && conf < 55) {
     return 'Bitte Angaben prüfen — OCR-Konfidenz zu niedrig.';
   }
 

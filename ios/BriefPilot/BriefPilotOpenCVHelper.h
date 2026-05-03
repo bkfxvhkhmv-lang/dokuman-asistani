@@ -13,6 +13,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL    needsFlash;    // FAZ 3.2: avg brightness < 80
 @property (nonatomic, assign) double  blurVariance;  // Ham değer — JS kalibrasyon için
 @property (nonatomic, assign) double  avgBrightness; // Ham değer — JS kalibrasyon için
+// Debug/diagnostic scores — each 0.0–1.0
+@property (nonatomic, assign) float   areaScore;     // quad area / image area
+@property (nonatomic, assign) float   angleScore;    // 90° corner angle proximity
+@property (nonatomic, assign) float   aspectScore;   // A4/Letter aspect ratio proximity
+@property (nonatomic, assign) float   centerScore;   // quad centroid distance from image center
 @end
 
 /**

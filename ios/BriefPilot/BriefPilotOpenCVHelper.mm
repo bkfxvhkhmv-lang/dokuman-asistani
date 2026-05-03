@@ -50,19 +50,52 @@ static std::array<cv::Point,4> sortCorners(std::vector<cv::Point>& pts) {
 
 // Confidence: angle score (90° proximity) × 0.6 + area ratio × 0.4
 // Capped at 0.97 to leave headroom for quality penalties.
-static float computeConfidence(std::array<cv::Point,4>& c, double area, double imageArea) {
-    double angleScore = 0;
-    for (int i=0; i<4; i++) {
+// Out-params receive individual component scores (0–1) for debug/JS reporting.
+static float computeConfidence(
+    std::array<cv::Point,4>& c,
+    double area, double imageArea,
+    int edgeW, int edgeH,
+    float *outAreaScore, float *outAngleScore,
+    float *outAspectScore, float *outCenterScore
+) {
+    // Angle score: 90° corner proximity
+    double angleSum = 0;
+    for (int i = 0; i < 4; i++) {
         cv::Point prev = c[(i+3)%4], curr = c[i], next = c[(i+1)%4];
         double deviation = fabs(cornerAngle(prev, curr, next) - 90.0);
-        angleScore += MAX(0, 1.0 - deviation / 45.0);
+        angleSum += MAX(0, 1.0 - deviation / 45.0);
     }
-    angleScore /= 4.0;
+    float aAngle = (float)(angleSum / 4.0);
 
+    // Area score: quad occupies 12%–95% of image
     double areaRatio = area / imageArea;
-    double areaScore = MAX(0, MIN(1.0, (areaRatio - 0.12) / 0.83));
+    float aArea = (float)MAX(0, MIN(1.0, (areaRatio - 0.12) / 0.83));
 
-    return (float)MIN(0.97, angleScore * 0.6 + areaScore * 0.4);
+    // Aspect score: proximity to A4 (1.414) or Letter (1.294) ratio
+    double qw = cv::norm(cv::Point2d(c[1].x - c[0].x, c[1].y - c[0].y));
+    double qh = cv::norm(cv::Point2d(c[3].x - c[0].x, c[3].y - c[0].y));
+    float aAspect = 0;
+    if (qw > 1 && qh > 1) {
+        double ratio = qh / qw;
+        if (ratio < 1.0) ratio = 1.0 / ratio;
+        double a4Dev  = fabs(ratio - 1.414) / 1.414;
+        double letDev = fabs(ratio - 1.294) / 1.294;
+        aAspect = (float)MAX(0, 1.0 - MIN(a4Dev, letDev) * 3.0);
+    }
+
+    // Center score: quad centroid distance from image center (0=edge, 1=center)
+    double cx = (c[0].x + c[1].x + c[2].x + c[3].x) / 4.0;
+    double cy = (c[0].y + c[1].y + c[2].y + c[3].y) / 4.0;
+    double normDx = fabs(cx - edgeW / 2.0) / (edgeW / 2.0 + 1e-6);
+    double normDy = fabs(cy - edgeH / 2.0) / (edgeH / 2.0 + 1e-6);
+    float aCenter = (float)MAX(0, 1.0 - sqrt(normDx*normDx + normDy*normDy));
+
+    if (outAngleScore)  *outAngleScore  = aAngle;
+    if (outAreaScore)   *outAreaScore   = aArea;
+    if (outAspectScore) *outAspectScore = aAspect;
+    if (outCenterScore) *outCenterScore = aCenter;
+
+    return (float)MIN(0.97, aAngle * 0.6 + aArea * 0.4);
 }
 
 #pragma mark - Edge detection core
@@ -128,7 +161,12 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
             if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
 
             auto corners = sortCorners(approx);
-            float conf = computeConfidence(corners, area / (scale*scale), imageArea);
+            float aArea = 0, aAngle = 0, aAspect = 0, aCenter = 0;
+            float conf = computeConfidence(
+                corners, area / (scale*scale), imageArea,
+                edges.cols, edges.rows,
+                &aArea, &aAngle, &aAspect, &aCenter
+            );
             if (isBlurry)   conf *= 0.30f;
             if (needsFlash) conf *= 0.75f;
             if (conf < 0.20f) continue;
@@ -139,11 +177,15 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
             r.topRight    = CGPointMake(corners[1].x * inv / origW, corners[1].y * inv / origH);
             r.bottomRight = CGPointMake(corners[2].x * inv / origW, corners[2].y * inv / origH);
             r.bottomLeft  = CGPointMake(corners[3].x * inv / origW, corners[3].y * inv / origH);
-            r.confidence  = conf;
-            r.isBlurry    = isBlurry;
-            r.needsFlash  = needsFlash;
+            r.confidence     = conf;
+            r.isBlurry       = isBlurry;
+            r.needsFlash     = needsFlash;
             r.blurVariance   = blurVar;
             r.avgBrightness  = avgBright;
+            r.areaScore      = aArea;
+            r.angleScore     = aAngle;
+            r.aspectScore    = aAspect;
+            r.centerScore    = aCenter;
             if (!best || conf > best.confidence) best = r;
             break; // found valid quad for this contour
         }

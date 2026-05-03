@@ -37,6 +37,10 @@ const RNScanner = NativeModules.BriefPilotScanner as {
     needsFlash:    boolean;
     blurVariance:  number;
     avgBrightness: number;
+    areaScore?:    number;
+    angleScore?:   number;
+    aspectScore?:  number;
+    centerScore?:  number;
   } | null>;
   warpPerspective: (payload: {
     imageUri:    string;
@@ -87,6 +91,10 @@ export async function initNativeScannerBridge(): Promise<void> {
         bottomRight: result.bottomRight!,
         bottomLeft:  result.bottomLeft!,
         confidence:  result.confidence,
+        areaScore:   result.areaScore,
+        angleScore:  result.angleScore,
+        aspectScore: result.aspectScore,
+        centerScore: result.centerScore,
       } as DocumentCorners;
     });
 

@@ -46,6 +46,8 @@ export class CameraEngine {
   private isCapturing = false;
   private liveDetectTimer: ReturnType<typeof setInterval> | null = null;
   private liveDetectRunning = false;
+  private liveDetectIntervalMs = 900;
+  private lastCornersTimestamp = 0;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -109,7 +111,19 @@ export class CameraEngine {
     if (!this.cameraRef?.current || this.isCapturing) return null;
 
     this.isCapturing = true;
+    if (__DEV__) console.log('[ScannerCapture] start');
     try {
+      // Wait for any in-progress live-detect snapshot to finish before calling
+      // takePictureAsync — concurrent calls from detectLiveEdges cause capture errors.
+      if (this.liveDetectRunning) {
+        if (__DEV__) console.log('[ScannerCapture] waiting for live detect snapshot');
+        await new Promise<void>((resolve) => {
+          const poll = setInterval(() => {
+            if (!this.liveDetectRunning) { clearInterval(poll); resolve(); }
+          }, 30);
+          setTimeout(() => { clearInterval(poll); resolve(); }, 1500);
+        });
+      }
       this.autoCapture.triggerFeedback();
 
       const photo = await this.cameraRef.current.takePictureAsync({
@@ -128,7 +142,8 @@ export class CameraEngine {
         .catch(() => null);
 
       if (!captureCorners || captureCorners.confidence < 0.35) {
-        // Native bulamadı → guide frame kırpma (mevcut davranış)
+        const cornersAge = this.lastCornersTimestamp > 0 ? Date.now() - this.lastCornersTimestamp : -1;
+        if (__DEV__) console.log('[ScannerCapture] guideFallbackUsed=true latestCornersAgeMs=' + cornersAge);
         captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
       }
 
@@ -181,6 +196,7 @@ export class CameraEngine {
       this.emit({ type: 'capture_complete', result });
       return result;
     } catch (e: any) {
+      if (__DEV__) console.log('[ScannerCapture] failureReason=' + (e?.message ?? 'unknown'));
       this.emit({
         type: 'error',
         error: {
@@ -273,6 +289,7 @@ export class CameraEngine {
   }
 
   startLiveEdgeDetection(intervalMs = 900) {
+    this.liveDetectIntervalMs = intervalMs;
     this.stopLiveEdgeDetection();
     this.liveDetectTimer = setInterval(() => { void this.detectLiveEdges(); }, intervalMs);
   }
@@ -294,11 +311,22 @@ export class CameraEngine {
     let resizedUri: string | null = null;
 
     try {
+      // Guard: isCapturing may have become true between the interval tick and here
+      if (this.isCapturing) {
+        if (__DEV__) console.log('[ScannerCapture] skippedLiveDetectDueToManualCapture');
+        return;
+      }
       const photo = await (this.cameraRef.current as any).takePictureAsync({
         quality: 0.01,
         skipProcessing: true,
       });
       thumbUri = photo.uri;
+
+      // After the await: manual capture may have started while we were snapshotting
+      if (this.isCapturing) {
+        if (__DEV__) console.log('[ScannerCapture] skippedLiveDetectDueToManualCapture post-snapshot');
+        return;
+      }
 
       const resized = await manipulateAsync(
         thumbUri!,
@@ -309,6 +337,7 @@ export class CameraEngine {
 
       const corners = await nativeDetectDocumentEdges({ uri: resizedUri });
       if (corners && corners.confidence > 0.30) {
+        this.lastCornersTimestamp = Date.now();
         this.edgeDetector.processFrame({ uri: resizedUri, _precomputedCorners: corners });
       } else {
         this.emit({ type: 'edge_state_changed', state: { corners: null, confidence: 0, stabilityScore: 0, detected: false } });

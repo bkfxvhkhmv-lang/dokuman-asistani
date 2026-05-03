@@ -93,17 +93,9 @@ export function useFrameProcessorBridge(
       }
     }
 
-    // If no native corners, synthesize from quality heuristics for AutoCapture scoring
-    if (!corners && quality.aspectConfidence >= minConfidence) {
-      const inset = 0.05;
-      corners = {
-        topLeft:     { x: inset,       y: inset },
-        topRight:    { x: 1 - inset,   y: inset },
-        bottomRight: { x: 1 - inset,   y: 1 - inset },
-        bottomLeft:  { x: inset,       y: 1 - inset },
-        confidence:  quality.aspectConfidence * 0.7,
-      };
-    }
+    // No synthetic fallback: corners stay null when native detection finds nothing.
+    // AutoCapture scoring uses quality heuristics directly; it must not trigger
+    // from frame-aspect-ratio guesses masquerading as detected corners.
 
     runOnJS(dispatchResult)({ corners, quality, fromNative });
   }, [lastProcessed, intervalMs, minConfidence, dispatchResult]);

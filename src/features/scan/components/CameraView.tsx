@@ -9,6 +9,7 @@ import CameraThumbnailStrip from '@/features/scan/components/camera-view/CameraT
 import { DocumentOverlay } from '@/components/scanner/DocumentOverlay';
 import { styles } from '@/features/scan/styles';
 import { SUCCESS } from '@/features/scan/constants';
+import { nativeModuleAvailable } from '@/modules/scanner/engine/NativeStub';
 import { useScan } from '@/features/scan/context/ScanContext';
 import type { CameraViewProps } from '@/features/scan/components/camera-view/types';
 
@@ -65,7 +66,12 @@ export default function CameraView(props: CameraViewProps) {
   if (!hasPermission) return <PermissionView onRequest={onRequestPermission} onOpenGallery={onOpenGallery} />;
 
   const cameraActive = isFocused && hasPermission;
-  const cornerColor = stability.isStable ? SUCCESS : 'rgba(255,255,255,0.85)';
+  // Show "detected" state only when there are real native corners, OR when the native
+  // module is available and the gyroscope confirms stability. In Expo Go
+  // (nativeModuleAvailable=false) we never show green based on gyro alone — that
+  // would be a false signal implying document detection that isn't running.
+  const isDocumentDetected = !!detectedCorners || (nativeModuleAvailable && stability.isStable);
+  const cornerColor = isDocumentDetected ? SUCCESS : 'rgba(255,255,255,0.85)';
 
   return (
     <View style={[styles.fill, { backgroundColor: '#000' }]}>
@@ -102,7 +108,7 @@ export default function CameraView(props: CameraViewProps) {
       {/* Hint text — centered above the bottom bar */}
       <View style={hintStyles.wrap} pointerEvents="none">
         <Text style={hintStyles.text}>
-          {stability.isStable ? 'Dokument erkannt' : 'Dokument in den Rahmen'}
+          {isDocumentDetected ? 'Dokument erkannt' : 'Dokument in den Rahmen'}
         </Text>
       </View>
 

@@ -65,47 +65,17 @@ export class EdgeDetector {
   }
 
   /**
-   * Post-capture quadrilateral detection using image geometry heuristics.
-   * Returns normalized (0-1) corner coordinates. Confidence reflects how
-   * document-like the aspect ratio and dimensions are.
-   * Native OpenCV wiring goes in NativeStub — this is the pure-JS fallback.
+   * Post-capture corner detection via native OpenCV.
+   * Returns null when native detection fails or confidence is too low —
+   * callers should fall back to full-frame crop rather than using fake corners.
    */
-  async analyzeCapture(uri: string, width: number, height: number): Promise<DocumentCorners> {
-    // Try native path first (will return null until native module wired)
+  async analyzeCapture(uri: string, width: number, height: number): Promise<DocumentCorners | null> {
     const native = await nativeDetectDocumentEdges({ uri, width, height });
     if (native && native.confidence > 0.3) {
       this.lastCorners = native;
       return native;
     }
-
-    // JS heuristic: score the image by its aspect ratio proximity to A4/Letter
-    const aspectRatio = height / width;
-    const a4Ratio = 1.414; // height/width for portrait A4
-    const letterRatio = 1.294; // height/width for portrait Letter
-    const a4Distance = Math.abs(aspectRatio - a4Ratio) / a4Ratio;
-    const letterDistance = Math.abs(aspectRatio - letterRatio) / letterRatio;
-    const bestDistance = Math.min(a4Distance, letterDistance);
-
-    // High confidence if aspect ratio is within 15% of A4/Letter
-    const ratioConfidence = Math.max(0.3, 1 - bestDistance * 3);
-
-    // Resolution bonus: higher res = more likely a real document scan
-    const resBonus = Math.min(0.15, (Math.min(width, height) - 800) / 20000);
-
-    // Conservative inset: assume document fills ~90% of frame
-    const inset = 0.05;
-    const confidence = Math.min(0.85, ratioConfidence + resBonus);
-
-    const corners: DocumentCorners = {
-      topLeft:     { x: inset,       y: inset },
-      topRight:    { x: 1 - inset,   y: inset },
-      bottomRight: { x: 1 - inset,   y: 1 - inset },
-      bottomLeft:  { x: inset,       y: 1 - inset },
-      confidence,
-    };
-
-    this.lastCorners = corners;
-    return corners;
+    return null;
   }
 
   getLastCorners(): DocumentCorners | null { return this.lastCorners; }

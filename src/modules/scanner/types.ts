@@ -9,6 +9,11 @@ export interface DocumentCorners {
   bottomRight: Point;
   bottomLeft: Point;
   confidence: number;
+  // Debug scores (0–1) — populated when native detection succeeds
+  areaScore?: number;
+  angleScore?: number;
+  aspectScore?: number;
+  centerScore?: number;
 }
 
 export interface CaptureConfig {

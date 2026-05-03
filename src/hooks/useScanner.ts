@@ -6,6 +6,7 @@ import {
   ScannerEvent,
   DocumentCorners,
 } from '@/modules/scanner';
+import { nativeModuleAvailable } from '@/modules/scanner/engine/NativeStub';
 
 export type DistanceHint = 'closer' | 'farther' | 'perfect' | null;
 
@@ -45,6 +46,10 @@ export function useScanner() {
       switch (event.type) {
         case 'edges_detected':
           setDetectedEdges(event.corners);
+          break;
+        case 'edge_state_changed':
+          // Clear stale overlay when native detection loses the document
+          if (!event.state.detected) setDetectedEdges(null);
           break;
         case 'stability_changed':
           setStability({ isStable: event.state.isStable, confidence: event.state.confidence });
@@ -129,5 +134,6 @@ export function useScanner() {
     processFrame,
     startLiveEdgeDetection,
     stopLiveEdgeDetection,
+    nativeAvailable: nativeModuleAvailable,
   };
 }

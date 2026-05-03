@@ -69,18 +69,37 @@ import { NativeModules } from 'react-native';
 
 const RN = NativeModules.BriefPilotScanner;
 
+/** True when the native OpenCV module is linked (dev-client / Xcode build). False in Expo Go. */
+export const nativeModuleAvailable: boolean = !!RN;
+
+if (__DEV__) {
+  console.log('[ScannerNative] runtime=' + (RN ? 'native-build' : 'expo-go'));
+  console.log('[ScannerNative] moduleAvailable=' + nativeModuleAvailable);
+}
+
 async function realOpenCVEdgeDetect(frame: any): Promise<DocumentCorners | null> {
   if (!RN?.detectDocumentEdges || !frame?.uri) return null;
   try {
     const result = await RN.detectDocumentEdges({ uri: frame.uri });
-    if (!result || result.confidence < 0.2) return null;
-    return {
+    if (!result || result.confidence < 0.2) {
+      if (__DEV__) console.log('[ScannerNative] fromNative=false confidence=' + (result?.confidence ?? 0).toFixed(3));
+      return null;
+    }
+    const corners: DocumentCorners = {
       topLeft:     { x: result.topLeft.x,     y: result.topLeft.y },
       topRight:    { x: result.topRight.x,    y: result.topRight.y },
       bottomRight: { x: result.bottomRight.x, y: result.bottomRight.y },
       bottomLeft:  { x: result.bottomLeft.x,  y: result.bottomLeft.y },
       confidence:  result.confidence,
     };
+    if (__DEV__) {
+      console.log('[ScannerNative] fromNative=true confidence=' + result.confidence.toFixed(3));
+      console.log('[ScannerNative] areaScore=' + (result.areaScore ?? 0).toFixed(3)
+        + ' angleScore=' + (result.angleScore ?? 0).toFixed(3)
+        + ' aspectScore=' + (result.aspectScore ?? 0).toFixed(3)
+        + ' centerScore=' + (result.centerScore ?? 0).toFixed(3));
+    }
+    return corners;
   } catch {
     return null;
   }

@@ -148,12 +148,6 @@ export default function Profilbildschirm() {
             badge: offeneFristen > 0 ? offeneFristen : undefined,
             onPress: () => router.push('/(tabs)/index'),
           },
-          {
-            icon: 'export',
-            label: 'Datenexport',
-            sub: 'PDF-Export & Steuerpaket',
-            onPress: () => router.push('/(tabs)/Export'),
-          },
         ]} />
 
         <SectionLabel text="KONTO" />

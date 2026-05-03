@@ -176,14 +176,14 @@ export default function OnboardingScreen() {
         end={{ x: 1, y: 1 }}
         style={[st.heroTiny, { paddingTop: insets.top + 20 }]}
       >
-        <Text style={[st.heroHint, { color: C.primaryDark }]}>LOS GEHT&apos;S — EINMAL</Text>
-        <Text style={[st.heroTinyTitle, { color: C.text }]}>BriefPilot → nächster Schritt</Text>
+        <Text style={[st.heroHint, { color: C.primaryDark }]}>BRIEFPILOT</Text>
+        <Text style={[st.heroTinyTitle, { color: C.text }]}>Verstehe Briefe.{'\n'}Verpasse keine Frist.</Text>
       </LinearGradient>
 
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 26, gap: 14 }}>
-        <Text style={[st.actLead, { color: C.text }]}>Beleg scannen oder hochladen</Text>
+        <Text style={[st.actLead, { color: C.text }]}>Deinen ersten Beleg scannen</Text>
         <Text style={[st.actSub, { color: C.textSecondary }]}>
-          Eine Minute — dann weißt du, was zu zahlen, was fällig ist und was du speichern solltest.
+          Scanne einen Brief oder importiere ein PDF — BriefPilot zeigt dir sofort, was zu tun ist.
         </Text>
 
         <TouchableOpacity
@@ -191,7 +191,7 @@ export default function OnboardingScreen() {
           onPress={openScanner}
           disabled={picking}
         >
-          <Text style={st.primaryBtnText}>📷  Kamera öffnen</Text>
+          <Text style={st.primaryBtnText}>Erstes Dokument scannen</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -199,7 +199,7 @@ export default function OnboardingScreen() {
           onPress={openFilePicker}
           disabled={picking}
         >
-          <Text style={[st.secondaryTxt, { color: C.primary }]}>📄  PDF oder Foto aus Dateien</Text>
+          <Text style={[st.secondaryTxt, { color: C.primary }]}>PDF importieren</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -213,7 +213,7 @@ export default function OnboardingScreen() {
         </TouchableOpacity>
 
         <Text style={[st.miniTrust, { color: C.textTertiary }]}>
-          Standort der Daten: dein Gerät. Ohne Erlauben wird nichts weitergegeben.
+          Lokal verarbeitet · Du behältst die Kontrolle über deine Dokumente.
         </Text>
       </View>
 

@@ -139,7 +139,7 @@ function HomeRecentListInner({ data }: { data: any }) {
         action={
           showScanCta
             ? {
-                label: 'Erste Datei scannen',
+                label: 'Dokument scannen',
                 onPress: () => router.push('/(tabs)/Kamera'),
               }
             : undefined

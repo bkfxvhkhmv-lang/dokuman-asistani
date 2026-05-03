@@ -1,4 +1,3 @@
-import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { Dokument } from '@/store';
 import type { StoreAction } from '@/store/actions';
@@ -65,19 +64,19 @@ export async function runHandleMailTaslak(params: {
   }
 }
 
-export async function runHandlePDF(dok: Dokument | undefined): Promise<void> {
+export async function runHandlePDF(dok: Dokument | undefined, openNotice: OpenNotice): Promise<void> {
   if (!dok) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   try {
     await exportierePDF(dok);
   } catch (e) {
     if (e instanceof Error && e.message === 'BRIEFPILOT_PDF_TOO_SMALL') {
-      Alert.alert('PDF', 'Die Datei wirkt leer oder zu klein. Bitte erneut versuchen.');
+      openNotice('PDF', 'Die Datei wirkt leer oder zu klein. Bitte erneut versuchen.');
     } else if (e instanceof Error && e.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
-      Alert.alert('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
+      openNotice('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
     } else {
       console.warn('[runHandlePDF]', e);
-      Alert.alert('Export fehlgeschlagen', 'Bitte versuche es erneut.');
+      openNotice('Export fehlgeschlagen', 'Bitte versuche es erneut.');
     }
   }
 }

@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, Fragment } from 'react';
 import { ScrollView } from 'react-native';
 import ActionsPanel from '@/features/detail/components/ActionsPanel';
 import SmartActionsPanel from '@/components/SmartActionsPanel';
 import SmartRemindersPanel from '@/components/SmartRemindersPanel';
+import PremiumToast from '@/design/components/PremiumToast';
 import type { ActionKey } from '@/services/SmartActionsService';
 
 /** SmartActionsPanel: keine doppelte Zeile zum großen „Nächster Schritt“-Karten-CTA darüber */
@@ -50,6 +51,7 @@ export default function DetailActionsTab({
   }, [actionPlan?.primary?.key]);
 
   return (
+    <Fragment>
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: scrollBottomPadding }}
@@ -83,5 +85,7 @@ export default function DetailActionsTab({
         />
       )}
     </ScrollView>
+    <PremiumToast config={smartReminders.toastConfig ?? null} onHide={smartReminders.hideToast} />
+    </Fragment>
   );
 }

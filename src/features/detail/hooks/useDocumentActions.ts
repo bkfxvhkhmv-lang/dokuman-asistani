@@ -107,8 +107,8 @@ export function useDocumentActions({
   }, [commitOutcome, dok, onActionSessionStart, openNotice]);
 
   const handlePDF = useCallback(async () => {
-    await runHandlePDF(dok);
-  }, [dok]);
+    await runHandlePDF(dok, openNotice);
+  }, [dok, openNotice]);
 
   const handleErledigt = useCallback(() => {
     runHandleErledigt(modal);

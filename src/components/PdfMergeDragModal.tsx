@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { exportiereTopluPDF } from '@/utils';
 import { uploadDocumentV4 } from '@/services/v4Api';
+import { useToast } from '@/hooks/useToast';
+import PremiumToast from '@/design/components/PremiumToast';
 import type { Dokument } from '@/store';
 
 const ITEM_H = 60;
@@ -20,6 +22,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
 
   const [reihenfolge, setReihenfolge] = useState<Dokument[]>(items);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const dragY    = useRef(new Animated.Value(0)).current;
   const dragBase = useRef(0);
   const listRef  = useRef(reihenfolge);
@@ -68,9 +71,9 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       if (msg === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
-        Alert.alert('Teilen nicht verfügbar', 'Das Gerät unterstützt das Teilen von Dateien nicht.');
+        showToast({ message: 'Teilen nicht verfügbar', tone: 'danger', icon: 'alert-circle' });
       } else {
-        Alert.alert('Export fehlgeschlagen', 'Bitte versuche es erneut.');
+        showToast({ message: 'Export fehlgeschlagen', tone: 'danger', icon: 'alert-circle' });
       }
     }
   };
@@ -108,6 +111,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
           <Text style={st.btnText}> {reihenfolge.length} Dokumente als PDF exportieren</Text>
         </TouchableOpacity>
       </View>
+      <PremiumToast config={toastConfig} onHide={hideToast} />
     </Modal>
   );
 }

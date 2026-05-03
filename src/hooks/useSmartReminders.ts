@@ -9,11 +9,13 @@ import {
   type ReminderSuggestion,
   type ScheduledReminder,
 } from '@/services/SmartRemindersService';
+import { useToast } from '@/hooks/useToast';
 import type { Dokument } from '@/store';
 
 export function useSmartReminders(dok: Dokument | null) {
   const [scheduled, setScheduled] = useState<ScheduledReminder[]>([]);
   const [isScheduling, setIsScheduling] = useState(false);
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
 
   const suggestions = useMemo(() => (dok ? buildReminderSuggestions(dok) : []), [dok]);
 
@@ -54,10 +56,7 @@ export function useSmartReminders(dok: Dokument | null) {
         setScheduled(prev => [...prev, result]);
       }
     } catch {
-      Alert.alert(
-        'Erinnerung nicht gesetzt',
-        'Bitte prüfe die Benachrichtigungsberechtigung und versuche es erneut.',
-      );
+      showToast({ message: 'Erinnerung nicht gesetzt', tone: 'danger', icon: 'alert-circle' });
     } finally {
       setIsScheduling(false);
     }
@@ -72,5 +71,5 @@ export function useSmartReminders(dok: Dokument | null) {
     return scheduled.some(r => r.label.includes(suggestionId));
   }, [scheduled]);
 
-  return { suggestions, scheduled, isScheduling, schedule, cancel, isAlreadyScheduled };
+  return { suggestions, scheduled, isScheduling, schedule, cancel, isAlreadyScheduled, toastConfig, hideToast };
 }

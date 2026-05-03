@@ -5,7 +5,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Alert, Platform, StyleSheet,
+  Platform, StyleSheet,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +16,8 @@ import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
 import { exportiereTopluPDF } from '@/utils/exporters';
+import { useToast } from '@/hooks/useToast';
+import PremiumToast from '@/design/components/PremiumToast';
 import type { Dokument } from '@/store';
 
 // Export-Lila — eigene Sektionsfarbe (wie Accountable: jede Sektion hat eigene Farbe)
@@ -140,6 +142,7 @@ export default function ExportBildschirm() {
   const [aktJahr, setAktJahr]     = useState(AKTUELLES_JAHR);
   const [selected, setSelected]   = useState<Set<string>>(new Set());
   const [loading, setLoading]     = useState(false);
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
 
   const dokumente = state.dokumente as Dokument[];
   const alleDoks  = useMemo(() => dokumente.filter(d => !d.erledigt), [dokumente]);
@@ -170,14 +173,14 @@ export default function ExportBildschirm() {
 
   const handleExport = useCallback(async () => {
     if (selected.size === 0) {
-      Alert.alert('Keine Dokumente ausgewählt', 'Wähle mindestens ein Dokument aus, um den Export zu starten.');
+      showToast({ message: 'Keine Dokumente ausgewählt', tone: 'warning', icon: 'alert-circle-outline' });
       return;
     }
     setLoading(true);
     try {
       if (selected.has('steuerpaket')) {
         if (steuerDoks.length === 0) {
-          Alert.alert('Keine Steuernachweise', 'Es gibt aktuell keine Dokumente, die für ein Steuerpaket exportiert werden können.');
+          showToast({ message: 'Keine Steuernachweise vorhanden', tone: 'warning', icon: 'alert-circle-outline' });
         } else {
           await exportiereTopluPDF(steuerDoks);
         }
@@ -185,7 +188,7 @@ export default function ExportBildschirm() {
       if (selected.has('pdf_alle') || selected.has('originaldokumente')) {
         const docs = selected.has('pdf_alle') ? jahresDoks : alleDoks.filter(d => !!d.uri);
         if (docs.length === 0) {
-          Alert.alert(T('export.no_docs'), `Für ${aktJahr} keine Belege gefunden.`);
+          showToast({ message: `Für ${aktJahr} keine Belege gefunden`, tone: 'warning', icon: 'alert-circle-outline' });
         } else {
           await exportiereTopluPDF(docs);
         }
@@ -193,14 +196,14 @@ export default function ExportBildschirm() {
     } catch (e: any) {
       console.warn('[ExportBildschirm]', e);
       if (e?.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
-        Alert.alert('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
+        showToast({ message: 'Teilen nicht verfügbar', tone: 'danger', icon: 'alert-circle' });
       } else {
-        Alert.alert(T('export.failed'), 'Bitte versuche es erneut.');
+        showToast({ message: 'Export fehlgeschlagen', tone: 'danger', icon: 'alert-circle' });
       }
     } finally {
       setLoading(false);
     }
-  }, [selected, steuerDoks, jahresDoks, alleDoks, aktJahr]);
+  }, [selected, steuerDoks, jahresDoks, alleDoks, aktJahr, showToast]);
 
   const canExport = selected.size > 0 && !loading;
 
@@ -314,6 +317,7 @@ export default function ExportBildschirm() {
           </Text>
         </TouchableOpacity>
       </View>
+      <PremiumToast config={toastConfig} onHide={hideToast} />
     </SafeAreaView>
   );
 }

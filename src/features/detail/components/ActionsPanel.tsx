@@ -154,7 +154,9 @@ export function getDetailActionPlan(
     ? [...coreSecondaryKeys, 'erledigt']
     : coreSecondaryKeys;
 
-  const secondary = secondaryKeys.map(key => ({ key, ...ACTION_META[key], onPress: onPress[key] }));
+  const secondary = secondaryKeys
+    .map(key => ({ key, ...ACTION_META[key], onPress: onPress[key] }))
+    .filter(a => !!a.onPress);
 
   const hidden = [] as ActionPlan['hidden'];
 
@@ -224,7 +226,8 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
                 <TouchableOpacity key={action.key}
                   style={{ flex: 1, borderRadius: R.lg, paddingVertical: 12, paddingHorizontal: 10,
                     alignItems: 'center', borderWidth: 1.2, borderColor: tone.border, backgroundColor: C.bgCard }}
-                  onPress={action.onPress}>
+                  onPress={action.onPress}
+                  disabled={!action.onPress}>
                   <Icon name={action.icon} size={20} color={tone.text} style={{ marginBottom: 4 }} />
                   <Text style={{ fontSize: 12, fontWeight: '700', color: tone.text }}>{action.shortLabel}</Text>
                 </TouchableOpacity>

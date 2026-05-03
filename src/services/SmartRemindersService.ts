@@ -146,9 +146,9 @@ export async function scheduleReminder(
   dok: Dokument,
   suggestion: ReminderSuggestion,
 ): Promise<ScheduledReminder | null> {
+  if (suggestion.datum <= new Date()) return null;
   try {
     const { default: Notifications } = await import('expo-notifications');
-    if (suggestion.datum <= new Date()) return null;
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
@@ -159,7 +159,10 @@ export async function scheduleReminder(
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: suggestion.datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: suggestion.datum.toISOString(), label: suggestion.label };
-  } catch { return null; }
+  } catch (e: unknown) {
+    console.warn('[scheduleReminder] Failed:', e);
+    throw new Error('BRIEFPILOT_REMINDER_FAILED');
+  }
 }
 
 // ── Template reminders ────────────────────────────────────────────────────────
@@ -172,12 +175,12 @@ export async function scheduleTemplateReminder(
   dok: Dokument,
   sablon: HatirlaticiSablon,
 ): Promise<ScheduledReminder | null> {
+  const datum = new Date();
+  datum.setMonth(datum.getMonth() + sablon.aySayisi);
+  datum.setHours(9, 0, 0, 0);
+  if (datum <= new Date()) return null;
   try {
     const { default: Notifications } = await import('expo-notifications');
-    const datum = new Date();
-    datum.setMonth(datum.getMonth() + sablon.aySayisi);
-    datum.setHours(9, 0, 0, 0);
-    if (datum <= new Date()) return null;
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
@@ -188,7 +191,10 @@ export async function scheduleTemplateReminder(
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: datum.toISOString(), label: sablon.label };
-  } catch { return null; }
+  } catch (e: unknown) {
+    console.warn('[scheduleTemplateReminder] Failed:', e);
+    throw new Error('BRIEFPILOT_REMINDER_FAILED');
+  }
 }
 
 // ── Cancel a reminder ────────────────────────────────────────────────────────

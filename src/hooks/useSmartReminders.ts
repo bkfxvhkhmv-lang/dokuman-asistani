@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import {
   buildReminderSuggestions,
@@ -19,9 +20,16 @@ export function useSmartReminders(dok: Dokument | null) {
     if (!dok) return;
     setIsScheduling(true);
     try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const result = await scheduleReminder(dok, suggestion);
-      if (result) setScheduled(prev => [...prev, result]);
+      if (result) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setScheduled(prev => [...prev, result]);
+      }
+    } catch {
+      Alert.alert(
+        'Erinnerung nicht gesetzt',
+        'Bitte prüfe die Benachrichtigungsberechtigung und versuche es erneut.',
+      );
     } finally {
       setIsScheduling(false);
     }

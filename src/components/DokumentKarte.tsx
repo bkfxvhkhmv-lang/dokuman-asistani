@@ -6,7 +6,7 @@ import type { RiskPalette } from '@/theme';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
 import { excerptForDocumentListCard } from '@/utils/listCardSummary';
-import { safeDisplayAbsender } from '@/utils/displaySanitizer';
+import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import { useT } from '@/hooks/useT';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -58,6 +58,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const tageText      = getTageText(dok.frist, T);
   const intent        = quickIntent(dok, Colors);
   const displayAbsender = safeDisplayAbsender(dok.absender, dok.confidence);
+  const displayTitel    = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 3 || dok.risiko === 'hoch');
   const isDone      = dok.erledigt;
@@ -105,7 +106,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
             numberOfLines={1}
             maxFontSizeMultiplier={1.3}
           >
-            {dok.titel}
+            {displayTitel}
           </Text>
           <Text style={[styles.absender, { color: Colors.textSecondary, fontSize: fs(12) }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {displayAbsender}

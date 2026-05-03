@@ -6,6 +6,7 @@ import type { ThemeColors } from '@/ThemeContext';
 import type { RiskPalette } from '@/theme';
 import { useT } from '@/hooks/useT';
 import { getDocTypeConfig } from '@/constants/docTypeConfig';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface HomeUrgencyBannerProps {
   colors: ThemeColors;
@@ -56,7 +57,7 @@ export default function HomeUrgencyBanner({
       {/* Body */}
       <View style={st.body}>
         <Text style={[st.title, { color: C.text }]} numberOfLines={1}>
-          {document.titel}
+          {safeDisplayTitel(document.titel, document.typ, document.confidence)}
         </Text>
         <View style={st.metaRow}>
           <View style={[st.deadlinePill, { backgroundColor: risk.bg, borderColor: risk.border }]}>

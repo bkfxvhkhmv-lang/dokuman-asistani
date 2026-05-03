@@ -29,3 +29,19 @@ export function safeDisplayAbsender(
   if (isLikelyGarbled(absender)) return 'Unbekannter Absender';
   return absender.trim();
 }
+
+/**
+ * Returns a safe display value for `titel`.
+ * Falls back to typ-based placeholder for low-confidence or empty titles.
+ * Raw value remains available in detail/edit fields.
+ */
+export function safeDisplayTitel(
+  titel: string | null | undefined,
+  typ?: string | null,
+  confidence?: number | null,
+): string {
+  const fallback = typ ? `${typ} · Angaben prüfen` : 'Dokument · Angaben prüfen';
+  if (!titel || titel.trim().length === 0) return typ || 'Unbekanntes Dokument';
+  if (confidence !== null && confidence !== undefined && confidence < 0.45) return fallback;
+  return titel.trim();
+}

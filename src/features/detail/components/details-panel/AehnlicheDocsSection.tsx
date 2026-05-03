@@ -1,6 +1,7 @@
 import { View, Text } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
+import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 
@@ -21,14 +22,16 @@ export function AehnlicheDocsSection({ dokumente }: Props) {
         <View key={d.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
           borderBottomWidth: i < liste.length - 1 ? 0.5 : 0, borderBottomColor: C.border }}>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }} numberOfLines={2} ellipsizeMode="tail">{d.titel}</Text>
-            <Text style={{ fontSize: 11, color: C.textTertiary }}>{d.absender} · {d.typ}</Text>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }} numberOfLines={2} ellipsizeMode="tail">
+              {safeDisplayTitel(d.titel, d.typ, d.confidence)}
+            </Text>
+            <Text style={{ fontSize: 11, color: C.textTertiary }}>
+              {safeDisplayAbsender(d.absender, d.confidence)} · {d.typ}
+            </Text>
+            <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>
+              Ähnliche Merkmale gefunden
+            </Text>
           </View>
-          {d._aehnlichScore != null && (
-            <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.primaryLight }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: C.primaryDark }}>{d._aehnlichScore}★</Text>
-            </View>
-          )}
         </View>
       ))}
     </SectionCard>

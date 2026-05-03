@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, getTageText, getTageVerbleibend } from '@/utils/formatters';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
@@ -77,7 +78,7 @@ export default function SimpleDocumentOverview({
         </Text>
         <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{dok.typ}</Text>
         <Text style={{ fontSize: 13, color: C.textSecondary }} numberOfLines={3}>
-          {dok.titel}
+          {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
         </Text>
 
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />

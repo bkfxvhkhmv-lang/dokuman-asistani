@@ -14,6 +14,7 @@ import {
   DOCUMENT_STATUS_UI,
 } from '@/features/detail/constants/documentStatus';
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
+import { safeDisplayAbsender } from '@/utils/displaySanitizer';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import type { Dokument } from '@/store';
 
@@ -92,7 +93,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       <View style={{ paddingHorizontal: S.md, paddingBottom: hasFacts ? 10 : 14 }}>
         <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
           {dok.typ ? dok.typ.toUpperCase() : 'SONSTIGES'}
-          {dok.absender ? ` · ${dok.absender}` : ''}
+          {dok.absender ? ` · ${safeDisplayAbsender(dok.absender, dok.confidence)}` : ''}
         </Text>
       </View>
 

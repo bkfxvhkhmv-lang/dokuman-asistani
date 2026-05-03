@@ -10,6 +10,7 @@ import {
   DASHBOARD_EYEBROW_ALL_CLEAR,
   DASHBOARD_EYEBROW_BUSY,
 } from '@/product/strategyCopy';
+import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ThemeColors } from '@/ThemeContext';
 import type { SpacingTokens } from '@/theme';
@@ -88,10 +89,10 @@ export default function HomeDashboardCards({
             style={[st.snippet, { backgroundColor: C.bgCard, borderColor: C.border }]} activeOpacity={0.75}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, letterSpacing: -0.1 }} numberOfLines={1}>
-                {dok.titel}
+                {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
               </Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
-                {dok.absender}
+                {safeDisplayAbsender(dok.absender, dok.confidence)}
               </Text>
               {frist && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>

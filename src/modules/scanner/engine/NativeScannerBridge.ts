@@ -73,6 +73,7 @@ export async function initNativeScannerBridge(): Promise<void> {
     registerNativeEdgeDetect(async (frame: { uri?: string }) => {
       if (!frame?.uri) return null;
       const result = await RNScanner!.detectDocumentEdges({ uri: frame.uri });
+      if (__DEV__) console.log('[ScannerNative] fromNative=' + !!result + ' confidence=' + (result?.confidence?.toFixed(3) ?? '0'));
       if (!result) return null;
 
       // FAZ 3: quality metadata → callback
@@ -83,6 +84,7 @@ export async function initNativeScannerBridge(): Promise<void> {
         avgBrightness: result.avgBrightness,
       });
 
+      if (__DEV__) console.log('[ScannerNative] isBlurry=' + result.isBlurry + ' needsFlash=' + result.needsFlash + ' blurVariance=' + result.blurVariance?.toFixed(1) + ' areaScore=' + (result.areaScore ?? 0).toFixed(3) + ' angleScore=' + (result.angleScore ?? 0).toFixed(3));
       if (!result.topLeft || result.confidence < 0.20) return null;
 
       return {

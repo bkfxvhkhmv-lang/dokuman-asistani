@@ -9,7 +9,6 @@ import CameraThumbnailStrip from '@/features/scan/components/camera-view/CameraT
 import { DocumentOverlay } from '@/components/scanner/DocumentOverlay';
 import { styles } from '@/features/scan/styles';
 import { SUCCESS } from '@/features/scan/constants';
-import { nativeModuleAvailable } from '@/modules/scanner/engine/NativeStub';
 import { useScan } from '@/features/scan/context/ScanContext';
 import type { CameraViewProps } from '@/features/scan/components/camera-view/types';
 
@@ -70,7 +69,7 @@ export default function CameraView(props: CameraViewProps) {
   // module is available and the gyroscope confirms stability. In Expo Go
   // (nativeModuleAvailable=false) we never show green based on gyro alone — that
   // would be a false signal implying document detection that isn't running.
-  const isDocumentDetected = !!detectedCorners || (nativeModuleAvailable && stability.isStable);
+  const isDocumentDetected = !!detectedCorners;
   const cornerColor = isDocumentDetected ? SUCCESS : 'rgba(255,255,255,0.85)';
 
   return (

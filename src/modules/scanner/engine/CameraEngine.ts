@@ -317,7 +317,7 @@ export class CameraEngine {
         return;
       }
       const photo = await (this.cameraRef.current as any).takePictureAsync({
-        quality: 0.01,
+        quality: 0.7,
         skipProcessing: true,
       });
       thumbUri = photo.uri;
@@ -331,11 +331,12 @@ export class CameraEngine {
       const resized = await manipulateAsync(
         thumbUri!,
         [{ resize: { width: 600 } }],
-        { compress: 0.5, format: SaveFormat.JPEG },
+        { compress: 0.7, format: SaveFormat.JPEG },
       );
       resizedUri = resized.uri;
 
       const corners = await nativeDetectDocumentEdges({ uri: resizedUri });
+      if (__DEV__) console.log('[ScannerLive] native confidence=' + (corners?.confidence?.toFixed(3) ?? 'null'));
       if (corners && corners.confidence > 0.30) {
         this.lastCornersTimestamp = Date.now();
         this.edgeDetector.processFrame({ uri: resizedUri, _precomputedCorners: corners });

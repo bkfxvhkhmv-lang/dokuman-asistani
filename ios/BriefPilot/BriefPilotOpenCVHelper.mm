@@ -103,20 +103,20 @@ static float computeConfidence(
 // Build edge map optimised for document scanning:
 //   bilateral filter (preserves edges) → adaptive-Canny → dilate → morph-close
 static cv::Mat buildEdgeMap(const cv::Mat& gray) {
+    // CLAHE: boost local contrast before edge detection (essential for dark / low-light frames).
+    // Without this, median-based Canny thresholds collapse to near-zero in dark rooms.
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    cv::Mat equalized;
+    clahe->apply(gray, equalized);
+
     // Bilateral filter preserves sharp text/border edges while smoothing noise
     cv::Mat bilateral;
-    cv::bilateralFilter(gray, bilateral, 9, 75, 75);
+    cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
 
-    // Median-based automatic Canny thresholds (sigma = 0.33)
-    cv::Mat sorted;
-    bilateral.reshape(1,1).copyTo(sorted);
-    cv::sort(sorted, sorted, cv::SORT_ASCENDING);
-    double med = sorted.at<uchar>(sorted.cols / 2);
-    double lo  = MAX(0,   (1.0 - 0.33) * med);
-    double hi  = MIN(255, (1.0 + 0.33) * med);
-
+    // Fixed thresholds work across all lighting conditions after CLAHE normalisation.
+    // Sigma=0.33 adaptive approach collapsed to [13,27] on dark frames → no edges found.
     cv::Mat edges;
-    cv::Canny(bilateral, edges, lo, hi);
+    cv::Canny(bilateral, edges, 30, 90);
 
     // Dilate to connect nearby edge segments
     cv::Mat k3 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
@@ -167,7 +167,7 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
                 edges.cols, edges.rows,
                 &aArea, &aAngle, &aAspect, &aCenter
             );
-            if (isBlurry)   conf *= 0.30f;
+            if (isBlurry)   conf *= 0.50f;
             if (needsFlash) conf *= 0.75f;
             if (conf < 0.20f) continue;
 
@@ -211,7 +211,7 @@ static void analyseQuality(const cv::Mat& gray,
     cv::Scalar mean_, std_;
     cv::meanStdDev(lap, mean_, std_);
     *outBlurVar = std_[0] * std_[0];
-    *outBlurry  = (*outBlurVar < 100.0);
+    *outBlurry  = (*outBlurVar < 20.0);  // 100 was too strict for compressed mobile JPEG
 }
 
 // Multi-scale pipeline: detect at 3 resolutions, return best quad.
@@ -501,7 +501,7 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     CGColorSpaceRef cs  = CGColorSpaceCreateDeviceRGB();
     CGContextRef ctx = CGBitmapContextCreate(
         mat.data, cols, rows, 8, mat.step[0], cs,
-        (CGBitmapInfo)(kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault)
+        (CGBitmapInfo)((uint32_t)kCGImageAlphaNoneSkipLast | (uint32_t)kCGBitmapByteOrderDefault)
     );
     CGContextDrawImage(ctx, CGRectMake(0, 0, cols, rows), cgImage);
     CGContextRelease(ctx);
@@ -520,7 +520,7 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
 
     CGBitmapInfo bi = ch == 1
         ? (CGBitmapInfo)kCGBitmapByteOrderDefault
-        : (CGBitmapInfo)(kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+        : (CGBitmapInfo)((uint32_t)kCGImageAlphaNoneSkipLast | (uint32_t)kCGBitmapByteOrderDefault);
 
     CGImageRef imageRef = CGImageCreate(
         mat.cols, mat.rows, 8, 8 * ch, mat.step[0],

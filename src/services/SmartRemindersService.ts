@@ -203,7 +203,6 @@ export async function scheduleTemplateReminder(
 
 export async function cancelReminder(notifId: string): Promise<void> {
   try {
-    const { default: Notifications } = await import('expo-notifications');
     await Notifications.cancelScheduledNotificationAsync(notifId);
   } catch {}
 }
@@ -212,7 +211,6 @@ export async function cancelReminder(notifId: string): Promise<void> {
 
 export async function getPendingRemindersForDoc(dokId: string): Promise<string[]> {
   try {
-    const { default: Notifications } = await import('expo-notifications');
     const all = await Notifications.getAllScheduledNotificationsAsync();
     return all
       .filter(n => (n.content.data as any)?.dokId === dokId)

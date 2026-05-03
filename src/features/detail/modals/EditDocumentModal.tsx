@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import { AppInput } from '@/design/components';
@@ -22,10 +22,53 @@ interface EditDocumentModalProps {
 
 export default function EditDocumentModal({ visible, onClose, onSave, state, modal }: EditDocumentModalProps) {
   const { Colors: C, S, R } = useTheme();
+
+  const initialRef = useRef({
+    titel: '', absender: '', betrag: '', frist: '',
+    typ: '', risiko: '', profilId: null as string | null, userOrdner: '',
+  });
+
+  useEffect(() => {
+    if (visible) {
+      initialRef.current = {
+        titel: modal.editTitel,
+        absender: modal.editAbsender,
+        betrag: modal.editBetrag,
+        frist: modal.editFrist,
+        typ: modal.editTyp,
+        risiko: modal.editRisiko,
+        profilId: modal.editProfilId,
+        userOrdner: modal.editUserOrdner,
+      };
+    }
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isDirty =
+    modal.editTitel !== initialRef.current.titel ||
+    modal.editAbsender !== initialRef.current.absender ||
+    modal.editBetrag !== initialRef.current.betrag ||
+    modal.editFrist !== initialRef.current.frist ||
+    modal.editTyp !== initialRef.current.typ ||
+    modal.editRisiko !== initialRef.current.risiko ||
+    modal.editProfilId !== initialRef.current.profilId ||
+    modal.editUserOrdner !== initialRef.current.userOrdner;
+
+  const handleBackdropPress = useCallback(() => {
+    if (!isDirty) { onClose(); return; }
+    Alert.alert(
+      'Änderungen verwerfen?',
+      'Nicht gespeicherte Änderungen gehen verloren.',
+      [
+        { text: 'Weiter bearbeiten', style: 'cancel' },
+        { text: 'Verwerfen', style: 'destructive', onPress: onClose },
+      ],
+    );
+  }, [isDirty, onClose]);
+
   return (
     <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} activeOpacity={1} />
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={handleBackdropPress} activeOpacity={1} />
       <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: '85%' }}>
         <View style={{ width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20, backgroundColor: C.border }} />
         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>Dokument bearbeiten</Text>

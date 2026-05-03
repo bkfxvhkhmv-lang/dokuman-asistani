@@ -2,9 +2,9 @@
  * Çekim sonrası aksiyon sheet — orchestrator.
  * Alt parçalar `post-capture-sheet/` dizininde.
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, Modal, Animated,
+  View, Text, TouchableOpacity, Modal, Animated, Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useScanI18n } from '@/hooks/useScanI18n';
@@ -27,14 +27,26 @@ export default function PostCaptureActionSheet({ pageCount, onSelect }: PostCapt
 
   const { slideY, backdropOp, glowOp } = usePostCapturePresence(showActionPicker);
 
+  const handleCancel = useCallback(() => {
+    if (pageCount === 0) { closeActionPicker(); return; }
+    Alert.alert(
+      'Scan verwerfen?',
+      'Die aufgenommenen Seiten werden gelöscht.',
+      [
+        { text: 'Behalten', style: 'cancel' },
+        { text: 'Verwerfen', style: 'destructive', onPress: closeActionPicker },
+      ],
+    );
+  }, [pageCount, closeActionPicker]);
+
   const pageLabel = pageCount === 1
     ? `1 ${t('scan.page')}`
     : `${pageCount} ${t('scan.pages')}`;
 
   return (
-    <Modal visible={showActionPicker} transparent animationType="none" onRequestClose={closeActionPicker}>
+    <Modal visible={showActionPicker} transparent animationType="none" onRequestClose={handleCancel}>
       <Animated.View style={[st.backdrop, { opacity: backdropOp }]}>
-        <TouchableOpacity style={{ flex: 1 }} onPress={closeActionPicker} activeOpacity={1} />
+        <TouchableOpacity style={{ flex: 1 }} onPress={handleCancel} activeOpacity={1} />
       </Animated.View>
 
       <Animated.View
@@ -66,7 +78,7 @@ export default function PostCaptureActionSheet({ pageCount, onSelect }: PostCapt
           onSelect={onSelect}
         />
 
-        <TouchableOpacity style={st.cancelBtn} onPress={closeActionPicker}>
+        <TouchableOpacity style={st.cancelBtn} onPress={handleCancel}>
           <Text style={st.cancelText}>{t('scan.cancel')}</Text>
         </TouchableOpacity>
       </Animated.View>

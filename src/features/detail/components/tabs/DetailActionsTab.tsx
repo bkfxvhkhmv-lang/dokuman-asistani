@@ -70,7 +70,10 @@ export default function DetailActionsTab({
         suggestions={smartReminders.suggestions}
         scheduled={smartReminders.scheduled}
         isScheduling={smartReminders.isScheduling}
-        onSchedule={smartReminders.schedule}
+        onSchedule={(s) => {
+          console.warn('[ReminderTrace] DetailActionsTab schedule called', s.id);
+          smartReminders.schedule(s);
+        }}
         onCancel={smartReminders.cancel}
         isAlreadyScheduled={smartReminders.isAlreadyScheduled}
       />

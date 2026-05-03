@@ -146,10 +146,12 @@ export async function scheduleReminder(
   dok: Dokument,
   suggestion: ReminderSuggestion,
 ): Promise<ScheduledReminder | null> {
+  if (__DEV__) console.log('[ReminderTrace] SmartRemindersService.scheduleReminder entered', suggestion);
   if (suggestion.datum <= new Date()) return null;
   try {
     const { default: Notifications } = await import('expo-notifications');
     await ensureAndroidDefaultNotificationChannel();
+    if (__DEV__) console.log('[ReminderTrace] calling scheduleNotificationAsync', suggestion.datum);
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
         title: suggestion.notifTitle,
@@ -158,6 +160,7 @@ export async function scheduleReminder(
       }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: suggestion.datum },
     });
+    if (__DEV__) console.log('[ReminderTrace] scheduleNotificationAsync success', id);
     return { notifId: id, dokumentId: dok.id, datum: suggestion.datum.toISOString(), label: suggestion.label };
   } catch (e: unknown) {
     console.warn('[scheduleReminder] Failed:', e);

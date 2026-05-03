@@ -127,7 +127,7 @@ export default function LoginScreen() {
           />
 
           <Text style={[st.hint, { color: C.textTertiary }]}>
-            Ihre Daten werden verschlüsselt gespeichert.
+            Lokal verarbeitet · Du behältst die Kontrolle über deine Dokumente.
           </Text>
         </ScrollView>
 

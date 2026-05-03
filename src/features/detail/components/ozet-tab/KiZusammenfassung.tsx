@@ -33,7 +33,7 @@ export default function KiZusammenfassung({
         <TouchableOpacity onPress={() => onMailTaslak()}
           hitSlop={HIT_SLOP_LG}
           style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
-          <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>📧 E-Mail</Text>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>E-Mail</Text>
         </TouchableOpacity>
       </View>
       <Text style={{ fontSize: 13, color: C.textSecondary, lineHeight: 20 }}>{zusammenfassung}</Text>

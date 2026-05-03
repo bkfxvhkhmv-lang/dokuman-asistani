@@ -89,7 +89,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
       summary,
     ].filter(l => l !== null).join('\n'));
 
-    const mailto = `mailto:beta@briefpilot.de?subject=${subject}&body=${body}`;
+    const mailto = `mailto:feedback@briefpilot.de?subject=${subject}&body=${body}`;
 
     try {
       await Linking.openURL(mailto);
@@ -100,7 +100,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
       setSending(false);
       Alert.alert(
         'E-Mail-App nicht verfügbar',
-        'Bitte sende dein Feedback direkt an beta@briefpilot.de',
+        'Bitte sende dein Feedback direkt an feedback@briefpilot.de',
       );
     }
   }, [severity, screen, text, email, handleClose]);

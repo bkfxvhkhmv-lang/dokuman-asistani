@@ -18,20 +18,14 @@ export function useSmartReminders(dok: Dokument | null) {
   const suggestions = useMemo(() => (dok ? buildReminderSuggestions(dok) : []), [dok]);
 
   const schedule = useCallback(async (suggestion: ReminderSuggestion) => {
-    console.warn('[ReminderTrace] useSmartReminders.schedule entered', suggestion?.id);
     if (!dok) return;
     setIsScheduling(true);
     try {
-      console.warn('[ReminderTrace] before getPermissionsAsync');
       const permissions = await Notifications.getPermissionsAsync();
-      console.warn('[ReminderTrace] permission before', permissions.status, 'canAskAgain:', permissions.canAskAgain);
-
       let finalStatus = permissions.status;
 
       if (permissions.status !== 'granted') {
         if (!permissions.canAskAgain) {
-          // User previously denied — guide to Settings
-          console.warn('[ReminderTrace] canAskAgain false, opening settings');
           Alert.alert(
             'Benachrichtigungen deaktiviert',
             'Öffne die Einstellungen und aktiviere Benachrichtigungen für BriefPilot.',
@@ -42,9 +36,7 @@ export function useSmartReminders(dok: Dokument | null) {
           );
           return;
         }
-        console.warn('[ReminderTrace] requesting permission');
         const requestResult = await Notifications.requestPermissionsAsync();
-        console.warn('[ReminderTrace] permission after', requestResult.status);
         finalStatus = requestResult.status;
       }
 
@@ -56,14 +48,12 @@ export function useSmartReminders(dok: Dokument | null) {
         return;
       }
 
-      console.warn('[ReminderTrace] scheduling notification');
       const result = await scheduleReminder(dok, suggestion);
       if (result) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setScheduled(prev => [...prev, result]);
       }
-    } catch (error) {
-      console.warn('[ReminderTrace] schedule failed', error);
+    } catch {
       Alert.alert(
         'Erinnerung nicht gesetzt',
         'Bitte prüfe die Benachrichtigungsberechtigung und versuche es erneut.',

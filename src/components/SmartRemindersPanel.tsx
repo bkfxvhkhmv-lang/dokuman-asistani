@@ -110,10 +110,7 @@ export default function SmartRemindersPanel({
             suggestion={s}
             scheduled={matchingScheduled}
             isScheduling={isScheduling}
-            onSchedule={() => {
-              console.warn('[ReminderTrace] + Setzen pressed', s.id);
-              onSchedule(s);
-            }}
+            onSchedule={() => onSchedule(s)}
             onCancel={() => matchingScheduled && onCancel(matchingScheduled.notifId)}
             C={C} R={R}
           />

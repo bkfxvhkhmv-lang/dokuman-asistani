@@ -6,6 +6,7 @@ import type { RiskPalette } from '@/theme';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
 import { excerptForDocumentListCard } from '@/utils/listCardSummary';
+import { safeDisplayAbsender } from '@/utils/displaySanitizer';
 import { useT } from '@/hooks/useT';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -53,9 +54,10 @@ interface DokumentKarteProps {
 function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: DokumentKarteProps) {
   const { Colors, RiskColors, fs, hitSlopScale } = useTheme();
   const { t: T } = useT();
-  const accentColor = getAccentColor(dok, Colors, RiskColors);
-  const tageText    = getTageText(dok.frist, T);
-  const intent      = quickIntent(dok, Colors);
+  const accentColor   = getAccentColor(dok, Colors, RiskColors);
+  const tageText      = getTageText(dok.frist, T);
+  const intent        = quickIntent(dok, Colors);
+  const displayAbsender = safeDisplayAbsender(dok.absender, dok.confidence);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 3 || dok.risiko === 'hoch');
   const isDone      = dok.erledigt;
@@ -106,7 +108,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
             {dok.titel}
           </Text>
           <Text style={[styles.absender, { color: Colors.textSecondary, fontSize: fs(12) }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
-            {dok.absender}
+            {displayAbsender}
           </Text>
         </View>
 

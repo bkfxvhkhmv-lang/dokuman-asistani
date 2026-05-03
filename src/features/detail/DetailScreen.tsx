@@ -264,6 +264,7 @@ export default function Detailbildschirm() {
             smartLinks={smartLinks}
             allDoksMap={allDoksMap}
             detail={detail}
+            actionPlan={actionPlan}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

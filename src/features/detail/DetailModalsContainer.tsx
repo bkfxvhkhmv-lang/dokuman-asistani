@@ -99,11 +99,33 @@ export default function DetailModalsContainer({
   }, [modal, beginActionSession]);
 
   const handleDeleteConfirm = useCallback(() => {
+    const snapshot = { ...dok };
     modal.close();
     dispatch({ type: 'DELETE_DOKUMENT', id: dokId });
     router.back();
-    showToast({ message: 'Dokument gelöscht', icon: 'trash-outline' });
-  }, [modal, dispatch, dokId, router, showToast]);
+
+    let undone = false;
+    const undoTimer = setTimeout(() => {
+      if (!undone) { /* permanent after 3 s */ }
+    }, 3000);
+
+    modal.open('confirm', {
+      title:   'Dokument gelöscht',
+      message: 'Tippe auf Rückgängig, um es wiederherzustellen.',
+      actions: [
+        {
+          text: 'Rückgängig',
+          onPress: () => {
+            undone = true;
+            clearTimeout(undoTimer);
+            dispatch({ type: 'ADD_DOKUMENT', payload: snapshot });
+          },
+        },
+        { text: 'OK', style: 'cancel' },
+      ],
+      autoDismissMs: 3000,
+    } as any);
+  }, [modal, dispatch, dokId, dok, router]);
 
   return (
     <>

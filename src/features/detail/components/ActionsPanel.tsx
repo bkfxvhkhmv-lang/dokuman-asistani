@@ -16,7 +16,7 @@ const ACTION_META: Record<string, { label: string; shortLabel: string; icon: str
   zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',  icon: 'currency-eur',    tone: 'primary' },
   einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch', icon: 'pencil-line',     tone: 'danger' },
   kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',  icon: 'calendar-blank',  tone: 'success' },
-  mail:      { label: 'Als E-Mail öffnen',        shortLabel: 'E-Mail',    icon: 'envelope-simple', tone: 'neutral' },
+  mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',    icon: 'envelope-simple', tone: 'neutral' },
   review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: 'magnifying-glass', tone: 'warning' },
   ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: 'sparkle',         tone: 'neutral' },
   erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: 'check-circle',    tone: 'success' },
@@ -26,7 +26,7 @@ const ACTION_HINT: Partial<Record<string, string>> = {
   ai:       'KI erklärt oder fasst zusammen — du wählst die Sprache.',
   zahlen:   'Überweisungsdaten oder Banking vorbereiten.',
   kalender: 'Frist mit Erinnerung im Kalender sichern.',
-  mail:     'Entwurf oder Antwort per E-Mail öffnen.',
+  mail:     'Entwurf vorbereiten oder Antwort per E-Mail senden.',
   einspruch: 'Mustertext und Fristen für Widerspruch prüfen.',
 };
 

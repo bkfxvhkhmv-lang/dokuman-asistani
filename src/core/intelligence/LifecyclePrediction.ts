@@ -55,7 +55,7 @@ const NEXT_ACTION_MAP: Partial<Record<string, { action: string; emoji: string }>
   zahlen:    { action: 'Zahlung erforderlich',   emoji: 'currency-eur' },
   einspruch: { action: 'Einspruch prüfen',       emoji: 'pencil-simple' },
   kalender:  { action: 'Kalender eintragen',     emoji: 'calendar-blank' },
-  mail:      { action: 'E-Mail-Entwurf öffnen', emoji: 'envelope-simple' },
+  mail:      { action: 'Per E-Mail antworten',   emoji: 'envelope-simple' },
 };
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────

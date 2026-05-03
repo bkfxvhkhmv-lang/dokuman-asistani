@@ -2,6 +2,19 @@ import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
 
+function overdueGuidance(dok: Dokument): string {
+  const typ = dok.typ?.toLowerCase() ?? '';
+  if (typ.includes('rechnung') || typ.includes('mahnung'))
+    return 'Frist ist abgelaufen. Prüfe, ob die Zahlung noch aussteht, und kontaktiere ggf. den Absender.';
+  if (typ.includes('einspruch') || typ.includes('bussgeldbescheid') || typ.includes('bescheid'))
+    return 'Frist ist abgelaufen. Prüfe, ob ein Einspruch noch möglich ist — keine Rechtsberatung.';
+  if (typ.includes('versicherung') || typ.includes('vertrag'))
+    return 'Frist ist abgelaufen. Prüfe Kündigungsrechte oder kontaktiere den Anbieter.';
+  if (typ.includes('termin'))
+    return 'Termin ist abgelaufen. Neuen Termin vereinbaren oder Anbieter kontaktieren.';
+  return 'Frist ist abgelaufen. Prüfe Zahlung, Antwort oder mögliche nächste Schritte.';
+}
+
 /** Eine Zeile UX: „Was muss ich tun?” — primär Bezahlbetrag, sonst FAB-Label. */
 export function deriveNaechsterSchrittZeile(dok: Dokument, plan: ActionPlan | null): string | null {
   const key = plan?.primary?.key;
@@ -27,7 +40,7 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
 
   const tage = dok.frist ? getTageVerbleibend(dok.frist) : null;
   if (tage !== null && tage < 0) {
-    return 'Frist ist abgelaufen. Prüfe, ob eine Reaktion noch sinnvoll ist.';
+    return overdueGuidance(dok);
   }
 
   const key = plan?.primary?.key;

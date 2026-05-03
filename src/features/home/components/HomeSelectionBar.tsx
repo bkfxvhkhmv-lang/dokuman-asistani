@@ -48,19 +48,19 @@ export default function HomeSelectionBar({
         elevation: 8,
       }}
     >
-      <TouchableOpacity onPress={onAbbrechen} hitSlop={8}>
+      <TouchableOpacity onPress={onAbbrechen} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ fontSize: 13, fontWeight: '600', color: C.textSecondary }}>{T('common.cancel')}</Text>
       </TouchableOpacity>
       <Text style={{ flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '800', color: C.text }} numberOfLines={1}>
         {T('home.selection_count', { n: count })}
       </Text>
-      <TouchableOpacity onPress={onSteuerpaket} hitSlop={6}>
+      <TouchableOpacity onPress={onSteuerpaket} hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ fontSize: 12, fontWeight: '800', color: C.primary }}>Steuer</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={onExport} hitSlop={6}>
+      <TouchableOpacity onPress={onExport} hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ fontSize: 12, fontWeight: '800', color: C.primary }}>PDF</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={onLoeschen} hitSlop={6}>
+      <TouchableOpacity onPress={onLoeschen} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ fontSize: 12, fontWeight: '800', color: dangerColor }}>{T('common.delete')}</Text>
       </TouchableOpacity>
     </View>

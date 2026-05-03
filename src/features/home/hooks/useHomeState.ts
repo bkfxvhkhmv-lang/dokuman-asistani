@@ -190,9 +190,24 @@ export function useHomeState() {
 
   const handleBatchExport = useCallback(async () => {
     const secilen = state.dokumente.filter(d => secilenIds.has(d.id));
-    if (secilen.length > 1) { setMergeReihenfolge(secilen); setPdfMergeModal(true); }
-    else { await exportiereTopluPDF(secilen); setSecilenModus(false); setSecilenIds(new Set()); }
-  }, [state.dokumente, secilenIds]);
+    if (secilen.length === 0) {
+      alert('Keine Dokumente ausgewählt', 'Wähle mindestens ein Dokument aus, um den Export zu starten.', { icon: 'information-circle' });
+      return;
+    }
+    if (secilen.length > 1) { setMergeReihenfolge(secilen); setPdfMergeModal(true); return; }
+    try {
+      await exportiereTopluPDF(secilen);
+      setSecilenModus(false);
+      setSecilenIds(new Set());
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
+        alert('Teilen nicht verfügbar', 'Das Gerät unterstützt das Teilen von Dateien nicht.', { icon: 'share', tone: 'warning' });
+      } else {
+        alert('Export fehlgeschlagen', 'Bitte versuche es erneut.', { icon: 'alert-circle', tone: 'warning' });
+      }
+    }
+  }, [state.dokumente, secilenIds, alert]);
 
   const handleBatchLoeschen = useCallback(async () => {
     if (secilenIds.size === 0) return;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet, Alert } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { exportiereTopluPDF } from '@/utils';
 import { uploadDocumentV4 } from '@/services/v4Api';
@@ -57,13 +57,22 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
     }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExport = async () => {
-    onClose();
-    const uri = await exportiereTopluPDF(reihenfolge);
-    if (uri) {
-      const filename = `merged_${Date.now()}.pdf`;
-      uploadDocumentV4(uri, filename).catch(() => null);
+    try {
+      const uri = await exportiereTopluPDF(reihenfolge);
+      if (uri) {
+        const filename = `merged_${Date.now()}.pdf`;
+        uploadDocumentV4(uri, filename).catch(() => null);
+      }
+      onClose();
+      onDone?.();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
+        Alert.alert('Teilen nicht verfügbar', 'Das Gerät unterstützt das Teilen von Dateien nicht.');
+      } else {
+        Alert.alert('Export fehlgeschlagen', 'Bitte versuche es erneut.');
+      }
     }
-    onDone?.();
   };
 
   return (

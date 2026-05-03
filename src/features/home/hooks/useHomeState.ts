@@ -198,11 +198,43 @@ export function useHomeState() {
     if (secilenIds.size === 0) return;
     const ok = await confirm({
       title: `${secilenIds.size} Dokument${secilenIds.size > 1 ? 'e' : ''} löschen?`,
-      message: 'Diese Aktion kann nicht rückgängig gemacht werden.',
+      message: 'Du kannst die Aktion kurz danach rückgängig machen.',
       icon: 'trash', tone: 'danger', confirmLabel: 'Löschen', dangerConfirm: true,
     });
-    if (ok) { secilenIds.forEach(id => dispatch({ type: 'DELETE_DOKUMENT', id })); setSecilenModus(false); setSecilenIds(new Set()); }
-  }, [secilenIds, dispatch, confirm]);
+    if (!ok) return;
+
+    const snapshots = state.dokumente.filter(d => secilenIds.has(d.id));
+    secilenIds.forEach(id => dispatch({ type: 'DELETE_DOKUMENT', id }));
+    setSecilenModus(false);
+    setSecilenIds(new Set());
+
+    let undone = false;
+    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 3000);
+
+    showSheet({
+      title:   `${snapshots.length} Dokument${snapshots.length !== 1 ? 'e' : ''} gelöscht`,
+      message: 'Tippe auf Rückgängig, um sie wiederherzustellen.',
+      icon:    'trash',
+      tone:    'default',
+      actions: [
+        {
+          label: 'Rückgängig',
+          variant: 'primary',
+          onPress: () => {
+            undone = true;
+            clearTimeout(undoTimer);
+            snapshots.forEach(snap => dispatch({ type: 'ADD_DOKUMENT', payload: snap }));
+            hideSheet();
+          },
+        },
+        {
+          label: 'OK',
+          variant: 'secondary',
+          onPress: () => { undone = true; clearTimeout(undoTimer); hideSheet(); },
+        },
+      ],
+    });
+  }, [secilenIds, state.dokumente, dispatch, confirm, showSheet, hideSheet]);
 
   const handleSteuerpaketAuswahl = useCallback(async () => {
     const secilen = state.dokumente.filter(d => secilenIds.has(d.id));

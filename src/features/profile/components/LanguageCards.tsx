@@ -29,7 +29,7 @@ export function UILanguageCard({ bare }: UILangProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
+      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}
     >
       {LANGUAGES.map(l => (
         <TouchableOpacity
@@ -109,7 +109,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8 }}
+      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}
     >
       {AI_LANGUAGES.filter(l => l.priority).map(l => (
         <TouchableOpacity

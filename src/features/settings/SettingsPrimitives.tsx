@@ -24,7 +24,7 @@ export function FlatGroup({ children }: { children: React.ReactNode }) {
       style={{
         borderRadius: 12,
         overflow: 'hidden',
-        borderWidth: StyleSheet.hairlineWidth,
+        borderWidth: 1,
         borderColor: C.border,
         backgroundColor: C.bgCard,
       }}
@@ -109,7 +109,7 @@ export function FlatRow({ icon, label, sub, right, onPress, disabled }: FlatRowP
 export function SettingsSectionTitle({ label }: { label: string }) {
   const { Colors: C, fs } = useTheme();
   return (
-    <Text style={[sheet.title, { color: C.textTertiary, fontSize: fs(11) }]} accessibilityRole="header">
+    <Text style={[sheet.title, { color: C.textSecondary, fontSize: fs(11) }]} accessibilityRole="header">
       {label}
     </Text>
   );

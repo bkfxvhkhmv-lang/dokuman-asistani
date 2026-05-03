@@ -200,12 +200,9 @@ export const MAIN_TABS: MainTabDefinition[] = [
   },
   {
     name: 'Export',
-    options: (colors: TabColors) => ({
-      tabBarLabel: 'Export',
-      tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
-        <TabIcon name="export" focused={focused} color={color} colors={colors} />
-      ),
-    }),
+    // Hidden until export document selection is confirmed working on device.
+    // Per-document export remains available in Detail → Dokument tab.
+    options: () => ({ href: null }),
   },
   {
     name: 'Marktplatz',

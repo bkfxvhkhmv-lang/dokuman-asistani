@@ -47,7 +47,8 @@ export const authStyles = StyleSheet.create({
 
   googleBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderRadius: 16, paddingVertical: 14, marginTop: 12, gap: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, minHeight: 48,
+    paddingVertical: 12, marginTop: 12, gap: 10,
   },
 
   secondaryActions: { marginTop: 20, paddingTop: 2, alignItems: 'center' },

@@ -6,17 +6,19 @@
  * yerine merkezi import.
  */
 
+export type ChipTone = 'default' | 'warning' | 'danger';
+
 /** Arama ekrani aciliriken gosterilen onerilen aramalar. */
-export const SCHNELLSUCHE: { label: string; query: string }[] = [
-  { label: 'Überfällig',   query: 'überfällig' },
-  { label: 'Diese Woche',  query: 'diese Woche' },
-  { label: 'Dringend',     query: 'dringend' },
-  { label: 'Rechnung',     query: 'Rechnung' },
-  { label: 'Mahnung',      query: 'Mahnung' },
-  { label: 'Finanzamt',    query: 'Finanzamt' },
-  { label: 'Bußgeld',      query: 'Bußgeld' },
-  { label: 'Versicherung', query: 'Versicherung' },
-  { label: 'Über 100 €',   query: 'über 100€' },
+export const SCHNELLSUCHE: { label: string; query: string; tone?: ChipTone }[] = [
+  { label: 'Überfällig',   query: 'überfällig',  tone: 'danger'  },
+  { label: 'Diese Woche',  query: 'diese Woche'                   },
+  { label: 'Dringend',     query: 'dringend',    tone: 'warning' },
+  { label: 'Rechnung',     query: 'Rechnung'                      },
+  { label: 'Mahnung',      query: 'Mahnung',     tone: 'warning' },
+  { label: 'Finanzamt',    query: 'Finanzamt'                     },
+  { label: 'Bußgeld',      query: 'Bußgeld'                       },
+  { label: 'Versicherung', query: 'Versicherung'                  },
+  { label: 'Über 100 €',   query: 'über 100€'                     },
 ];
 
 /** Filtre modal'inde dokumenttip secimi. */

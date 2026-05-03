@@ -71,14 +71,13 @@ export default function AuthForm({
 
       <TouchableOpacity
         onPress={onGoogle}
-        activeOpacity={0.88}
-        style={[st.googleBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
+        activeOpacity={0.82}
+        style={[st.googleBtn, { borderColor: C.borderLight, backgroundColor: C.bgCard }]}
       >
-        {/* Google G — four-color mark using a bordered circle split by color */}
-        <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#4285F4', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 11, fontWeight: '800', color: '#4285F4', lineHeight: 14 }}>G</Text>
+        <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#4285F4', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontSize: 10, fontWeight: '900', color: '#fff', lineHeight: 13 }}>G</Text>
         </View>
-        <Text style={{ fontSize: 15, fontWeight: '600', color: C.text }}>
+        <Text style={{ fontSize: 15, fontWeight: '600', color: C.text, letterSpacing: -0.1 }}>
           {T('auth.google')}
         </Text>
       </TouchableOpacity>

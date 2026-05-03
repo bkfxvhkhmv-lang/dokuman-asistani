@@ -11,7 +11,7 @@ import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
 import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
 import SpringChip from '@/features/search/components/SpringChip';
-import { SCHNELLSUCHE } from '@/features/search/components/constants';
+import { SCHNELLSUCHE, type ChipTone } from '@/features/search/components/constants';
 import { SEARCH_MISSION_HINT } from '@/product/strategyCopy';
 
 interface Props {
@@ -21,6 +21,12 @@ interface Props {
   onSearch: (q: string) => void;
   C: ThemeColors;
   S: any;
+}
+
+function chipColors(tone: ChipTone | undefined, C: ThemeColors) {
+  if (tone === 'danger')  return { bg: C.dangerLight,  border: C.dangerBorder,          text: C.danger };
+  if (tone === 'warning') return { bg: C.warningLight, border: `${C.warning}55`,        text: C.warningText || C.warning };
+  return                         { bg: C.bgCard,       border: C.border,                text: C.text };
 }
 
 export default function SearchHomeView({
@@ -51,19 +57,22 @@ export default function SearchHomeView({
         SCHNELLSUCHE
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: S.xl }}>
-        {SCHNELLSUCHE.map(t => (
-          <SpringChip
-            key={t.query}
-            onPress={() => onSearch(t.query)}
-            style={{
-              paddingVertical: 7, paddingHorizontal: S.md,
-              backgroundColor: C.bgCard, borderRadius: 20,
-              borderWidth: 0.5, borderColor: C.border,
-            }}
-          >
-            <Text style={{ fontSize: 13, color: C.text }}>{t.label}</Text>
-          </SpringChip>
-        ))}
+        {SCHNELLSUCHE.map(t => {
+          const pal = chipColors(t.tone, C);
+          return (
+            <SpringChip
+              key={t.query}
+              onPress={() => onSearch(t.query)}
+              style={{
+                paddingVertical: 8, paddingHorizontal: S.md, minHeight: 36,
+                backgroundColor: pal.bg, borderRadius: 20,
+                borderWidth: 0.5, borderColor: pal.border,
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: t.tone ? '600' : '400', color: pal.text }}>{t.label}</Text>
+            </SpringChip>
+          );
+        })}
       </View>
 
       {/* Zuletzt gesucht — silme onaysiz */}

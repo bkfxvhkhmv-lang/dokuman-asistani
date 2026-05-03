@@ -121,7 +121,7 @@ export default function SmartSummaryCard({
               onModeChange(m);
               if (m === 'detailliert' && onLoadDetailed) onLoadDetailed();
             }}
-            style={{ flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: R.md,
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingVertical: 6, borderRadius: R.md,
               backgroundColor: currentMode === m ? C.primary : C.bgCard,
               borderWidth: 1, borderColor: currentMode === m ? C.primary : C.border }}>
             <Text style={{ fontSize: 11, fontWeight: '700',

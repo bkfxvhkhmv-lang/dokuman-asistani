@@ -168,7 +168,7 @@ const de: Dict = {
   'search.advanced': 'Erweiterte Suche',
   'search.include_done': 'Erledigte einschließen',
   'home.this_month': 'Diesen Monat',
-  'brand.tagline': 'Ihre Dokumente. Immer im Griff.',
+  'brand.tagline': 'Verstehe Briefe. Verpasse keine Frist.',
 };
 
 const tr: Dict = {

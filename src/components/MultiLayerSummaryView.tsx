@@ -128,8 +128,8 @@ export default function MultiLayerSummaryView({ dok }: MultiLayerSummaryViewProp
             const active = tab.id === activeTab;
             return (
               <TouchableOpacity key={tab.id} onPress={() => setActiveTab(tab.id)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4,
-                  paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20,
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
+                  minHeight: 44, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20,
                   backgroundColor: active ? C.primary : 'transparent' }}>
                 <Text style={{ fontSize: 12 }}>{tab.emoji}</Text>
                 <Text style={{ fontSize: 11, fontWeight: active ? '700' : '500', color: active ? '#fff' : C.textSecondary }}>

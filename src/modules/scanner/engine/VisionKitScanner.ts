@@ -5,12 +5,12 @@ export interface VisionScanResult {
   pageCount: number;
   corrected: boolean;
   cancelled?: boolean;
-  source: 'visionkit' | 'fallback';
+  source: 'visionkit' | 'mlkit' | 'fallback';
 }
 
 const RN = NativeModules.BriefPilotVisionScanner;
 
-export const visionKitAvailable: boolean = Platform.OS === 'ios' && !!RN;
+export const visionKitAvailable: boolean = (Platform.OS === 'ios' || Platform.OS === 'android') && !!RN;
 
 /**
  * Opens Apple VisionKit document scanner (iOS only).

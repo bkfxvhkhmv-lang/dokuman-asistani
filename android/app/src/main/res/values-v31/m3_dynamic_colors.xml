@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="m3_ref_palette_dynamic_neutral_variant4">#0A0A0A</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant6">#0F0F0F</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant10">#1A1A1A</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant12">#1F1F1F</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant17">#2B2B2B</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant20">#333333</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant22">#383838</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant24">#3D3D3D</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant30">#4D4D4D</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant40">#666666</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant50">#808080</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant60">#999999</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant70">#B3B3B3</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant80">#CCCCCC</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant87">#DEDEDE</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant90">#E5E5E5</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant92">#EBEBEB</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant94">#F0F0F0</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant95">#F3F3F3</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant96">#F5F5F5</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant98">#FAFAFA</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant99">#FCFCFC</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant100">#FFFFFF</color>
+    <color name="m3_ref_palette_dynamic_neutral_variant0">#000000</color>
+</resources>

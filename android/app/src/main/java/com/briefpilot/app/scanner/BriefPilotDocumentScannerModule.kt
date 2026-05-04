@@ -28,7 +28,7 @@ class BriefPilotDocumentScannerModule(private val reactContext: ReactApplication
 
     @ReactMethod
     fun scanDocuments(promise: Promise) {
-        val activity = currentActivity ?: run {
+        val activity = reactApplicationContext.currentActivity ?: run {
             promise.reject("NO_ACTIVITY", "No current activity")
             return
         }
@@ -97,5 +97,5 @@ class BriefPilotDocumentScannerModule(private val reactContext: ReactApplication
         promise.resolve(result)
     }
 
-    override fun onNewIntent(intent: Intent?) {}
+    override fun onNewIntent(intent: Intent) {}
 }

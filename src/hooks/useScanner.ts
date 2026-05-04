@@ -29,9 +29,11 @@ export function useScanner() {
   const cameraRef    = useRef<CameraView>(null);
   const engineRef    = useRef<CameraEngine | null>(null);
   const mountedRef   = useRef(true);
+  const clearEdgesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isReady,       setIsReady]       = useState(false);
   const [isCapturing,   setIsCapturing]   = useState(false);
   const [detectedEdges, setDetectedEdges] = useState<DocumentCorners | null>(null);
+  const [edgesAreFresh, setEdgesAreFresh] = useState(false);
   const [stability,     setStability]     = useState({ isStable: false, confidence: 0 });
   const [lastCapture,   setLastCapture]   = useState<CaptureResult | null>(null);
   const [error,         setError]         = useState<string | null>(null);
@@ -45,11 +47,20 @@ export function useScanner() {
       if (!mountedRef.current) return;
       switch (event.type) {
         case 'edges_detected':
+          if (clearEdgesTimerRef.current) { clearTimeout(clearEdgesTimerRef.current); clearEdgesTimerRef.current = null; }
+          if (__DEV__) console.log('[useScanner] edges_detected confidence=' + event.corners?.confidence?.toFixed(3));
+          setEdgesAreFresh(true);
           setDetectedEdges(event.corners);
           break;
         case 'edge_state_changed':
-          // Clear stale overlay when native detection loses the document
-          if (!event.state.detected) setDetectedEdges(null);
+          if (!event.state.detected) {
+            setEdgesAreFresh(false);
+            // Debounce overlay clear — keep visible 1.2s after last detection to prevent flicker
+            if (clearEdgesTimerRef.current) clearTimeout(clearEdgesTimerRef.current);
+            clearEdgesTimerRef.current = setTimeout(() => {
+              if (mountedRef.current) setDetectedEdges(null);
+            }, 1200);
+          }
           break;
         case 'stability_changed':
           setStability({ isStable: event.state.isStable, confidence: event.state.confidence });
@@ -69,6 +80,7 @@ export function useScanner() {
 
     return () => {
       mountedRef.current = false;
+      if (clearEdgesTimerRef.current) clearTimeout(clearEdgesTimerRef.current);
       unsubscribe();
       engine.dispose();
     };
@@ -125,6 +137,7 @@ export function useScanner() {
     isReady,
     isCapturing,
     detectedEdges,
+    edgesAreFresh,
     distanceHint,
     stability,
     lastCapture,

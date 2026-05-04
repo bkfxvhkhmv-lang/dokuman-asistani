@@ -37,4 +37,5 @@ export interface CameraViewProps {
   insets: { top: number; bottom: number };
   onClose: () => void;
   detectedCorners?: DocumentCorners | null;
+  edgesAreFresh?: boolean;
 }

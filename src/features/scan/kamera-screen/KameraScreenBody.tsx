@@ -59,6 +59,7 @@ export type KameraScreenBodyProps = {
   onCloseCamera: () => void;
   distanceHint: DistanceHint;
   detectedCorners?: DocumentCorners | null;
+  edgesAreFresh?: boolean;
   backToCamera: () => void;
   handleClearAll: () => void;
   movePageUp: (id: string) => void;
@@ -114,7 +115,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
     activeFilter, committedFilterId, handleFilterChange, handleApplyFilter, handleToggleFilters,
     filterPresets, handleCapture, pageCount, sessionPages, goToBatch, removePage, handleOpenPageEditor,
     scanLineStyle, insets, onCloseCamera, distanceHint, detectedCorners,
-    backToCamera, handleClearAll, movePageUp, movePageDown, rotatePage,
+    backToCamera, handleClearAll, movePageUp, movePageDown, rotatePage, edgesAreFresh,
     handleApplyFilterToAll, handleRotateAll, replacePages, addPage,
     activeSession, editablePage, editOpacity, editSlide,
     isOptimizing, compareUri, handleAcceptOptimize, handleRevertOptimize,
@@ -159,6 +160,7 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
           insets={insets}
           onClose={onCloseCamera}
           detectedCorners={detectedCorners}
+          edgesAreFresh={edgesAreFresh}
         />
       ) : null}
 

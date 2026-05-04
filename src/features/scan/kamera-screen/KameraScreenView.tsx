@@ -72,7 +72,7 @@ export default function KameraScreenView() {
   const smartPipeline = useSmartDocumentPipeline(dispatch);
   const [overlaySize, setOverlaySize] = useState({ w: 0, h: 0 });
   const { pages, pageCount, addPage, removePage, movePageUp, movePageDown, rotatePage, updatePage, clearPages, replacePages, attachOcr, attachMetadata, generatePdf } = useBatch();
-  const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
+  const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges, edgesAreFresh, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
   const { config: sheetConfig, showSheet, hideSheet, confirm: confirmSheet } = useSheet();
 
   const cameraRef = useRef<ExpoCameraView>(null);
@@ -403,6 +403,7 @@ export default function KameraScreenView() {
         onCloseCamera={() => safeBack(router)}
         distanceHint={distanceHint}
         detectedCorners={detectedEdges}
+        edgesAreFresh={edgesAreFresh}
         backToCamera={backToCamera}
         handleClearAll={handleClearAll}
         movePageUp={movePageUp}

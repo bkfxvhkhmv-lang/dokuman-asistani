@@ -14,7 +14,7 @@ export class AutoCaptureEngine {
     // 500ms sabit kaldıktan sonra "stable" (kullanıcının 0.5s timer'ı)
     requiredDuration: 500,
     autoTriggerDelay: 800,
-    readinessThreshold: 0.78,
+    readinessThreshold: 0.74,
   };
   private enabled = false;
 
@@ -24,6 +24,9 @@ export class AutoCaptureEngine {
   private blurScore = 1.0;        // 0 = very blurry, 1 = sharp
   private brightnessScore = 1.0;  // 0 = too dark/bright, 1 = optimal
   private distortionScore = 1.0;  // 0 = heavy distortion, 1 = flat
+
+  private capturedAt: number | null = null;
+  private readonly COOLDOWN_MS = 1500;
 
   private lastReadiness: AutoCaptureReadiness = {
     score: 0,
@@ -78,6 +81,7 @@ export class AutoCaptureEngine {
     this.isStable = false;
     this.edgeConfidence = 0;
     this.lastMotionConfidence = 0;
+    this.capturedAt = null;
   }
 
   updateEdgeConfidence(confidence: number) {
@@ -180,8 +184,16 @@ export class AutoCaptureEngine {
     };
 
     this.lastReadiness = readiness;
+    if (__DEV__) console.log('[AutoCapture] score=' + score.toFixed(3) + ' threshold=' + this.config.readinessThreshold + ' edgeConf=' + this.edgeConfidence.toFixed(3) + ' stable=' + this.isStable + ' ready=' + readiness.ready);
     this.emit({ type: 'auto_capture_ready', readiness });
-    if (readiness.ready) this.emit({ type: 'capture_ready' });
+    if (readiness.ready) {
+      const now = Date.now();
+      if (this.capturedAt === null || now - this.capturedAt >= this.COOLDOWN_MS) {
+        this.capturedAt = now;
+        if (__DEV__) console.log('[AutoCapture] captured cooldownMs=' + this.COOLDOWN_MS);
+        this.emit({ type: 'capture_ready' });
+      }
+    }
   }
 
   triggerFeedback() {

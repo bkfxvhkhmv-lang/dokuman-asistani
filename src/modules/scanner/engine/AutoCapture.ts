@@ -9,8 +9,8 @@ export class AutoCaptureEngine {
   private isStable = false;
   private listeners: ScannerListener[] = [];
   private config = {
-    // rad/s — kullanıcının koduyla aynı: 0.1 rad/s altı = sabit
-    threshold: 0.10,
+    // rad/s — normal el titremesi 0.10-0.20 rad/s; 0.15 makul eşik
+    threshold: 0.15,
     // 500ms sabit kaldıktan sonra "stable" (kullanıcının 0.5s timer'ı)
     requiredDuration: 500,
     autoTriggerDelay: 800,
@@ -180,7 +180,10 @@ export class AutoCaptureEngine {
       brightnessScore: this.brightnessScore,
       distortionScore: this.distortionScore,
       stable: this.isStable,
-      ready: this.isStable && score >= this.config.readinessThreshold,
+      // isStable is a display hint; score alone gates capture so partial
+      // stability (motionConf building up) is sufficient. edgeConf absence
+      // keeps max achievable score at 0.70, safely below 0.74 threshold.
+      ready: score >= this.config.readinessThreshold,
     };
 
     this.lastReadiness = readiness;

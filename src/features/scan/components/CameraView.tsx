@@ -146,7 +146,8 @@ export default function CameraView(props: CameraViewProps) {
           />
         </View>
       ) : (
-        <View style={styles.guideFrame}>
+        // top: insets.top+64 keeps guide frame below the safe area + top bar (never under notch)
+        <View style={[styles.guideFrame, { top: insets.top + 64 }]}>
           {[styles.cornerTL, styles.cornerTR, styles.cornerBL, styles.cornerBR].map((cornerStyle, i) => (
             <View key={i} style={[styles.corner, cornerStyle, { borderColor: cornerColor }]} />
           ))}

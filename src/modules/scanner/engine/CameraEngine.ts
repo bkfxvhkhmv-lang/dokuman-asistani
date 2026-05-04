@@ -143,8 +143,16 @@ export class CameraEngine {
 
       if (!captureCorners || captureCorners.confidence < 0.35) {
         const cornersAge = this.lastCornersTimestamp > 0 ? Date.now() - this.lastCornersTimestamp : -1;
-        if (__DEV__) console.log('[ScannerCapture] guideFallbackUsed=true latestCornersAgeMs=' + cornersAge);
-        captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
+        // Full-res photos (4032px → 900px in OpenCV) lose edge quality.
+        // If live detection found corners recently and the phone is held still
+        // (auto-capture requires stability), those coords are still valid.
+        if (cornersAge >= 0 && cornersAge < 15000 && this.lastEdgeState.corners && this.lastEdgeState.confidence >= 0.35) {
+          if (__DEV__) console.log('[ScannerCapture] liveCornersFallback cornersAge=' + cornersAge + 'ms conf=' + this.lastEdgeState.confidence.toFixed(3));
+          captureCorners = this.lastEdgeState.corners;
+        } else {
+          if (__DEV__) console.log('[ScannerCapture] guideFallbackUsed=true latestCornersAgeMs=' + cornersAge);
+          captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
+        }
       }
 
       if (this.config.enablePerspectiveCorrection && captureCorners.confidence >= 0.4) {
@@ -341,6 +349,10 @@ export class CameraEngine {
         this.lastCornersTimestamp = Date.now();
         this.edgeDetector.processFrame({ uri: resizedUri, _precomputedCorners: corners });
       } else {
+        // Reset edge confidence so AutoCapture score drops to ~0.35 max (below 0.74 threshold).
+        // Without this reset, stale edgeConf keeps score artificially high even when no document.
+        this.lastEdgeState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
+        this.autoCapture.updateEdgeConfidence(0);
         this.emit({ type: 'edge_state_changed', state: { corners: null, confidence: 0, stabilityScore: 0, detected: false } });
       }
     } catch {

@@ -20,7 +20,7 @@ export type {
 } from '@/features/scan/components/camera-view/types';
 
 const hintStyles = StyleSheet.create({
-  wrap: { position: 'absolute', bottom: 140, left: 0, right: 0, alignItems: 'center' },
+  wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   text: {
     color: '#fff', fontSize: 14, fontWeight: '600',
     backgroundColor: 'rgba(0,0,0,0.40)', overflow: 'hidden',
@@ -155,8 +155,8 @@ export default function CameraView(props: CameraViewProps) {
 
       <CameraTopBar topInset={insets.top} pageCount={pageCount} onClose={onClose} />
 
-      {/* Status hint — bottom center, above the shutter bar */}
-      <View style={hintStyles.wrap} pointerEvents="none">
+      {/* Status hint — sits just above the shutter bar, inset-aware */}
+      <View style={[hintStyles.wrap, { bottom: insets.bottom + 108 }]} pointerEvents="none">
         <Text style={[hintStyles.text, showCaptureToast && hintStyles.captured]}>
           {hintText}
         </Text>

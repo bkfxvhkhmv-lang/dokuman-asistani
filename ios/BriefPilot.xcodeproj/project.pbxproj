@@ -15,6 +15,8 @@
 		BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB01 /* BriefPilotScannerModule.m */; };
 		BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB02 /* BriefPilotScannerModule.swift */; };
 		BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */; };
+		BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */; };
+		BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */; };
 		D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
@@ -32,6 +34,8 @@
 		BP000000000000000000BB02 /* BriefPilotScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotScannerModule.swift; path = BriefPilot/BriefPilotScannerModule.swift; sourceTree = "<group>"; };
 		BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BriefPilotOpenCVHelper.h; path = BriefPilot/BriefPilotOpenCVHelper.h; sourceTree = "<group>"; };
 		BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = BriefPilotOpenCVHelper.mm; path = BriefPilot/BriefPilotOpenCVHelper.mm; sourceTree = "<group>"; };
+		BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BriefPilotVisionScannerModule.m; path = BriefPilot/BriefPilotVisionScannerModule.m; sourceTree = "<group>"; };
+		BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotVisionScannerModule.swift; path = BriefPilot/BriefPilotVisionScannerModule.swift; sourceTree = "<group>"; };
 		C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BriefPilot/AppDelegate.swift; sourceTree = "<group>"; };
@@ -60,6 +64,8 @@
 				BP000000000000000000BB02 /* BriefPilotScannerModule.swift */,
 				BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */,
 				BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */,
+				BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */,
+				BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -351,6 +357,8 @@
 				D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */,
 				BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */,
 				BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */,
+				BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */,
+				BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */,
 				BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

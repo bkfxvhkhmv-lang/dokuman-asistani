@@ -48,9 +48,10 @@ static std::array<cv::Point,4> sortCorners(std::vector<cv::Point>& pts) {
     return result;
 }
 
-// Confidence: angle score (90° proximity) × 0.6 + area ratio × 0.4
+// Confidence: angle × 0.50 + area × 0.30 + aspect × 0.20
+// aspectScore (A4/Letter proximity) is the key false-positive filter:
+// furniture, rugs, phones all fail the A4 ratio check.
 // Capped at 0.97 to leave headroom for quality penalties.
-// Out-params receive individual component scores (0–1) for debug/JS reporting.
 static float computeConfidence(
     std::array<cv::Point,4>& c,
     double area, double imageArea,
@@ -95,7 +96,7 @@ static float computeConfidence(
     if (outAspectScore) *outAspectScore = aAspect;
     if (outCenterScore) *outCenterScore = aCenter;
 
-    return (float)MIN(0.97, aAngle * 0.6 + aArea * 0.4);
+    return (float)MIN(0.97, aAngle * 0.50 + aArea * 0.30 + aAspect * 0.20);
 }
 
 #pragma mark - Edge detection core

@@ -158,6 +158,10 @@ class BriefPilotScanner: NSObject {
       "needsFlash":     r.needsFlash,
       "blurVariance":   r.blurVariance,
       "avgBrightness":  r.avgBrightness,
+      "areaScore":      r.areaScore,
+      "angleScore":     r.angleScore,
+      "aspectScore":    r.aspectScore,
+      "centerScore":    r.centerScore,
     ]
   }
 

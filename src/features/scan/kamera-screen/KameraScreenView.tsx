@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { Animated, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { scanWithVisionKit, visionKitAvailable } from '@/modules/scanner/engine/VisionKitScanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useSharedValue, useAnimatedStyle, interpolate,
@@ -154,14 +155,14 @@ export default function KameraScreenView() {
     updateConfig,
     setCaptureFilterId,
     setActiveFilter,
-    lastCapture,
+    lastCapture: visionKitAvailable ? null : lastCapture,
     createFromCapture,
     addPage,
     scanLineY,
     editSlide,
     editOpacity,
-    startLiveEdgeDetection,
-    stopLiveEdgeDetection,
+    startLiveEdgeDetection: visionKitAvailable ? undefined : startLiveEdgeDetection,
+    stopLiveEdgeDetection: visionKitAvailable ? undefined : stopLiveEdgeDetection,
   });
 
   const {
@@ -342,6 +343,20 @@ export default function KameraScreenView() {
     }
   }, [smartPipeline, clearPages, router]);
 
+  const handleVisionKitCapture = useCallback(async () => {
+    try {
+      const result = await scanWithVisionKit();
+      if (result.cancelled || result.imageUris.length === 0) return;
+      for (const uri of result.imageUris) {
+        const imageSession = imageSessionManager.create(uri, 'none');
+        addPage({ uri, filter: 'none', corners: undefined, enhanced: false, capture: undefined, imageSession, ocr: undefined, metadata: undefined, selected: false });
+      }
+      if (result.imageUris.length > 0) goToBatch();
+    } catch (e: any) {
+      if (__DEV__) console.error('[VisionKit] scan error:', e?.message ?? e);
+    }
+  }, [addPage, goToBatch, imageSessionManager]);
+
   const handleOpenGallery = useCallback(async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -392,7 +407,7 @@ export default function KameraScreenView() {
         handleApplyFilter={handleApplyFilter}
         handleToggleFilters={handleToggleFilters}
         filterPresets={filterPresets}
-        handleCapture={handleCapture}
+        handleCapture={visionKitAvailable ? handleVisionKitCapture : handleCapture}
         pageCount={pageCount}
         sessionPages={sessionPages}
         goToBatch={goToBatch}

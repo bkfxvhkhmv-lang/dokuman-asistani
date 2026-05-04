@@ -3,7 +3,7 @@ import { CameraView } from 'expo-camera';
 import { Dimensions } from 'react-native';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system/legacy';
-import { AutoCaptureReadiness, CaptureConfig, CaptureResult, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
+import { AutoCaptureReadiness, CaptureConfig, CaptureResult, DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
 import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
 import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
 import { PerspectiveCorrector } from '@/modules/scanner/engine/PerspectiveCorrector';
@@ -25,6 +25,9 @@ export class CameraEngine {
     stabilityScore: 0,
     detected: false,
   };
+  // Capture-normalized corners (from live detection) retained for warpPerspective fallback.
+  // Separate from lastEdgeState.corners which hold display-transformed coords.
+  private lastCaptureNormalizedCorners: DocumentCorners | null = null;
   private lastAutoCaptureReadiness: AutoCaptureReadiness = {
     score: 0,
     motionConfidence: 0,
@@ -48,6 +51,8 @@ export class CameraEngine {
   private liveDetectRunning = false;
   private liveDetectIntervalMs = 900;
   private lastCornersTimestamp = 0;
+  private consecutiveDetections = 0;
+  private lastStableCorners: DocumentCorners | null = null;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -146,9 +151,10 @@ export class CameraEngine {
         // Full-res photos (4032px → 900px in OpenCV) lose edge quality.
         // If live detection found corners recently and the phone is held still
         // (auto-capture requires stability), those coords are still valid.
-        if (cornersAge >= 0 && cornersAge < 15000 && this.lastEdgeState.corners && this.lastEdgeState.confidence >= 0.35) {
-          if (__DEV__) console.log('[ScannerCapture] liveCornersFallback cornersAge=' + cornersAge + 'ms conf=' + this.lastEdgeState.confidence.toFixed(3));
-          captureCorners = this.lastEdgeState.corners;
+        // Use capture-normalized corners (not display-transformed) for warpPerspective.
+        if (cornersAge >= 0 && cornersAge < 15000 && this.lastCaptureNormalizedCorners && this.lastCaptureNormalizedCorners.confidence >= 0.35) {
+          if (__DEV__) console.log('[ScannerCapture] liveCornersFallback cornersAge=' + cornersAge + 'ms conf=' + this.lastCaptureNormalizedCorners.confidence.toFixed(3));
+          captureCorners = this.lastCaptureNormalizedCorners;
         } else {
           if (__DEV__) console.log('[ScannerCapture] guideFallbackUsed=true latestCornersAgeMs=' + cornersAge);
           captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
@@ -250,7 +256,7 @@ export class CameraEngine {
    * Guide frame constants must match styles/dimensions.ts:
    *   width = 72% of screen, centered; top = 10%; height = width × 1.414 (A4).
    */
-  private computeGuideCropCorners(captureW: number, captureH: number): import('@/modules/scanner/types').DocumentCorners {
+  private computeGuideCropCorners(captureW: number, captureH: number): DocumentCorners {
     const { width: SW, height: SH } = Dimensions.get('window');
 
     const GUIDE_RATIO  = 0.72;
@@ -296,6 +302,45 @@ export class CameraEngine {
     };
   }
 
+  /**
+   * Maps corners from capture-normalized space (relative to the sensor image, e.g. 3:4)
+   * to preview-normalized space (relative to the screen, e.g. 9:16).
+   *
+   * The Expo Camera preview displays a center-crop of the sensor capture. OpenCV returns
+   * corners normalized to the sensor image; DocumentOverlay expects preview coordinates.
+   * Without this transform the polygon appears shifted and the wrong size.
+   */
+  private captureToPreviewCorners(
+    corners: DocumentCorners,
+    captureW: number,
+    captureH: number,
+  ): DocumentCorners {
+    const { width: SW, height: SH } = Dimensions.get('window');
+    const previewAspect = SW / SH;
+    const captureAspect = captureW / captureH;
+
+    const tr = (pt: { x: number; y: number }) => {
+      if (captureAspect > previewAspect) {
+        // Sensor wider than preview → left/right strips hidden in preview
+        const pw = previewAspect / captureAspect;
+        const xOff = (1 - pw) / 2;
+        return { x: (pt.x - xOff) / pw, y: pt.y };
+      }
+      // Sensor taller than preview → top/bottom strips hidden in preview
+      const ph = captureAspect / previewAspect;
+      const yOff = (1 - ph) / 2;
+      return { x: pt.x, y: (pt.y - yOff) / ph };
+    };
+
+    return {
+      topLeft:     tr(corners.topLeft),
+      topRight:    tr(corners.topRight),
+      bottomRight: tr(corners.bottomRight),
+      bottomLeft:  tr(corners.bottomLeft),
+      confidence:  corners.confidence,
+    };
+  }
+
   startLiveEdgeDetection(intervalMs = 900) {
     this.liveDetectIntervalMs = intervalMs;
     this.stopLiveEdgeDetection();
@@ -326,7 +371,6 @@ export class CameraEngine {
       }
       const photo = await (this.cameraRef.current as any).takePictureAsync({
         quality: 0.7,
-        skipProcessing: true,
       });
       thumbUri = photo.uri;
 
@@ -336,21 +380,30 @@ export class CameraEngine {
         return;
       }
 
-      const resized = await manipulateAsync(
-        thumbUri!,
-        [{ resize: { width: 600 } }],
-        { compress: 0.7, format: SaveFormat.JPEG },
-      );
-      resizedUri = resized.uri;
+      if (__DEV__) console.log('[ScannerLive] snapshot w=' + (photo.width ?? '?') + ' h=' + (photo.height ?? '?'));
+      // Only downscale to 900px if the image is larger; never upscale.
+      // snapshot is 888px on this device — upscaling adds nothing and wastes time.
+      const needsResize = (photo.width ?? 0) > 900;
+      let resized = { uri: thumbUri!, width: photo.width ?? 888, height: photo.height ?? 1920 };
+      if (needsResize) {
+        const r = await manipulateAsync(
+          thumbUri!,
+          [{ resize: { width: 900 } }],
+          { compress: 0.9, format: SaveFormat.JPEG },
+        );
+        resizedUri = r.uri;
+        resized = { uri: r.uri, width: r.width ?? 900, height: r.height ?? 1946 };
+      }
+      if (__DEV__) console.log('[ScannerLive] proc w=' + resized.width + ' h=' + resized.height + ' resized=' + needsResize);
 
-      const corners = await nativeDetectDocumentEdges({ uri: resizedUri });
-      if (__DEV__) console.log('[ScannerLive] native confidence=' + (corners?.confidence?.toFixed(3) ?? 'null'));
-      if (corners && corners.confidence > 0.30) {
+      const corners = await nativeDetectDocumentEdges({ uri: resized.uri });
+      if (__DEV__) console.log('[ScannerLive] conf=' + (corners?.confidence?.toFixed(3) ?? 'null'));
+      if (corners && corners.confidence > 0.55) {
         this.lastCornersTimestamp = Date.now();
-        this.edgeDetector.processFrame({ uri: resizedUri, _precomputedCorners: corners });
+        this.lastCaptureNormalizedCorners = corners;
+        const displayCorners = this.captureToPreviewCorners(corners, resized.width, resized.height);
+        this.edgeDetector.processFrame({ uri: resized.uri, _precomputedCorners: displayCorners });
       } else {
-        // Reset edge confidence so AutoCapture score drops to ~0.35 max (below 0.74 threshold).
-        // Without this reset, stale edgeConf keeps score artificially high even when no document.
         this.lastEdgeState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
         this.autoCapture.updateEdgeConfidence(0);
         this.emit({ type: 'edge_state_changed', state: { corners: null, confidence: 0, stabilityScore: 0, detected: false } });
@@ -366,9 +419,19 @@ export class CameraEngine {
     }
   }
 
+  // Returns true when all 4 corners are within 8% of their previous positions.
+  private areCornersStable(a: DocumentCorners, b: DocumentCorners | null): boolean {
+    if (!b) return false;
+    const keys = ['topLeft', 'topRight', 'bottomRight', 'bottomLeft'] as const;
+    return keys.every(k => Math.abs(a[k].x - b[k].x) < 0.08 && Math.abs(a[k].y - b[k].y) < 0.08);
+  }
+
   dispose() {
     this.stopLiveEdgeDetection();
     this.autoCapture.stop();
+    this.lastCaptureNormalizedCorners = null;
+    this.lastStableCorners = null;
+    this.consecutiveDetections = 0;
     this.listeners = [];
   }
 }

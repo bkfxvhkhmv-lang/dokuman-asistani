@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Polygon, Circle } from 'react-native-svg';
+import { getOverlayColor } from '@/modules/scanner/engine/camera-overlay-color';
+import { runQualityGateFromCorners } from '@/modules/scanner/engine/camera-quality-gate';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const DEFAULT_FRAME_W = Math.round(SCREEN_W * 0.72);
@@ -37,10 +39,10 @@ export const DocumentOverlay: React.FC<Props> = ({
   const resolvedColor = cornerColor || color || (mode === 'qr' ? '#7C6EF8' : 'rgba(255,255,255,0.85)');
 
   if (corners) {
-    const { topLeft, topRight, bottomRight, bottomLeft, confidence } = corners;
+    const { topLeft, topRight, bottomRight, bottomLeft } = corners;
     const { width: W, height: H } = Dimensions.get('window');
-    // Beyaz: kenar yok/çok düşük | Sarı: eğik/kötü açı | Yeşil: mükemmel
-    const edgeColor = confidence > 0.65 ? '#22C55E' : confidence > 0.35 ? '#EAB308' : 'rgba(255,255,255,0.7)';
+    const quality = runQualityGateFromCorners(corners);
+    const edgeColor = color || getOverlayColor(quality, true);
 
     // Corners are normalized 0-1 — multiply by screen dimensions for SVG pixel coords
     const pts = [topLeft, topRight, bottomRight, bottomLeft].map(p => ({

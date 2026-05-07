@@ -126,8 +126,6 @@ export function useDocumentActions({
     runHandleEditSpeichern({ dok, dokId, dispatch, modal, openConfirm });
   }, [dok, dokId, dispatch, modal, openConfirm]);
 
-  const handleFormularAusfuellen = useCallback(() => {}, []);
-
   const handleFormularCopyWiderspruch = useCallback(async () => {
     await runFormularCopyWiderspruch(dok, openNotice);
   }, [dok, openNotice]);
@@ -177,7 +175,6 @@ export function useDocumentActions({
     handleEdit,
     handleEditKlassifikation,
     handleEditSpeichern,
-    handleFormularAusfuellen,
     handleFormularCopyWiderspruch,
     handleFormularMailWiderspruch,
     handleFormularCopyPayment,

@@ -10,13 +10,14 @@ import type { CameraView as ExpoCameraView } from 'expo-camera';
 import type { BatchPage } from '@/modules/batch';
 import type { CaptureResult } from '@/modules/scanner';
 import { getScanQualityProfile, type ScanQualityPresetId } from '@/modules/scanner/flow/scanQualityProfiles';
+import { shouldAddPage } from '@/modules/scanner/engine/camera-page-add-guard';
 import { SCREEN_H } from '@/features/scan/constants';
 
 /** updateConfig nimmt partiellen Scanner-State (useScanner). */
 export function useKameraScreenEffects(opts: {
   setCameraRef: (r: RefObject<ExpoCameraView>) => void;
   cameraRef: RefObject<ExpoCameraView | null>;
-  autoCapture: boolean;
+  autoCaptureEnabled: boolean;
   flash: 'off' | 'on';
   mode: string;
   qualityPreset: string;
@@ -44,7 +45,7 @@ export function useKameraScreenEffects(opts: {
   const {
     setCameraRef,
     cameraRef,
-    autoCapture,
+    autoCaptureEnabled,
     flash,
     mode,
     qualityPreset,
@@ -69,14 +70,14 @@ export function useKameraScreenEffects(opts: {
   useEffect(() => {
     const profile = getScanQualityProfile(qualityPreset as ScanQualityPresetId);
     updateConfig({
-      autoCapture: (autoCapture || profile.autoCapture) && mode === 'camera',
+      autoCapture: autoCaptureEnabled && mode === 'camera',
       flash,
       filter: captureFilterId,
       exposure: profile.exposure,
       enableEdgeDetection: profile.edgeDetection,
       enablePerspectiveCorrection: profile.perspectiveCorrection,
     });
-  }, [autoCapture, captureFilterId, flash, mode, qualityPreset, updateConfig]);
+  }, [autoCaptureEnabled, captureFilterId, flash, mode, qualityPreset, updateConfig]);
 
   // Live corner detection — snapshot every 900ms while camera is active
   useEffect(() => {
@@ -98,14 +99,21 @@ export function useKameraScreenEffects(opts: {
 
   useEffect(() => {
     scanLineY.value =
-      mode === 'camera' && autoCapture
+      mode === 'camera' && autoCaptureEnabled
         ? withRepeat(withTiming(SCREEN_H * 0.7, { duration: 2000 }), -1, true)
         : 0;
-  }, [autoCapture, mode, scanLineY]);
+  }, [autoCaptureEnabled, mode, scanLineY]);
 
   useEffect(() => {
     if (!lastCapture || lastHandledCapture.current === lastCapture.timestamp) return;
     lastHandledCapture.current = lastCapture.timestamp;
+
+    const pageDecision = shouldAddPage(lastCapture);
+    if (!pageDecision.allow) {
+      if (__DEV__) console.log('[ScannerPageAdd] rejected reason=' + pageDecision.reason);
+      return;
+    }
+
     const imageSession = createFromCapture(lastCapture);
     addPage({
       uri: lastCapture.finalUri,

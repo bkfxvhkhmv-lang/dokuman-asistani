@@ -52,6 +52,8 @@ export class CameraEngine {
   private liveScanSubscription: any = null;
   private lastCornersTimestamp = 0;
   private lastGoodCornersTimestamp = 0;
+  private smoothedDisplayCorners: DocumentCorners | null = null;
+  private static readonly DISPLAY_SMOOTH_ALPHA = 0.35;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -268,6 +270,22 @@ export class CameraEngine {
     };
   }
 
+  private smoothDisplayCorners(raw: DocumentCorners): DocumentCorners {
+    if (!this.smoothedDisplayCorners) { this.smoothedDisplayCorners = raw; return raw; }
+    const a = CameraEngine.DISPLAY_SMOOTH_ALPHA;
+    const b = 1 - a;
+    const lp = (r: number, p: number) => a * r + b * p;
+    const prev = this.smoothedDisplayCorners;
+    this.smoothedDisplayCorners = {
+      ...raw,
+      topLeft:     { x: lp(raw.topLeft.x,     prev.topLeft.x),     y: lp(raw.topLeft.y,     prev.topLeft.y) },
+      topRight:    { x: lp(raw.topRight.x,    prev.topRight.x),    y: lp(raw.topRight.y,    prev.topRight.y) },
+      bottomRight: { x: lp(raw.bottomRight.x, prev.bottomRight.x), y: lp(raw.bottomRight.y, prev.bottomRight.y) },
+      bottomLeft:  { x: lp(raw.bottomLeft.x,  prev.bottomLeft.x),  y: lp(raw.bottomLeft.y,  prev.bottomLeft.y) },
+    };
+    return this.smoothedDisplayCorners;
+  }
+
   // ─── Live detection (native stream) ────────────────────────────────────────
 
   startLiveEdgeDetection(_intervalMs = 900) {
@@ -333,7 +351,8 @@ export class CameraEngine {
         this.lastGoodConfidence = corners.confidence;
       }
 
-      const displayCorners = this.captureToPreviewCorners(corners, W, H);
+      const rawDisplay = this.captureToPreviewCorners(corners, W, H);
+      const displayCorners = this.smoothDisplayCorners(rawDisplay);
       updateLiveState(
         { corners: displayCorners, confidence: corners.confidence, stabilityScore: 0.85, detected: true },
         Date.now(),
@@ -382,6 +401,7 @@ export class CameraEngine {
     this.lastGoodConfidence = 0;
     this.lastCornersTimestamp = 0;
     this.lastGoodCornersTimestamp = 0;
+    this.smoothedDisplayCorners = null;
     resetLiveState();
     this.listeners = [];
   }

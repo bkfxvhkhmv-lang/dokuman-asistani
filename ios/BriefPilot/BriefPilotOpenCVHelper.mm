@@ -16,6 +16,9 @@
 
 @implementation BriefPilotOpenCVHelper
 
+static DocumentCornerResult *sLastStableResult = nil;
+static int sConsecutiveMisses = 0;
+
 #pragma mark - Geometry helpers
 
 // Corner angle at P between neighbours A and B (degrees)
@@ -68,9 +71,10 @@ static float computeConfidence(
     }
     float aAngle = (float)(angleSum / 4.0);
 
-    // Area score: quad occupies 12%–95% of image
+    // Area score: previous calibration was too harsh and collapsed to 0 for many valid mobile frames.
+    // New mapping gives partial credit from ~3% upward and reaches 1.0 around ~28%.
     double areaRatio = area / imageArea;
-    float aArea = (float)MAX(0, MIN(1.0, (areaRatio - 0.12) / 0.83));
+    float aArea = (float)MAX(0, MIN(1.0, (areaRatio - 0.03) / 0.25));
 
     // Aspect score: proximity to A4 (1.414) or Letter (1.294) ratio
     double qw = cv::norm(cv::Point2d(c[1].x - c[0].x, c[1].y - c[0].y));
@@ -130,6 +134,47 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     return edges;
 }
 
+// Build a DocumentCornerResult from a normalized candidate quad.
+static DocumentCornerResult* _Nullable buildCandidateResult(
+    std::array<cv::Point,4>& corners,
+    double area,
+    int origW, int origH,
+    double scale,
+    double imageArea,
+    int edgeW, int edgeH,
+    BOOL isBlurry, BOOL needsFlash,
+    double blurVar, double avgBright,
+    float confidencePenalty
+) {
+    float aArea = 0, aAngle = 0, aAspect = 0, aCenter = 0;
+    float conf = computeConfidence(
+        corners, area / (scale*scale), imageArea,
+        edgeW, edgeH,
+        &aArea, &aAngle, &aAspect, &aCenter
+    );
+    if (isBlurry)   conf *= 0.50f;
+    if (needsFlash) conf *= 0.75f;
+    conf *= confidencePenalty;
+    if (conf < 0.20f) return nil;
+
+    float inv = (float)(1.0 / scale);
+    DocumentCornerResult *r = [[DocumentCornerResult alloc] init];
+    r.topLeft     = CGPointMake(corners[0].x * inv / origW, corners[0].y * inv / origH);
+    r.topRight    = CGPointMake(corners[1].x * inv / origW, corners[1].y * inv / origH);
+    r.bottomRight = CGPointMake(corners[2].x * inv / origW, corners[2].y * inv / origH);
+    r.bottomLeft  = CGPointMake(corners[3].x * inv / origW, corners[3].y * inv / origH);
+    r.confidence     = conf;
+    r.isBlurry       = isBlurry;
+    r.needsFlash     = needsFlash;
+    r.blurVariance   = blurVar;
+    r.avgBrightness  = avgBright;
+    r.areaScore      = aArea;
+    r.angleScore     = aAngle;
+    r.aspectScore    = aAspect;
+    r.centerScore    = aCenter;
+    return r;
+}
+
 // Attempt to find a document quad in the given edge map.
 // Returns the best DocumentCornerResult* or nil.
 static DocumentCornerResult* _Nullable findQuadInEdges(
@@ -152,44 +197,69 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
 
     for (const auto& contour : contours) {
         double area = cv::contourArea(contour);
-        if (area < workArea * 0.08) break; // too small — stop early
+        if (area < workArea * 0.03) break; // too small — stop early
 
         // Try multiple epsilon values for approxPolyDP (robust to noise)
         double peri = cv::arcLength(contour, true);
+        bool acceptedContour = false;
         for (double eps : {0.015, 0.025, 0.04}) {
             std::vector<cv::Point> approx;
             cv::approxPolyDP(contour, approx, peri * eps, true);
             if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
 
             auto corners = sortCorners(approx);
-            float aArea = 0, aAngle = 0, aAspect = 0, aCenter = 0;
-            float conf = computeConfidence(
-                corners, area / (scale*scale), imageArea,
-                edges.cols, edges.rows,
-                &aArea, &aAngle, &aAspect, &aCenter
+            DocumentCornerResult *r = buildCandidateResult(
+                corners,
+                area,
+                origW, origH,
+                scale,
+                imageArea,
+                edges.cols,
+                edges.rows,
+                isBlurry,
+                needsFlash,
+                blurVar,
+                avgBright,
+                1.0f
             );
-            if (isBlurry)   conf *= 0.50f;
-            if (needsFlash) conf *= 0.75f;
-            if (conf < 0.20f) continue;
-
-            float inv = (float)(1.0 / scale);
-            DocumentCornerResult *r = [[DocumentCornerResult alloc] init];
-            r.topLeft     = CGPointMake(corners[0].x * inv / origW, corners[0].y * inv / origH);
-            r.topRight    = CGPointMake(corners[1].x * inv / origW, corners[1].y * inv / origH);
-            r.bottomRight = CGPointMake(corners[2].x * inv / origW, corners[2].y * inv / origH);
-            r.bottomLeft  = CGPointMake(corners[3].x * inv / origW, corners[3].y * inv / origH);
-            r.confidence     = conf;
-            r.isBlurry       = isBlurry;
-            r.needsFlash     = needsFlash;
-            r.blurVariance   = blurVar;
-            r.avgBrightness  = avgBright;
-            r.areaScore      = aArea;
-            r.angleScore     = aAngle;
-            r.aspectScore    = aAspect;
-            r.centerScore    = aCenter;
-            if (!best || conf > best.confidence) best = r;
+            if (!r) continue;
+            if (!best || r.confidence > best.confidence) best = r;
+            acceptedContour = true;
             break; // found valid quad for this contour
         }
+
+        if (!acceptedContour) {
+            cv::RotatedRect rect = cv::minAreaRect(contour);
+            double rectArea = rect.size.width * rect.size.height;
+            if (rectArea >= workArea * 0.05) {
+                cv::Point2f rectPtsF[4];
+                rect.points(rectPtsF);
+                std::vector<cv::Point> rectPts;
+                rectPts.reserve(4);
+                for (int i = 0; i < 4; i++) {
+                    rectPts.emplace_back((int)rectPtsF[i].x, (int)rectPtsF[i].y);
+                }
+                auto rectCorners = sortCorners(rectPts);
+                DocumentCornerResult *r = buildCandidateResult(
+                    rectCorners,
+                    rectArea,
+                    origW, origH,
+                    scale,
+                    imageArea,
+                    edges.cols,
+                    edges.rows,
+                    isBlurry,
+                    needsFlash,
+                    blurVar,
+                    avgBright,
+                    0.90f
+                );
+                if (r && (!best || r.confidence > best.confidence)) {
+                    best = r;
+                }
+            }
+        }
+
         if (best && best.confidence > 0.75f) break; // good enough — stop searching
     }
     return best;
@@ -248,14 +318,28 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     }
 
     if (!best) {
+        sConsecutiveMisses += 1;
+        if (sLastStableResult != nil && sConsecutiveMisses <= 2) {
+            return sLastStableResult;
+        }
+
         // Return quality data even when no quad found
         DocumentCornerResult *noCorner = [[DocumentCornerResult alloc] init];
-        noCorner.confidence   = 0;
-        noCorner.isBlurry     = isBlurry;
-        noCorner.needsFlash   = needsFlash;
-        noCorner.blurVariance = blurVar;
+        noCorner.confidence    = 0;
+        noCorner.isBlurry      = isBlurry;
+        noCorner.needsFlash    = needsFlash;
+        noCorner.blurVariance  = blurVar;
         noCorner.avgBrightness = avgBright;
+        noCorner.areaScore     = 0;
+        noCorner.angleScore    = 0;
+        noCorner.aspectScore   = 0;
+        noCorner.centerScore   = 0;
         return noCorner;
+    }
+
+    sConsecutiveMisses = 0;
+    if (best.confidence >= 0.55f && best.areaScore >= 0.04f) {
+        sLastStableResult = best;
     }
     return best;
 }
@@ -286,7 +370,7 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     if (scale < 1.0) cv::resize(yPlane, gray, cv::Size(), scale, scale);
     else yPlane.copyTo(gray);
     CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-    return runMultiScalePipeline(gray, w, h);
+    return runMultiScalePipeline(gray, gray.cols, gray.rows);
 }
 
 #pragma mark - Perspective warp (INTER_LANCZOS4)

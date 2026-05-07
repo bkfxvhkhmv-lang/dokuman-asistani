@@ -91,6 +91,10 @@ async function realOpenCVEdgeDetect(frame: any): Promise<DocumentCorners | null>
       bottomRight: { x: result.bottomRight.x, y: result.bottomRight.y },
       bottomLeft:  { x: result.bottomLeft.x,  y: result.bottomLeft.y },
       confidence:  result.confidence,
+      areaScore:   result.areaScore,
+      angleScore:  result.angleScore,
+      aspectScore: result.aspectScore,
+      centerScore: result.centerScore,
     };
     if (__DEV__) {
       console.log('[ScannerNative] fromNative=true confidence=' + result.confidence.toFixed(3));

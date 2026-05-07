@@ -179,8 +179,12 @@ extension BriefPilotLiveScannerView: AVCaptureVideoDataOutputSampleBufferDelegat
     let isLandscape = bufW > bufH
 
     func pt(_ p: CGPoint) -> [String: Double] {
-      if isLandscape { return ["x": Double(p.y), "y": 1.0 - Double(p.x)] }
-      return ["x": Double(p.x), "y": Double(p.y)]
+      if isLandscape {
+        // landscape → portrait (90° CCW): px = ly, py = 1-lx
+        return ["x": Double(p.y), "y": 1.0 - Double(p.x)]
+      }
+      // portrait buffer (iOS 17+ videoRotationAngle=90 CW): y-axis is inverted
+      return ["x": Double(p.x), "y": 1.0 - Double(p.y)]
     }
 
     let outW = isLandscape ? bufH : bufW

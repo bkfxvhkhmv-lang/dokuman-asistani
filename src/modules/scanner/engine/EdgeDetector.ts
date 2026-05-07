@@ -7,12 +7,16 @@ export class EdgeDetector {
   private processing = false;
   private lastCorners: DocumentCorners | null = null;
   private previousCorners: DocumentCorners | null = null;
+  private smoothedCorners: DocumentCorners | null = null;
   private lastState: EdgeDetectionState = {
     corners: null,
     confidence: 0,
     stabilityScore: 0,
     detected: false,
   };
+  // Overlay zıplamasını önlemek için üstel hareketli ortalama.
+  // alpha=0.35: yeni frame %35, önceki pozisyon %65 ağırlık taşır.
+  private static readonly SMOOTH_ALPHA = 0.35;
 
   addListener(listener: ScannerListener) {
     this.listeners.push(listener);
@@ -32,6 +36,7 @@ export class EdgeDetector {
     this.enabled = false;
     this.lastCorners = null;
     this.previousCorners = null;
+    this.smoothedCorners = null;
     this.lastState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
   }
 
@@ -44,12 +49,13 @@ export class EdgeDetector {
       let corners: DocumentCorners | null = frame?._precomputedCorners ?? null;
       if (!corners) corners = await nativeDetectDocumentEdges(frame);
 
-      if (corners && corners.confidence > 0.3) {
+      if (corners && corners.confidence > 0.50) {
         const stabilityScore = this.calculateStabilityScore(corners, this.lastCorners);
         this.previousCorners = this.lastCorners;
         this.lastCorners = corners;
-        this.lastState = { corners, confidence: corners.confidence, stabilityScore, detected: true };
-        this.emit({ type: 'edges_detected', corners });
+        const smoothed = this.applySmoothing(corners);
+        this.lastState = { corners: smoothed, confidence: corners.confidence, stabilityScore, detected: true };
+        this.emit({ type: 'edges_detected', corners: smoothed });
         this.emit({ type: 'edge_state_changed', state: this.lastState });
       } else {
         this.lastState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
@@ -71,7 +77,7 @@ export class EdgeDetector {
    */
   async analyzeCapture(uri: string, width: number, height: number): Promise<DocumentCorners | null> {
     const native = await nativeDetectDocumentEdges({ uri, width, height });
-    if (native && native.confidence > 0.3) {
+    if (native && native.confidence > 0.50) {
       this.lastCorners = native;
       return native;
     }
@@ -80,6 +86,29 @@ export class EdgeDetector {
 
   getLastCorners(): DocumentCorners | null { return this.lastCorners; }
   getLastState(): EdgeDetectionState { return this.lastState; }
+
+  private applySmoothing(raw: DocumentCorners): DocumentCorners {
+    if (!this.smoothedCorners) {
+      this.smoothedCorners = raw;
+      return raw;
+    }
+    const a = EdgeDetector.SMOOTH_ALPHA;
+    const b = 1 - a;
+    const lp = (r: number, p: number) => a * r + b * p;
+    const prev = this.smoothedCorners;
+    this.smoothedCorners = {
+      topLeft:     { x: lp(raw.topLeft.x,     prev.topLeft.x),     y: lp(raw.topLeft.y,     prev.topLeft.y) },
+      topRight:    { x: lp(raw.topRight.x,    prev.topRight.x),    y: lp(raw.topRight.y,    prev.topRight.y) },
+      bottomRight: { x: lp(raw.bottomRight.x, prev.bottomRight.x), y: lp(raw.bottomRight.y, prev.bottomRight.y) },
+      bottomLeft:  { x: lp(raw.bottomLeft.x,  prev.bottomLeft.x),  y: lp(raw.bottomLeft.y,  prev.bottomLeft.y) },
+      confidence:  raw.confidence,
+      areaScore:   raw.areaScore,
+      angleScore:  raw.angleScore,
+      aspectScore: raw.aspectScore,
+      centerScore: raw.centerScore,
+    };
+    return this.smoothedCorners;
+  }
 
   private calculateStabilityScore(nextCorners: DocumentCorners, previousCorners: DocumentCorners | null): number {
     // No previous frame — treat as stable with moderate initial score.

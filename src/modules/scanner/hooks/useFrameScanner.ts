@@ -29,6 +29,7 @@ const DEFAULT_READINESS: AutoCaptureReadiness = {
   distortionScore: 1,
   stable: false,
   ready: false,
+  countdownProgress: 0,
 };
 
 export function useFrameScanner(options: FrameScannerOptions = {}) {

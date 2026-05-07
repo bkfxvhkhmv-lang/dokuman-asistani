@@ -12,7 +12,7 @@ interface TopBarProps {
 }
 
 export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarProps) {
-  const { flash, toggleFlash } = useScan();
+  const { flash, toggleFlash, autoCapture, toggleAutoCapture } = useScan();
   const { t: T } = useT();
 
   const handleClose = () => {
@@ -44,8 +44,8 @@ export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarPro
         />
       </TouchableOpacity>
 
-      <TouchableOpacity hitSlop={HIT_SLOP_LG} style={st.textBtn}>
-        <Text style={st.textBtnLabel} />
+      <TouchableOpacity onPress={toggleAutoCapture} hitSlop={HIT_SLOP_LG} style={[st.autoBtn, autoCapture && st.autoBtnActive]}>
+        <Text style={[st.autoBtnLabel, autoCapture && st.autoBtnLabelActive]}>AUTO</Text>
       </TouchableOpacity>
     </View>
   );
@@ -56,4 +56,8 @@ const st = StyleSheet.create({
   textBtn:    { paddingVertical: 6, paddingHorizontal: 2 },
   textBtnLabel: { color: '#fff', fontSize: 16, fontWeight: '500' },
   iconBtn:    { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  autoBtn:    { minWidth: 58, height: 32, borderRadius: 999, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.10)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
+  autoBtnActive: { backgroundColor: 'rgba(34,197,94,0.22)', borderColor: 'rgba(34,197,94,0.55)' },
+  autoBtnLabel: { color: '#fff', fontSize: 12, fontWeight: '700', letterSpacing: 0.6 },
+  autoBtnLabelActive: { color: '#D7FFE6' },
 });

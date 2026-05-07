@@ -15,6 +15,7 @@ export function useAutoCapture(config?: AutoCaptureConfig) {
   const [readiness, setReadiness] = useState<AutoCaptureReadiness>({
     score: 0, stable: false, ready: false,
     motionConfidence: 0, edgeConfidence: 0, blurScore: 1, brightnessScore: 1, distortionScore: 1,
+    countdownProgress: 0,
   });
   const [enabled, setEnabled] = useState(false);
 

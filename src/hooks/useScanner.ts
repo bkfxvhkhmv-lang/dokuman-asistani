@@ -57,18 +57,19 @@ export function useScanner() {
       switch (event.type) {
         case 'edges_detected':
           if (clearEdgesTimerRef.current) { clearTimeout(clearEdgesTimerRef.current); clearEdgesTimerRef.current = null; }
-          if (__DEV__) console.log('[useScanner] edges_detected confidence=' + event.corners?.confidence?.toFixed(3));
+          if (__DEV__) console.log('[useScanner] edges_detected confidence=' + event.corners?.confidence?.toFixed(3) + ' tl=' + event.corners.topLeft.x.toFixed(3) + ',' + event.corners.topLeft.y.toFixed(3));
           setEdgesAreFresh(true);
           setDetectedEdges(event.corners);
           break;
         case 'edge_state_changed':
+          if (__DEV__) console.log('[useScanner] edge_state_changed detected=' + String(event.state.detected) + ' conf=' + event.state.confidence.toFixed(3));
           if (!event.state.detected) {
             setEdgesAreFresh(false);
-            // Debounce overlay clear — keep visible 1.2s after last detection to prevent flicker
+            // Debounce overlay clear — keep visible 1.5s after last detection to prevent flicker
             if (clearEdgesTimerRef.current) clearTimeout(clearEdgesTimerRef.current);
             clearEdgesTimerRef.current = setTimeout(() => {
               if (mountedRef.current) setDetectedEdges(null);
-            }, 1200);
+            }, 1500);
           }
           break;
         case 'stability_changed':

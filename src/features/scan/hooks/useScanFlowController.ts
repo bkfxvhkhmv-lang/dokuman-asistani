@@ -5,7 +5,8 @@ export type ScanMode = 'camera' | 'edit' | 'batch' | 'advanced' | 'processing';
 
 export function useScanFlowController() {
   const [mode, setMode] = useState<ScanMode>('camera');
-  const [autoCapture, setAutoCapture] = useState(false);
+  const [autoCapture, setAutoCaptureState] = useState(false);
+  const [autoCapturePreferenceSet, setAutoCapturePreferenceSet] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [flash, setFlash] = useState<'off' | 'on'>('off');
   const [qualityPreset, setQualityPreset] = useState<ScanQualityPresetId>('auto');
@@ -13,7 +14,14 @@ export function useScanFlowController() {
   const [editReturnMode, setEditReturnMode] = useState<'camera' | 'batch'>('camera');
 
   const toggleFlash = useCallback(() => setFlash(f => (f === 'off' ? 'on' : 'off')), []);
-  const toggleAutoCapture = useCallback(() => setAutoCapture(v => !v), []);
+  const setAutoCapture = useCallback((value: boolean) => {
+    setAutoCapturePreferenceSet(true);
+    setAutoCaptureState(value);
+  }, []);
+  const toggleAutoCapture = useCallback(() => {
+    setAutoCapturePreferenceSet(true);
+    setAutoCaptureState(v => !v);
+  }, []);
   const goToBatch = useCallback(() => setMode('batch'), []);
   const backToCamera = useCallback(() => setMode('camera'), []);
   const openActionPicker = useCallback(() => setShowActionPicker(true), []);
@@ -35,6 +43,7 @@ export function useScanFlowController() {
     setMode,
     autoCapture,
     setAutoCapture,
+    autoCapturePreferenceSet,
     toggleAutoCapture,
     showActionPicker,
     setShowActionPicker,

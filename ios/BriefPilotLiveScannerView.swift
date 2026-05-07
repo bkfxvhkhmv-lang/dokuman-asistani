@@ -90,7 +90,8 @@ class BriefPilotLiveScannerView: UIView {
 
     // Photo output — final hi-res capture
     let photoOut = AVCapturePhotoOutput()
-    photoOut.isHighResolutionCaptureEnabled = true
+    // Use session preset resolution (720p) to match live stream FOV — avoids FOV mismatch with warpPerspective
+    photoOut.isHighResolutionCaptureEnabled = false
     guard session.canAddOutput(photoOut) else { return }
     session.addOutput(photoOut)
 
@@ -141,7 +142,6 @@ class BriefPilotLiveScannerView: UIView {
     self.photoCaptureCallback = completion
 
     let settings = AVCapturePhotoSettings()
-    settings.isHighResolutionPhotoEnabled = true
     if (flash as String) == "on",
        let dev = device, dev.isFlashAvailable {
       settings.flashMode = .on

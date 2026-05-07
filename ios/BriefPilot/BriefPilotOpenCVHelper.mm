@@ -128,8 +128,9 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::dilate(edges, edges, k3);
 
     // Morphological close to bridge small gaps at document corners
-    cv::Mat k7 = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(7,7));
-    cv::morphologyEx(edges, edges, cv::MORPH_CLOSE, k7);
+    // 3x3 (not 7x7) — larger kernel connects border to internal table lines, ruining quad detection
+    cv::Mat k3c = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
+    cv::morphologyEx(edges, edges, cv::MORPH_CLOSE, k3c);
 
     return edges;
 }
@@ -202,7 +203,7 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
         // Try multiple epsilon values for approxPolyDP (robust to noise)
         double peri = cv::arcLength(contour, true);
         bool acceptedContour = false;
-        for (double eps : {0.015, 0.025, 0.04}) {
+        for (double eps : {0.015, 0.025, 0.04, 0.06, 0.10}) {
             std::vector<cv::Point> approx;
             cv::approxPolyDP(contour, approx, peri * eps, true);
             if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
@@ -260,7 +261,7 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
             }
         }
 
-        if (best && best.confidence > 0.75f) break; // good enough — stop searching
+        if (best && best.confidence > 0.85f) break; // high enough — stop searching
     }
     return best;
 }

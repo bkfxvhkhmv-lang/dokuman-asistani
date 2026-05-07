@@ -8,5 +8,5 @@ export interface LiveScannerViewProps {
 }
 
 export const LiveScannerView = requireNativeComponent<LiveScannerViewProps>(
-  'BriefPilotLiveScannerViewManager',
+  'BriefPilotLiveScannerView',
 );

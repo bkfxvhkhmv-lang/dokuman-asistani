@@ -171,21 +171,26 @@ extension BriefPilotLiveScannerView: AVCaptureVideoDataOutputSampleBufferDelegat
     guard let result = BriefPilotOpenCVHelper.detectCorners(in: pixelBuffer) else { return }
     guard result.confidence >= 0.20 else { return }
 
-    let bufW = CVPixelBufferGetWidth(pixelBuffer)   // 1280 landscape
-    let bufH = CVPixelBufferGetHeight(pixelBuffer)  // 720  landscape
+    let bufW = CVPixelBufferGetWidth(pixelBuffer)
+    let bufH = CVPixelBufferGetHeight(pixelBuffer)
 
-    // Transform landscape corners → portrait coords
-    // iPhone back camera buffer is landscape. Preview rotates it to portrait.
-    // landscape (lx, ly) → portrait: px = ly, py = 1 - lx
-    func toPortrait(_ p: CGPoint) -> [String: Double] {
-      return ["x": Double(p.y), "y": 1.0 - Double(p.x)]
+    // iOS 17+: videoRotationAngle=90 physically rotates pixels → buffer already portrait (bufH > bufW)
+    // iOS <17: videoOrientation metadata only → buffer still landscape, needs transform
+    let isLandscape = bufW > bufH
+
+    func pt(_ p: CGPoint) -> [String: Double] {
+      if isLandscape { return ["x": Double(p.y), "y": 1.0 - Double(p.x)] }
+      return ["x": Double(p.x), "y": Double(p.y)]
     }
 
+    let outW = isLandscape ? bufH : bufW
+    let outH = isLandscape ? bufW : bufH
+
     let body: [String: Any] = [
-      "topLeft":       toPortrait(result.topLeft),
-      "topRight":      toPortrait(result.topRight),
-      "bottomRight":   toPortrait(result.bottomRight),
-      "bottomLeft":    toPortrait(result.bottomLeft),
+      "topLeft":       pt(result.topLeft),
+      "topRight":      pt(result.topRight),
+      "bottomRight":   pt(result.bottomRight),
+      "bottomLeft":    pt(result.bottomLeft),
       "confidence":    result.confidence,
       "isBlurry":      result.isBlurry,
       "needsFlash":    result.needsFlash,
@@ -195,9 +200,8 @@ extension BriefPilotLiveScannerView: AVCaptureVideoDataOutputSampleBufferDelegat
       "angleScore":    result.angleScore,
       "aspectScore":   result.aspectScore,
       "centerScore":   result.centerScore,
-      // Portrait dimensions after transform
-      "width":  bufH,   // 720  → portrait width
-      "height": bufW,   // 1280 → portrait height
+      "width":  outW,
+      "height": outH,
     ]
 
     BriefPilotLiveScanModule.shared?.sendScanResult(body)

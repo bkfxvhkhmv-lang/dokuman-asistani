@@ -5,6 +5,7 @@ import {
   CaptureResult,
   ScannerEvent,
   DocumentCorners,
+  AutoCaptureReadiness,
 } from '@/modules/scanner';
 import { nativeModuleAvailable } from '@/modules/scanner/engine/NativeStub';
 
@@ -30,13 +31,21 @@ export function useScanner() {
   const engineRef    = useRef<CameraEngine | null>(null);
   const mountedRef   = useRef(true);
   const clearEdgesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isReady,       setIsReady]       = useState(false);
-  const [isCapturing,   setIsCapturing]   = useState(false);
-  const [detectedEdges, setDetectedEdges] = useState<DocumentCorners | null>(null);
-  const [edgesAreFresh, setEdgesAreFresh] = useState(false);
-  const [stability,     setStability]     = useState({ isStable: false, confidence: 0 });
-  const [lastCapture,   setLastCapture]   = useState<CaptureResult | null>(null);
-  const [error,         setError]         = useState<string | null>(null);
+  const [isReady,               setIsReady]               = useState(false);
+  const [isCapturing,           setIsCapturing]           = useState(false);
+  const [detectedEdges,         setDetectedEdges]         = useState<DocumentCorners | null>(null);
+  const [edgesAreFresh,         setEdgesAreFresh]         = useState(false);
+  const [stability,             setStability]             = useState({ isStable: false, confidence: 0 });
+  const [lastCapture,           setLastCapture]           = useState<CaptureResult | null>(null);
+  const [error,                 setError]                 = useState<string | null>(null);
+  const [autoCaptureReadiness,  setAutoCaptureReadiness]  = useState<AutoCaptureReadiness>({
+    score: 0, motionConfidence: 0, edgeConfidence: 0,
+    blurScore: 1, brightnessScore: 1, distortionScore: 1,
+    stable: false, ready: false, countdownProgress: 0,
+  });
+  const [lastCaptureSource,     setLastCaptureSource]     = useState<'manual' | 'auto'>('manual');
+  /** Wird gesetzt bevor capture() feuert — auto überschreibt es, wenn capture_ready ankommt. */
+  const pendingSourceRef = useRef<'manual' | 'auto'>('manual');
 
   useEffect(() => {
     mountedRef.current = true;
@@ -65,8 +74,21 @@ export function useScanner() {
         case 'stability_changed':
           setStability({ isStable: event.state.isStable, confidence: event.state.confidence });
           break;
+        case 'auto_capture_ready':
+          setAutoCaptureReadiness(event.readiness);
+          break;
+        case 'capture_ready':
+          // Auto-Capture wird gleich feuern — Quelle vormerken
+          pendingSourceRef.current = 'auto';
+          break;
         case 'capture_complete':
           setLastCapture(event.result);
+          setLastCaptureSource(pendingSourceRef.current);
+          // Lock nach erfolgreicher manueller Aufnahme (nur wenn wirklich Foto gemacht)
+          if (pendingSourceRef.current === 'manual') {
+            engineRef.current?.lockManualCapture();
+          }
+          pendingSourceRef.current = 'manual'; // für nächste Aufnahme zurücksetzen
           setIsCapturing(false);
           break;
         case 'error':
@@ -94,6 +116,8 @@ export function useScanner() {
   const capture = useCallback(async () => {
     if (!engineRef.current || isCapturing) return null;
 
+    // Manuelle Auslösung — Quelle setzen, bevor auto_capture_ready es überschreiben könnte
+    pendingSourceRef.current = 'manual';
     setIsCapturing(true);
     setError(null);
 
@@ -129,6 +153,10 @@ export function useScanner() {
     engineRef.current?.stopLiveEdgeDetection();
   }, []);
 
+  const lockManualCapture = useCallback(() => {
+    engineRef.current?.lockManualCapture();
+  }, []);
+
   const distanceHint = useMemo(() => computeDistanceHint(detectedEdges), [detectedEdges]);
 
   return {
@@ -141,6 +169,9 @@ export function useScanner() {
     distanceHint,
     stability,
     lastCapture,
+    lastCaptureSource,
+    autoCaptureReadiness,
+    lockManualCapture,
     error,
     capture,
     updateConfig,

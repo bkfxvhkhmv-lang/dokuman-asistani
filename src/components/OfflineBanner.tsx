@@ -12,6 +12,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, cancelAnimation,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHealthQuery } from '@/hooks/queryHooks';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP } from '@/theme';
@@ -19,6 +20,7 @@ import { HIT_SLOP } from '@/theme';
 export default function OfflineBanner() {
   const { Colors: C } = useTheme();
   const { isError, refetch, isFetching } = useHealthQuery();
+  const insets = useSafeAreaInsets();
 
   const translateY = useSharedValue(-60);
   const opacity    = useSharedValue(0);
@@ -47,7 +49,7 @@ export default function OfflineBanner() {
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[st.banner, { backgroundColor: C.warningLight, borderColor: `${C.warning}55` }, animStyle]}
+      style={[st.banner, { top: insets.top + 8, backgroundColor: C.warningLight, borderColor: `${C.warning}55` }, animStyle]}
     >
       <View style={[st.dot, { backgroundColor: C.warning }]} />
       <Text style={[st.text, { color: C.warningText || C.warning }]} numberOfLines={1}>
@@ -68,7 +70,6 @@ export default function OfflineBanner() {
 const st = StyleSheet.create({
   banner: {
     position:          'absolute',
-    top:               0,
     left:              16,
     right:             16,
     flexDirection:     'row',

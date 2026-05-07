@@ -5,6 +5,7 @@ import Animated, {
   withSpring, withTiming, runOnJS, interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
@@ -26,6 +27,7 @@ export default function AppSheet({
 }: AppSheetProps) {
   const { Colors } = useTheme();
   const { t: T } = useT();
+  const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(false);
 
   const translateY    = useSharedValue(SCREEN_H);
@@ -90,7 +92,7 @@ export default function AppSheet({
         <Animated.View
           style={[
             st.sheet,
-            { borderTopColor: Colors.border },
+            { borderTopColor: Colors.border, paddingBottom: Math.max(20, insets.bottom + 12) },
             Platform.OS === 'android' && { elevation: 8, borderTopWidth: 1 },
             sheetStyle,
           ]}
@@ -149,7 +151,6 @@ const st = StyleSheet.create({
     borderTopRightRadius: 24,
     borderTopWidth:       0.5,
     paddingHorizontal:    20,
-    paddingBottom:        34,
     overflow:             'hidden',
     maxHeight:            '88%',
   },

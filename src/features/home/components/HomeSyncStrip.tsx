@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import Icon from '@/components/Icon';
 import { Shadow } from '@/theme';
 import { useT } from '@/hooks/useT';
@@ -73,11 +73,9 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
   }
 
   return (
-    <TouchableOpacity
-      onPress={undefined}
-      activeOpacity={1}
+    <View
       style={st.wrap}
-      accessibilityRole="button"
+      accessibilityRole="progressbar"
       accessibilityLabel={label}
       accessibilityState={{ busy: true }}
     >
@@ -86,7 +84,7 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
         <Icon name="sync-outline" size={12} color={textColor} />
         <Text style={[st.label, { color: textColor, fontSize: 11 }]} numberOfLines={1}>{label}</Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 

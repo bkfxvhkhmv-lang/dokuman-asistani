@@ -78,6 +78,8 @@ export interface AutoCaptureReadiness {
   distortionScore: number;
   stable: boolean;
   ready: boolean;
+  /** 0 → 1 während des autoTriggerDelay-Countdowns; 0 wenn kein Countdown läuft. */
+  countdownProgress: number;
 }
 
 export interface ScannerError {

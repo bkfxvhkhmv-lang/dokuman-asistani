@@ -37,6 +37,7 @@ export class CameraEngine {
     distortionScore: 1,
     stable: false,
     ready: false,
+    countdownProgress: 0,
   };
   private config: CaptureConfig = {
     autoCapture: false,
@@ -51,8 +52,6 @@ export class CameraEngine {
   private liveDetectRunning = false;
   private liveDetectIntervalMs = 900;
   private lastCornersTimestamp = 0;
-  private consecutiveDetections = 0;
-  private lastStableCorners: DocumentCorners | null = null;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -229,6 +228,11 @@ export class CameraEngine {
   async autoCapturePhoto() {
     if (!this.config.autoCapture) return;
     await this.capture();
+  }
+
+  /** One-shot lock nach manueller Aufnahme — verhindert sofortige Re-Arm. */
+  lockManualCapture() {
+    this.autoCapture.lockAfterManualCapture();
   }
 
   processFrame(frame: any) {
@@ -419,19 +423,10 @@ export class CameraEngine {
     }
   }
 
-  // Returns true when all 4 corners are within 8% of their previous positions.
-  private areCornersStable(a: DocumentCorners, b: DocumentCorners | null): boolean {
-    if (!b) return false;
-    const keys = ['topLeft', 'topRight', 'bottomRight', 'bottomLeft'] as const;
-    return keys.every(k => Math.abs(a[k].x - b[k].x) < 0.08 && Math.abs(a[k].y - b[k].y) < 0.08);
-  }
-
   dispose() {
     this.stopLiveEdgeDetection();
     this.autoCapture.stop();
     this.lastCaptureNormalizedCorners = null;
-    this.lastStableCorners = null;
-    this.consecutiveDetections = 0;
     this.listeners = [];
   }
 }

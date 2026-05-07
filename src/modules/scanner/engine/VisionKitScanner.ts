@@ -10,7 +10,9 @@ export interface VisionScanResult {
 
 const RN = NativeModules.BriefPilotVisionScanner;
 
-export const visionKitAvailable: boolean = (Platform.OS === 'ios' || Platform.OS === 'android') && !!RN;
+// TEST: kendi scanner + edge detection — VisionKit devre dışı
+export const visionKitAvailable: boolean = false;
+// export const visionKitAvailable: boolean = (Platform.OS === 'ios' || Platform.OS === 'android') && !!RN;
 
 /**
  * Opens Apple VisionKit document scanner (iOS only).

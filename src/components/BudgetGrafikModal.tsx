@@ -71,13 +71,18 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
           maxHeight: '92%', paddingBottom: 32,
         }}
       >
-        <View
-          style={{
-            width: 40, height: 4, borderRadius: 2,
-            backgroundColor: C.border,
-            alignSelf: 'center', marginTop: 12, marginBottom: 8,
-          }}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 8, paddingHorizontal: 16 }}>
+          <View style={{ flex: 1 }} />
+          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: C.border, position: 'absolute', left: '50%', marginLeft: -20 }} />
+          <TouchableOpacity
+            onPress={onClose}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel="Fertig"
+          >
+            <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>Fertig</Text>
+          </TouchableOpacity>
+        </View>
 
         <BudgetYearStrip yillar={yillar} seciliYil={seciliYil} onSelectYil={setSeciliYil} C={C} />
 

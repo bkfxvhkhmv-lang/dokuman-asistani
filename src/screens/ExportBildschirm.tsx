@@ -5,10 +5,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  Platform, StyleSheet,
+  StyleSheet,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
@@ -137,6 +137,7 @@ export default function ExportBildschirm() {
   const { state } = useStore();
   const { S, Colors: C } = useTheme();
   const { t: T } = useT();
+  const insets = useSafeAreaInsets();
   const EXPORT_OPTIONS = buildExportOptions(T);
 
   const [aktJahr, setAktJahr]     = useState(AKTUELLES_JAHR);
@@ -283,7 +284,7 @@ export default function ExportBildschirm() {
       {/* Sticky CTA */}
       <View style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
-        paddingBottom: Platform.OS === 'ios' ? 30 : 20,
+        paddingBottom: Math.max(16, insets.bottom + 12),
         paddingTop: 12,
         paddingHorizontal: 16,
         backgroundColor: C.bg,

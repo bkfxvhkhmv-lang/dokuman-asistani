@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { parseGiroCode, giroCodeToText } from '@/services/giroCodeService';
@@ -15,6 +16,7 @@ interface QrScanModalProps {
 
 export default function QrScanModal({ visible, onClose, onResult }: QrScanModalProps) {
   const { Colors: C } = useTheme();
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [tarama, setTarama] = useState(true);
   const [sonuc, setSonuc] = useState<ScanResult | null>(null);
@@ -81,7 +83,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
               <View style={styles.scanFrame} />
               <Text style={styles.scanHint}>QR-Code in den Rahmen halten</Text>
             </View>
-            <TouchableOpacity onPress={handleKapat} style={styles.kapatBtn}>
+            <TouchableOpacity onPress={handleKapat} style={[styles.kapatBtn, { top: insets.top + 12 }]}>
               <Text style={{ color: '#fff', fontSize: 16 }}>✕ Schließen</Text>
             </TouchableOpacity>
           </>
@@ -140,7 +142,7 @@ const styles = StyleSheet.create({
   scanOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
   scanFrame:   { width: 220, height: 220, borderWidth: 2, borderColor: '#fff', borderRadius: 12 },
   scanHint:    { color: '#fff', marginTop: 16, fontSize: 13 },
-  kapatBtn:    { position: 'absolute', top: 48, right: 20, padding: 8 },
+  kapatBtn:    { position: 'absolute', right: 20, padding: 8 },
   baslik:      { fontSize: 18, fontWeight: '700', marginBottom: 16 },
   butonlar:    { flexDirection: 'row', gap: 12, marginTop: 20 },
   btn:         { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },

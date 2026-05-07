@@ -90,10 +90,13 @@ export default function HilfeModal({ visible, onClose, dokTyp }: HilfeModalProps
         {aktifKat ? (
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 16, gap: 10 }}>
-              <TouchableOpacity onPress={() => setAktifKat(null)}>
+              <TouchableOpacity onPress={() => setAktifKat(null)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
                 <Text style={{ fontSize: 15, color: C.primary }}>← Zurück</Text>
               </TouchableOpacity>
               <Text style={{ flex: 1, fontSize: 16, fontWeight: '800', color: C.text }}>{aktifKat.icon}  {aktifKat.label}</Text>
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Schließen">
+                <Text style={{ fontSize: 22, color: C.textTertiary, lineHeight: 24 }}>×</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
               {aktifKat.kurumlar.map((k, i) => (
@@ -127,9 +130,14 @@ export default function HilfeModal({ visible, onClose, dokTyp }: HilfeModalProps
           </>
         ) : (
           <>
-            <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>🆘 Hilfe & Beratung</Text>
-              <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>Kostenlose und günstige Beratungsstellen in Deutschland</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 20, marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>🆘 Hilfe & Beratung</Text>
+                <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>Kostenlose und günstige Beratungsstellen in Deutschland</Text>
+              </View>
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Schließen" style={{ paddingTop: 2 }}>
+                <Text style={{ fontSize: 22, color: C.textTertiary, lineHeight: 24 }}>×</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
               {YARDIM_KATEGORILERI.map(kat => (

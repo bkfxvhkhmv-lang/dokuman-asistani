@@ -136,6 +136,15 @@ export default function Profilbildschirm() {
             <Text style={st.headerSub}>{state.dokumente.length} Belege gespeichert</Text>
             {/* upgrade pill hidden until Plus is available */}
           </View>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={st.closeBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Schließen"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Icon name="close" size={20} color="rgba(255,255,255,0.75)" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -214,4 +223,5 @@ const st = StyleSheet.create({
 
   sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, marginLeft: 20, marginBottom: 8 },
   version:      { textAlign: 'center', fontSize: 11, marginTop: 8 },
+  closeBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 });

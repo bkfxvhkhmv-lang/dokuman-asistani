@@ -80,7 +80,7 @@ export default function PreviewArea({
         <Pressable
           onPressIn={() => setShowOriginal(true)}
           onPressOut={() => setShowOriginal(false)}
-          style={st.compareBtn}
+          style={[st.compareBtn, { bottom: Math.max(12, insets.bottom + 12) }]}
           hitSlop={HIT_SLOP_LG}
         >
           <Icon name="image-outline" size={14} color={showOriginal ? '#fff' : 'rgba(255,255,255,0.85)'} />
@@ -89,7 +89,7 @@ export default function PreviewArea({
       )}
 
       {/* Zoom kontrolleri (sag-alt) */}
-      <View style={st.zoomBtnGroup} pointerEvents="box-none">
+      <View style={[st.zoomBtnGroup, { bottom: Math.max(12, insets.bottom + 12) }]} pointerEvents="box-none">
         <TouchableOpacity onPress={zoom.zoomIn} style={st.zoomBtn} hitSlop={HIT_SLOP_LG}>
           <Icon name="plus" size={18} color="#fff" weight="bold" />
         </TouchableOpacity>

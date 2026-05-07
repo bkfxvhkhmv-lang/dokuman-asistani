@@ -82,7 +82,8 @@ export class EdgeDetector {
   getLastState(): EdgeDetectionState { return this.lastState; }
 
   private calculateStabilityScore(nextCorners: DocumentCorners, previousCorners: DocumentCorners | null): number {
-    if (!previousCorners) return Math.max(0.25, nextCorners.confidence * 0.5);
+    // No previous frame — treat as stable with moderate initial score.
+    if (!previousCorners) return Math.min(0.80, nextCorners.confidence);
 
     const points = [
       [nextCorners.topLeft,     previousCorners.topLeft],
@@ -97,6 +98,7 @@ export class EdgeDetector {
       return sum + Math.sqrt(dx * dx + dy * dy);
     }, 0) / points.length;
 
-    return Number((1 - Math.min(movement / 40, 1)).toFixed(3));
+    // Corners are normalized 0-1. Movement > 0.12 (12% of frame) = fully unstable.
+    return Number((1 - Math.min(movement / 0.12, 1)).toFixed(3));
   }
 }

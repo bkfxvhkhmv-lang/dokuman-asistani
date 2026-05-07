@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_SLIDE_WIDTH } from '@/components/onboarding/onboarding.constants';
 import { ONBOARDING_SLIDES } from '@/components/onboarding/onboarding.slides';
 import type { OnboardingModalProps } from '@/components/onboarding/onboarding.types';
 import { onboardingAlsGesehen } from '@/components/onboarding/onboarding.storage';
-import { onboardingStyles as st } from '@/components/onboarding/onboarding.styles';
+import { onboardingStyles as st, ONBOARDING_TOP_OFFSET } from '@/components/onboarding/onboarding.styles';
 import { OnboardingSlideDemo } from '@/components/onboarding/onboarding.demos';
 
 const W = ONBOARDING_SLIDE_WIDTH;
@@ -12,6 +13,8 @@ const W = ONBOARDING_SLIDE_WIDTH;
 export default function OnboardingModalView({ visible, onFertig }: OnboardingModalProps) {
   const [aktiv, setAktiv] = useState(0);
   const scrollRef = useRef<ScrollView | null>(null);
+  const insets = useSafeAreaInsets();
+  const topOffset = insets.top + ONBOARDING_TOP_OFFSET;
 
   const slides = ONBOARDING_SLIDES;
 
@@ -42,11 +45,11 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
     <Modal visible={visible} animationType="fade" statusBarTranslucent>
       <View style={[st.container, { backgroundColor: slide.farbe }]}>
         {aktiv < slides.length - 1 ? (
-          <TouchableOpacity style={st.atla} onPress={handleUeberspringen}>
+          <TouchableOpacity style={[st.atla, { top: topOffset }]} onPress={handleUeberspringen}>
             <Text style={st.atlaText}>Überspringen</Text>
           </TouchableOpacity>
         ) : null}
-        <View style={st.counter}>
+        <View style={[st.counter, { top: topOffset }]}>
           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>
             {aktiv + 1} / {slides.length}
           </Text>

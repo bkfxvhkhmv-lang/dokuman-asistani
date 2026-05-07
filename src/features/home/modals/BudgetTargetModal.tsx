@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
 import { useStore } from '@/store';
+import { HIT_SLOP } from '@/theme';
 import { analyzeAllTargets, TARGET_STATUS_COLOR, type TargetAnalysis } from '@/services/TargetService';
 import { formatBetrag } from '@/utils';
 import type { BudgetTarget, Dokument } from '@/store';
@@ -157,6 +158,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
                   <TouchableOpacity
                     style={[st.saveBtn, { backgroundColor: Colors.primary }]}
                     onPress={() => saveTarget(preset.id, preset.label, inputs[preset.id] ?? '')}
+                    hitSlop={HIT_SLOP}
                   >
                     <Text style={st.saveBtnText}>↑</Text>
                   </TouchableOpacity>
@@ -164,6 +166,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
                     <TouchableOpacity
                       style={[st.deleteBtn, { borderColor: Colors.border }]}
                       onPress={() => removeTarget(preset.id)}
+                      hitSlop={HIT_SLOP}
                     >
                       <Text style={[st.deleteBtnText, { color: Colors.textTertiary }]}>✕</Text>
                     </TouchableOpacity>
@@ -198,8 +201,8 @@ const st = StyleSheet.create({
   inputWrap:       { flexDirection: 'row', alignItems: 'center', borderRadius: 10, borderWidth: 1, paddingHorizontal: 8, height: 36, width: 90 },
   currency:        { fontSize: 13, fontWeight: '600', marginRight: 2 },
   input:           { flex: 1, fontSize: 14, fontWeight: '600', padding: 0 },
-  saveBtn:         { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  saveBtn:         { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   saveBtnText:     { color: '#fff', fontSize: 18, fontWeight: '700', lineHeight: 22 },
-  deleteBtn:       { width: 28, height: 28, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  deleteBtnText:   { fontSize: 11 },
+  deleteBtn:       { width: 36, height: 36, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  deleteBtnText:   { fontSize: 13 },
 });

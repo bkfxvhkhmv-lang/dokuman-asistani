@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import type { CameraView as ExpoCameraView } from 'expo-camera';
 import type { BatchPage } from '@/modules/batch/types';
-import type { DocumentCorners } from '@/modules/scanner/types';
+import type { DocumentCorners, AutoCaptureReadiness } from '@/modules/scanner/types';
 
 export type { BatchPage };
 
@@ -38,4 +38,9 @@ export interface CameraViewProps {
   onClose: () => void;
   detectedCorners?: DocumentCorners | null;
   edgesAreFresh?: boolean;
+  distanceHint?: 'closer' | 'farther' | 'perfect' | null;
+  /** Auto-Capture Countdown-Daten — zeigt Fortschrittsanzeige vor Auslösung */
+  autoCaptureReadiness?: AutoCaptureReadiness;
+  /** Unterscheidet manuell vs. automatisch ausgelöste Aufnahmen im Feedback */
+  lastCaptureSource?: 'manual' | 'auto';
 }

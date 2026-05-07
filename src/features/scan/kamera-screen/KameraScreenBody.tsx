@@ -105,6 +105,8 @@ export type KameraScreenBodyProps = {
   onAnalysisRetry?: () => void;
   /** Called by EditView "Weiter" — skips PostCaptureActionSheet and starts OCR directly. */
   onStartProcessing: () => void;
+  autoCaptureReadiness?: import('@/modules/scanner/types').AutoCaptureReadiness;
+  lastCaptureSource?: 'manual' | 'auto';
 };
 
 export default function KameraScreenBody(props: KameraScreenBodyProps) {
@@ -129,6 +131,8 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
     onAnalysisCancel,
     onAnalysisRetry,
     onStartProcessing,
+    autoCaptureReadiness,
+    lastCaptureSource,
   } = props;
 
   return (
@@ -161,6 +165,9 @@ export default function KameraScreenBody(props: KameraScreenBodyProps) {
           onClose={onCloseCamera}
           detectedCorners={detectedCorners}
           edgesAreFresh={edgesAreFresh}
+          distanceHint={distanceHint}
+          autoCaptureReadiness={autoCaptureReadiness}
+          lastCaptureSource={lastCaptureSource}
         />
       ) : null}
 

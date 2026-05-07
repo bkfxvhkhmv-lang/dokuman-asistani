@@ -3,11 +3,14 @@ import { ONBOARDING_SLIDE_WIDTH } from '@/components/onboarding/onboarding.const
 
 const W = ONBOARDING_SLIDE_WIDTH;
 
+// top values are applied dynamically in OnboardingModalView with insets.top
+export const ONBOARDING_TOP_OFFSET = 16;
+
 export const onboardingStyles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center' },
-  atla:      { position: 'absolute', top: 56, right: 24, zIndex: 10 },
+  atla:      { position: 'absolute', right: 24, zIndex: 10 },
   atlaText:  { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontWeight: '500' },
-  counter:   { position: 'absolute', top: 56, left: 24, zIndex: 10 },
+  counter:   { position: 'absolute', left: 24, zIndex: 10 },
   slide:     { width: W, alignItems: 'center', paddingHorizontal: 28, paddingTop: 80, paddingBottom: 20 },
   emojiWrap: { width: 100, height: 100, borderRadius: 30,
     backgroundColor: 'rgba(255,255,255,0.15)',

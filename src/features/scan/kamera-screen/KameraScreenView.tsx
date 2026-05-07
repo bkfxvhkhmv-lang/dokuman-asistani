@@ -34,6 +34,7 @@ import { SCREEN_H } from '@/features/scan/constants';
 import { executeScanAction } from '@/modules/scanner/flow/scanActions';
 import { finishScanFlow } from '@/features/scan/kamera-screen/scanNavigate';
 import { clearPendingFirstValueNavigation } from '@/product/onboardingStorage';
+import { getScanQualityProfile } from '@/modules/scanner/flow/scanQualityProfiles';
 import KameraScreenBody from '@/features/scan/kamera-screen/KameraScreenBody';
 import AutoFillReviewModal from '@/components/auto-fill-review/AutoFillReviewModal';
 
@@ -73,7 +74,7 @@ export default function KameraScreenView() {
   const smartPipeline = useSmartDocumentPipeline(dispatch);
   const [overlaySize, setOverlaySize] = useState({ w: 0, h: 0 });
   const { pages, pageCount, addPage, removePage, movePageUp, movePageDown, rotatePage, updatePage, clearPages, replacePages, attachOcr, attachMetadata, generatePdf } = useBatch();
-  const { setCameraRef, isCapturing, stability, lastCapture, capture, updateConfig, distanceHint, detectedEdges, edgesAreFresh, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
+  const { setCameraRef, isCapturing, stability, lastCapture, lastCaptureSource, autoCaptureReadiness, capture, updateConfig, distanceHint, detectedEdges, edgesAreFresh, startLiveEdgeDetection, stopLiveEdgeDetection } = useScanner();
   const { config: sheetConfig, showSheet, hideSheet, confirm: confirmSheet } = useSheet();
 
   const cameraRef = useRef<ExpoCameraView>(null);
@@ -82,15 +83,17 @@ export default function KameraScreenView() {
 
   const flow = useScanFlowController();
   const {
-    mode, setMode, autoCapture, toggleAutoCapture,
+    mode, setMode, autoCapture, autoCapturePreferenceSet, toggleAutoCapture,
     showActionPicker, openActionPicker, closeActionPicker,
     flash, toggleFlash, qualityPreset, setQualityPreset,
     editingPageId, startEditing, stopEditing,
     goToBatch, backToCamera,
   } = flow;
+  const qualityProfile = useMemo(() => getScanQualityProfile(qualityPreset), [qualityPreset]);
+  const effectiveAutoCapture = autoCapturePreferenceSet ? autoCapture : qualityProfile.autoCapture;
   const scanContextValue = useMemo(() => ({
     mode,
-    autoCapture,
+    autoCapture: effectiveAutoCapture,
     toggleAutoCapture,
     flash,
     toggleFlash,
@@ -101,7 +104,7 @@ export default function KameraScreenView() {
     closeActionPicker,
   }), [
     mode,
-    autoCapture,
+    effectiveAutoCapture,
     toggleAutoCapture,
     flash,
     toggleFlash,
@@ -147,7 +150,7 @@ export default function KameraScreenView() {
   useKameraScreenEffects({
     setCameraRef,
     cameraRef,
-    autoCapture,
+    autoCaptureEnabled: effectiveAutoCapture,
     flash,
     mode,
     qualityPreset,
@@ -453,6 +456,8 @@ export default function KameraScreenView() {
         onAnalysisContinueAnyway={handleContinueAnyway}
         onAnalysisRetry={handleProcessAll}
         onAnalysisCancel={() => { clearPages(); setMode('camera'); }}
+        autoCaptureReadiness={autoCaptureReadiness}
+        lastCaptureSource={lastCaptureSource}
       />
     </ScanProvider>
   );

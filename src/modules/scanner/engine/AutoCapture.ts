@@ -11,9 +11,11 @@ export class AutoCaptureEngine {
   private config = {
     // rad/s — normal el titremesi 0.10-0.20 rad/s; 0.15 makul eşik
     threshold: 0.15,
-    // 500ms sabit kaldıktan sonra "stable" (kullanıcının 0.5s timer'ı)
+    // 500ms sabit kaldıktan sonra "stable" olur.
     requiredDuration: 500,
-    autoTriggerDelay: 800,
+    // Ready olduktan sonra kısa bir bekleme veriyoruz; kullanıcı isterse
+    // bu sırada manuel çekim yapabilir.
+    autoTriggerDelay: 1400,
     readinessThreshold: 0.74,
   };
   private enabled = false;
@@ -26,7 +28,13 @@ export class AutoCaptureEngine {
   private distortionScore = 1.0;  // 0 = heavy distortion, 1 = flat
 
   private capturedAt: number | null = null;
+  private readySince: number | null = null;
   private readonly COOLDOWN_MS = 1500;
+
+  // One-shot lock: nach einer Auto-Aufnahme gesperrt, bis Edge-Confidence
+  // unter EDGE_RESET_THRESHOLD fällt (Dokument verlässt Kader).
+  private lockedAfterCapture = false;
+  private readonly EDGE_RESET_THRESHOLD = 0.25;
 
   private lastReadiness: AutoCaptureReadiness = {
     score: 0,
@@ -37,6 +45,7 @@ export class AutoCaptureEngine {
     distortionScore: 1,
     stable: false,
     ready: false,
+    countdownProgress: 0,
   };
 
   constructor(config?: Partial<typeof AutoCaptureEngine.prototype.config>) {
@@ -82,6 +91,14 @@ export class AutoCaptureEngine {
     this.edgeConfidence = 0;
     this.lastMotionConfidence = 0;
     this.capturedAt = null;
+    this.readySince = null;
+    this.lockedAfterCapture = false;
+  }
+
+  /** Sperrt Auto-Capture nach manuellem Auslösen (same lock as auto). */
+  lockAfterManualCapture() {
+    this.lockedAfterCapture = true;
+    this.readySince = null;
   }
 
   updateEdgeConfidence(confidence: number) {
@@ -184,18 +201,53 @@ export class AutoCaptureEngine {
       // stability (motionConf building up) is sufficient. edgeConf absence
       // keeps max achievable score at 0.70, safely below 0.74 threshold.
       ready: score >= this.config.readinessThreshold,
+      countdownProgress: 0, // wird unten befüllt, sobald readySince gesetzt ist
     };
 
-    this.lastReadiness = readiness;
-    if (__DEV__) console.log('[AutoCapture] score=' + score.toFixed(3) + ' threshold=' + this.config.readinessThreshold + ' edgeConf=' + this.edgeConfidence.toFixed(3) + ' stable=' + this.isStable + ' ready=' + readiness.ready);
-    this.emit({ type: 'auto_capture_ready', readiness });
-    if (readiness.ready) {
-      const now = Date.now();
-      if (this.capturedAt === null || now - this.capturedAt >= this.COOLDOWN_MS) {
-        this.capturedAt = now;
-        if (__DEV__) console.log('[AutoCapture] captured cooldownMs=' + this.COOLDOWN_MS);
-        this.emit({ type: 'capture_ready' });
+    if (!readiness.ready) {
+      this.readySince = null;
+      this.lastReadiness = readiness;
+      this.emit({ type: 'auto_capture_ready', readiness });
+      return;
+    }
+
+    // One-shot lock: Entsperren sobald Dokument den Kader verlässt (edgeConf sinkt).
+    if (this.lockedAfterCapture) {
+      if (this.edgeConfidence < this.EDGE_RESET_THRESHOLD) {
+        this.lockedAfterCapture = false;
+        this.readySince = null;
+        if (__DEV__) console.log('[AutoCapture] lock released — edge dropped below reset threshold');
+      } else {
+        // Noch gesperrt: keine Auto-Capture, Countdown nicht zeigen
+        readiness.countdownProgress = 0;
+        this.lastReadiness = readiness;
+        this.emit({ type: 'auto_capture_ready', readiness });
+        return;
       }
+    }
+
+    const now = Date.now();
+    if (this.readySince === null) {
+      this.readySince = now;
+    }
+
+    // Countdown-Fortschritt (0 → 1) für die UI
+    readiness.countdownProgress = Math.min(1, (now - this.readySince) / this.config.autoTriggerDelay);
+
+    this.lastReadiness = readiness;
+    if (__DEV__) console.log('[AutoCapture] score=' + score.toFixed(3) + ' threshold=' + this.config.readinessThreshold + ' edgeConf=' + this.edgeConfidence.toFixed(3) + ' stable=' + this.isStable + ' ready=' + readiness.ready + ' countdown=' + readiness.countdownProgress.toFixed(2));
+    this.emit({ type: 'auto_capture_ready', readiness });
+
+    if (now - this.readySince < this.config.autoTriggerDelay) {
+      return;
+    }
+
+    if (this.capturedAt === null || now - this.capturedAt >= this.COOLDOWN_MS) {
+      this.capturedAt = now;
+      this.readySince = null;
+      this.lockedAfterCapture = true;  // one-shot lock nach Auto-Capture
+      if (__DEV__) console.log('[AutoCapture] captured + locked — warte auf edge-drop');
+      this.emit({ type: 'capture_ready' });
     }
   }
 

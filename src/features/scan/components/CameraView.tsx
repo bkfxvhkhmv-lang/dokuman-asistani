@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, AppState, Animated, type AppStateStatus } from 'react-native';
+import { View, Text, StyleSheet, AppState, Animated, type AppStateStatus, Easing } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { CameraView as ExpoCameraView } from 'expo-camera';
 import PermissionView from '@/features/scan/components/PermissionView';
@@ -26,8 +26,33 @@ const hintStyles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.40)', overflow: 'hidden',
     paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999,
   },
+  /** Manuell aufgenommen — grün */
   captured: {
     backgroundColor: 'rgba(34,197,94,0.85)',
+  },
+  /** Automatisch aufgenommen — blau-violett, deutlich anders als manuell */
+  capturedAuto: {
+    backgroundColor: 'rgba(99,102,241,0.90)',
+  },
+  /** AUTO-Label wenn kein Countdown aktiv */
+  autoIdleText: {
+    fontSize: 11, letterSpacing: 1.2, paddingHorizontal: 10, paddingVertical: 5,
+    backgroundColor: 'rgba(34,197,94,0.18)',
+    color: '#D7FFE6',
+  },
+  /** Countdown-Pill mit Füllbalken */
+  countdownPill: {
+    height: 32, minWidth: 110, borderRadius: 999, overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.50)', borderWidth: 1,
+    borderColor: 'rgba(99,102,241,0.55)', justifyContent: 'center', alignItems: 'center',
+  },
+  /** Fortschrittsbalken im Hintergrund der Pill */
+  countdownFill: {
+    position: 'absolute', left: 0, top: 0, bottom: 0,
+    backgroundColor: 'rgba(99,102,241,0.40)',
+  },
+  countdownText: {
+    color: '#fff', fontSize: 13, fontWeight: '700', letterSpacing: 0.3,
   },
 });
 
@@ -40,9 +65,12 @@ export default function CameraView(props: CameraViewProps) {
     insets, onClose,
     detectedCorners,
     edgesAreFresh,
+    distanceHint,
+    autoCaptureReadiness,
+    lastCaptureSource = 'manual',
   } = props;
 
-  const { flash } = useScan();
+  const { flash, autoCapture } = useScan();
   const isFocused = useIsFocused();
   const appStateRef = useRef(AppState.currentState);
   const [sessionKey, setSessionKey] = useState(0);
@@ -69,6 +97,7 @@ export default function CameraView(props: CameraViewProps) {
   // Capture feedback state
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const [showCaptureToast, setShowCaptureToast] = useState(false);
+  const [captureToastSource, setCaptureToastSource] = useState<'manual' | 'auto'>('manual');
   const captureToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevPageCountRef = useRef(pageCount);
   const lastCaptureToastRef = useRef(0);
@@ -82,7 +111,8 @@ export default function CameraView(props: CameraViewProps) {
         // White flash: 0 → 1 instantly, fade to 0 in 160ms
         flashOpacity.setValue(1);
         Animated.timing(flashOpacity, { toValue: 0, duration: 160, useNativeDriver: true }).start();
-        // Toast
+        // Toast — Quelle merken für unterschiedliches Feedback
+        setCaptureToastSource(lastCaptureSource);
         if (captureToastTimerRef.current) clearTimeout(captureToastTimerRef.current);
         setShowCaptureToast(true);
         captureToastTimerRef.current = setTimeout(() => {
@@ -91,7 +121,7 @@ export default function CameraView(props: CameraViewProps) {
       }
     }
     prevPageCountRef.current = pageCount;
-  }, [pageCount, flashOpacity]);
+  }, [pageCount, flashOpacity, lastCaptureSource]);
 
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -110,12 +140,32 @@ export default function CameraView(props: CameraViewProps) {
 
   // TTL-retained corners (stale): edgesAreFresh=false but detectedCorners still set
   const fresh = edgesAreFresh !== false;
-  // "Dokument erkannt" hint only shows when corners are fresh
-  const isDocumentDetected = !!detectedCorners && fresh;
+  // "Dokument erkannt" only when corners are fresh AND confidence is green-tier (≥0.65)
+  const isDocumentDetected = !!detectedCorners && fresh && (detectedCorners.confidence ?? 0) >= 0.65;
+
+  // Toast-Text: manuell vs. automatisch unterscheiden
+  const captureToastText = captureToastSource === 'auto'
+    ? '⚡ Auto aufgenommen'
+    : '✓ Dokument aufgenommen';
 
   const hintText = showCaptureToast
-    ? 'Dokument aufgenommen'
-    : (isDocumentDetected ? 'Dokument erkannt' : 'Dokument in den Rahmen');
+    ? captureToastText
+    : isDocumentDetected
+    ? 'Dokument erkannt'
+    : distanceHint === 'closer'  ? 'Näher heranhalten'
+    : distanceHint === 'farther' ? 'Etwas weiter weg'
+    : 'Dokument in den Rahmen';
+
+  // Countdown-Anzeige: nur wenn Auto aktiv und Countdown läuft
+  const showCountdown = autoCapture && !showCaptureToast
+    && autoCaptureReadiness !== undefined
+    && autoCaptureReadiness.ready
+    && autoCaptureReadiness.countdownProgress > 0
+    && autoCaptureReadiness.countdownProgress < 1;
+
+  const countdownSecsLeft = showCountdown
+    ? Math.max(0, (1 - autoCaptureReadiness!.countdownProgress) * 1.4).toFixed(1)
+    : null;
 
   return (
     <View style={[styles.fill, { backgroundColor: '#000' }]}>
@@ -156,9 +206,26 @@ export default function CameraView(props: CameraViewProps) {
 
       <CameraTopBar topInset={insets.top} pageCount={pageCount} onClose={onClose} />
 
+      {/* Auto-Capture-Indikator: Countdown wenn bereit, sonst stille Statusanzeige */}
+      {autoCapture ? (
+        <View style={[hintStyles.wrap, { bottom: insets.bottom + 144 }]} pointerEvents="none">
+          {showCountdown ? (
+            <View style={hintStyles.countdownPill}>
+              <View style={[hintStyles.countdownFill, { width: `${autoCaptureReadiness!.countdownProgress * 100}%` as any }]} />
+              <Text style={hintStyles.countdownText}>Auto in {countdownSecsLeft}s</Text>
+            </View>
+          ) : (
+            <Text style={[hintStyles.text, hintStyles.autoIdleText]}>AUTO</Text>
+          )}
+        </View>
+      ) : null}
+
       {/* Status hint — sits just above the shutter bar, inset-aware */}
       <View style={[hintStyles.wrap, { bottom: insets.bottom + 108 }]} pointerEvents="none">
-        <Text style={[hintStyles.text, showCaptureToast && hintStyles.captured]}>
+        <Text style={[
+          hintStyles.text,
+          showCaptureToast && (captureToastSource === 'auto' ? hintStyles.capturedAuto : hintStyles.captured),
+        ]}>
           {hintText}
         </Text>
       </View>

@@ -18,6 +18,11 @@
 		BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */; };
 		BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */; };
 		D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */; };
+		DBF0C71E2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */; };
+		DBF0C71F2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */; };
+		DBF0C7202FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */; };
+		DBF0C7212FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */; };
+		DBF0C7222FAD44E300C579E7 /* BriefPilotLiveScanModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -37,6 +42,11 @@
 		BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BriefPilotVisionScannerModule.m; path = BriefPilot/BriefPilotVisionScannerModule.m; sourceTree = "<group>"; };
 		BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotVisionScannerModule.swift; path = BriefPilot/BriefPilotVisionScannerModule.swift; sourceTree = "<group>"; };
 		C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BriefPilotLiveScanModule.m; sourceTree = "<group>"; };
+		DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScanModule.swift; sourceTree = "<group>"; };
+		DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScannerView.swift; sourceTree = "<group>"; };
+		DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BriefPilotLiveScannerViewManager.m; sourceTree = "<group>"; };
+		DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScannerViewManager.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BriefPilot/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BriefPilot-Bridging-Header.h"; path = "BriefPilot/BriefPilot-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -62,6 +72,11 @@
 				F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */,
 				BP000000000000000000BB01 /* BriefPilotScannerModule.m */,
 				BP000000000000000000BB02 /* BriefPilotScannerModule.swift */,
+				DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */,
+				DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */,
+				DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */,
+				DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */,
+				DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */,
 				BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */,
 				BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */,
 				BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */,
@@ -358,6 +373,11 @@
 				BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */,
 				BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */,
 				BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */,
+				DBF0C71E2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift in Sources */,
+				DBF0C71F2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift in Sources */,
+				DBF0C7202FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m in Sources */,
+				DBF0C7212FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift in Sources */,
+				DBF0C7222FAD44E300C579E7 /* BriefPilotLiveScanModule.m in Sources */,
 				BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */,
 				BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */,
 			);

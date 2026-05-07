@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, AppState, Animated, type AppStateStatus, Easing } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
-import { CameraView as ExpoCameraView } from 'expo-camera';
+import { LiveScannerView } from '@/modules/scanner/engine/LiveScannerView';
 import PermissionView from '@/features/scan/components/PermissionView';
 import CameraTopBar from '@/features/scan/components/camera-view/CameraTopBar';
 import CameraBottomBar from '@/features/scan/components/camera-view/CameraBottomBar';
@@ -11,6 +11,8 @@ import { styles } from '@/features/scan/styles';
 import { SUCCESS } from '@/features/scan/constants';
 import { useScan } from '@/features/scan/context/ScanContext';
 import type { CameraViewProps } from '@/features/scan/components/camera-view/types';
+import { runQualityGateFromCorners } from '@/modules/scanner/engine/camera-quality-gate';
+import { getStatusText } from '@/modules/scanner/engine/camera-overlay-color';
 
 export type {
   StabilityState,
@@ -132,6 +134,16 @@ export default function CameraView(props: CameraViewProps) {
     };
   }, []);
 
+  const fresh = edgesAreFresh !== false;
+  const liveQuality = runQualityGateFromCorners(detectedCorners);
+  const isDocumentDetected = !!detectedCorners
+    && fresh
+    && (liveQuality.tier === 'good' || liveQuality.tier === 'excellent');
+
+  useEffect(() => {
+    if (__DEV__) console.log('[CameraView] render corners=' + String(!!detectedCorners) + ' fresh=' + String(fresh) + ' doc=' + String(isDocumentDetected) + ' tier=' + liveQuality.tier);
+  }, [detectedCorners, fresh, isDocumentDetected, liveQuality.tier]);
+
   if (!hasPermission) return <PermissionView onRequest={onRequestPermission} onOpenGallery={onOpenGallery} />;
 
   const cameraActive = isFocused && hasPermission;
@@ -139,9 +151,6 @@ export default function CameraView(props: CameraViewProps) {
   const cornerColor = 'rgba(255,255,255,0.85)';
 
   // TTL-retained corners (stale): edgesAreFresh=false but detectedCorners still set
-  const fresh = edgesAreFresh !== false;
-  // "Dokument erkannt" only when corners are fresh AND confidence is green-tier (≥0.65)
-  const isDocumentDetected = !!detectedCorners && fresh && (detectedCorners.confidence ?? 0) >= 0.65;
 
   // Toast-Text: manuell vs. automatisch unterscheiden
   const captureToastText = captureToastSource === 'auto'
@@ -150,11 +159,7 @@ export default function CameraView(props: CameraViewProps) {
 
   const hintText = showCaptureToast
     ? captureToastText
-    : isDocumentDetected
-    ? 'Dokument erkannt'
-    : distanceHint === 'closer'  ? 'Näher heranhalten'
-    : distanceHint === 'farther' ? 'Etwas weiter weg'
-    : 'Dokument in den Rahmen';
+    : getStatusText(liveQuality, distanceHint ?? null, !!detectedCorners && fresh);
 
   // Countdown-Anzeige: nur wenn Auto aktiv und Countdown läuft
   const showCountdown = autoCapture && !showCaptureToast
@@ -169,18 +174,11 @@ export default function CameraView(props: CameraViewProps) {
 
   return (
     <View style={[styles.fill, { backgroundColor: '#000' }]}>
-      <ExpoCameraView
-        key={`cam-${sessionKey}`}
-        ref={cameraRef}
+      <LiveScannerView
         style={StyleSheet.absoluteFill}
-        facing="back"
-        flash={flash}
+        flash={flash === 'on' ? 'on' : 'off'}
         zoom={0}
         active={cameraActive}
-        onMountError={(e) => {
-          if (__DEV__) console.warn('[CameraView] onMountError — remount', e?.message ?? e);
-          bumpSession();
-        }}
       />
 
       {/* Document overlay — dims when corners are TTL-retained (stale) */}
@@ -248,7 +246,7 @@ export default function CameraView(props: CameraViewProps) {
 
       {pageCount > 0 && (
         <CameraThumbnailStrip
-          bottomOffset={insets.bottom + 120}
+          bottomOffset={insets.bottom + 190}
           pages={pages}
           onRemovePage={onRemovePage}
           onOpenPageEditor={onOpenPageEditor}

@@ -53,6 +53,7 @@ export class CameraEngine {
   private lastCornersTimestamp = 0;
   private lastGoodCornersTimestamp = 0;
   private smoothedDisplayCorners: DocumentCorners | null = null;
+  private prevRawCorners: DocumentCorners | null = null;
   private static readonly DISPLAY_SMOOTH_ALPHA = 0.35;
 
   constructor() {
@@ -270,6 +271,21 @@ export class CameraEngine {
     };
   }
 
+  private computeRawStability(current: DocumentCorners): number {
+    if (!this.prevRawCorners) return 0.85;
+    const pts: Array<[{ x: number; y: number }, { x: number; y: number }]> = [
+      [current.topLeft,     this.prevRawCorners.topLeft],
+      [current.topRight,    this.prevRawCorners.topRight],
+      [current.bottomRight, this.prevRawCorners.bottomRight],
+      [current.bottomLeft,  this.prevRawCorners.bottomLeft],
+    ];
+    const movement = pts.reduce((sum, [c, p]) => {
+      const dx = c.x - p.x, dy = c.y - p.y;
+      return sum + Math.sqrt(dx * dx + dy * dy);
+    }, 0) / pts.length;
+    return Math.max(0, 1 - movement / 0.12);
+  }
+
   private smoothDisplayCorners(raw: DocumentCorners): DocumentCorners {
     if (!this.smoothedDisplayCorners) { this.smoothedDisplayCorners = raw; return raw; }
     const a = CameraEngine.DISPLAY_SMOOTH_ALPHA;
@@ -351,17 +367,22 @@ export class CameraEngine {
         this.lastGoodConfidence = corners.confidence;
       }
 
+      // Stability from raw (pre-smooth) corner movement — avoids double-EMA artefact
+      const motionStability = this.computeRawStability(corners);
+      this.prevRawCorners = corners;
+      this.autoCapture.updateEdgeConfidence(corners.confidence * motionStability);
+
       const rawDisplay = this.captureToPreviewCorners(corners, W, H);
       const displayCorners = this.smoothDisplayCorners(rawDisplay);
       updateLiveState(
-        { corners: displayCorners, confidence: corners.confidence, stabilityScore: 0.85, detected: true },
+        { corners: displayCorners, confidence: corners.confidence, stabilityScore: motionStability, detected: true },
         Date.now(),
       );
 
       const liveState: EdgeDetectionState = {
         corners: displayCorners,
         confidence: corners.confidence,
-        stabilityScore: this.lastEdgeState.detected ? this.lastEdgeState.stabilityScore : 0.85,
+        stabilityScore: motionStability,
         detected: true,
       };
       this.lastEdgeState = liveState;
@@ -369,7 +390,6 @@ export class CameraEngine {
       if (__DEV__) console.log('[ScannerLiveEmit] emitting detected=true conf=' + liveState.confidence.toFixed(3));
       this.emit({ type: 'edges_detected', corners: displayCorners });
       this.emit({ type: 'edge_state_changed', state: liveState });
-      void this.edgeDetector.processFrame({ _precomputedCorners: displayCorners }).catch(() => {});
     } else {
       const msSinceGood = this.lastCornersTimestamp > 0
         ? Date.now() - this.lastCornersTimestamp
@@ -402,6 +422,7 @@ export class CameraEngine {
     this.lastCornersTimestamp = 0;
     this.lastGoodCornersTimestamp = 0;
     this.smoothedDisplayCorners = null;
+    this.prevRawCorners = null;
     resetLiveState();
     this.listeners = [];
   }

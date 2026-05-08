@@ -263,6 +263,40 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
 
         if (best && best.confidence > 0.85f) break; // high enough — stop searching
     }
+
+    // Convex-hull candidate: merge all large contours into one hull.
+    // When the document fills the frame, the table lines produce many internal
+    // contours — none of them individually matches the full document quad.
+    // The convex hull of all large contours gives the outer document boundary.
+    if (!best || best.confidence < 0.75f) {
+        std::vector<cv::Point> allPts;
+        for (const auto& c : contours) {
+            if (cv::contourArea(c) < workArea * 0.01) break;
+            allPts.insert(allPts.end(), c.begin(), c.end());
+        }
+        if (allPts.size() >= 4) {
+            std::vector<cv::Point> hull;
+            cv::convexHull(allPts, hull);
+            double hullArea = cv::contourArea(hull);
+            if (hullArea >= workArea * 0.05) {
+                double hullPeri = cv::arcLength(hull, true);
+                for (double eps : {0.02, 0.04, 0.06, 0.10, 0.15}) {
+                    std::vector<cv::Point> approx;
+                    cv::approxPolyDP(hull, approx, hullPeri * eps, true);
+                    if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
+                    auto corners = sortCorners(approx);
+                    DocumentCornerResult *r = buildCandidateResult(
+                        corners, hullArea, origW, origH, scale, imageArea,
+                        edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright,
+                        0.95f
+                    );
+                    if (r && (!best || r.confidence > best.confidence)) best = r;
+                    break;
+                }
+            }
+        }
+    }
+
     return best;
 }
 

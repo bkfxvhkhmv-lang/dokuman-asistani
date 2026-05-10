@@ -158,9 +158,10 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::Mat equalized;
     clahe->apply(gray, equalized);
 
-    // Bilateral filter preserves sharp text/border edges while smoothing noise
+    // Bilateral filter: intensity sigma 100 (was 75) — blends marble veins (20-60 level
+    // gradient) more aggressively while preserving sharp document borders (80-150 level).
     cv::Mat bilateral;
-    cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
+    cv::bilateralFilter(equalized, bilateral, 9, 100, 75);
 
     // Canny (20/70): low thresholds kept to catch weak paper-to-background transitions.
     // Marble/fabric noise is handled downstream by morphOpen (which removes short isolated
@@ -348,6 +349,16 @@ static BOOL candidateLooksLikeDocument(DocumentCornerResult *r, BPDetectorMode m
         // Reject strongly skewed/trapezoidal quads — real documents keep opposite
         // sides roughly parallel even under mild perspective.
         if (sideCons < 0.50f) return NO;
+        // Hard-reject quads where 3+ corners hug the image border — these are
+        // background/frame objects (laptop lid, table edge), not documents.
+        {
+            const CGFloat bdr = 0.05f;
+            const CGPoint bpts[] = { r.topLeft, r.topRight, r.bottomRight, r.bottomLeft };
+            int bHits = 0;
+            for (CGPoint p : bpts)
+                if (p.x < bdr || p.x > 1.0f-bdr || p.y < bdr || p.y > 1.0f-bdr) bHits++;
+            if (bHits >= 3) return NO;
+        }
     } else {
         if (r.areaScore < 0.03f) return NO;
         if (r.angleScore < 0.45f) return NO;

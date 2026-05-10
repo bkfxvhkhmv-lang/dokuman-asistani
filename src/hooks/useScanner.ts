@@ -7,7 +7,7 @@ import {
   DocumentCorners,
   AutoCaptureReadiness,
 } from '@/modules/scanner';
-import { nativeModuleAvailable } from '@/modules/scanner/engine/NativeStub';
+import { hasNativeScannerModule } from '@/modules/scanner/native';
 
 export type DistanceHint = 'closer' | 'farther' | 'perfect' | null;
 
@@ -65,11 +65,15 @@ export function useScanner() {
           if (__DEV__) console.log('[useScanner] edge_state_changed detected=' + String(event.state.detected) + ' conf=' + event.state.confidence.toFixed(3));
           if (!event.state.detected) {
             setEdgesAreFresh(false);
-            // Debounce overlay clear — keep visible 1.5s after last detection to prevent flicker
-            if (clearEdgesTimerRef.current) clearTimeout(clearEdgesTimerRef.current);
-            clearEdgesTimerRef.current = setTimeout(() => {
-              if (mountedRef.current) setDetectedEdges(null);
-            }, 1500);
+            // Start 600ms countdown on the FIRST loss of detection; do not roll it on subsequent
+            // detected=false events — rolling causes the polygon to persist until the native scanner
+            // goes completely silent (~600ms of total silence at 30fps), not 600ms after detection ends.
+            if (!clearEdgesTimerRef.current) {
+              clearEdgesTimerRef.current = setTimeout(() => {
+                clearEdgesTimerRef.current = null;
+                if (mountedRef.current) setDetectedEdges(null);
+              }, 600);
+            }
           }
           break;
         case 'stability_changed':
@@ -142,6 +146,10 @@ export function useScanner() {
     engineRef.current?.updateConfig(config);
   }, []);
 
+  const setViewDimensions = useCallback((w: number, h: number) => {
+    engineRef.current?.setViewDimensions(w, h);
+  }, []);
+
   const processFrame = useCallback((frame: any) => {
     engineRef.current?.processFrame(frame);
   }, []);
@@ -176,9 +184,10 @@ export function useScanner() {
     error,
     capture,
     updateConfig,
+    setViewDimensions,
     processFrame,
     startLiveEdgeDetection,
     stopLiveEdgeDetection,
-    nativeAvailable: nativeModuleAvailable,
+    nativeAvailable: hasNativeScannerModule(),
   };
 }

@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) float   angleScore;    // 90° corner angle proximity
 @property (nonatomic, assign) float   aspectScore;   // A4/Letter aspect ratio proximity
 @property (nonatomic, assign) float   centerScore;   // quad centroid distance from image center
+@property (nonatomic, assign) float   edgeSupportScore; // fraction of quad sides backed by detected edges
 @end
 
 /**
@@ -50,6 +51,26 @@ NS_ASSUME_NONNULL_BEGIN
 + (nullable UIImage *)warpPerspective:(UIImage *)image
                               corners:(DocumentCornerResult *)corners
                            outputSize:(CGSize)outputSize;
+
+/**
+ * Yüksek çözünürlüklü fotoğrafa perspektif düzeltme uygular.
+ * Preview koordinatlarını tam görüntü koordinatlarına scale eder,
+ * A4 oranına (1.414) uygun çıktı üretir, 2480×3508 ile sınırlar.
+ * Herhangi bir hata durumunda orijinal görüntüyü döner.
+ */
++ (UIImage *)correctPerspective:(UIImage *)image
+                        topLeft:(CGPoint)tl
+                       topRight:(CGPoint)tr
+                    bottomRight:(CGPoint)br
+                     bottomLeft:(CGPoint)bl
+                    previewSize:(CGSize)previewSize;
+
+/**
+ * Perspektif düzeltilmiş görüntüye enhancement uygular.
+ * @param mode "color" | "grayscale" | "bw" — tanınmayan mod "color"'a düşer.
+ * @return Orijinal boyutta iyileştirilmiş UIImage; hata durumunda orijinali döner.
+ */
++ (UIImage *)enhanceDocument:(UIImage *)image mode:(NSString *)mode;
 
 /**
  * Adaptif eşikleme — siyah-beyaz belge taraması için.

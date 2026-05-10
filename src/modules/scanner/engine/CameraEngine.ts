@@ -7,9 +7,9 @@ import { PerspectiveCorrector } from '@/modules/scanner/engine/PerspectiveCorrec
 import { Enhancer } from '@/modules/image-processing/core/Enhancer';
 import { QualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
 import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
-import { decideCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
+import { decideCapture, isMeaningfullyWorseCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
 import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryMapper';
-import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
+import { checkLiveScanGate, checkCommitGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
 import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
 import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
 import { CornerCache } from '@/modules/scanner/engine/CornerCache';
@@ -68,6 +68,13 @@ export class CameraEngine {
   private prevRawCorners: DocumentCorners | null = null;
   private geometry = new PreviewGeometryMapper();
   private bridge = new LiveScanBridge();
+  private lastCommitGatePassed = false;
+  private lastCommitGateTs = 0;
+  private lastCommittedCorners: DocumentCorners | null = null;
+  private lastCommittedCornersTs = 0;
+  // Require consecutive passes before emitting edges_detected to prevent isolated ghost frames
+  // (single PASS frames surrounded by FAILs) from briefly re-opening the polygon overlay.
+  private consecutiveLivePassCount = 0;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -164,6 +171,8 @@ export class CameraEngine {
       let finalUri = originalUri;
       let corrected = false;
 
+      const committedBaseline = this.getRecentCommittedCorners();
+      let captureCornersSource: 'photo' | 'video' = 'photo';
       let captureCorners = await nativeDetectDocumentEdges({ uri: originalUri }).catch(() => null);
       let hasRealDetection = captureCorners !== null;
 
@@ -172,7 +181,15 @@ export class CameraEngine {
         if (cached) {
           captureCorners = cached.corners;
           hasRealDetection = true;
+          captureCornersSource = 'video';
         }
+      }
+
+      if (committedBaseline && isMeaningfullyWorseCapture(captureCorners, committedBaseline)) {
+        if (__DEV__) console.log('[ScannerCapture] using committed baseline instead of weaker still detection');
+        captureCorners = committedBaseline;
+        hasRealDetection = true;
+        captureCornersSource = 'video';
       }
 
       const captureDecision = decideCapture(hasRealDetection, captureCorners, STRICT_FALLBACK_POLICY);
@@ -201,14 +218,21 @@ export class CameraEngine {
       }
 
       if (this.config.enablePerspectiveCorrection && captureCorners.confidence >= 0.4) {
-        // Pass video frame dimensions so jsCropAndNormalize can remap coordinates
-        // from video-normalized space (9:16) to the still photo's coordinate space (3:4).
-        // These match the hardcoded values in BriefPilotLiveScannerView.swift.
-        const VIDEO_FRAME_W = 1080;
-        const VIDEO_FRAME_H = 1920;
-        correctedUri = await this.perspectiveCorrector.correct(
-          originalUri, captureCorners, photo.width, photo.height, VIDEO_FRAME_W, VIDEO_FRAME_H,
-        );
+        if (captureCornersSource === 'video') {
+          // Live-stream corners are normalized against the preview/video frame,
+          // so they must be remapped into still-photo space before correction.
+          const VIDEO_FRAME_W = 1080;
+          const VIDEO_FRAME_H = 1920;
+          correctedUri = await this.perspectiveCorrector.correct(
+            originalUri, captureCorners, photo.width, photo.height, VIDEO_FRAME_W, VIDEO_FRAME_H,
+          );
+        } else {
+          // Still-photo detection already runs on the captured image itself.
+          // Passing video dimensions here would double-remap otherwise-correct corners.
+          correctedUri = await this.perspectiveCorrector.correct(
+            originalUri, captureCorners, photo.width, photo.height,
+          );
+        }
         corrected = correctedUri !== originalUri;
         finalUri = correctedUri;
       }
@@ -274,7 +298,21 @@ export class CameraEngine {
 
   async autoCapturePhoto() {
     if (!this.config.autoCapture) return;
+    // Guard: last live frame must have passed commit gate AND been recent (< 800ms ago).
+    // Prevents stale-trigger: countdown filled on good frame, capture fires after scene changed.
+    const commitAge = Date.now() - this.lastCommitGateTs;
+    if (!this.lastCommitGatePassed || commitAge > 800) {
+      if (__DEV__) console.log('[AutoCapture] aborted — commit gate stale (passed=' + String(this.lastCommitGatePassed) + ' age=' + commitAge + 'ms)');
+      this.autoCapture.updateEdgeConfidence(0);
+      return;
+    }
     await this.capture();
+  }
+
+  private getRecentCommittedCorners(maxAgeMs = 1200): DocumentCorners | null {
+    if (!this.lastCommittedCorners || this.lastCommittedCornersTs === 0) return null;
+    const age = Date.now() - this.lastCommittedCornersTs;
+    return age <= maxAgeMs ? this.lastCommittedCorners : null;
   }
 
   lockManualCapture() {
@@ -332,13 +370,16 @@ export class CameraEngine {
   private handleNativeScanResult({ corners, bufferW, bufferH }: LiveScanPayload) {
     if (this.isCapturing) return;
 
-    // H and W are intentionally swapped when calling geometry.mapToDisplay — see PreviewGeometryMapper.
-    const W = bufferW;
-    const H = bufferH;
+    const gate = checkLiveScanGate(corners);
 
     if (__DEV__) {
+      const ts = Date.now() % 100000;
+      const gateTag = gate.pass ? 'PASS' : ('FAIL:' + gate.reason);
       console.log(
-        '[ScannerLive] conf=' + (corners.confidence?.toFixed(3) ?? 'null')
+        '[ScannerLive] t=' + ts
+        + ' gate=' + gateTag
+        + ' conf=' + (corners.confidence?.toFixed(3) ?? 'null')
+        + ' edgeSupp=' + (corners.edgeSupportScore?.toFixed(3) ?? '-')
         + ' area=' + (corners.areaScore?.toFixed(3) ?? '-')
         + ' angle=' + (corners.angleScore?.toFixed(3) ?? '-')
         + ' aspect=' + (corners.aspectScore?.toFixed(3) ?? '-')
@@ -346,33 +387,47 @@ export class CameraEngine {
       );
     }
 
-    const gate = checkLiveScanGate(corners);
-
     if (gate.pass) {
       this.cornerCache.onFrameAccepted(corners);
 
       const motionStability = this.computeRawStability(corners);
       this.prevRawCorners = corners;
 
-      this.autoCapture.updateEdgeConfidence(corners.confidence);
-      this.autoCapture.updateQualityScores(
-        1.0,                                   // blur — no live blur analysis
-        1.0,                                   // brightness — no live brightness analysis
-        1.0,                                   // distortion — no live distortion analysis
-        corners.centerScore ?? 1,
-        aspectForAutoCapture(corners.aspectScore),
-      );
+      // Separate display gate (LIVE_GATE, already passed) from commit gate (COMMIT_GATE).
+      // Auto-capture countdown only runs when the polygon is tight and the device is still.
+      const commit = checkCommitGate(corners, motionStability);
+      this.lastCommitGatePassed = commit.pass;
+      if (commit.pass) {
+        const now = Date.now();
+        this.lastCommitGateTs = now;
+        this.lastCommittedCorners = corners;
+        this.lastCommittedCornersTs = now;
+      }
+      if (commit.pass) {
+        this.autoCapture.updateEdgeConfidence(corners.confidence);
+        this.autoCapture.updateQualityScores(
+          1.0,
+          1.0,
+          1.0,
+          corners.centerScore ?? 1,
+          aspectForAutoCapture(corners.aspectScore),
+        );
+      } else {
+        this.autoCapture.updateEdgeConfidence(0);
+        if (__DEV__) console.log('[ScannerCommit] suppressed — ' + commit.reason);
+      }
 
-      // H and W are intentionally swapped: native buffer is landscape (W=1920, H=1080)
-      // but OpenCV normalises corners in portrait orientation — see PreviewGeometryMapper.
-      const rawDisplay = this.geometry.mapToDisplay(corners, H, W);
+      const rawDisplay = this.geometry.mapToDisplay(corners, bufferW, bufferH);
       if (!rawDisplay) {
+        this.consecutiveLivePassCount = 0;
         if (__DEV__) console.log('[ScannerLiveEmit] rejecting frame: view dimensions unknown');
         return;
       }
 
       if (!checkDisplayGeometry(rawDisplay)) {
+        this.consecutiveLivePassCount = 0;
         this.autoCapture.updateEdgeConfidence(0);
+        this.geometry.resetSmoothing();
         this.lastEdgeState = {
           corners: null,
           confidence: 0,
@@ -383,6 +438,8 @@ export class CameraEngine {
         this.emit({ type: 'edge_state_changed', state: this.lastEdgeState });
         return;
       }
+
+      this.consecutiveLivePassCount++;
 
       const prev = this.geometry.currentSmoothed;
       const prevArea = prev?.areaScore ?? 0;
@@ -406,15 +463,25 @@ export class CameraEngine {
 
       if (__DEV__) console.log('[ScannerLiveEmit] emitting detected=true conf=' + detectedState.confidence.toFixed(3));
 
-      this.emit({ type: 'edges_detected', corners: displayCorners });
+      // Require 2 consecutive PASS frames before showing the polygon overlay.
+      // Isolated single-frame PASSes surrounded by FAILs are ghost detections — the native
+      // quad detector occasionally finds a partial edge in an otherwise-moving/empty frame.
+      if (this.consecutiveLivePassCount >= 2) {
+        this.emit({ type: 'edges_detected', corners: displayCorners });
+      }
       this.emit({ type: 'edge_state_changed', state: detectedState });
       return;
     }
 
-    const msSinceLastFrame = this.cornerCache.onFrameRejected();
-    if (msSinceLastFrame > 2000) {
-      this.autoCapture.updateEdgeConfidence(0);
-    }
+    this.consecutiveLivePassCount = 0;
+    this.lastCommitGatePassed = false;
+    this.lastCommitGateTs = 0;
+    this.lastCommittedCorners = null;
+    this.lastCommittedCornersTs = 0;
+    this.autoCapture.updateEdgeConfidence(0);
+    this.geometry.resetSmoothing();
+
+    this.cornerCache.onFrameRejected();
 
     const clearedState: EdgeDetectionState = {
       corners: null,
@@ -434,6 +501,11 @@ export class CameraEngine {
     this.cornerCache.reset();
     this.geometry.resetSmoothing();
     this.prevRawCorners = null;
+    this.consecutiveLivePassCount = 0;
+    this.lastCommitGatePassed = false;
+    this.lastCommitGateTs = 0;
+    this.lastCommittedCorners = null;
+    this.lastCommittedCornersTs = 0;
     this.listeners = [];
   }
 }

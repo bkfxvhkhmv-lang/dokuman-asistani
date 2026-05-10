@@ -14,6 +14,7 @@ export interface DocumentCorners {
   angleScore?: number;
   aspectScore?: number;
   centerScore?: number;
+  edgeSupportScore?: number;
 }
 
 export interface CaptureConfig {

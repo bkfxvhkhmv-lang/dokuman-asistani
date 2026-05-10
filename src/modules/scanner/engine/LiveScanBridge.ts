@@ -11,9 +11,9 @@ const LiveScanNative = requireOptionalNativeModule<{
 
 export type LiveScanPayload = {
   corners: DocumentCorners;
-  /** Native buffer width — landscape dimension, e.g. 1920 for hd1920x1080. */
+  /** Native buffer width as emitted by the live scanner output connection. */
   bufferW: number;
-  /** Native buffer height — landscape dimension, e.g. 1080 for hd1920x1080. */
+  /** Native buffer height as emitted by the live scanner output connection. */
   bufferH: number;
 };
 
@@ -33,11 +33,12 @@ function parsePayload(raw: Record<string, unknown>): LiveScanPayload | null {
       topRight:    { x: tr.x, y: tr.y },
       bottomRight: { x: br.x, y: br.y },
       bottomLeft:  { x: bl.x, y: bl.y },
-      confidence:  raw.confidence as number,
-      areaScore:   raw.areaScore as number | undefined,
-      angleScore:  raw.angleScore as number | undefined,
-      aspectScore: raw.aspectScore as number | undefined,
-      centerScore: raw.centerScore as number | undefined,
+      confidence:       raw.confidence as number,
+      areaScore:        raw.areaScore as number | undefined,
+      angleScore:       raw.angleScore as number | undefined,
+      aspectScore:      raw.aspectScore as number | undefined,
+      centerScore:      raw.centerScore as number | undefined,
+      edgeSupportScore: raw.edgeSupportScore as number | undefined,
     },
     bufferW: (raw.width as number) ?? 1920,
     bufferH: (raw.height as number) ?? 1080,

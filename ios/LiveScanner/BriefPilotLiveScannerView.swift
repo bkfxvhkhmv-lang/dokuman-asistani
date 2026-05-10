@@ -97,6 +97,16 @@ final class BriefPilotLiveScannerView: ExpoView,
       session.addOutput(videoOutput)
     }
 
+    if let videoConnection = videoOutput.connection(with: .video),
+       videoConnection.isVideoOrientationSupported {
+      videoConnection.videoOrientation = .portrait
+    }
+
+    if let photoConnection = photoOutput.connection(with: .video),
+       photoConnection.isVideoOrientationSupported {
+      photoConnection.videoOrientation = .portrait
+    }
+
     session.commitConfiguration()
     captureSession = session
     previewLayer = nil
@@ -229,6 +239,7 @@ final class BriefPilotLiveScannerView: ExpoView,
         "angleScore": Double(result.angleScore),
         "aspectScore": Double(result.aspectScore),
         "centerScore": Double(result.centerScore),
+        "edgeSupportScore": Double(result.edgeSupportScore),
         "isBlurry": Bool(result.isBlurry),
         "needsFlash": Bool(result.needsFlash),
         "width": bufferW,

@@ -16,8 +16,10 @@
 
 @implementation BriefPilotOpenCVHelper
 
-static DocumentCornerResult *sLastStableResult = nil;
-static int sConsecutiveMisses = 0;
+typedef NS_ENUM(NSInteger, BPDetectorMode) {
+    BPDetectorModeStill = 0,
+    BPDetectorModeLive = 1,
+};
 
 #pragma mark - Geometry helpers
 
@@ -31,30 +33,58 @@ static double cornerAngle(cv::Point A, cv::Point P, cv::Point B) {
     return acos(MAX(-1.0, MIN(1.0, dot/mag))) * 180.0 / CV_PI;
 }
 
-// TL / TR / BR / BL ordering using sum/diff method (robust for rotated docs)
-static std::array<cv::Point,4> sortCorners(std::vector<cv::Point>& pts) {
+// Robust TL / TR / BR / BL ordering:
+// centroid-angle ordering avoids the duplicate-corner failures of sum/diff.
+static std::array<cv::Point,4> sortCorners(const std::vector<cv::Point>& pts) {
     std::array<cv::Point,4> result;
-    int minSum=INT_MAX, maxSum=INT_MIN, minDiff=INT_MAX, maxDiff=INT_MIN;
-    int iMinSum=0, iMaxSum=0, iMinDiff=0, iMaxDiff=0;
-    for (int i=0; i<4; i++) {
-        int s = pts[i].x + pts[i].y;
-        int d = pts[i].y - pts[i].x;
-        if (s < minSum) { minSum = s; iMinSum = i; }
-        if (s > maxSum) { maxSum = s; iMaxSum = i; }
-        if (d < minDiff){ minDiff = d; iMinDiff = i; }
-        if (d > maxDiff){ maxDiff = d; iMaxDiff = i; }
+    if (pts.size() != 4) return result;
+
+    cv::Point2f centroid(0.0f, 0.0f);
+    for (const auto& p : pts) {
+        centroid.x += p.x;
+        centroid.y += p.y;
     }
-    result[0] = pts[iMinSum];   // TL
-    result[1] = pts[iMinDiff];  // TR
-    result[2] = pts[iMaxSum];   // BR
-    result[3] = pts[iMaxDiff];  // BL
-    return result;
+    centroid.x /= 4.0f;
+    centroid.y /= 4.0f;
+
+    std::vector<cv::Point> ordered = pts;
+    std::sort(ordered.begin(), ordered.end(), [&](const cv::Point& a, const cv::Point& b) {
+        double angleA = atan2((double)a.y - centroid.y, (double)a.x - centroid.x);
+        double angleB = atan2((double)b.y - centroid.y, (double)b.x - centroid.x);
+        return angleA < angleB;
+    });
+
+    int topLeftIdx = 0;
+    int minSum = INT_MAX;
+    for (int i = 0; i < 4; i++) {
+        int s = ordered[i].x + ordered[i].y;
+        if (s < minSum) {
+            minSum = s;
+            topLeftIdx = i;
+        }
+    }
+
+    std::array<cv::Point,4> rotated = {
+        ordered[topLeftIdx],
+        ordered[(topLeftIdx + 1) % 4],
+        ordered[(topLeftIdx + 2) % 4],
+        ordered[(topLeftIdx + 3) % 4],
+    };
+
+    cv::Point2f v1(rotated[1].x - rotated[0].x, rotated[1].y - rotated[0].y);
+    cv::Point2f v2(rotated[3].x - rotated[0].x, rotated[3].y - rotated[0].y);
+    double cross = v1.x * v2.y - v1.y * v2.x;
+    if (cross < 0) {
+        std::swap(rotated[1], rotated[3]);
+    }
+
+    return rotated;
 }
 
-// Confidence: angle × 0.42 + area × 0.38 + aspect × 0.20
-// Area weight raised (0.30→0.38): the full document is always larger than any
-// internal feature (table, logo). Larger quads now score meaningfully higher,
-// preventing internal-table quads from beating the full document on angle alone.
+// Confidence: angle × 0.50 + aspect × 0.28 + area × 0.22
+// angle is now primary: a tight rectangle beats a large loose quad.
+// area is tertiary: presence signal, not a reward for size.
+// aspect rewards A4/Letter shape, further penalising background envelopes.
 static float computeConfidence(
     std::array<cv::Point,4>& c,
     double area, double imageArea,
@@ -71,10 +101,10 @@ static float computeConfidence(
     }
     float aAngle = (float)(angleSum / 4.0);
 
-    // Area score: reaches 1.0 at ~28% of image. Document is typically 35-85%,
-    // internal table ~15-25% — both might saturate, but raw area used for tie-break.
+    // Area score: presence signal only.
+    // Full score at 60% frame coverage; tiny quads stay near 0.
     double areaRatio = area / imageArea;
-    float aArea = (float)MAX(0, MIN(1.0, (areaRatio - 0.03) / 0.25));
+    float aArea = (float)MAX(0, MIN(1.0, (areaRatio - 0.05) / 0.55));
 
     // Aspect score: proximity to A4 (1.414) or Letter (1.294) ratio
     double qw = cv::norm(cv::Point2d(c[1].x - c[0].x, c[1].y - c[0].y));
@@ -95,12 +125,26 @@ static float computeConfidence(
     double normDy = fabs(cy - edgeH / 2.0) / (edgeH / 2.0 + 1e-6);
     float aCenter = (float)MAX(0, 1.0 - sqrt(normDx*normDx + normDy*normDy));
 
+    // Border proximity penalty: corners within 2% of any image border suggest
+    // the quad extends into background. Soft penalty (0.90 per corner) to avoid
+    // over-penalising legitimate close-up shots where the document fills the frame.
+    float bPenalty = 1.0f;
+    const float bMarginX = edgeW * 0.02f;
+    const float bMarginY = edgeH * 0.02f;
+    for (auto& pt : c) {
+        if (pt.x < bMarginX || pt.x > edgeW - bMarginX ||
+            pt.y < bMarginY || pt.y > edgeH - bMarginY) {
+            bPenalty *= 0.90f;
+        }
+    }
+
     if (outAngleScore)  *outAngleScore  = aAngle;
     if (outAreaScore)   *outAreaScore   = aArea;
     if (outAspectScore) *outAspectScore = aAspect;
     if (outCenterScore) *outCenterScore = aCenter;
 
-    return (float)MIN(0.97, aAngle * 0.42 + aArea * 0.38 + aAspect * 0.20);
+    float raw = (float)MIN(0.97, aAngle * 0.50 + aAspect * 0.28 + aArea * 0.22);
+    return raw * bPenalty;
 }
 
 #pragma mark - Edge detection core
@@ -133,6 +177,46 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     return edges;
 }
 
+// Measures what fraction of each quad side lies along detected edges.
+// Samples numSamples points per side, checks a 3×3 neighbourhood in the edge map.
+// Returns 0.70 × avgSideRate + 0.30 × worstSideRate.
+// Penalises quads with one completely unsupported side even when the other three are fine.
+static float computeEdgeSupport(
+    const std::array<cv::Point,4>& corners,
+    const cv::Mat& edges,
+    int numSamples = 12
+) {
+    const int W = edges.cols, H = edges.rows;
+    float minSide = 1.0f, sumAll = 0.0f;
+
+    for (int s = 0; s < 4; s++) {
+        cv::Point a = corners[s];
+        cv::Point b = corners[(s + 1) % 4];
+        int hits = 0;
+        for (int i = 0; i < numSamples; i++) {
+            float t = (float)i / (numSamples - 1);
+            int px = (int)(a.x + t * (b.x - a.x) + 0.5f);
+            int py = (int)(a.y + t * (b.y - a.y) + 0.5f);
+            bool hit = false;
+            for (int dy = -1; dy <= 1 && !hit; dy++) {
+                for (int dx = -1; dx <= 1 && !hit; dx++) {
+                    int nx = px + dx, ny = py + dy;
+                    if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+                        if (edges.at<uint8_t>(ny, nx) > 0) hit = true;
+                    }
+                }
+            }
+            if (hit) hits++;
+        }
+        float sideRate = (float)hits / numSamples;
+        sumAll += sideRate;
+        if (sideRate < minSide) minSide = sideRate;
+    }
+
+    float avgRate = sumAll / 4.0f;
+    return 0.70f * avgRate + 0.30f * minSide;
+}
+
 // Build a DocumentCornerResult from a normalized candidate quad.
 static DocumentCornerResult* _Nullable buildCandidateResult(
     std::array<cv::Point,4>& corners,
@@ -143,7 +227,8 @@ static DocumentCornerResult* _Nullable buildCandidateResult(
     int edgeW, int edgeH,
     BOOL isBlurry, BOOL needsFlash,
     double blurVar, double avgBright,
-    float confidencePenalty
+    float confidencePenalty,
+    float edgeSupportScore
 ) {
     float aArea = 0, aAngle = 0, aAspect = 0, aCenter = 0;
     float conf = computeConfidence(
@@ -162,15 +247,16 @@ static DocumentCornerResult* _Nullable buildCandidateResult(
     r.topRight    = CGPointMake(corners[1].x * inv / origW, corners[1].y * inv / origH);
     r.bottomRight = CGPointMake(corners[2].x * inv / origW, corners[2].y * inv / origH);
     r.bottomLeft  = CGPointMake(corners[3].x * inv / origW, corners[3].y * inv / origH);
-    r.confidence     = conf;
-    r.isBlurry       = isBlurry;
-    r.needsFlash     = needsFlash;
-    r.blurVariance   = blurVar;
-    r.avgBrightness  = avgBright;
-    r.areaScore      = aArea;
-    r.angleScore     = aAngle;
-    r.aspectScore    = aAspect;
-    r.centerScore    = aCenter;
+    r.confidence       = conf;
+    r.isBlurry         = isBlurry;
+    r.needsFlash       = needsFlash;
+    r.blurVariance     = blurVar;
+    r.avgBrightness    = avgBright;
+    r.areaScore        = aArea;
+    r.angleScore       = aAngle;
+    r.aspectScore      = aAspect;
+    r.centerScore      = aCenter;
+    r.edgeSupportScore = edgeSupportScore;
     return r;
 }
 
@@ -184,16 +270,64 @@ static double quadNormalizedArea(DocumentCornerResult *r) {
     return fabs(ax*(by-dy) + bx*(cy-ay) + cx*(dy-by) + dx*(ay-cy)) * 0.5;
 }
 
-// Compare two candidates: prefer the one with higher confidence.
-// When confidence differs by less than MARGIN, prefer the LARGER quad.
-// This ensures the full document beats an internal table at similar quality.
-static const float SIZE_TIE_MARGIN = 0.07f;
-static BOOL isBetter(DocumentCornerResult *r, DocumentCornerResult *best) {
+static float candidateRank(DocumentCornerResult *r, BPDetectorMode mode) {
+    if (!r) return 0.0f;
+
+    float rank = r.confidence;
+    if (mode == BPDetectorModeLive) {
+        rank = r.confidence * 0.35f
+             + r.edgeSupportScore * 0.25f
+             + r.areaScore * 0.25f
+             + r.aspectScore * 0.10f
+             + r.centerScore * 0.05f;
+
+        double area = quadNormalizedArea(r);
+        if (area < 0.12) rank *= 0.72f;
+        else if (area < 0.18) rank *= 0.86f;
+
+        const CGFloat border = 0.025f;
+        const CGPoint pts[] = { r.topLeft, r.topRight, r.bottomRight, r.bottomLeft };
+        int borderHits = 0;
+        for (CGPoint p : pts) {
+            if (p.x < border || p.x > 1.0f - border || p.y < border || p.y > 1.0f - border) {
+                borderHits += 1;
+            }
+        }
+        if (borderHits >= 2) rank *= 0.78f;
+    }
+
+    return rank;
+}
+
+static BOOL isBetter(DocumentCornerResult *r, DocumentCornerResult *best, BPDetectorMode mode) {
     if (!best) return YES;
-    float diff = r.confidence - best.confidence;
-    if (diff > SIZE_TIE_MARGIN)  return YES;   // clearly better
-    if (diff < -SIZE_TIE_MARGIN) return NO;    // clearly worse
-    return quadNormalizedArea(r) > quadNormalizedArea(best); // tie → pick larger
+    float rank = candidateRank(r, mode);
+    float bestRank = candidateRank(best, mode);
+    if (fabs(rank - bestRank) > 0.015f) return rank > bestRank;
+    if (fabs(r.confidence - best.confidence) > 0.01f) return r.confidence > best.confidence;
+    return quadNormalizedArea(r) > quadNormalizedArea(best);
+}
+
+static BOOL candidateLooksLikeDocument(DocumentCornerResult *r, BPDetectorMode mode) {
+    if (!r) return NO;
+
+    if (mode == BPDetectorModeLive) {
+        // Live mode must be conservative: a wrong polygon is worse than no polygon.
+        // Reject tiny inner boxes and rectangle-ish artifacts that do not resemble
+        // a page envelope in shape/coverage.
+        if (r.areaScore < 0.08f) return NO;
+        if (r.aspectScore < 0.35f) return NO;
+        if (r.angleScore < 0.55f) return NO;
+        // Real documents (camera stable): min 0.488, typical 0.60–1.00.
+        // Motion/transition/ghost frames: max 0.406.
+        // 0.45 sits cleanly in the 0.08 gap between these two populations.
+        if (r.edgeSupportScore < 0.45f) return NO;
+    } else {
+        if (r.areaScore < 0.03f) return NO;
+        if (r.angleScore < 0.45f) return NO;
+    }
+
+    return YES;
 }
 
 // Attempt to find a document quad in the given edge map.
@@ -203,6 +337,7 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
     int origW, int origH,
     double scale,
     double imageArea,
+    BPDetectorMode mode,
     BOOL isBlurry, BOOL needsFlash,
     double blurVar, double avgBright
 ) {
@@ -228,17 +363,19 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
             if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
 
             auto corners = sortCorners(approx);
+            float edgeSupport = computeEdgeSupport(corners, edges);
             DocumentCornerResult *r = buildCandidateResult(
                 corners, area, origW, origH, scale, imageArea,
-                edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 1.0f
+                edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 1.0f,
+                edgeSupport
             );
             if (!r) continue;
-            if (isBetter(r, best)) best = r;
+            if (!candidateLooksLikeDocument(r, mode)) continue;
+            if (isBetter(r, best, mode)) best = r;
             acceptedContour = true;
-            break;
         }
 
-        if (!acceptedContour) {
+        if (!acceptedContour && mode == BPDetectorModeStill) {
             cv::RotatedRect rect = cv::minAreaRect(contour);
             double rectArea = rect.size.width * rect.size.height;
             if (rectArea >= workArea * 0.05) {
@@ -250,22 +387,24 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
                     rectPts.emplace_back((int)rectPtsF[i].x, (int)rectPtsF[i].y);
                 }
                 auto rectCorners = sortCorners(rectPts);
+                float rectEdgeSupport = computeEdgeSupport(rectCorners, edges);
                 DocumentCornerResult *r = buildCandidateResult(
                     rectCorners, rectArea, origW, origH, scale, imageArea,
-                    edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 0.90f
+                    edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 0.90f,
+                    rectEdgeSupport
                 );
-                if (r && isBetter(r, best)) best = r;
+                if (r && !candidateLooksLikeDocument(r, mode)) r = nil;
+                if (r && isBetter(r, best, mode)) best = r;
             }
         }
 
         if (best && best.confidence > 0.85f && quadNormalizedArea(best) > 0.25) break;
     }
 
-    // Convex-hull of ALL edge pixels — catches the document boundary even when
-    // individual contours represent only internal features (table lines, logo).
-    // findNonZero includes even faint paper-to-background edges that Canny finds
-    // but that don't form closed contours on their own.
-    {
+    // Convex-hull fallback: only used when no contour produced a usable quad.
+    // The hull of ALL edge pixels can include background objects, so apply a
+    // heavy confidence penalty (0.70) and skip if we already have a contour result.
+    if (!best && mode == BPDetectorModeStill) {
         std::vector<cv::Point> allPts;
         cv::findNonZero(edges, allPts);
         if (allPts.size() >= 4) {
@@ -279,11 +418,14 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
                     cv::approxPolyDP(hull, approx, hullPeri * eps, true);
                     if (approx.size() != 4 || !cv::isContourConvex(approx)) continue;
                     auto corners = sortCorners(approx);
+                    float hullEdgeSupport = computeEdgeSupport(corners, edges);
                     DocumentCornerResult *r = buildCandidateResult(
                         corners, hullArea, origW, origH, scale, imageArea,
-                        edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 0.95f
+                        edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 0.70f,
+                        hullEdgeSupport
                     );
-                    if (r && isBetter(r, best)) best = r;
+                    if (r && !candidateLooksLikeDocument(r, mode)) r = nil;
+                    if (r && isBetter(r, best, mode)) best = r;
                     break;
                 }
             }
@@ -315,7 +457,7 @@ static void analyseQuality(const cv::Mat& gray,
 
 // Multi-scale pipeline: detect at 3 resolutions, return best quad.
 static DocumentCornerResult* _Nullable runMultiScalePipeline(
-    cv::Mat& gray, int origW, int origH
+    cv::Mat& gray, int origW, int origH, BPDetectorMode mode
 ) {
     double imageArea = (double)(origW * origH);
 
@@ -336,7 +478,7 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
         cv::Mat edges = buildEdgeMap(resized);
 
         DocumentCornerResult *candidate = findQuadInEdges(
-            edges, origW, origH, scale, imageArea,
+            edges, origW, origH, scale, imageArea, mode,
             isBlurry, needsFlash, blurVar, avgBright
         );
         if (candidate && (!best || candidate.confidence > best.confidence)) {
@@ -346,29 +488,21 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     }
 
     if (!best) {
-        sConsecutiveMisses += 1;
-        if (sLastStableResult != nil && sConsecutiveMisses <= 2) {
-            return sLastStableResult;
-        }
-
         // Return quality data even when no quad found
         DocumentCornerResult *noCorner = [[DocumentCornerResult alloc] init];
-        noCorner.confidence    = 0;
-        noCorner.isBlurry      = isBlurry;
-        noCorner.needsFlash    = needsFlash;
-        noCorner.blurVariance  = blurVar;
-        noCorner.avgBrightness = avgBright;
-        noCorner.areaScore     = 0;
-        noCorner.angleScore    = 0;
-        noCorner.aspectScore   = 0;
-        noCorner.centerScore   = 0;
+        noCorner.confidence       = 0;
+        noCorner.isBlurry         = isBlurry;
+        noCorner.needsFlash       = needsFlash;
+        noCorner.blurVariance     = blurVar;
+        noCorner.avgBrightness    = avgBright;
+        noCorner.areaScore        = 0;
+        noCorner.angleScore       = 0;
+        noCorner.aspectScore      = 0;
+        noCorner.centerScore      = 0;
+        noCorner.edgeSupportScore = 0;
         return noCorner;
     }
 
-    sConsecutiveMisses = 0;
-    if (best.confidence >= 0.55f && best.areaScore >= 0.04f) {
-        sLastStableResult = best;
-    }
     return best;
 }
 
@@ -380,25 +514,54 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     int imgW = mat.cols, imgH = mat.rows;
     cv::Mat gray;
     cv::cvtColor(mat, gray, mat.channels() == 4 ? cv::COLOR_BGRA2GRAY : cv::COLOR_BGR2GRAY);
-    return runMultiScalePipeline(gray, imgW, imgH);
+    return runMultiScalePipeline(gray, imgW, imgH, BPDetectorModeStill);
 }
 
 + (nullable DocumentCornerResult *)detectCornersInPixelBuffer:(CVPixelBufferRef)pixelBuffer {
     if (!pixelBuffer) return nil;
-    CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+
+    // Only accept planar YpCbCr formats (BiPlanar full/video range) — reject BGRA and unknowns.
+    OSType fmt = CVPixelBufferGetPixelFormatType(pixelBuffer);
+    BOOL isPlanarYUV = (fmt == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange ||
+                        fmt == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange);
+    if (!isPlanarYUV) return nil;
+
+    if (CVPixelBufferGetPlaneCount(pixelBuffer) < 1) return nil;
+
+    CVReturn lockErr = CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+    if (lockErr != kCVReturnSuccess) return nil;
+
     int w = (int)CVPixelBufferGetWidth(pixelBuffer);
     int h = (int)CVPixelBufferGetHeight(pixelBuffer);
     uint8_t *base = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pixelBuffer, 0);
     size_t stride = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0);
-    cv::Mat yPlane(h, w, CV_8UC1, base, stride);
 
-    // Live-frame path: single scale at 480px for speed
-    double scale = (w > 480) ? 480.0 / w : 1.0;
-    cv::Mat gray;
-    if (scale < 1.0) cv::resize(yPlane, gray, cv::Size(), scale, scale);
-    else yPlane.copyTo(gray);
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
-    return runMultiScalePipeline(gray, gray.cols, gray.rows);
+    if (!base || w <= 0 || h <= 0 || stride == 0) {
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        return nil;
+    }
+
+    DocumentCornerResult *result = nil;
+    try {
+        cv::Mat yPlane(h, w, CV_8UC1, base, stride);
+
+        // Pass the full Y-plane to the pipeline without pre-resizing.
+        // The pipeline handles its own downscaling (900→600→400px) and uses
+        // w/h as the normalisation anchor for corner coordinates.
+        // A pre-resize to 480px here broke everything: the pipeline's internal
+        // `scale` only corrected for its own resize step, leaving corner coords
+        // ~4x too small and area scores ~16x too low — causing conf=0 on all live frames.
+        cv::Mat gray;
+        yPlane.copyTo(gray);
+
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        result = runMultiScalePipeline(gray, w, h, BPDetectorModeLive);
+    } catch (const cv::Exception&) {
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+    } catch (...) {
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+    }
+    return result;
 }
 
 #pragma mark - Perspective warp (INTER_LANCZOS4)
@@ -431,6 +594,122 @@ static DocumentCornerResult* _Nullable runMultiScalePipeline(
     cv::warpPerspective(mat, warped, M, cv::Size(outW, outH), cv::INTER_LANCZOS4);
 
     return [self UIImageFromMat:warped];
+}
+
+#pragma mark - Perspective correction (preview coords → full-res warp)
+
++ (UIImage *)correctPerspective:(UIImage *)image
+                        topLeft:(CGPoint)tl
+                       topRight:(CGPoint)tr
+                    bottomRight:(CGPoint)br
+                     bottomLeft:(CGPoint)bl
+                    previewSize:(CGSize)previewSize {
+    if (!image || previewSize.width <= 0 || previewSize.height <= 0) return image;
+
+    @try {
+        UIImage *oriented = [self normalizedImage:image];
+        cv::Mat mat = [self matFromUIImage:oriented];
+        if (mat.empty()) return image;
+
+        int imgW = mat.cols, imgH = mat.rows;
+        CGFloat scaleX = (CGFloat)imgW / previewSize.width;
+        CGFloat scaleY = (CGFloat)imgH / previewSize.height;
+
+        // Scale preview coords → image coords, clamp to bounds
+        auto scaled = [&](CGPoint p) -> cv::Point2f {
+            return cv::Point2f(
+                (float)MIN(MAX(p.x * scaleX, 0), imgW - 1),
+                (float)MIN(MAX(p.y * scaleY, 0), imgH - 1)
+            );
+        };
+
+        cv::Point2f src[4] = { scaled(tl), scaled(tr), scaled(br), scaled(bl) };
+
+        // Measure document edges
+        auto edgeDist = [](cv::Point2f a, cv::Point2f b) -> CGFloat {
+            float dx = a.x - b.x, dy = a.y - b.y;
+            return sqrtf(dx*dx + dy*dy);
+        };
+
+        CGFloat docW = MAX(edgeDist(src[0], src[1]), edgeDist(src[3], src[2]));
+        CGFloat docH = MAX(edgeDist(src[0], src[3]), edgeDist(src[1], src[2]));
+
+        if (docW <= 1 || docH <= 1) return image;
+
+        // Landscape detection: longer side → output width
+        BOOL landscape = docW > docH;
+        CGFloat outW = landscape ? MAX(docW, docH) : MIN(docW, docH);
+        CGFloat outH = landscape ? MIN(docW, docH) : MAX(docW, docH);
+
+        // Enforce A4 aspect ratio (297/210 ≈ 1.414)
+        static const CGFloat kA4 = 1.414f;
+        if ((outW / outH) > kA4) outH = outW / kA4;
+        else                      outW = outH * kA4;
+
+        // Cap at A4 @ 300 DPI (2480 × 3508)
+        CGFloat cap = MIN(2480.0f / outW, 3508.0f / outH);
+        if (cap < 1.0f) { outW = floorf(outW * cap); outH = floorf(outH * cap); }
+
+        int iW = MAX(1, (int)roundf((float)outW));
+        int iH = MAX(1, (int)roundf((float)outH));
+
+        cv::Point2f dst[4] = {
+            {0.0f,          0.0f},
+            {(float)iW - 1, 0.0f},
+            {(float)iW - 1, (float)iH - 1},
+            {0.0f,          (float)iH - 1}
+        };
+
+        cv::Mat M = cv::getPerspectiveTransform(src, dst);
+        if (M.empty()) return image;
+
+        cv::Mat warped;
+        cv::warpPerspective(mat, warped, M, cv::Size(iW, iH),
+                            cv::INTER_LANCZOS4, cv::BORDER_REPLICATE);
+
+        if (warped.empty()) return image;
+
+        return [self UIImageFromMat:warped] ?: image;
+    } @catch (...) {
+        return image;
+    }
+}
+
+#pragma mark - Enhancement dispatcher
+
++ (UIImage *)enhanceDocument:(UIImage *)image mode:(NSString *)mode {
+    if (!image) return image;
+
+    @try {
+        NSString *m = [(mode ? mode : @"color") lowercaseString];
+
+        if ([m isEqualToString:@"bw"]) {
+            // Crisp B&W: CLAHE → adaptive threshold → morph close → unsharp
+            return [self applyDocumentMagicFilter:image] ?: image;
+        }
+        if ([m isEqualToString:@"grayscale"]) {
+            // Grayscale: CLAHE on L-channel, then desaturate
+            UIImage *enhanced = [self applyCLAHE:image clipLimit:2.0] ?: image;
+            // Convert to actual grayscale via shadow-removal path (returns BGRA gray)
+            cv::Mat mat = [self matFromUIImage:enhanced];
+            if (mat.empty()) return image;
+            cv::Mat gray;
+            cv::cvtColor(mat, gray, mat.channels() == 4 ? cv::COLOR_BGRA2GRAY : cv::COLOR_BGR2GRAY);
+            cv::Mat denoised;
+            cv::fastNlMeansDenoising(gray, denoised, 10, 7, 21);
+            cv::Mat blurred;
+            cv::GaussianBlur(denoised, blurred, cv::Size(0,0), 1.0);
+            cv::Mat sharpened;
+            cv::addWeighted(denoised, 1.6, blurred, -0.6, 0, sharpened);
+            cv::Mat result;
+            cv::cvtColor(sharpened, result, cv::COLOR_GRAY2BGRA);
+            return [self UIImageFromMat:result] ?: image;
+        }
+        // Default: "color"
+        return [self applyColorEnhancement:image] ?: image;
+    } @catch (...) {
+        return image;
+    }
 }
 
 #pragma mark - Image enhancement

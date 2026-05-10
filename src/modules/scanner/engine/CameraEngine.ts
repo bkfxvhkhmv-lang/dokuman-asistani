@@ -195,14 +195,27 @@ export class CameraEngine {
       const captureDecision = decideCapture(hasRealDetection, captureCorners, STRICT_FALLBACK_POLICY);
 
       if (__DEV__) {
+        const fmt = (n: number) => n.toFixed(3);
+        const pt = (p: { x: number; y: number }) => `(${p.x.toFixed(2)},${p.y.toFixed(2)})`;
         console.log(
           '[ScannerCapture] decision=' + captureDecision.reason
-          + ' conf=' + captureDecision.quality.confidence.toFixed(3)
-          + ' area=' + captureDecision.quality.areaScore.toFixed(3)
-          + ' angle=' + captureDecision.quality.angleScore.toFixed(3)
-          + ' aspect=' + captureDecision.quality.aspectScore.toFixed(3)
-          + ' center=' + captureDecision.quality.centerScore.toFixed(3),
+          + ' source=' + captureCornersSource
+          + ' conf=' + fmt(captureDecision.quality.confidence)
+          + ' area=' + fmt(captureDecision.quality.areaScore)
+          + ' angle=' + fmt(captureDecision.quality.angleScore)
+          + ' aspect=' + fmt(captureDecision.quality.aspectScore)
+          + ' center=' + fmt(captureDecision.quality.centerScore)
+          + ' edgeSupp=' + (captureCorners?.edgeSupportScore?.toFixed(3) ?? '-'),
         );
+        if (captureCorners) {
+          console.log(
+            '[ScannerCapture] corners'
+            + ' TL=' + pt(captureCorners.topLeft)
+            + ' TR=' + pt(captureCorners.topRight)
+            + ' BR=' + pt(captureCorners.bottomRight)
+            + ' BL=' + pt(captureCorners.bottomLeft),
+          );
+        }
       }
 
       if (!captureDecision.shouldCapture || !captureCorners) {
@@ -223,12 +236,14 @@ export class CameraEngine {
           // so they must be remapped into still-photo space before correction.
           const VIDEO_FRAME_W = 1080;
           const VIDEO_FRAME_H = 1920;
+          if (__DEV__) console.log(`[ScannerCapture] warp=video photoSize=${photo.width}×${photo.height} videoFrame=${VIDEO_FRAME_W}×${VIDEO_FRAME_H}`);
           correctedUri = await this.perspectiveCorrector.correct(
             originalUri, captureCorners, photo.width, photo.height, VIDEO_FRAME_W, VIDEO_FRAME_H,
           );
         } else {
           // Still-photo detection already runs on the captured image itself.
           // Passing video dimensions here would double-remap otherwise-correct corners.
+          if (__DEV__) console.log(`[ScannerCapture] warp=still photoSize=${photo.width}×${photo.height}`);
           correctedUri = await this.perspectiveCorrector.correct(
             originalUri, captureCorners, photo.width, photo.height,
           );

@@ -150,11 +150,11 @@ static float computeConfidence(
 #pragma mark - Edge detection core
 
 // Build edge map optimised for document scanning:
-//   bilateral filter (preserves edges) → adaptive-Canny → dilate → morph-close
+//   CLAHE (clip 1.0) → bilateral filter → Canny (40/120) → morphOpen → morphClose
 static cv::Mat buildEdgeMap(const cv::Mat& gray) {
-    // CLAHE: boost local contrast before edge detection (essential for dark / low-light frames).
-    // Without this, median-based Canny thresholds collapse to near-zero in dark rooms.
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+    // CLAHE clip 1.0 (was 2.0): lower clip reduces amplification of marble/fabric texture.
+    // Still boosts dark-room contrast without over-amplifying patterned surfaces.
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(1.0, cv::Size(8, 8));
     cv::Mat equalized;
     clahe->apply(gray, equalized);
 
@@ -162,15 +162,19 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::Mat bilateral;
     cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
 
-    // Lower Canny thresholds (20/70 instead of 30/90) to catch weak paper-to-background
-    // transitions. Table lines fire at full strength regardless; document border (white
-    // paper on gray table) needs the lower threshold to produce a reliable contour.
+    // Canny (40/120, was 20/70): higher thresholds suppress weak marble vein gradients
+    // and laptop logo detail. Document borders against differing backgrounds produce
+    // strong gradients that comfortably exceed these thresholds.
     cv::Mat edges;
-    cv::Canny(bilateral, edges, 20, 70);
+    cv::Canny(bilateral, edges, 40, 120);
 
-    // Single morphClose 3×3 bridges gaps ≤3px at corners without thickening edges.
-    // The previous dilate+close = 2× dilate + erode produced overly fat edges that
-    // caused nearby parallel table lines to merge into one blob.
+    // MorphOpen 3×3: removes isolated edge pixels and short disconnected segments
+    // (marble vein remnants, surface scratches) before bridging real edge gaps.
+    cv::Mat k3o = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
+    cv::morphologyEx(edges, edges, cv::MORPH_OPEN, k3o);
+
+    // MorphClose 3×3: bridges small gaps at document corners (≤3px) without
+    // thickening edges enough to merge nearby parallel background lines.
     cv::Mat k3c = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
     cv::morphologyEx(edges, edges, cv::MORPH_CLOSE, k3c);
 
@@ -270,30 +274,55 @@ static double quadNormalizedArea(DocumentCornerResult *r) {
     return fabs(ax*(by-dy) + bx*(cy-ay) + cx*(dy-by) + dx*(ay-cy)) * 0.5;
 }
 
+// Returns 0–1: consistency of opposite side lengths.
+// 1.0 = perfect parallelogram. Real documents with mild perspective: ~0.65–0.95.
+// Strongly skewed background artifacts (laptop frame corner, marble tile): < 0.50.
+static float computeSideLengthConsistency(DocumentCornerResult *r) {
+    auto dist = [](CGPoint a, CGPoint b) -> float {
+        float dx = a.x - b.x, dy = a.y - b.y;
+        return sqrtf(dx*dx + dy*dy);
+    };
+    float topLen    = dist(r.topLeft,     r.topRight);
+    float rightLen  = dist(r.topRight,    r.bottomRight);
+    float bottomLen = dist(r.bottomRight, r.bottomLeft);
+    float leftLen   = dist(r.bottomLeft,  r.topLeft);
+    if (topLen < 1e-5f || bottomLen < 1e-5f || leftLen < 1e-5f || rightLen < 1e-5f) return 0;
+    float tbRatio = MIN(topLen, bottomLen) / MAX(topLen, bottomLen);
+    float lrRatio = MIN(leftLen, rightLen) / MAX(leftLen, rightLen);
+    return (tbRatio + lrRatio) * 0.5f;
+}
+
 static float candidateRank(DocumentCornerResult *r, BPDetectorMode mode) {
     if (!r) return 0.0f;
 
     float rank = r.confidence;
     if (mode == BPDetectorModeLive) {
-        rank = r.confidence * 0.35f
-             + r.edgeSupportScore * 0.25f
-             + r.areaScore * 0.25f
-             + r.aspectScore * 0.10f
-             + r.centerScore * 0.05f;
+        float sideCons = computeSideLengthConsistency(r);
+        // edgeSupportScore now leads: it discriminates true document borders from
+        // marble veins / laptop frame edges better than confidence alone.
+        rank = r.edgeSupportScore * 0.35f
+             + r.confidence       * 0.25f
+             + r.areaScore        * 0.20f
+             + sideCons           * 0.12f
+             + r.centerScore      * 0.05f
+             + r.aspectScore      * 0.03f;
 
         double area = quadNormalizedArea(r);
         if (area < 0.12) rank *= 0.72f;
         else if (area < 0.18) rank *= 0.86f;
 
-        const CGFloat border = 0.025f;
+        // Background/laptop quads hug the frame edges; document rarely does.
+        // Stronger tiered penalty (was a single ×0.78 for 2+).
+        const CGFloat border = 0.035f;
         const CGPoint pts[] = { r.topLeft, r.topRight, r.bottomRight, r.bottomLeft };
         int borderHits = 0;
         for (CGPoint p : pts) {
-            if (p.x < border || p.x > 1.0f - border || p.y < border || p.y > 1.0f - border) {
-                borderHits += 1;
-            }
+            if (p.x < border || p.x > 1.0f - border || p.y < border || p.y > 1.0f - border)
+                borderHits++;
         }
-        if (borderHits >= 2) rank *= 0.78f;
+        if      (borderHits >= 3) rank *= 0.45f;
+        else if (borderHits >= 2) rank *= 0.65f;
+        else if (borderHits >= 1) rank *= 0.88f;
     }
 
     return rank;
@@ -311,20 +340,23 @@ static BOOL isBetter(DocumentCornerResult *r, DocumentCornerResult *best, BPDete
 static BOOL candidateLooksLikeDocument(DocumentCornerResult *r, BPDetectorMode mode) {
     if (!r) return NO;
 
+    float sideCons = computeSideLengthConsistency(r);
+
     if (mode == BPDetectorModeLive) {
         // Live mode must be conservative: a wrong polygon is worse than no polygon.
-        // Reject tiny inner boxes and rectangle-ish artifacts that do not resemble
-        // a page envelope in shape/coverage.
         if (r.areaScore < 0.08f) return NO;
         if (r.aspectScore < 0.35f) return NO;
         if (r.angleScore < 0.55f) return NO;
         // Real documents (camera stable): min 0.488, typical 0.60–1.00.
         // Motion/transition/ghost frames: max 0.406.
-        // 0.45 sits cleanly in the 0.08 gap between these two populations.
         if (r.edgeSupportScore < 0.45f) return NO;
+        // Reject strongly skewed/trapezoidal quads — real documents keep opposite
+        // sides roughly parallel even under mild perspective.
+        if (sideCons < 0.50f) return NO;
     } else {
         if (r.areaScore < 0.03f) return NO;
         if (r.angleScore < 0.45f) return NO;
+        if (sideCons < 0.35f) return NO;
     }
 
     return YES;
@@ -344,7 +376,12 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
     double workArea = (double)(edges.cols * edges.rows);
 
     std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(edges, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    // RETR_LIST instead of RETR_EXTERNAL: when the document lies on a textured
+    // surface (marble, dark laptop) the background may form the outermost contour,
+    // making the document boundary an "inner" contour invisible to RETR_EXTERNAL.
+    // RETR_LIST returns all contours without hierarchy so the document rectangle
+    // is findable regardless of nesting depth.
+    cv::findContours(edges, contours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
     std::sort(contours.begin(), contours.end(), [](auto& a, auto& b){
         return cv::contourArea(a) > cv::contourArea(b);
     });
@@ -388,6 +425,9 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
                 }
                 auto rectCorners = sortCorners(rectPts);
                 float rectEdgeSupport = computeEdgeSupport(rectCorners, edges);
+                // Require minimum edge support for minAreaRect path — without this,
+                // a laptop frame or large background shape can win via size alone.
+                if (rectEdgeSupport < 0.35f) continue;
                 DocumentCornerResult *r = buildCandidateResult(
                     rectCorners, rectArea, origW, origH, scale, imageArea,
                     edges.cols, edges.rows, isBlurry, needsFlash, blurVar, avgBright, 0.90f,

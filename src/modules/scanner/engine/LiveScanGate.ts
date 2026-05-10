@@ -1,18 +1,5 @@
 import type { DocumentCorners } from '@/modules/scanner/types';
-
-export const LIVE_GATE = {
-  GEOM_MARGIN:    0.03,
-  CONFIDENCE_MIN: 0.50,
-  AREA_MIN:       0.08,
-  AREA_MAX:       1.00,
-  ANGLE_MIN:      0.60,
-  CENTER_MIN:     0.20,
-  ASPECT_MIN:     0.20,
-} as const;
-
-export const DISPLAY_GATE = {
-  MARGIN: 0.03,
-} as const;
+import { LIVE_GATE, GEOM_MARGIN } from '@/modules/scanner/engine/scanner-thresholds';
 
 export type GatePass = { pass: true;  corners: DocumentCorners };
 export type GateFail = { pass: false; reason: string };
@@ -49,7 +36,7 @@ export function checkLiveScanGate(corners: DocumentCorners): GateResult {
 
 /** Geometry sanity check for corners already mapped to display space. */
 export function checkDisplayGeometry(corners: DocumentCorners): boolean {
-  const m = DISPLAY_GATE.MARGIN;
+  const m = GEOM_MARGIN;
   return [corners.topLeft, corners.topRight, corners.bottomRight, corners.bottomLeft].every(
     pt => Number.isFinite(pt.x) && Number.isFinite(pt.y)
        && pt.x >= -m && pt.x <= 1 + m

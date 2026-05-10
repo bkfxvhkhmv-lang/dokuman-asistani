@@ -12,6 +12,7 @@ import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryM
 import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
 import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
 import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
+import { LAST_GOOD_GATE } from '@/modules/scanner/engine/scanner-thresholds';
 
 const aspectForAutoCapture = (aspect?: number | null) => {
   if (typeof aspect !== 'number' || !Number.isFinite(aspect) || aspect <= 0.05) return 1;
@@ -24,10 +25,6 @@ const clamp01 = (value?: number | null, fallback = 0) => {
 };
 
 export class CameraEngine {
-  private static readonly LAST_GOOD_WINDOW_MS = 2500;
-  private static readonly LAST_GOOD_CONFIDENCE_MIN = 0.45;
-  private static readonly LAST_GOOD_AREA_MIN = 0.08;
-  private static readonly LAST_GOOD_ANGLE_MIN = 0.55;
 
   private cameraRef: RefObject<CameraView> | null = null;
   private edgeDetector: EdgeDetector;
@@ -181,9 +178,9 @@ export class CameraEngine {
 
         if (
           cornersAge >= 0 &&
-          cornersAge < CameraEngine.LAST_GOOD_WINDOW_MS &&
+          cornersAge < LAST_GOOD_GATE.WINDOW_MS &&
           this.lastGoodCaptureNormalizedCorners &&
-          this.lastGoodConfidence >= CameraEngine.LAST_GOOD_CONFIDENCE_MIN
+          this.lastGoodConfidence >= LAST_GOOD_GATE.CONFIDENCE_MIN
         ) {
           captureCorners = this.lastGoodCaptureNormalizedCorners;
           hasRealDetection = true;
@@ -368,9 +365,9 @@ export class CameraEngine {
       this.lastCaptureNormalizedCorners = corners;
 
       if (
-        corners.confidence >= CameraEngine.LAST_GOOD_CONFIDENCE_MIN &&
-        (corners.areaScore ?? 0) >= CameraEngine.LAST_GOOD_AREA_MIN &&
-        (corners.angleScore ?? 0) >= CameraEngine.LAST_GOOD_ANGLE_MIN
+        corners.confidence >= LAST_GOOD_GATE.CONFIDENCE_MIN &&
+        (corners.areaScore ?? 0) >= LAST_GOOD_GATE.AREA_MIN &&
+        (corners.angleScore ?? 0) >= LAST_GOOD_GATE.ANGLE_MIN
       ) {
         this.lastGoodCornersTimestamp = this.lastCornersTimestamp;
         this.lastGoodCaptureNormalizedCorners = corners;

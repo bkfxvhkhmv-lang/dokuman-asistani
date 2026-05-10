@@ -1,4 +1,5 @@
 import type { DocumentCorners } from '@/modules/scanner/types';
+import { CAPTURE_GATE } from '@/modules/scanner/engine/scanner-thresholds';
 
 export interface CaptureDecisionQuality {
   confidence: number;
@@ -32,20 +33,16 @@ export interface CaptureDecision {
 export const STRICT_FALLBACK_POLICY: CaptureDecisionPolicy = {
   allowGuideFrameFallback: false,
   requireAtLeastOneRealDetection: true,
-  minConfidence: 0.35,
-  minAreaScore: 0.01,
-  maxAreaScore: 1.0,
-  minAngleScore: 0.40,
-  minAspectScore: 0.15,
-  minCenterScore: 0.25,
+  minConfidence: CAPTURE_GATE.CONFIDENCE_MIN,
+  minAreaScore:  CAPTURE_GATE.AREA_MIN,
+  maxAreaScore:  CAPTURE_GATE.AREA_MAX,
+  minAngleScore: CAPTURE_GATE.ANGLE_MIN,
+  minAspectScore: CAPTURE_GATE.ASPECT_MIN,
+  minCenterScore: CAPTURE_GATE.CENTER_MIN,
 };
 
 function scoreOrDefault(value: number | undefined, fallback: number): number {
-  return typeof value === 'number' ? value : fallback;
-}
-
-function isMissingAspectScore(value: number | undefined): boolean {
-  return value === undefined || value === 0;
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
 function evaluateQuality(
@@ -53,18 +50,20 @@ function evaluateQuality(
   policy: CaptureDecisionPolicy,
 ): CaptureDecisionQuality {
   const confidence = corners?.confidence ?? 0;
-  const areaScore = scoreOrDefault(corners?.areaScore, 1);
-  const angleScore = scoreOrDefault(corners?.angleScore, 1);
-  const rawAspectScore = corners?.aspectScore;
-  const aspectScore = scoreOrDefault(rawAspectScore, 1);
-  const centerScore = scoreOrDefault(corners?.centerScore, 1);
+  // Pessimistic defaults: missing score = 0 (fail), not 1 (pass).
+  // Exception: areaScore defaults to a passing value only when genuinely absent,
+  // since some detectors omit it for very large quads.
+  const areaScore = scoreOrDefault(corners?.areaScore, policy.minAreaScore);
+  const angleScore = scoreOrDefault(corners?.angleScore, 0);
+  const aspectScore = scoreOrDefault(corners?.aspectScore, 0);
+  const centerScore = scoreOrDefault(corners?.centerScore, 0);
   const failures: string[] = [];
 
   if (confidence < policy.minConfidence) failures.push('confidence');
   if (areaScore < policy.minAreaScore) failures.push('area_min');
   if (areaScore > policy.maxAreaScore) failures.push('area_max');
   if (angleScore < policy.minAngleScore) failures.push('angle');
-  if (!isMissingAspectScore(rawAspectScore) && aspectScore < policy.minAspectScore) failures.push('aspect');
+  if (aspectScore < policy.minAspectScore) failures.push('aspect');
   if (centerScore < policy.minCenterScore) failures.push('center');
 
   return {

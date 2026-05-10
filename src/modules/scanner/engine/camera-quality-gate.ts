@@ -1,4 +1,5 @@
 import type { DocumentCorners } from '@/modules/scanner/types';
+import { TIER_THRESHOLDS, GEOM_MARGIN } from '@/modules/scanner/engine/scanner-thresholds';
 
 export type CameraQualityTier = 'excellent' | 'good' | 'acceptable' | 'poor' | 'rejected';
 
@@ -12,20 +13,18 @@ export interface CameraQualityGateResult {
   centerScore: number;
 }
 
-const CONFIDENCE_EXCELLENT = 0.75;
-const CONFIDENCE_GOOD = 0.62;
-const CONFIDENCE_ACCEPTABLE = 0.45;
-const AREA_MIN = 0.01;
-const AREA_MAX = 1.0;
-const ANGLE_GOOD = 0.60;
-const ANGLE_ACCEPTABLE = 0.40;
-const ASPECT_GOOD = 0.20;
-const ASPECT_ACCEPTABLE = 0.15;
-const CENTER_GOOD = 0.30;
-const CENTER_ACCEPTABLE = 0.25;
+const T = TIER_THRESHOLDS;
 
 function withDefault(value: number | undefined, fallback: number): number {
   return typeof value === 'number' ? value : fallback;
+}
+
+function geometryValid(corners: DocumentCorners): boolean {
+  const m = GEOM_MARGIN;
+  return [corners.topLeft, corners.topRight, corners.bottomRight, corners.bottomLeft]
+    .every(pt => Number.isFinite(pt.x) && Number.isFinite(pt.y)
+              && pt.x >= -m && pt.x <= 1 + m
+              && pt.y >= -m && pt.y <= 1 + m);
 }
 
 export function runQualityGateFromCorners(corners: DocumentCorners | null | undefined): CameraQualityGateResult {
@@ -41,48 +40,56 @@ export function runQualityGateFromCorners(corners: DocumentCorners | null | unde
     };
   }
 
+  if (!geometryValid(corners)) {
+    return {
+      passed: false,
+      tier: 'rejected',
+      confidence: corners.confidence ?? 0,
+      areaScore: withDefault(corners.areaScore, 0),
+      angleScore: withDefault(corners.angleScore, 0),
+      aspectScore: withDefault(corners.aspectScore, 0),
+      centerScore: withDefault(corners.centerScore, 0),
+    };
+  }
+
   const confidence = corners.confidence ?? 0;
-  const areaScore = withDefault(corners.areaScore, 1);
-  const angleScore = withDefault(corners.angleScore, 1);
-  const aspectScore = withDefault(corners.aspectScore, 1);
-  const centerScore = withDefault(corners.centerScore, 1);
+  const areaScore = withDefault(corners.areaScore, 0);
+  const angleScore = withDefault(corners.angleScore, 0);
+  const aspectScore = withDefault(corners.aspectScore, 0);
+  const centerScore = withDefault(corners.centerScore, 0);
 
   let tier: CameraQualityTier = 'rejected';
 
-  // aspectScore=0 means native didn't compute it (e.g. non-standard receipt aspect ratio) — treat as passing
-  const aspectOk = (threshold: number) => aspectScore === 0 || aspectScore >= threshold;
+  const aspectOk = (threshold: number) => aspectScore >= threshold;
 
   if (
-    confidence >= CONFIDENCE_EXCELLENT &&
-    areaScore >= 0.08 &&
-    areaScore <= AREA_MAX &&
-    angleScore >= 0.72 &&
-    aspectOk(0.30) &&
-    centerScore >= 0.40
+    confidence >= T.excellent.confidence &&
+    areaScore >= T.excellent.area_min && areaScore <= T.excellent.area_max &&
+    angleScore >= T.excellent.angle &&
+    aspectOk(T.excellent.aspect) &&
+    centerScore >= T.excellent.center
   ) {
     tier = 'excellent';
   } else if (
-    confidence >= CONFIDENCE_GOOD &&
-    areaScore >= AREA_MIN &&
-    areaScore <= AREA_MAX &&
-    angleScore >= ANGLE_GOOD &&
-    aspectOk(ASPECT_GOOD) &&
-    centerScore >= CENTER_GOOD
+    confidence >= T.good.confidence &&
+    areaScore >= T.good.area_min && areaScore <= T.good.area_max &&
+    angleScore >= T.good.angle &&
+    aspectOk(T.good.aspect) &&
+    centerScore >= T.good.center
   ) {
     tier = 'good';
   } else if (
-    confidence >= CONFIDENCE_ACCEPTABLE &&
-    areaScore >= AREA_MIN &&
-    areaScore <= AREA_MAX &&
-    angleScore >= ANGLE_ACCEPTABLE &&
-    aspectOk(ASPECT_ACCEPTABLE) &&
-    centerScore >= CENTER_ACCEPTABLE
+    confidence >= T.acceptable.confidence &&
+    areaScore >= T.acceptable.area_min && areaScore <= T.acceptable.area_max &&
+    angleScore >= T.acceptable.angle &&
+    aspectOk(T.acceptable.aspect) &&
+    centerScore >= T.acceptable.center
   ) {
     tier = 'acceptable';
   } else if (
-    confidence >= 0.30 &&
-    areaScore >= 0.03 &&
-    angleScore >= 0.20
+    confidence >= T.poor.confidence &&
+    areaScore >= T.poor.area_min &&
+    angleScore >= T.poor.angle
   ) {
     tier = 'poor';
   }

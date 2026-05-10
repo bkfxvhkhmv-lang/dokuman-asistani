@@ -150,7 +150,7 @@ static float computeConfidence(
 #pragma mark - Edge detection core
 
 // Build edge map optimised for document scanning:
-//   CLAHE (clip 1.0) → bilateral filter → Canny (40/120) → morphOpen → morphClose
+//   CLAHE (clip 1.0) → bilateral filter → Canny (20/70) → morphOpen → morphClose
 static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     // CLAHE clip 1.0 (was 2.0): lower clip reduces amplification of marble/fabric texture.
     // Still boosts dark-room contrast without over-amplifying patterned surfaces.
@@ -162,11 +162,11 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::Mat bilateral;
     cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
 
-    // Canny (40/120, was 20/70): higher thresholds suppress weak marble vein gradients
-    // and laptop logo detail. Document borders against differing backgrounds produce
-    // strong gradients that comfortably exceed these thresholds.
+    // Canny (20/70): low thresholds kept to catch weak paper-to-background transitions.
+    // Marble/fabric noise is handled downstream by morphOpen (which removes short isolated
+    // segments) rather than by raising thresholds (which would miss real document borders).
     cv::Mat edges;
-    cv::Canny(bilateral, edges, 40, 120);
+    cv::Canny(bilateral, edges, 20, 70);
 
     // MorphOpen 3×3: removes isolated edge pixels and short disconnected segments
     // (marble vein remnants, surface scratches) before bridging real edge gaps.

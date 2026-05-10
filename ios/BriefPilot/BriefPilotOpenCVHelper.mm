@@ -555,10 +555,13 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
         if (best && best.confidence > 0.85f && quadNormalizedArea(best) > 0.25) break;
     }
 
-    // Line-assisted fallback (live mode only): generates quad candidates from dominant
-    // Hough line segments. Runs when contour path produced no confident result —
-    // e.g. marble (fragmented contours) or low-contrast backgrounds (no closed contour).
-    if (mode == BPDetectorModeLive && (!best || best.confidence < 0.65f)) {
+    // Line-assisted path (live mode): always runs alongside the contour path.
+    // Previously gated on conf < 0.65, but that blocked it when the contour path
+    // found a background quad (laptop frame, table edge) with moderate confidence.
+    // Now it always generates line candidates and lets isBetter() ranking decide.
+    // The stricter edgeSupport (0.55) and area (78%) gates inside generateLineCandidates
+    // prevent noise from this always-on behaviour.
+    if (mode == BPDetectorModeLive) {
         NSArray<DocumentCornerResult*> *lineCands = generateLineCandidates(
             edges, origW, origH, scale, imageArea,
             isBlurry, needsFlash, blurVar, avgBright, mode

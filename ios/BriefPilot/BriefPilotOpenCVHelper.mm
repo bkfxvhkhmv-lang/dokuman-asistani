@@ -445,11 +445,21 @@ static NSArray<DocumentCornerResult*>* _Nonnull generateLineCandidates(
 
                     float edgeSupport = computeEdgeSupport(corners, edges);
 
+                    // Stricter edgeSupport for line-generated candidates: line pairing
+                    // can produce wrong quads (background line + document line), so require
+                    // stronger boundary evidence than the contour path (0.45).
+                    if (edgeSupport < 0.55f) continue;
+
                     // Shoelace area of the quad (in working-scale pixels)
                     double area = fabsf(
                         ptTL.x*(ptTR.y-ptBL.y) + ptTR.x*(ptBR.y-ptTL.y) +
                         ptBR.x*(ptBL.y-ptTR.y) + ptBL.x*(ptTL.y-ptBR.y)
                     ) * 0.5f;
+
+                    // Reject oversized quads: when a document line pairs with a distant
+                    // background line the resulting quad wraps most of the image.
+                    // 0.78 of working area = generous upper bound (document fills ~70% max).
+                    if (area > (double)W * H * 0.78) continue;
 
                     // 0.85 penalty: line-generated corners are slightly less precise
                     DocumentCornerResult *r = buildCandidateResult(

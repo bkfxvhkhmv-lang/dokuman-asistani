@@ -158,10 +158,16 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::Mat equalized;
     clahe->apply(gray, equalized);
 
-    // Bilateral filter: intensity sigma 100 (was 75) — blends marble veins (20-60 level
-    // gradient) more aggressively while preserving sharp document borders (80-150 level).
+    // Bilateral filter preserves sharp text/border edges while smoothing noise.
     cv::Mat bilateral;
-    cv::bilateralFilter(equalized, bilateral, 9, 100, 75);
+    cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
+
+    // Mild Gaussian blur after bilateral: suppresses short marble-vein gradient peaks
+    // (1-2px isolated ridges) without erasing long continuous document edges.
+    // 5×5 kernel, auto-sigma ≈ 1.1 — enough to drop sub-threshold texture below
+    // Canny's 20-level lower threshold while document borders (broad, strong gradient)
+    // remain well above it.
+    cv::GaussianBlur(bilateral, bilateral, cv::Size(5,5), 0);
 
     // Canny (20/70): low thresholds kept to catch weak paper-to-background transitions.
     // Marble/fabric noise is handled downstream by morphOpen (which removes short isolated

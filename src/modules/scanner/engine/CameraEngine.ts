@@ -12,7 +12,7 @@ import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryM
 import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
 import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
 import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
-import { LAST_GOOD_GATE } from '@/modules/scanner/engine/scanner-thresholds';
+import { CornerCache } from '@/modules/scanner/engine/CornerCache';
 
 const aspectForAutoCapture = (aspect?: number | null) => {
   if (typeof aspect !== 'number' || !Number.isFinite(aspect) || aspect <= 0.05) return 1;
@@ -41,9 +41,7 @@ export class CameraEngine {
     detected: false,
   };
 
-  private lastCaptureNormalizedCorners: DocumentCorners | null = null;
-  private lastGoodCaptureNormalizedCorners: DocumentCorners | null = null;
-  private lastGoodConfidence = 0;
+  private cornerCache = new CornerCache();
 
   private lastAutoCaptureReadiness: AutoCaptureReadiness = {
     score: 0,
@@ -67,8 +65,6 @@ export class CameraEngine {
   };
 
   private isCapturing = false;
-  private lastCornersTimestamp = 0;
-  private lastGoodCornersTimestamp = 0;
   private prevRawCorners: DocumentCorners | null = null;
   private geometry = new PreviewGeometryMapper();
   private bridge = new LiveScanBridge();
@@ -172,17 +168,9 @@ export class CameraEngine {
       let hasRealDetection = captureCorners !== null;
 
       if (!captureCorners || captureCorners.confidence < STRICT_FALLBACK_POLICY.minConfidence) {
-        const cornersAge = this.lastGoodCornersTimestamp > 0
-          ? Date.now() - this.lastGoodCornersTimestamp
-          : -1;
-
-        if (
-          cornersAge >= 0 &&
-          cornersAge < LAST_GOOD_GATE.WINDOW_MS &&
-          this.lastGoodCaptureNormalizedCorners &&
-          this.lastGoodConfidence >= LAST_GOOD_GATE.CONFIDENCE_MIN
-        ) {
-          captureCorners = this.lastGoodCaptureNormalizedCorners;
+        const cached = this.cornerCache.captureCorners;
+        if (cached) {
+          captureCorners = cached.corners;
           hasRealDetection = true;
         }
       }
@@ -361,18 +349,7 @@ export class CameraEngine {
     const gate = checkLiveScanGate(corners);
 
     if (gate.pass) {
-      this.lastCornersTimestamp = Date.now();
-      this.lastCaptureNormalizedCorners = corners;
-
-      if (
-        corners.confidence >= LAST_GOOD_GATE.CONFIDENCE_MIN &&
-        (corners.areaScore ?? 0) >= LAST_GOOD_GATE.AREA_MIN &&
-        (corners.angleScore ?? 0) >= LAST_GOOD_GATE.ANGLE_MIN
-      ) {
-        this.lastGoodCornersTimestamp = this.lastCornersTimestamp;
-        this.lastGoodCaptureNormalizedCorners = corners;
-        this.lastGoodConfidence = corners.confidence;
-      }
+      this.cornerCache.onFrameAccepted(corners);
 
       const motionStability = this.computeRawStability(corners);
       this.prevRawCorners = corners;
@@ -434,11 +411,8 @@ export class CameraEngine {
       return;
     }
 
-    const msSinceGood = this.lastCornersTimestamp > 0
-      ? Date.now() - this.lastCornersTimestamp
-      : Infinity;
-
-    if (msSinceGood > 2000) {
+    const msSinceLastFrame = this.cornerCache.onFrameRejected();
+    if (msSinceLastFrame > 2000) {
       this.autoCapture.updateEdgeConfidence(0);
     }
 
@@ -450,13 +424,6 @@ export class CameraEngine {
     };
     this.lastEdgeState = clearedState;
 
-    const now = Date.now();
-    if (this.lastGoodCornersTimestamp > 0 && (now - this.lastGoodCornersTimestamp) > 3000) {
-      this.lastGoodCornersTimestamp = 0;
-      this.lastGoodCaptureNormalizedCorners = null;
-      this.lastGoodConfidence = 0;
-    }
-
     if (__DEV__) console.log('[ScannerLiveEmit] emitting detected=false');
     this.emit({ type: 'edge_state_changed', state: clearedState });
   }
@@ -464,11 +431,7 @@ export class CameraEngine {
   dispose() {
     this.stopLiveEdgeDetection();
     this.autoCapture.stop();
-    this.lastCaptureNormalizedCorners = null;
-    this.lastGoodCaptureNormalizedCorners = null;
-    this.lastGoodConfidence = 0;
-    this.lastCornersTimestamp = 0;
-    this.lastGoodCornersTimestamp = 0;
+    this.cornerCache.reset();
     this.geometry.resetSmoothing();
     this.prevRawCorners = null;
     this.listeners = [];

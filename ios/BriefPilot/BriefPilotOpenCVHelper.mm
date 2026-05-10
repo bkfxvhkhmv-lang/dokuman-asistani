@@ -150,11 +150,10 @@ static float computeConfidence(
 #pragma mark - Edge detection core
 
 // Build edge map optimised for document scanning:
-//   CLAHE (clip 1.0) → bilateral filter → Canny (20/70) → morphClose
+//   CLAHE → bilateral filter → Canny (20/70) → morphClose
 static cv::Mat buildEdgeMap(const cv::Mat& gray) {
-    // CLAHE clip 1.0 (was 2.0): lower clip reduces amplification of marble/fabric texture.
-    // Still boosts dark-room contrast without over-amplifying patterned surfaces.
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(1.0, cv::Size(8, 8));
+    // CLAHE clip 2.0: boosts low-contrast scenes (dark rooms, low-contrast backgrounds).
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
     cv::Mat equalized;
     clahe->apply(gray, equalized);
 
@@ -162,21 +161,11 @@ static cv::Mat buildEdgeMap(const cv::Mat& gray) {
     cv::Mat bilateral;
     cv::bilateralFilter(equalized, bilateral, 9, 75, 75);
 
-    // Mild Gaussian blur after bilateral: suppresses short marble-vein gradient peaks
-    // (1-2px isolated ridges) without erasing long continuous document edges.
-    // 5×5 kernel, auto-sigma ≈ 1.1 — enough to drop sub-threshold texture below
-    // Canny's 20-level lower threshold while document borders (broad, strong gradient)
-    // remain well above it.
-    cv::GaussianBlur(bilateral, bilateral, cv::Size(5,5), 0);
-
-    // Canny (20/70): low thresholds kept to catch weak paper-to-background transitions.
-    // Marble/fabric noise is handled downstream by morphOpen (which removes short isolated
-    // segments) rather than by raising thresholds (which would miss real document borders).
+    // Canny (20/70): low thresholds catch weak paper-to-background transitions.
     cv::Mat edges;
     cv::Canny(bilateral, edges, 20, 70);
 
-    // MorphClose 3×3: bridges small gaps at document corners (≤3px) without
-    // thickening edges enough to merge nearby parallel background lines.
+    // MorphClose 3×3: bridges small corner gaps (≤3px) in the document outline.
     cv::Mat k3c = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3));
     cv::morphologyEx(edges, edges, cv::MORPH_CLOSE, k3c);
 
@@ -355,16 +344,6 @@ static BOOL candidateLooksLikeDocument(DocumentCornerResult *r, BPDetectorMode m
         // Reject strongly skewed/trapezoidal quads — real documents keep opposite
         // sides roughly parallel even under mild perspective.
         if (sideCons < 0.50f) return NO;
-        // Hard-reject quads where 3+ corners hug the image border — these are
-        // background/frame objects (laptop lid, table edge), not documents.
-        {
-            const CGFloat bdr = 0.05f;
-            const CGPoint bpts[] = { r.topLeft, r.topRight, r.bottomRight, r.bottomLeft };
-            int bHits = 0;
-            for (CGPoint p : bpts)
-                if (p.x < bdr || p.x > 1.0f-bdr || p.y < bdr || p.y > 1.0f-bdr) bHits++;
-            if (bHits >= 3) return NO;
-        }
     } else {
         if (r.areaScore < 0.03f) return NO;
         if (r.angleScore < 0.45f) return NO;
@@ -372,6 +351,119 @@ static BOOL candidateLooksLikeDocument(DocumentCornerResult *r, BPDetectorMode m
     }
 
     return YES;
+}
+
+// Generate document quad candidates from dominant Hough line segments.
+// Used as a fallback when the contour path finds no confident quad — e.g. on
+// marble (fragmented contours) or low-contrast backgrounds (no closed contour).
+// Returns candidates that passed candidateLooksLikeDocument; may be empty.
+static NSArray<DocumentCornerResult*>* _Nonnull generateLineCandidates(
+    const cv::Mat& edges,
+    int origW, int origH,
+    double scale, double imageArea,
+    BOOL isBlurry, BOOL needsFlash,
+    double blurVar, double avgBright,
+    BPDetectorMode mode
+) {
+    const int W = edges.cols, H = edges.rows;
+
+    // HoughLinesP: require lines at least 15% of the shorter image dimension.
+    std::vector<cv::Vec4i> rawLines;
+    int minLen = (int)(MIN(W, H) * 0.15);
+    cv::HoughLinesP(edges, rawLines, 1, CV_PI / 180.0, 30, minLen, minLen / 3);
+    if (rawLines.size() < 4) return @[];
+
+    // Classify into mostly-horizontal (<30°) and mostly-vertical (>60°)
+    std::vector<cv::Vec4i> hLines, vLines;
+    for (const auto& l : rawLines) {
+        float dx = l[2]-l[0], dy = l[3]-l[1];
+        float ang = fabsf(atan2f(fabsf(dy), fabsf(dx)));
+        if      (ang < (float)(CV_PI / 6))  hLines.push_back(l);
+        else if (ang > (float)(CV_PI / 3))  vLines.push_back(l);
+    }
+    if (hLines.size() < 2 || vLines.size() < 2) return @[];
+
+    // Keep top-5 longest in each group to limit candidate explosion
+    auto lenSq = [](const cv::Vec4i& l) -> float {
+        float dx = l[2]-l[0], dy = l[3]-l[1]; return dx*dx+dy*dy;
+    };
+    std::sort(hLines.begin(), hLines.end(), [&](auto& a, auto& b){ return lenSq(a) > lenSq(b); });
+    std::sort(vLines.begin(), vLines.end(), [&](auto& a, auto& b){ return lenSq(a) > lenSq(b); });
+    if (hLines.size() > 5) hLines.resize(5);
+    if (vLines.size() > 5) vLines.resize(5);
+
+    // Parametric line intersection (returns {-9999,-9999} for parallel lines)
+    auto intersectLines = [](const cv::Vec4i& l1, const cv::Vec4i& l2) -> cv::Point2f {
+        float x1=l1[0],y1=l1[1],x2=l1[2],y2=l1[3];
+        float x3=l2[0],y3=l2[1],x4=l2[2],y4=l2[3];
+        float d = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
+        if (fabsf(d) < 1.0f) return {-9999.f, -9999.f};
+        float t = ((x1-x3)*(y3-y4) - (y1-y3)*(x3-x4)) / d;
+        return {x1 + t*(x2-x1), y1 + t*(y2-y1)};
+    };
+
+    NSMutableArray *results = [NSMutableArray array];
+    const float margin = W * 0.25f;
+
+    for (size_t hi = 0; hi+1 < hLines.size(); hi++) {
+        for (size_t hj = hi+1; hj < hLines.size(); hj++) {
+            float cy1 = (hLines[hi][1]+hLines[hi][3]) * 0.5f;
+            float cy2 = (hLines[hj][1]+hLines[hj][3]) * 0.5f;
+            if (fabsf(cy1-cy2) < H * 0.08f) continue;  // lines too close — not top/bottom
+
+            const cv::Vec4i& topH = (cy1 < cy2) ? hLines[hi] : hLines[hj];
+            const cv::Vec4i& botH = (cy1 < cy2) ? hLines[hj] : hLines[hi];
+
+            for (size_t vi = 0; vi+1 < vLines.size(); vi++) {
+                for (size_t vj = vi+1; vj < vLines.size(); vj++) {
+                    float cx1 = (vLines[vi][0]+vLines[vi][2]) * 0.5f;
+                    float cx2 = (vLines[vj][0]+vLines[vj][2]) * 0.5f;
+                    if (fabsf(cx1-cx2) < W * 0.08f) continue;
+
+                    const cv::Vec4i& lftV = (cx1 < cx2) ? vLines[vi] : vLines[vj];
+                    const cv::Vec4i& rgtV = (cx1 < cx2) ? vLines[vj] : vLines[vi];
+
+                    cv::Point2f ptTL = intersectLines(topH, lftV);
+                    cv::Point2f ptTR = intersectLines(topH, rgtV);
+                    cv::Point2f ptBR = intersectLines(botH, rgtV);
+                    cv::Point2f ptBL = intersectLines(botH, lftV);
+
+                    // Intersections must fall near the image (allow 25% extrapolation)
+                    auto inBounds = [&](cv::Point2f p) -> bool {
+                        return p.x > -margin && p.x < W+margin &&
+                               p.y > -margin && p.y < H+margin;
+                    };
+                    if (!inBounds(ptTL)||!inBounds(ptTR)||!inBounds(ptBR)||!inBounds(ptBL)) continue;
+
+                    auto clampPt = [&](cv::Point2f p) -> cv::Point {
+                        return { (int)MIN(MAX(p.x, 0.f), (float)(W-1)),
+                                 (int)MIN(MAX(p.y, 0.f), (float)(H-1)) };
+                    };
+                    std::array<cv::Point,4> corners = {
+                        clampPt(ptTL), clampPt(ptTR), clampPt(ptBR), clampPt(ptBL)
+                    };
+
+                    float edgeSupport = computeEdgeSupport(corners, edges);
+
+                    // Shoelace area of the quad (in working-scale pixels)
+                    double area = fabsf(
+                        ptTL.x*(ptTR.y-ptBL.y) + ptTR.x*(ptBR.y-ptTL.y) +
+                        ptBR.x*(ptBL.y-ptTR.y) + ptBL.x*(ptTL.y-ptBR.y)
+                    ) * 0.5f;
+
+                    // 0.85 penalty: line-generated corners are slightly less precise
+                    DocumentCornerResult *r = buildCandidateResult(
+                        corners, area, origW, origH, scale, imageArea,
+                        W, H, isBlurry, needsFlash, blurVar, avgBright,
+                        0.85f, edgeSupport
+                    );
+                    if (!r || !candidateLooksLikeDocument(r, mode)) continue;
+                    [results addObject:r];
+                }
+            }
+        }
+    }
+    return results;
 }
 
 // Attempt to find a document quad in the given edge map.
@@ -451,6 +543,19 @@ static DocumentCornerResult* _Nullable findQuadInEdges(
         }
 
         if (best && best.confidence > 0.85f && quadNormalizedArea(best) > 0.25) break;
+    }
+
+    // Line-assisted fallback (live mode only): generates quad candidates from dominant
+    // Hough line segments. Runs when contour path produced no confident result —
+    // e.g. marble (fragmented contours) or low-contrast backgrounds (no closed contour).
+    if (mode == BPDetectorModeLive && (!best || best.confidence < 0.65f)) {
+        NSArray<DocumentCornerResult*> *lineCands = generateLineCandidates(
+            edges, origW, origH, scale, imageArea,
+            isBlurry, needsFlash, blurVar, avgBright, mode
+        );
+        for (DocumentCornerResult *r in lineCands) {
+            if (isBetter(r, best, mode)) best = r;
+        }
     }
 
     // Convex-hull fallback: only used when no contour produced a usable quad.

@@ -1,6 +1,5 @@
 import type { RefObject } from 'react';
 import { CameraView } from 'expo-camera';
-import { requireOptionalNativeModule } from 'expo-modules-core';
 import { AutoCaptureReadiness, CaptureConfig, CaptureResult, DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
 import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
 import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
@@ -11,17 +10,8 @@ import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
 import { decideCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
 import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryMapper';
 import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
-
-// Contract: JS only calls takePhoto().
-// Session lifecycle → active prop on BriefPilotLiveScannerView (Expo prop bridge).
-// Live events     → Expo module event emitter (`onLiveScanResult`).
-const LiveScanNative = requireOptionalNativeModule<{
-  takePhoto: () => Promise<{ uri: string; width: number; height: number }>;
-  addListener: (
-    eventName: 'onLiveScanResult',
-    listener: (payload: Record<string, unknown>) => void
-  ) => { remove(): void };
-}>('BriefPilotLiveScanner');
+import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
+import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
 
 const aspectForAutoCapture = (aspect?: number | null) => {
   if (typeof aspect !== 'number' || !Number.isFinite(aspect) || aspect <= 0.05) return 1;
@@ -80,11 +70,11 @@ export class CameraEngine {
   };
 
   private isCapturing = false;
-  private liveScanSubscription: any = null;
   private lastCornersTimestamp = 0;
   private lastGoodCornersTimestamp = 0;
   private prevRawCorners: DocumentCorners | null = null;
   private geometry = new PreviewGeometryMapper();
+  private bridge = new LiveScanBridge();
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -164,9 +154,10 @@ export class CameraEngine {
 
       let photo: { uri: string; width: number; height: number };
 
-      if (LiveScanNative) {
+      const nativePhoto = this.bridge.isAvailable ? await this.bridge.takePhoto() : null;
+      if (nativePhoto) {
         if (__DEV__) console.log('[ScannerCapture] using native takePhoto');
-        photo = await LiveScanNative.takePhoto();
+        photo = nativePhoto;
       } else {
         if (!this.cameraRef?.current) return null;
         if (__DEV__) console.log('[ScannerCapture] using ExpoCameraRef takePhoto');
@@ -341,39 +332,24 @@ export class CameraEngine {
   startLiveEdgeDetection(_intervalMs = 900) {
     this.stopLiveEdgeDetection();
 
-    if (LiveScanNative) {
+    if (this.bridge.isAvailable) {
       if (__DEV__) console.log('[ScannerLive] using native AVCapture stream');
-      this.liveScanSubscription = LiveScanNative.addListener(
-        'onLiveScanResult',
-        (result) => this.handleNativeScanResult(result),
-      );
+      this.bridge.start((payload) => this.handleNativeScanResult(payload));
     } else {
       if (__DEV__) console.log('[ScannerLive] native stream unavailable');
     }
   }
 
   stopLiveEdgeDetection() {
-    this.liveScanSubscription?.remove();
-    this.liveScanSubscription = null;
+    this.bridge.stop();
   }
 
-  private handleNativeScanResult(native: any) {
+  private handleNativeScanResult({ corners, bufferW, bufferH }: LiveScanPayload) {
     if (this.isCapturing) return;
 
-    const corners: DocumentCorners = {
-      topLeft: native.topLeft,
-      topRight: native.topRight,
-      bottomRight: native.bottomRight,
-      bottomLeft: native.bottomLeft,
-      confidence: native.confidence,
-      areaScore: native.areaScore,
-      angleScore: native.angleScore,
-      aspectScore: native.aspectScore,
-      centerScore: native.centerScore,
-    };
-
-    const W: number = native.width ?? 720;
-    const H: number = native.height ?? 1280;
+    // H and W are intentionally swapped when calling geometry.mapToDisplay — see PreviewGeometryMapper.
+    const W = bufferW;
+    const H = bufferH;
 
     if (__DEV__) {
       console.log(

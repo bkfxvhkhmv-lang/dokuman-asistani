@@ -1,106 +1,124 @@
 # Scanner State Snapshot — 2026-05-10
-## Git commit: 028fc973c  (branch: restore-2026-05-04-night)
+## Aktif commit: 15b570da6  (branch: restore-2026-05-04-night)
 
 ---
 
-## Kritik Düzeltmeler (Bu Committe)
+## Bu Oturumda Yapılan Kalıcı Değişiklikler
 
-### 1. Live pre-resize KALDIRILDI
-- **Eski (kırık):** `detectCornersInPixelBuffer` 1080px frame'i 480px'e küçültüyordu.
-  Pipeline'ın iç `scale` değeri sadece kendi resize adımını (örn. 480→400) düzeltiyordu,
-  1920→480 küçültmesini değil. Sonuç: köşe koordinatları ~4× küçük, alan ~16× düşük → conf=0.000 her zaman.
-- **Fix:** `yPlane.copyTo(gray)` — full-res frame doğrudan pipeline'a geçiyor.
-- **Dosya:** `ios/BriefPilot/BriefPilotOpenCVHelper.mm` → `detectCornersInPixelBuffer`
+### 1. Live pre-resize KALDIRILDI (commit 028fc973c)
+- 1080px frame 480px'e pre-resize ediliyordu → corner coords ~4× küçük, conf=0 her zaman
+- Fix: `yPlane.copyTo(gray)` — full-res frame pipeline'a geçiyor
 
-### 2. sLastStableResult KALDIRILDI
-- **Eski (kırık):** `static DocumentCornerResult *sLastStableResult` — ilk miss'te eski yüksek kaliteli
-  sonucu döndürüyordu. Doğrudan "hayalet polygon" (ghost) kaynağıydı.
-- **Fix:** Tamamen kaldırıldı. Pipeline artık her frame'i bağımsız değerlendiriyor.
+### 2. sLastStableResult KALDIRILDI (028fc973c)
+- İlk miss'te eski sonucu döndürüyordu → doğrudan ghost polygon kaynağı
+- Fix: tamamen kaldırıldı
 
-### 3. edgeSupportScore eklendi
-- `computeEdgeSupport()`: quad'ın 4 kenarı boyunca 12'şer nokta örnekliyor,
-  3×3 komşulukta edge map hit'i kontrol ediyor.
-  Formula: `0.70 × avgSideRate + 0.30 × worstSideRate`
-- **Gate (native, live mode):** `edgeSupportScore < 0.45f` → REJECT
-  Kalibrasyon: gerçek belge (kararlı) min 0.488, hareket/ghost max 0.406 — gap=0.082
-- **Ranking'e katılım (native):**
-  ```
-  rank = confidence×0.35 + edgeSupportScore×0.25 + areaScore×0.25 + aspectScore×0.10 + centerScore×0.05
-  ```
+### 3. edgeSupportScore (028fc973c)
+- `computeEdgeSupport()`: 4 kenarda 12'şer nokta, 3×3 komşuluk hit kontrolü
+- Formula: `0.70 × avgSideRate + 0.30 × worstSideRate`
+- Gate: `< 0.45` → REJECT (live mode)
+- Kalibrasyon: gerçek belge min 0.488, ghost max 0.406
 
-### 4. Streak ≥ 2 (TS tarafı)
-- `consecutiveLivePassCount >= 2` şartı — izole tek-frame ghost PASS'ların
-  `edges_detected` emit etmesini önler.
-- **Dosya:** `src/modules/scanner/engine/CameraEngine.ts` satır ~466-469
+### 4. Streak ≥ 2 + timer no-roll (028fc973c)
+- `consecutiveLivePassCount >= 2` → ghost tek-frame PASS'ları engeller
+- Countdown 600ms ilk kayıpta başlar, her FAIL'de roll etmez
 
-### 5. Timer no-roll fix
-- Countdown 600ms, ilk kayıp anında başlıyor.
-  Her FAIL event'inde timer sıfırlanmıyordu (rolled); şimdi sabit.
-- **Dosya:** `src/hooks/useScanner.ts`
+### 5. RETR_LIST + sideLengthConsistency + yeni rank (243100ca9)
+- `RETR_EXTERNAL → RETR_LIST`: nested contour'larda belge bulunabilir
+- `sideLengthConsistency < 0.50` (live) / `< 0.35` (still) → reject trapezoidal artifacts
+- CandidateRank: edgeSupport × 0.35 başa geçti, border penalty tiered (×0.45/0.65/0.88)
+
+### 6. minAreaRect still path edgeSupport gate (243100ca9)
+- `rectEdgeSupport < 0.35` → skip — laptop frame güçlü rect'leri engellenir
+
+### 7. Line-assisted candidate generation (15b570da6) ← YENİ
+- Contour path conf < 0.65 ürettiğinde devreye girer
+- `generateLineCandidates()`: HoughLinesP → h/v gruplama → kesişim → edgeSupport validasyonu
+- Top-5 en uzun h + top-5 v çizgi → max 5×C(5,2)=50 kandidat (pratik: ~10-20)
+- 0.85× confidence penalty (contour'dan biraz daha az hassas)
+- Aynı `candidateLooksLikeDocument` filtresi uygulanıyor
 
 ---
 
-## Mevcut Eşikler
+## Mevcut Parametreler
 
 ### Native (BriefPilotOpenCVHelper.mm)
-| Parametre            | Değer      |
-|----------------------|------------|
-| Canny thresholds     | 20 / 70    |
-| edgeSupport gate     | 0.45       |
-| Multi-scale widths   | 400 / 600 / 900 px |
-| Bilateral filter     | d=9, σ=75  |
+| Parametre              | Değer                    |
+|------------------------|--------------------------|
+| CLAHE clip             | 2.0, tile 8×8            |
+| Bilateral filter       | d=9, σColor=75, σSpace=75|
+| Canny thresholds       | 20 / 70                  |
+| MorphClose             | 3×3 RECT                 |
+| edgeSupport gate       | 0.45 (live)              |
+| sideLengthConsistency  | ≥ 0.50 live / ≥ 0.35 still |
+| HoughLinesP minLen     | 15% of min(W,H)          |
+| HoughLinesP threshold  | 30 votes                 |
+| Line candidate penalty | 0.85×                    |
 
 ### sortCorners Versiyonu
-Centroid-angle sort (v2) — `atan2(y - centroidY, x - centroidX)` ile sıralıyor.
-Sum/diff yaklaşımına göre duplicate-corner failure'ları daha az.
-**Dosya:** `ios/BriefPilot/BriefPilotOpenCVHelper.mm` satır 38–65
+Centroid-angle sort — `atan2(y - centroidY, x - centroidX)`
 
 ### TypeScript Gates
-| Gate         | CONFIDENCE_MIN | AREA_MIN | AREA_MAX | ANGLE_MIN | CENTER_MIN | ASPECT_MIN |
-|--------------|---------------|----------|----------|-----------|------------|------------|
-| LIVE_GATE    | 0.50          | 0.08     | 0.97     | 0.40      | 0.20       | 0.20       |
-| COMMIT_GATE  | 0.60          | 0.09     | 0.93     | 0.56      | 0.30       | 0.35       |
-| CAPTURE_GATE | 0.35          | 0.01     | 1.00     | 0.40      | 0.20       | 0.20       |
-| LAST_GOOD    | 0.45          | 0.08     | —        | 0.55      | —          | —          |
-| COMMIT_MOTION_MIN | 0.50    | —        | —        | —         | —          | —          |
+| Gate              | CONFIDENCE | AREA_MIN | AREA_MAX | ANGLE_MIN | CENTER | ASPECT |
+|-------------------|-----------|----------|----------|-----------|--------|--------|
+| LIVE_GATE         | 0.50      | 0.08     | 0.97     | 0.40      | 0.20   | 0.20   |
+| COMMIT_GATE       | 0.60      | 0.09     | 0.93     | 0.56      | 0.30   | 0.35   |
+| CAPTURE_GATE      | 0.35      | 0.01     | 1.00     | 0.40      | 0.20   | 0.20   |
+| LAST_GOOD         | 0.45      | 0.08     | —        | 0.55      | —      | —      |
+| COMMIT_MOTION_MIN | 0.50      | —        | —        | —         | —      | —      |
 
 ---
 
-## Şu An Çalışan Senaryolar ✓
+## Test Sonuçları (15b570da6 üzerinde)
 
-- **A4 — gri/beyaz düz zemin:** Çok iyi detection, köşeler kararlı, edgeSupp 0.60–1.00
-- **Renkli belge — düz/açık zemin:** İyi detection
-- **Polygon overlay:** Gösteriyor (streak≥2 fix sonrası)
-- **Auto-capture countdown:** Başlıyor (480px fix sonrası conf düzeldi)
-
-## Hâlâ Sorunlu Senaryolar ✗
-
-- **Mermer masa:** Canny (20/70) mermer damarlarını da edge sayıyor → edge map kirli
-  → findContours yanlış contour seçiyor → detection kararsız
-- **Siyah laptop üzeri:** Laptop frame'i güçlü rect yapısı oluşturuyor,
-  detector gerçek belge yerine laptop kenarlarına kayabiliyor
-- **RETR_EXTERNAL limiti:** Arka plan gürültüsü hakim olduğunda dış contour kaçabiliyor
-- **Yamuk (skewed) fotoğraflar:** `correctPerspective` / `PerspectiveCorrector.remapToPhotoSpace()`
-  test edilmedi — `VIDEO_FRAME_W=1080` ile gerçek `bufferW/H` eşleşmesi kontrol edilmeli
+| Senaryo            | Durum        | Not                                           |
+|--------------------|-------------|-----------------------------------------------|
+| Gri zemin A4       | ✓ İyi        | Referans senaryo — regresyon yok              |
+| Mermer masa        | ~ %80        | Line-assisted path ile iyileşti               |
+| Siyah zemin        | ✗ Zayıf      | Köşelere yapışamıyor, kayıyor                 |
+| Zarf (envelope)    | ✗ Kötü       | A4 aspect'ine göre ayarlamaya çalışıyor       |
+| Beyaz zemin        | ✗ Kötü       | Düşük kontrast — contour oluşmuyor            |
+| Capture (yamuk)    | ? Test edilmedi | `[ScannerCapture] warp=` logu eklendi       |
 
 ---
 
-## Sonraki Adımlar
+## Sonraki Oturum İçin Öncelikler
 
-1. **Mermer/dark background:** Canny eşiği (20/70) → (40/120) denemesi
-   veya `buildEdgeMap`'e bilateral öncesi adaptive histogram clamp eklenmesi
-2. **RETR_EXTERNAL → RETR_LIST + alan filtresi:** Daha güçlü contour seçimi
-3. **Yamuk test:** Gri zeminde capture alıp skew kontrolü
-4. **prevRawCorners timing fix (CameraEngine.ts):** `this.prevRawCorners = corners`
-   satırını `checkDisplayGeometry` kontrolünden SONRAYA al (tartışıldı, henüz implement edilmedi)
+1. **Screen capture ile log al** — `[ScannerCapture]`, `[ScannerLive]` satırları
+   - Siyah zeminde köşe kaymalarının kaynağını anlamak
+   - Envelope'un hangi skorlarda takıldığını görmek
+   - `source=`, `edgeSupp=`, köşe koordinatları
+
+2. **Beyaz zemin** — Contour hiç oluşmuyorsa:
+   - HoughLinesP threshold'unu düşür (30 → 20) veya minLen'i azalt
+   - Veya CLAHE clip'i artır (2.0 → 3.0) sadece düşük-kontrast senaryolar için
+
+3. **Envelope / non-A4** — `aspectScore` A4'e mi kalibre edilmiş?
+   - `candidateLooksLikeDocument` live: `r.aspectScore < 0.35` gate
+   - Aspect score hesabını kontrol et — geniş yelpaze mi yoksa A4-only mi?
+
+4. **Siyah zemin köşe stabilitesi** — Line candidate kenar noktaları mı kayıyor?
+   - Line path'te `consecutiveLivePassCount` hâlâ ≥ 2 gerektiriyor
+   - Belki line-sourced candidates için streak = 1 yeterli?
+
+5. **Yamuk capture** — Yakalanan fotoğrafları kontrol et
+   - `[ScannerCapture] corners TL=... TR=... BR=... BL=...` değerleri
+   - `warp=video` ise VIDEO_FRAME_W/H = 1080/1920 doğru mu?
 
 ---
 
-## Değişen Dosyalar (commit 028fc973c)
-- `ios/BriefPilot/BriefPilotOpenCVHelper.h` — edgeSupportScore property
-- `ios/BriefPilot/BriefPilotOpenCVHelper.mm` — 480px fix + computeEdgeSupport + sLastStableResult kaldırma + gate 0.45
-- `ios/LiveScanner/BriefPilotLiveScannerView.swift` — edgeSupportScore event body'e eklendi
-- `src/hooks/useScanner.ts` — timer no-roll fix
-- `src/modules/scanner/engine/CameraEngine.ts` — edgeSupp log + consecutive streak
-- `src/modules/scanner/engine/LiveScanBridge.ts` — edgeSupportScore parsing
-- `src/modules/scanner/types.ts` — edgeSupportScore DocumentCorners'a eklendi
+## Tehlikeli Değişiklikler (geri alındı — tekrar deneme)
+- `morphOpen(3×3)`: Canny'den gelen 1px belge kenarlarını siliyor → polygon kaybolur
+- `Canny (40/120)`: Düşük kontrast belge kenarlarını kaçırıyor → beyaz zemin bozulur
+- `bilateral sigma 100`: Düşük kontrast gradient'leri siliyor → beyaz zemin bozulur
+- `GaussianBlur(5×5) after bilateral`: Fark yaratmadı, zayıf gradient senaryolarında risk
+- `Hard border reject (bHits ≥ 3)`: Büyük belgeler kısmen frame'in dışındaysa yanlış reject
+
+## Commit Geçmişi
+```
+15b570da6  feat: line-assisted candidate generation (HoughLinesP fallback)
+fa9ab8ea7  fix: remove morphOpen — erased 1px document edges
+85e0ac849  fix: revert Canny to 20/70
+243100ca9  fix: RETR_LIST + sideLengthConsistency + edgeSupport ranking
+028fc973c  fix: live detector root cause + edgeSupport scoring (480px fix)
+```

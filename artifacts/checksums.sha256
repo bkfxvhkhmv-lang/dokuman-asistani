@@ -1,0 +1,5 @@
+# BriefPilot OCR Artifact Checksums
+# Format: SHA256  filename
+# Bu dosya Git'e commit edilir. Binary dosyaların kendisi edilmez.
+
+58ecc207406f51efd69572006ccbe64f72c23f5f17e9125fa97f136ac0c5980f  v6_comprehensive_80k.tar.gz

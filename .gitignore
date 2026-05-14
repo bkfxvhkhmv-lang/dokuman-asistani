@@ -12,3 +12,25 @@ node_modules/
 # Yerel araç çıktıları (EPS vb. yanlış adla köke düşmesin diye ayırılmış varlıklar)
 _artifacts/
 _backup/
+
+# ── OCR / ML Binary Artifacts (Git'e GİRMEZ) ──────────────────────────────
+*.tar.gz
+*.zip
+*.pdparams
+*.pdopt
+*.pdmodel
+*.pdiparams
+*.pdiparams.info
+*.states
+*.onnx
+*.log
+
+# Dataset / model / training output dizinleri
+/dataset/
+/datasets/generated/
+/checkpoints/
+/output/
+/runs/
+/logs/
+/artifacts/binaries/
+/workspace/

@@ -79,14 +79,16 @@ export function analysiereText(text: string): DocumentAnalysis {
     if (m) {
       try {
         const tag   = parseInt(m[1]);
-        const monat = parseInt(m[2]) - 1;
+        const monat = parseInt(m[2]) - 1; // 0-based for Date API
         let jahr  = parseInt(m[3]);
         if (jahr < 100) jahr = 2000 + jahr;
         if (tag >= 1 && tag <= 31 && monat >= 0 && monat <= 11 && jahr >= 2020) {
+          // UTC to avoid timezone-driven day-shift (e.g. UTC+2 pushing midnight back to prev day)
+          const iso = new Date(Date.UTC(jahr, monat, tag)).toISOString();
           if (p.toString().includes('rechnungsdatum')) {
-            rechnungsDatum = new Date(jahr, monat, tag).toISOString();
+            rechnungsDatum = iso;
           } else if (!frist) {
-            frist = new Date(jahr, monat, tag).toISOString();
+            frist = iso;
           }
           break;
         }
@@ -97,8 +99,9 @@ export function analysiereText(text: string): DocumentAnalysis {
   }
 
   if (!frist && rechnungsDatum) {
+    // Arithmetic on UTC-based ISO string stays timezone-safe
     const date = new Date(rechnungsDatum);
-    date.setDate(date.getDate() + 14);
+    date.setUTCDate(date.getUTCDate() + 14);
     frist = date.toISOString();
   }
 

@@ -29,6 +29,11 @@ export async function extractTextFromImage(base64Image: string): Promise<VisionR
   const words: WordEntry[] = [];
   let total = 0, count = 0;
 
+  // TODO(multipage): annotation.pages[] contains page-level data.
+  // Current implementation flattens all pages into a single text blob,
+  // losing page-number context needed for "see page X" citations.
+  // Future: build result.pages = [{pageNumber, text, confidence}] and keep
+  // fullText separately so extraction can reference page boundaries.
   for (const page of annotation.pages || []) {
     for (const block of page.blocks || []) {
       for (const para of block.paragraphs || []) {
@@ -70,6 +75,9 @@ export async function extractTextFromImage(base64Image: string): Promise<VisionR
     }
   }
 
-  const confidence = count > 0 ? Math.round((total / count) * 100) : null;
+  // Use 50 as neutral fallback when no word-level confidence is available,
+  // so downstream code always receives a finite number and never produces NaN.
+  const CONFIDENCE_FALLBACK = 50;
+  const confidence = count > 0 ? Math.round((total / count) * 100) : CONFIDENCE_FALLBACK;
   return { text: annotation.text || '', confidence, entityBoxes };
 }

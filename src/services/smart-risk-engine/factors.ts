@@ -1,6 +1,21 @@
 import type { Dokument } from '@/store';
 import { getTageVerbleibend } from '@/utils';
+import { parseGermanAmount } from '@/services/smart-autofill/invoiceExtractor';
 import type { RiskFactor } from './types';
+
+/** Safely resolve dok.betrag to a finite number. Never returns NaN. */
+function resolveBetrag(dok: Dokument): number {
+  const raw: unknown = dok.betrag;
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    return raw;
+  }
+  // Defensive: betrag arrived as string (e.g. from API or OCR extraction)
+  if (typeof raw === 'string' && raw.trim()) {
+    const parsed = parseGermanAmount(raw);
+    if (parsed !== null) return parsed;
+  }
+  return 0;
+}
 
 export function scoreFristFaktor(dok: Dokument): RiskFactor {
   const tage = getTageVerbleibend(dok.frist);
@@ -23,8 +38,8 @@ export function scoreFristFaktor(dok: Dokument): RiskFactor {
 }
 
 export function scoreBetragFaktor(dok: Dokument): RiskFactor {
-  const betrag = (dok.betrag as number) || 0;
-  if (!dok.betrag || betrag === 0) return { id: 'betrag_0', kategorie: 'betrag', beschreibung: 'Kein Betrag', gewicht: 8, score: 0, icon: '💶' };
+  const betrag = resolveBetrag(dok);
+  if (betrag === 0) return { id: 'betrag_0', kategorie: 'betrag', beschreibung: 'Kein Betrag', gewicht: 8, score: 0, icon: '💶' };
 
   if (betrag >= 5000) return { id: 'betrag_sehr_hoch', kategorie: 'betrag', beschreibung: `Sehr hoher Betrag: ${betrag.toFixed(0)} €`, gewicht: 20, score: 85, icon: '💸' };
   if (betrag >= 1000) return { id: 'betrag_hoch',      kategorie: 'betrag', beschreibung: `Hoher Betrag: ${betrag.toFixed(0)} €`,       gewicht: 15, score: 65, icon: '💰' };

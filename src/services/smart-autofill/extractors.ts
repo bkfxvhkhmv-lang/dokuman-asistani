@@ -1,33 +1,39 @@
-export function extractAktenzeichen(text: string): { wert: string | null; score: number } {
-  const patterns = [
-    /[Aa]ktenzeichen[:\s]+([A-Z0-9/_\-]{4,25})/,
-    /[Kk]ennzeichen[:\s]+([A-Z0-9/_\-]{4,25})/,
-    /(?:Az\.|AZ)[:\s]+([A-Z0-9/_\-]{4,25})/,
-    /[Bb]escheids?nr\.?[:\s]+([A-Z0-9/_\-]{4,25})/i,
-  ];
+// Multiline & whitespace-tolerant helper — OCR text often has extra spaces/newlines
+// between labels and values.
+function matchFirst(text: string, patterns: RegExp[]): RegExpMatchArray | null {
   for (const p of patterns) {
     const m = text.match(p);
-    if (m) return { wert: m[1].trim(), score: 85 };
+    if (m) return m;
   }
+  return null;
+}
+
+export function extractAktenzeichen(text: string): { wert: string | null; score: number } {
+  const patterns = [
+    /[Aa]ktenzeichen[\s:]+([A-Z0-9/_-]{4,30})/m,
+    /[Kk]ennzeichen[\s:]+([A-Z0-9/_-]{4,30})/m,
+    /(?:Az\.|AZ)[\s:]+([A-Z0-9/_-]{4,30})/m,
+    /[Bb]escheids?nr\.?[\s:]+([A-Z0-9/_-]{4,30})/im,
+  ];
+  const m = matchFirst(text, patterns);
+  if (m) return { wert: m[1].trim(), score: 85 };
   return { wert: null, score: 0 };
 }
 
 export function extractKundennr(text: string): { wert: string | null; score: number } {
   const patterns = [
-    /[Kk]undennr\.?[:\s]+([A-Z0-9\-]{4,20})/,
-    /[Kk]undennummer[:\s]+([A-Z0-9\-]{4,20})/,
-    /[Kk]unden-?[Nn]r\.?[:\s]+([A-Z0-9\-]{4,20})/,
+    /[Kk]undennr\.?[\s:]+([A-Z0-9-]{4,25})/m,
+    /[Kk]undennummer[\s:]+([A-Z0-9-]{4,25})/m,
+    /[Kk]unden-?[Nn]r\.?[\s:]+([A-Z0-9-]{4,25})/m,
   ];
-  for (const p of patterns) {
-    const m = text.match(p);
-    if (m) return { wert: m[1].trim(), score: 80 };
-  }
+  const m = matchFirst(text, patterns);
+  if (m) return { wert: m[1].trim(), score: 80 };
   return { wert: null, score: 0 };
 }
 
 export function extractRechnungsnr(text: string): { wert: string | null; score: number } {
   const patterns = [
-    /[Rr]echnungs(?:nummer|nr)\.?[:\s]+([A-Z0-9\-\/]{3,20})/,
+    /[Rr]echnungs(?:nummer|nr)\.?[\s:]+([A-Z0-9-/]{3,25})/m,
     /[Rr]e\.-?[Nn]r\.?[:\s]+([A-Z0-9\-\/]{3,20})/,
     /[Ii]nvoice\s*[Nn]o\.?[:\s]+([A-Z0-9\-\/]{3,20})/,
   ];

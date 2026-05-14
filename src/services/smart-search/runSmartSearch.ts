@@ -84,7 +84,9 @@ export function runSmartSearch(
       ['zusammenfassung', dok.zusammenfassung],
       ['kurzfassung', dok.kurzfassung],
       ['etiketten', (dok.etiketten || []).join(' ')],
-      ['rohText', dok.rohText?.slice(0, 500)],
+      // Full text for search — no truncation so multi-page docs are not missed.
+      // Snippet/preview truncation is handled in the UI layer, not here.
+      ['rohText', dok.rohText],
     ];
 
     for (const [name, value] of fields) {

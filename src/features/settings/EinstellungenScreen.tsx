@@ -365,7 +365,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
 
         <TouchableOpacity
           style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 4 }}
-          onPress={() => { console.log('[OCR_MVP] button pressed'); router.push('/ocr-mvp'); }}
+          onPress={() => router.push('/ocr-mvp')}
           activeOpacity={0.7}
         >
           <Text style={{ fontSize: fs(12), color: C.primary, fontWeight: '600' }}>

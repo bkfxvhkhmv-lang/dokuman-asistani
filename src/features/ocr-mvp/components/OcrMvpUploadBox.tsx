@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
@@ -47,27 +48,68 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
     }
   };
 
+  const takePhoto = async () => {
+    setPicking(true);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') return;
+      const res = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        allowsEditing: false,
+        quality: 1,
+      });
+      if (!res.canceled && res.assets.length > 0) {
+        const asset = res.assets[0];
+        setSelectedFile({
+          uri: asset.uri,
+          name: `photo_${Date.now()}.jpg`,
+          mimeType: 'image/jpeg',
+        });
+      }
+    } finally {
+      setPicking(false);
+    }
+  };
+
   const st = styles(Colors);
 
   return (
     <View style={st.container}>
-      <TouchableOpacity style={st.dropZone} onPress={pickFile} activeOpacity={0.75}>
-        {picking ? (
-          <ActivityIndicator color={Colors.primary} />
-        ) : selectedFile ? (
-          <>
-            <Icon name="document-text" size={36} color={Colors.primary} />
-            <Text style={st.fileName} numberOfLines={2}>{selectedFile.name}</Text>
-            <Text style={st.changeHint}>Değiştirmek için dokun</Text>
-          </>
-        ) : (
-          <>
-            <Icon name="cloud-upload-outline" size={40} color={Colors.textSecondary} />
-            <Text style={st.dropLabel}>PDF veya fotoğraf seç</Text>
-            <Text style={st.dropHint}>PDF · JPG · PNG · maks. 20 MB</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      {selectedFile ? (
+        <TouchableOpacity style={st.selectedZone} onPress={pickFile} activeOpacity={0.75}>
+          <Icon name="document-text" size={36} color={Colors.primary} />
+          <Text style={st.fileName} numberOfLines={2}>{selectedFile.name}</Text>
+          <Text style={st.changeHint}>Değiştirmek için dokun</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={st.pickRow}>
+          <TouchableOpacity style={st.pickBtn} onPress={pickFile} activeOpacity={0.75} disabled={picking}>
+            {picking ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : (
+              <>
+                <Icon name="document-outline" size={30} color={Colors.primary} />
+                <Text style={[st.pickLabel, { color: Colors.text }]}>Dosya Seç</Text>
+                <Text style={st.pickHint}>PDF · JPG · PNG</Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={[st.pickDivider, { backgroundColor: Colors.border }]} />
+
+          <TouchableOpacity style={st.pickBtn} onPress={takePhoto} activeOpacity={0.75} disabled={picking}>
+            {picking ? (
+              <ActivityIndicator color={Colors.primary} />
+            ) : (
+              <>
+                <Icon name="camera-outline" size={30} color={Colors.primary} />
+                <Text style={[st.pickLabel, { color: Colors.text }]}>Fotoğraf Çek</Text>
+                <Text style={st.pickHint}>Belge · Makbuz</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       <Text style={st.sectionLabel}>Belge tipi</Text>
       <View style={st.typeGrid}>
@@ -103,10 +145,30 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
 }
 
 const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
-  container: { padding: 20, gap: 16 },
-  dropZone: {
+  container:    { padding: 20, gap: 16 },
+  pickRow: {
+    flexDirection: 'row',
     borderWidth: 1.5,
     borderColor: C.border,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    backgroundColor: C.bgCard,
+    overflow: 'hidden',
+  },
+  pickBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 28,
+    paddingHorizontal: 12,
+  },
+  pickDivider:   { width: 1 },
+  pickLabel:     { fontSize: 14, fontWeight: '600' },
+  pickHint:      { color: C.textSecondary, fontSize: 11 },
+  selectedZone: {
+    borderWidth: 1.5,
+    borderColor: C.primary,
     borderStyle: 'dashed',
     borderRadius: 16,
     padding: 32,
@@ -116,8 +178,6 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   fileName:      { color: C.text, fontSize: 14, fontWeight: '600', textAlign: 'center' },
   changeHint:    { color: C.textSecondary, fontSize: 12 },
-  dropLabel:     { color: C.text, fontSize: 15, fontWeight: '600' },
-  dropHint:      { color: C.textSecondary, fontSize: 12 },
   sectionLabel:  { color: C.textSecondary, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
   typeGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip:      {

@@ -133,7 +133,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
       )}
 
       <ScrollView
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 44 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
         <Text
@@ -363,17 +363,15 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </>
         ) : null}
 
-        {__DEV__ && (
-          <TouchableOpacity
-            style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 4 }}
-            onPress={() => router.push('/ocr-mvp')}
-            activeOpacity={0.7}
-          >
-            <Text style={{ fontSize: fs(12), color: C.primary, fontWeight: '600' }}>
-              🧪 OCR MVP Test
-            </Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 4 }}
+          onPress={() => { console.log('[OCR_MVP] button pressed'); router.push('/ocr-mvp'); }}
+          activeOpacity={0.7}
+        >
+          <Text style={{ fontSize: fs(12), color: C.primary, fontWeight: '600' }}>
+            🧪 OCR MVP Test
+          </Text>
+        </TouchableOpacity>
 
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontSize: fs(11), color: C.textTertiary }}>

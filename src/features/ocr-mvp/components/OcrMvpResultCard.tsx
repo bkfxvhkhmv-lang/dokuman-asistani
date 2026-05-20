@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
+import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
 const DOC_TYPE_LABEL: Record<string, string> = {
@@ -28,10 +30,28 @@ interface Props {
 export default function OcrMvpResultCard({ result, onReset }: Props) {
   const { Colors } = useTheme();
   const [downloading, setDownloading] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewText, setPreviewText] = useState<string | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
 
   const docLabel  = DOC_TYPE_LABEL[result.document_type ?? ''] ?? result.document_type ?? '—';
   const isHighRisk = HIGH_RISK_TYPES.has(result.document_type ?? '') && result.needs_review;
   const confPct   = result.confidence != null ? Math.round(result.confidence * 100) : null;
+
+  const handlePreview = async () => {
+    if (!result.job_id) return;
+    setPreviewing(true);
+    try {
+      const res = await fetch(`${OCR_MVP_BASE}/documents/${result.job_id}/download`);
+      const text = await res.text();
+      setPreviewText(text);
+      setPreviewVisible(true);
+    } catch (e: any) {
+      Alert.alert('Önizleme hatası', e?.message ?? 'Bilinmeyen hata');
+    } finally {
+      setPreviewing(false);
+    }
+  };
 
   const handleDownload = async () => {
     if (!result.job_id) return;
@@ -79,18 +99,62 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
         </View>
       )}
 
+      <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
+        {previewing
+          ? <ActivityIndicator color={Colors.primary} />
+          : <>
+              <Icon name="eye-outline" size={20} color={Colors.primary} />
+              <Text style={[st.downloadLabel, { color: Colors.primary }]}>Sonucu Gör</Text>
+            </>}
+      </TouchableOpacity>
+
       <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
         {downloading
           ? <ActivityIndicator color="#fff" />
           : <>
               <Icon name="download-outline" size={20} color="#fff" />
-              <Text style={st.downloadLabel}>Sonucu İndir / Aç</Text>
+              <Text style={st.downloadLabel}>İndir / Paylaş</Text>
             </>}
       </TouchableOpacity>
 
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
         <Text style={st.resetLabel}>Yeni Belge</Text>
       </TouchableOpacity>
+
+      <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
+        <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
+          <View style={st.modalHeader}>
+            <Text style={st.modalTitle}>Sonuç Önizleme</Text>
+            <TouchableOpacity
+              onPress={() => setPreviewVisible(false)}
+              style={st.closeBtn}
+              activeOpacity={0.6}
+            >
+              <Icon name="close" size={22} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
+            {previewText && previewText.trim().length > 0 ? (
+              <Text style={st.previewText} selectable>{previewText}</Text>
+            ) : (
+              <View style={{ alignItems: 'center', paddingTop: 40, gap: 12 }}>
+                <Icon name="document-outline" size={48} color={Colors.textSecondary} />
+                <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center' }}>
+                  Bu belge Excel formatında oluşturuldu.{'\n'}Önizleme desteklenmiyor — indir/paylaş ile aç.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+          <TouchableOpacity
+            style={st.downloadBtn}
+            onPress={() => { setPreviewVisible(false); handleDownload(); }}
+            activeOpacity={0.8}
+          >
+            <Icon name="download-outline" size={20} color="#fff" />
+            <Text style={st.downloadLabel}>İndir / Paylaş</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
@@ -121,11 +185,27 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   warnBoxHigh:  { backgroundColor: '#FF6B6B18', borderColor: '#FF6B6B40' },
   warnText:     { flex: 1, color: '#F59E0B', fontSize: 13, lineHeight: 18 },
   warnTextHigh: { color: '#FF6B6B' },
+  previewBtn:   {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderRadius: 14, paddingVertical: 15,
+    borderWidth: 1.5, borderColor: C.primary, backgroundColor: C.primaryLight ?? C.bgCard,
+  },
   downloadBtn:  {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: '#22C55E', borderRadius: 14, paddingVertical: 15,
+    marginHorizontal: 16, marginBottom: 16,
   },
   downloadLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
+  modalRoot:     { flex: 1, backgroundColor: C.bg },
+  modalHeader:   {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
+  },
+  closeBtn:      { padding: 12, marginRight: -4 },
+  modalTitle:    { color: C.text, fontSize: 17, fontWeight: '700' },
+  modalScroll:   { flex: 1 },
+  previewText:   { color: C.text, fontSize: 13, lineHeight: 20, fontFamily: 'monospace' },
 });

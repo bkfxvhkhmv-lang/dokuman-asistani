@@ -363,6 +363,18 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </>
         ) : null}
 
+        {__DEV__ && (
+          <TouchableOpacity
+            style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 4 }}
+            onPress={() => router.push('/ocr-mvp')}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontSize: fs(12), color: C.primary, fontWeight: '600' }}>
+              🧪 OCR MVP Test
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontSize: fs(11), color: C.textTertiary }}>
             {T('settings.version', { v: appVersion })}

@@ -12,7 +12,7 @@ const ENV: Record<string, EnvConfig> = {
   },
   device: {
     API_BASE:     'http://192.168.0.33:8000/api/v4',
-    OCR_MVP_BASE: 'http://192.168.0.33:8001',      // Fiziksel cihaz: Mac LAN IP + port 8001
+    OCR_MVP_BASE: 'http://192.168.0.33:8000',      // Fiziksel cihaz: Mac LAN IP
   },
   beta: {
     API_BASE:     'https://api.briefpilot.de/api/v4',

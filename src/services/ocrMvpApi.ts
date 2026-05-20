@@ -70,10 +70,10 @@ export async function downloadOcrResult(
   jobId: string,
   filename: string = 'briefpilot_output',
 ): Promise<string> {
-  const { FileSystem } = await import('expo-file-system');
-  const destUri = (FileSystem as { cacheDirectory: string }).cacheDirectory + filename;
+  const FileSystem = await import('expo-file-system');
+  const destUri = ((FileSystem as any).cacheDirectory ?? '') + filename;
 
-  const result = await (FileSystem as any).downloadAsync(
+  const result = await FileSystem.downloadAsync(
     `${OCR_MVP_BASE}/documents/${jobId}/download`,
     destUri,
   );
@@ -82,5 +82,5 @@ export async function downloadOcrResult(
     throw new Error(`Download hatası: ${result.status}`);
   }
 
-  return result.uri as string;
+  return result.uri;
 }

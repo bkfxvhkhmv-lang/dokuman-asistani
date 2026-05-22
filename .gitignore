@@ -34,3 +34,8 @@ _backup/
 /logs/
 /artifacts/binaries/
 /workspace/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo

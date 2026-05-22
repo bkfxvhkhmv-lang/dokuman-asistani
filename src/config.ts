@@ -11,8 +11,8 @@ const ENV: Record<string, EnvConfig> = {
     OCR_MVP_BASE: 'http://127.0.0.1:8000',        // iOS Simulator
   },
   device: {
-    API_BASE:     'http://192.168.0.93:8000/api/v4',
-    OCR_MVP_BASE: 'http://192.168.0.93:8000',      // Fiziksel cihaz: Mac LAN IP
+    API_BASE:     'http://192.168.0.33:8000/api/v4',
+    OCR_MVP_BASE: 'http://192.168.0.33:8000',      // Fiziksel cihaz: Mac LAN IP
   },
   beta: {
     API_BASE:     'https://api.briefpilot.de/api/v4',

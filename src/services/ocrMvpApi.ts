@@ -67,6 +67,7 @@ export interface OcrMvpJobStatus {
 export async function analyzeDocument(
   file: OcrMvpFile,
   forceType?: OcrMvpForceType,
+  signal?: AbortSignal,
 ): Promise<{ job_id: string; status: string }> {
   const form = new FormData();
   form.append('file', {
@@ -82,6 +83,7 @@ export async function analyzeDocument(
   const res = await fetch(`${OCR_MVP_BASE}/documents/analyze`, {
     method: 'POST',
     body: form,
+    signal,
     // Content-Type header verilmiyor — RN FormData boundary'yi otomatik ekler
   });
 

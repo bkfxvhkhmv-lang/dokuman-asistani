@@ -2,8 +2,9 @@ import { useState, useRef, useCallback } from 'react';
 import { analyzeDocument, getOcrResult } from '@/services/ocrMvpApi';
 import type { OcrMvpFile, OcrMvpForceType, OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
-const POLL_INTERVAL_MS = 2000;
-const POLL_TIMEOUT_MS  = 60_000;
+const POLL_INTERVAL_MS  = 2000;
+const POLL_TIMEOUT_MS   = 30_000;
+const UPLOAD_TIMEOUT_MS = 20_000;
 
 export type OcrMvpStatus = 'idle' | 'uploading' | 'processing' | 'done' | 'error' | 'timeout';
 
@@ -72,15 +73,22 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     setResult(null);
     setError(null);
 
+    const abortCtrl = new AbortController();
+    const uploadTimer = setTimeout(() => abortCtrl.abort(), UPLOAD_TIMEOUT_MS);
     try {
-      const { job_id } = await analyzeDocument(file, forceType);
+      const { job_id } = await analyzeDocument(file, forceType, abortCtrl.signal);
+      clearTimeout(uploadTimer);
       setJobId(job_id);
       setStatus('processing');
       startedRef.current = Date.now();
       poll(job_id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Upload hatası');
-      setStatus('error');
+      clearTimeout(uploadTimer);
+      const isAbort = e instanceof Error && e.name === 'AbortError';
+      setError(isAbort
+        ? 'Yükleme zaman aşımı — bağlantıyı kontrol edin'
+        : e instanceof Error ? e.message : 'Upload hatası');
+      setStatus(isAbort ? 'timeout' : 'error');
     }
   }, [poll]);
 

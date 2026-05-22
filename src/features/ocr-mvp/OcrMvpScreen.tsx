@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
+import { OCR_MVP_BASE } from '@/config';
 import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
+
+type HealthState = 'checking' | 'online' | 'offline';
 
 interface Props {
   onClose?: () => void;
@@ -18,7 +21,25 @@ interface Props {
 
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
-  const { status, jobId, result, error, startJob, reset } = useOcrMvpJob();
+  const { status, result, error, startJob, reset } = useOcrMvpJob();
+  const [health, setHealth] = useState<HealthState>('checking');
+
+  const checkHealth = useCallback(async () => {
+    setHealth('checking');
+    try {
+      const res = await Promise.race([
+        fetch(`${OCR_MVP_BASE}/health`),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000),
+        ),
+      ]);
+      setHealth((res as Response).ok ? 'online' : 'offline');
+    } catch {
+      setHealth('offline');
+    }
+  }, []);
+
+  useEffect(() => { checkHealth(); }, [checkHealth]);
 
   const handleSubmit = (
     fileUri: string,
@@ -50,7 +71,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       >
         {/* Yükleme ve işleme */}
         {(status === 'uploading' || status === 'processing') && (
-          <OcrMvpStatusCard status={status} jobId={jobId} />
+          <OcrMvpStatusCard status={status} />
         )}
 
         {/* Tamamlandı */}
@@ -63,7 +84,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
           <View style={st.errorBox}>
             <Icon name="warning-outline" size={28} color="#FF6B6B" />
             <Text style={st.errorTitle}>
-              {status === 'timeout' ? 'Zaman aşımı' : 'Hata oluştu'}
+              {status === 'timeout' ? 'İşlem zaman aşımına uğradı' : 'Bir hata oluştu'}
             </Text>
             <Text style={st.errorMsg}>{error}</Text>
             <TouchableOpacity style={st.retryBtn} onPress={reset} activeOpacity={0.8}>
@@ -72,9 +93,35 @@ export default function OcrMvpScreen({ onClose }: Props) {
           </View>
         )}
 
-        {/* Upload kutusu — sadece idle durumda */}
+        {/* Idle durumda: health check + upload box */}
         {!isActive && (
-          <OcrMvpUploadBox onSubmit={handleSubmit} />
+          <>
+            {health === 'checking' && (
+              <View style={st.checkingBox}>
+                <ActivityIndicator color={Colors.primary} />
+                <Text style={[st.checkingLabel, { color: Colors.textSecondary }]}>
+                  Analiz sunucusu kontrol ediliyor...
+                </Text>
+              </View>
+            )}
+
+            {health === 'offline' && (
+              <View style={st.errorBox}>
+                <Icon name="cloud-offline-outline" size={36} color="#FF6B6B" />
+                <Text style={st.errorTitle}>Analiz sunucusuna bağlanılamıyor</Text>
+                <Text style={st.errorMsg}>
+                  Mac ve iPhone aynı Wi-Fi ağında mı?{'\n'}Backend çalışıyor mu?
+                </Text>
+                <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
+                  <Text style={st.retryLabel}>Tekrar Dene</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {health === 'online' && (
+              <OcrMvpUploadBox onSubmit={handleSubmit} />
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -91,13 +138,15 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 40 },
+  checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },
+  checkingLabel: { fontSize: 14 },
   errorBox:      {
     margin: 20, padding: 24, borderRadius: 16,
     backgroundColor: '#FF6B6B18', borderWidth: 1, borderColor: '#FF6B6B40',
     alignItems: 'center', gap: 10,
   },
-  errorTitle:    { color: '#FF6B6B', fontSize: 16, fontWeight: '700' },
-  errorMsg:      { color: C.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 18 },
+  errorTitle:    { color: '#FF6B6B', fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  errorMsg:      { color: C.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
   retryBtn:      {
     marginTop: 8, paddingVertical: 10, paddingHorizontal: 28,
     backgroundColor: C.bgCard, borderRadius: 12, borderWidth: 1, borderColor: C.border,

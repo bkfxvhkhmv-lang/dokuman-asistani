@@ -93,7 +93,7 @@ export function ocrMvpToV4Document(
     pages:           options?.pages,
     rohText:         null,
     iban:            s?.iban ?? null,
-    confidence:      typeof result.confidence === 'number'
+    confidence:      typeof result.confidence === 'number' && result.confidence > 0
                        ? result.confidence <= 1
                          ? Math.round(result.confidence * 100)
                          : Math.round(result.confidence)

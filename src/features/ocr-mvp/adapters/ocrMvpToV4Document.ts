@@ -1,7 +1,8 @@
 import type { Dokument, ScannedPage } from '@/store/types';
-import type { OcrMvpJobStatus, OcrMvpActionSummary } from '@/services/ocrMvpApi';
+import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { generateId } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
+import { buildDocumentTitle, buildDocumentSender } from './ocrMvpDocumentIdentity';
 
 // Opaque wrapper — store write happens in a separate step, never here.
 export interface OcrMvpV4DocumentDraft {
@@ -59,14 +60,6 @@ function parseFrist(raw: string | null | undefined): string | null {
   return null;
 }
 
-function resolveAbsender(kind: string, s: OcrMvpActionSummary | undefined): string {
-  if (!s) return 'Unbekannt';
-  // Invoices carry vendor_name; letters/insurance carry sender
-  if (kind === 'invoice' || kind === 'settlement') {
-    return s.vendor_name ?? s.sender ?? 'Unbekannt';
-  }
-  return s.sender ?? s.vendor_name ?? 'Unbekannt';
-}
 
 export interface OcrMvpSaveOptions {
   id?:    string;
@@ -83,9 +76,9 @@ export function ocrMvpToV4Document(
 
   const document: Dokument = {
     id:              options?.id ?? generateId(),
-    titel:           s?.title ?? 'Unbekanntes Dokument',
+    titel:           buildDocumentTitle(kind, s),
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
-    absender:        resolveAbsender(kind, s),
+    absender:        buildDocumentSender(kind, s),
     zusammenfassung: s?.summary ?? null,
     warnung:         s?.warnings?.[0] ?? null,
     betrag:          s?.total_brutto ?? s?.amount ?? null,

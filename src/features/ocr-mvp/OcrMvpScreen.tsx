@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
@@ -8,6 +8,8 @@ import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
 import { OCR_MVP_BASE } from '@/config';
 import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
+import { useStore } from '@/store';
+import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
@@ -21,8 +23,10 @@ interface Props {
 
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
+  const { dispatch } = useStore();
   const { status, result, error, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
+  const [savedDocId, setSavedDocId] = useState<string | null>(null);
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');
@@ -50,6 +54,22 @@ export default function OcrMvpScreen({ onClose }: Props) {
     startJob({ uri: fileUri, name: fileName, mimeType }, forceType);
   };
 
+  const handleSaveToDocuments = useCallback(() => {
+    if (!result || savedDocId) return;
+    try {
+      const draft = ocrMvpToV4Document(result);
+      dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
+      setSavedDocId(draft.document.id);
+    } catch (e: any) {
+      Alert.alert('Kayıt hatası', e?.message ?? 'Belge kaydedilemedi.');
+    }
+  }, [result, savedDocId, dispatch]);
+
+  const handleReset = useCallback(() => {
+    setSavedDocId(null);
+    reset();
+  }, [reset]);
+
   const st = styles(Colors);
   const isActive = status !== 'idle';
 
@@ -76,7 +96,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
         {/* Tamamlandı */}
         {status === 'done' && result && (
-          <OcrMvpResultCard result={result} onReset={reset} />
+          <OcrMvpResultCard
+            result={result}
+            onReset={handleReset}
+            onSaveToDocuments={handleSaveToDocuments}
+            isSavedToDocuments={!!savedDocId}
+          />
         )}
 
         {/* Hata */}
@@ -87,7 +112,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
               {status === 'timeout' ? 'İşlem zaman aşımına uğradı' : 'Bir hata oluştu'}
             </Text>
             <Text style={st.errorMsg}>{error}</Text>
-            <TouchableOpacity style={st.retryBtn} onPress={reset} activeOpacity={0.8}>
+            <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
               <Text style={st.retryLabel}>Tekrar Dene</Text>
             </TouchableOpacity>
           </View>

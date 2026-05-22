@@ -27,9 +27,11 @@ const HIGH_RISK_TYPES = new Set(['letter', 'insurance']);
 interface Props {
   result: OcrMvpJobStatus;
   onReset: () => void;
+  onSaveToDocuments?: () => void;
+  isSavedToDocuments?: boolean;
 }
 
-export default function OcrMvpResultCard({ result, onReset }: Props) {
+export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments }: Props) {
   const { Colors } = useTheme();
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -149,6 +151,24 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
         </Text>
       )}
 
+      {onSaveToDocuments && (
+        <TouchableOpacity
+          style={[st.saveBtn, isSavedToDocuments && st.saveBtnDone]}
+          onPress={onSaveToDocuments}
+          disabled={!!isSavedToDocuments}
+          activeOpacity={0.8}
+        >
+          <Icon
+            name={isSavedToDocuments ? 'checkmark-circle-outline' : 'folder-open-outline'}
+            size={20}
+            color="#fff"
+          />
+          <Text style={st.saveBtnLabel}>
+            {isSavedToDocuments ? 'Kaydedildi' : 'Belgelere Kaydet'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
         <Text style={st.resetLabel}>Yeni Belge</Text>
       </TouchableOpacity>
@@ -231,6 +251,12 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   downloadLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
   techLine:      { fontSize: 11, textAlign: 'center' },
+  saveBtn:       {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15,
+  },
+  saveBtnDone:   { backgroundColor: '#22C55E' },
+  saveBtnLabel:  { color: '#fff', fontSize: 16, fontWeight: '700' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

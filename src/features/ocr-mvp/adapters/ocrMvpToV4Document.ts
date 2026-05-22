@@ -72,7 +72,7 @@ export function ocrMvpToV4Document(
   options?: OcrMvpSaveOptions,
 ): OcrMvpV4DocumentDraft {
   const s = result.action_summary;
-  const kind = result.document_type ?? 'unknown';
+  const kind = result.document_type ?? result.action_summary?.kind ?? 'unknown';
 
   const document: Dokument = {
     id:              options?.id ?? generateId(),

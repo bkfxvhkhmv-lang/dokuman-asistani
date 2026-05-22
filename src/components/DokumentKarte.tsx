@@ -103,7 +103,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         <View style={styles.titleBox}>
           <Text
             style={[styles.title, { color: isDone ? Colors.textTertiary : Colors.text, fontSize: fs(14) }]}
-            numberOfLines={1}
+            numberOfLines={2}
             maxFontSizeMultiplier={1.3}
           >
             {displayTitel}

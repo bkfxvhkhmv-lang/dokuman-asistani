@@ -69,7 +69,8 @@ export function ParsedHints({ hints, C, S }: ParsedHintsProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ paddingHorizontal: S.md, marginBottom: 6 }}
+      style={{ marginTop: 4, marginBottom: 6 }}
+      contentContainerStyle={{ paddingHorizontal: S.md }}
     >
       <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
         <Text style={{ fontSize: 11, color: C.textTertiary }}>Erkannt:</Text>

@@ -1,4 +1,4 @@
-import type { Dokument } from '@/store/types';
+import type { Dokument, ScannedPage } from '@/store/types';
 import type { OcrMvpJobStatus, OcrMvpActionSummary } from '@/services/ocrMvpApi';
 import { generateId } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
@@ -68,15 +68,21 @@ function resolveAbsender(kind: string, s: OcrMvpActionSummary | undefined): stri
   return s.sender ?? s.vendor_name ?? 'Unbekannt';
 }
 
+export interface OcrMvpSaveOptions {
+  id?:    string;
+  uri?:   string | null;
+  pages?: ScannedPage[];
+}
+
 export function ocrMvpToV4Document(
   result: OcrMvpJobStatus,
-  id?: string,
+  options?: OcrMvpSaveOptions,
 ): OcrMvpV4DocumentDraft {
   const s = result.action_summary;
   const kind = result.document_type ?? 'unknown';
 
   const document: Dokument = {
-    id:              id ?? generateId(),
+    id:              options?.id ?? generateId(),
     titel:           s?.title ?? 'Unbekanntes Dokument',
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
     absender:        resolveAbsender(kind, s),
@@ -90,7 +96,8 @@ export function ocrMvpToV4Document(
     datum:           new Date().toISOString(),
     gelesen:         false,
     erledigt:        false,
-    uri:             null,
+    uri:             options?.uri ?? null,
+    pages:           options?.pages,
     rohText:         null,
     iban:            s?.iban ?? null,
     confidence:      result.confidence ?? null,

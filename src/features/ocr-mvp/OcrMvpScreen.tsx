@@ -9,6 +9,8 @@ import IconButton from '@/components/IconButton';
 import { OCR_MVP_BASE } from '@/config';
 import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import { useStore } from '@/store';
+import { generateId } from '@/utils';
+import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
@@ -27,6 +29,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const { status, result, error, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
+  const [selectedUri, setSelectedUri] = useState<string | null>(null);
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');
@@ -51,22 +54,34 @@ export default function OcrMvpScreen({ onClose }: Props) {
     mimeType: string,
     forceType?: OcrMvpForceType,
   ) => {
+    setSelectedUri(fileUri);
     startJob({ uri: fileUri, name: fileName, mimeType }, forceType);
   };
 
-  const handleSaveToDocuments = useCallback(() => {
+  const handleSaveToDocuments = useCallback(async () => {
     if (!result || savedDocId) return;
+    if (!selectedUri) {
+      Alert.alert('Kayıt hatası', 'Kaynak dosya URI bulunamadı.');
+      return;
+    }
     try {
-      const draft = ocrMvpToV4Document(result);
+      const docId = generateId();
+      const persistedPages = await persistScanFiles(docId, [selectedUri]);
+      const draft = ocrMvpToV4Document(result, {
+        id:    docId,
+        uri:   persistedPages[0]?.uri ?? null,
+        pages: persistedPages,
+      });
       dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
       setSavedDocId(draft.document.id);
     } catch (e: any) {
       Alert.alert('Kayıt hatası', e?.message ?? 'Belge kaydedilemedi.');
     }
-  }, [result, savedDocId, dispatch]);
+  }, [result, savedDocId, selectedUri, dispatch]);
 
   const handleReset = useCallback(() => {
     setSavedDocId(null);
+    setSelectedUri(null);
     reset();
   }, [reset]);
 

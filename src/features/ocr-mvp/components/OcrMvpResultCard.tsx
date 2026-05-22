@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
+import IconButton from '@/components/IconButton';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
 import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
@@ -125,13 +126,14 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
         <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
           <View style={st.modalHeader}>
             <Text style={st.modalTitle}>Sonuç Önizleme</Text>
-            <TouchableOpacity
+            <IconButton
               onPress={() => setPreviewVisible(false)}
               style={st.closeBtn}
               activeOpacity={0.6}
+              accessibilityLabel="Kapat"
             >
               <Icon name="close" size={22} color={Colors.text} />
-            </TouchableOpacity>
+            </IconButton>
           </View>
           <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
             {previewText && previewText.trim().length > 0 ? (

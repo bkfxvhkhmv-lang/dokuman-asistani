@@ -5,6 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
+import IconButton from '@/components/IconButton';
 import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
@@ -36,9 +37,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
       <View style={st.header}>
         <Text style={st.title}>BriefPilot OCR</Text>
         {onClose && (
-          <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <IconButton onPress={onClose} accessibilityLabel="Kapat">
             <Icon name="close" size={22} color={Colors.textSecondary} />
-          </TouchableOpacity>
+          </IconButton>
         )}
       </View>
 

@@ -10,6 +10,7 @@ import IconButton from '@/components/IconButton';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
 import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
+import OcrMvpActionSummary from './OcrMvpActionSummary';
 
 const DOC_TYPE_LABEL: Record<string, string> = {
   invoice:    'Fatura',
@@ -35,9 +36,10 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
 
-  const docLabel  = DOC_TYPE_LABEL[result.document_type ?? ''] ?? result.document_type ?? '—';
+  const docLabel   = DOC_TYPE_LABEL[result.document_type ?? ''] ?? result.document_type ?? '—';
   const isHighRisk = HIGH_RISK_TYPES.has(result.document_type ?? '') && result.needs_review;
-  const confPct   = result.confidence != null ? Math.round(result.confidence * 100) : null;
+  const confPct    = result.confidence != null ? Math.round(result.confidence * 100) : null;
+  const hasSummary = !!result.action_summary;
 
   const handlePreview = async () => {
     if (!result.job_id) return;
@@ -77,51 +79,81 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
 
   return (
     <View style={st.container}>
+      {/* Başlık */}
       <View style={st.header}>
         <View style={st.successDot} />
         <Text style={st.successLabel}>Tamamlandı</Text>
       </View>
 
-      <View style={st.infoBlock}>
-        <Row label="Belge tipi" value={docLabel} colors={Colors} />
-        {confPct !== null && (
-          <Row label="Güven" value={result.confidence === 0 ? 'Zorla belirtildi' : `%${confPct}`} colors={Colors} />
-        )}
-      </View>
+      {/* Action summary paneli veya fallback */}
+      {hasSummary ? (
+        <OcrMvpActionSummary
+          summary={result.action_summary!}
+          onPreview={handlePreview}
+          onDownload={handleDownload}
+          isPreviewing={previewing}
+          isDownloading={downloading}
+        />
+      ) : (
+        <>
+          <View style={st.infoBlock}>
+            <Row label="Belge tipi" value={docLabel} colors={Colors} />
+            {confPct !== null && (
+              <Row label="Güven" value={result.confidence === 0 ? 'Zorla belirtildi' : `%${confPct}`} colors={Colors} />
+            )}
+          </View>
 
-      {result.needs_review && (
-        <View style={[st.warnBox, isHighRisk && st.warnBoxHigh]}>
-          <Icon name="warning-outline" size={18} color={isHighRisk ? '#FF6B6B' : '#F59E0B'} />
-          <Text style={[st.warnText, isHighRisk && st.warnTextHigh]}>
-            {isHighRisk
-              ? 'Bu belge hukuki veya vergi sonucu doğurabilir. Taslağı göndermeden önce uzman görüşü alın.'
-              : 'Lütfen sonucu göndermeden önce kontrol edin.'}
+          <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
+            {previewing
+              ? <ActivityIndicator color={Colors.primary} />
+              : <>
+                  <Icon name="eye-outline" size={20} color={Colors.primary} />
+                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>Sonucu Gör</Text>
+                </>}
+          </TouchableOpacity>
+
+          <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
+            {downloading
+              ? <ActivityIndicator color="#fff" />
+              : <>
+                  <Icon name="download-outline" size={20} color="#fff" />
+                  <Text style={st.downloadLabel}>İndir / Paylaş</Text>
+                </>}
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* Risk uyarısı — her zaman göster (summary olsa da olmasa da) */}
+      {isHighRisk && (
+        <View style={[st.warnBox, st.warnBoxHigh]}>
+          <Icon name="warning-outline" size={18} color="#FF6B6B" />
+          <Text style={[st.warnText, st.warnTextHigh]}>
+            Bu belge hukuki veya vergi sonucu doğurabilir. Taslağı göndermeden önce uzman görüşü alın.
           </Text>
         </View>
       )}
 
-      <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
-        {previewing
-          ? <ActivityIndicator color={Colors.primary} />
-          : <>
-              <Icon name="eye-outline" size={20} color={Colors.primary} />
-              <Text style={[st.downloadLabel, { color: Colors.primary }]}>Sonucu Gör</Text>
-            </>}
-      </TouchableOpacity>
+      {/* Hafif inceleme uyarısı — sadece fallback modda */}
+      {result.needs_review && !isHighRisk && !hasSummary && (
+        <View style={st.warnBox}>
+          <Icon name="warning-outline" size={18} color="#F59E0B" />
+          <Text style={st.warnText}>Lütfen sonucu göndermeden önce kontrol edin.</Text>
+        </View>
+      )}
 
-      <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
-        {downloading
-          ? <ActivityIndicator color="#fff" />
-          : <>
-              <Icon name="download-outline" size={20} color="#fff" />
-              <Text style={st.downloadLabel}>İndir / Paylaş</Text>
-            </>}
-      </TouchableOpacity>
+      {/* Teknik detaylar — action summary varsa küçük alt satır olarak */}
+      {hasSummary && (
+        <Text style={[st.techLine, { color: Colors.textTertiary }]}>
+          {result.provider ?? '—'}
+          {confPct !== null ? `  ·  %${confPct} güven` : ''}
+        </Text>
+      )}
 
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
         <Text style={st.resetLabel}>Yeni Belge</Text>
       </TouchableOpacity>
 
+      {/* Önizleme modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
         <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
           <View style={st.modalHeader}>
@@ -190,7 +222,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   previewBtn:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderRadius: 14, paddingVertical: 15,
-    borderWidth: 1.5, borderColor: C.primary, backgroundColor: C.primaryLight ?? C.bgCard,
+    borderWidth: 1.5, borderColor: C.primary, backgroundColor: (C as any).primaryLight ?? C.bgCard,
   },
   downloadBtn:  {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -198,6 +230,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     marginHorizontal: 16, marginBottom: 16,
   },
   downloadLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  techLine:      { fontSize: 11, textAlign: 'center' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

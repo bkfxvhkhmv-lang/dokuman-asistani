@@ -14,6 +14,40 @@ export type OcrMvpForceType =
   | 'form'
   | 'letter';
 
+export interface OcrMvpActionSummary {
+  kind?: string;
+  title?: string;
+  // Form / Settlement
+  fields_count?: number;
+  tables_count?: number;
+  lines_count?: number;
+  // Invoice
+  vendor_name?: string;
+  invoice_number?: string;
+  invoice_date?: string;
+  amount?: number | null;
+  total_brutto?: number | null;
+  total_netto?: number | null;
+  total_vat?: number | null;
+  line_items_count?: number;
+  currency?: string;
+  iban?: string | null;
+  due_date?: string | null;
+  category?: string | null;
+  // Letter / Insurance
+  sender?: string;
+  document_date?: string;
+  deadline?: string | null;
+  risk_level?: string;
+  risk_description?: string;
+  required_action?: string;
+  recommended_step?: string;
+  summary?: string | null;
+  // Common
+  recommended_actions?: string[];
+  warnings?: string[];
+}
+
 export interface OcrMvpJobStatus {
   job_id: string;
   status: 'processing' | 'done' | 'error';
@@ -23,6 +57,7 @@ export interface OcrMvpJobStatus {
   needs_review?: boolean;
   output_path?: string;
   reasons?: string[];
+  action_summary?: OcrMvpActionSummary;
   error?: string;
   created_at?: string;
   finished_at?: string;

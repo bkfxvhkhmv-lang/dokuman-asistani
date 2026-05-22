@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Dimensions, type LayoutRectangle } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, type LayoutRectangle } from 'react-native';
+import Pdf from 'react-native-pdf';
+import * as Sharing from 'expo-sharing';
 import Icon from '@/components/Icon';
 import DocumentMagnifier from '@/components/DocumentMagnifier';
 import { documentPagesViewerStyles as st } from '@/features/detail/components/document-pages-viewer/styles';
@@ -14,6 +16,7 @@ const WINDOW = Dimensions.get('window');
 /** Tam ekran önizleme — mercek (uzun bas + sürükle) küçük bölümü büyütür */
 export default function ViewerPageSlide({ uri, isMissing }: Props) {
   const [viewport, setViewport] = useState<LayoutRectangle | null>(null);
+  const [pdfError, setPdfError] = useState(false);
 
   const imgW = viewport && viewport.width > 40 ? viewport.width : WINDOW.width;
   const imgH = viewport && viewport.height > 40 ? viewport.height : WINDOW.height * 0.82;
@@ -29,6 +32,42 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
             neu scannen oder löschen.
           </Text>
         </View>
+      </View>
+    );
+  }
+
+  const isPdf = uri.toLowerCase().endsWith('.pdf');
+
+  if (isPdf) {
+    if (pdfError) {
+      return (
+        <View style={st.pageWrap}>
+          <View style={pdfSt.fallbackCard}>
+            <Icon name="document-outline" size={48} color="rgba(255,255,255,0.45)" />
+            <Text style={pdfSt.fallbackText}>PDF-Vorschau konnte nicht angezeigt werden.</Text>
+            <TouchableOpacity
+              style={pdfSt.openBtn}
+              onPress={() => Sharing.shareAsync(uri)}
+              activeOpacity={0.75}
+            >
+              <Text style={pdfSt.openBtnLabel}>Datei öffnen</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View
+        style={[st.pageWrap, { overflow: 'hidden' }]}
+        onLayout={e => setViewport(e.nativeEvent.layout)}
+      >
+        <Pdf
+          source={{ uri }}
+          style={{ width: imgW, height: imgH }}
+          fitPolicy={0}
+          onError={() => setPdfError(true)}
+        />
       </View>
     );
   }
@@ -49,3 +88,27 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
     </View>
   );
 }
+
+const pdfSt = StyleSheet.create({
+  fallbackCard: {
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 32,
+  },
+  fallbackText: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  openBtn: {
+    marginTop: 4,
+    paddingHorizontal: 24,
+    paddingVertical: 11,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  openBtnLabel: { color: '#fff', fontSize: 14, fontWeight: '600' },
+});

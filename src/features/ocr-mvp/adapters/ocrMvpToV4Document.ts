@@ -100,7 +100,11 @@ export function ocrMvpToV4Document(
     pages:           options?.pages,
     rohText:         null,
     iban:            s?.iban ?? null,
-    confidence:      result.confidence ?? null,
+    confidence:      typeof result.confidence === 'number'
+                       ? result.confidence <= 1
+                         ? Math.round(result.confidence * 100)
+                         : Math.round(result.confidence)
+                       : null,
     v4JobStatus:     'completed',
   };
 

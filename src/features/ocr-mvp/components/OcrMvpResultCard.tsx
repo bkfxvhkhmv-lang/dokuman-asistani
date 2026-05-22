@@ -145,7 +145,7 @@ export default function OcrMvpResultCard({ result, onReset }: Props) {
       {hasSummary && (
         <Text style={[st.techLine, { color: Colors.textTertiary }]}>
           {result.provider ?? '—'}
-          {confPct !== null ? `  ·  %${confPct} güven` : ''}
+          {confPct !== null ? `  ·  ${confPct === 0 ? 'Zorla belirtildi' : `%${confPct} güven`}` : ''}
         </Text>
       )}
 

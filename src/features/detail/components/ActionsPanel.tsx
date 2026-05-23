@@ -19,7 +19,7 @@ const ACTION_META: Record<string, { label: string; shortLabel: string; icon: str
   mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',    icon: 'envelope-simple', tone: 'neutral' },
   review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: 'magnifying-glass', tone: 'warning' },
   ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: 'sparkle',         tone: 'neutral' },
-  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: 'check-circle',    tone: 'success' },
+  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: 'check-circle',    tone: 'neutral' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {

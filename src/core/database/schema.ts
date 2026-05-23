@@ -34,4 +34,12 @@ export const documentEvents = sqliteTable('document_events', {
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const schema = { documents, documentMetadata, documentEvents };
+export const localMetadata = sqliteTable('local_metadata', {
+  id:        text('id').primaryKey().notNull(),
+  json:      text('json').notNull(),
+  isDeleted: integer('is_deleted', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at').notNull().default(sql`(strftime('%s','now'))`),
+  updatedAt: integer('updated_at').notNull().default(sql`(strftime('%s','now'))`),
+});
+
+export const schema = { documents, documentMetadata, documentEvents, localMetadata };

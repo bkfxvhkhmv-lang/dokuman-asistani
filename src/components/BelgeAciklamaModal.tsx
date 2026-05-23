@@ -305,7 +305,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
               padding: 16, borderWidth: 1, borderColor: C.dangerBorder, marginBottom: 16 }}>
               <Text style={{ fontSize: 14, color: C.dangerText }}>{hata}</Text>
               <TouchableOpacity onPress={() => handleAcikla()} style={{ marginTop: 12 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>Tekrar dene →</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>Erneut versuchen →</Text>
               </TouchableOpacity>
             </View>
           )}

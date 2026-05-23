@@ -135,13 +135,32 @@ export function buildDocumentTitle(
   }
 }
 
+// Only fields that unambiguously name the sending organisation — never applicant/recipient fields.
+const SENDER_FIELD_RE =
+  /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|bank|krankenkasse|dienstleister)/i;
+
+const MAX_SENDER_LENGTH = 80;
+
 export function buildDocumentSender(
   kind: string,
   s: OcrMvpActionSummary | undefined,
 ): string {
   if (!s) return 'Unbekannt';
-  if (kind === 'invoice' || kind === 'settlement') {
-    return s.vendor_name ?? s.sender ?? 'Unbekannt';
+
+  const direct =
+    kind === 'invoice' || kind === 'settlement'
+      ? (s.vendor_name ?? s.sender)
+      : (s.sender ?? s.vendor_name);
+
+  if (direct?.trim()) return direct.trim();
+
+  const match = (s.fields ?? []).find(
+    f => SENDER_FIELD_RE.test(f.name.trim()) && f.value.trim().length > 0,
+  );
+  if (match) {
+    const v = match.value.trim();
+    return v.length <= MAX_SENDER_LENGTH ? v : 'Unbekannt';
   }
-  return s.sender ?? s.vendor_name ?? 'Unbekannt';
+
+  return 'Unbekannt';
 }

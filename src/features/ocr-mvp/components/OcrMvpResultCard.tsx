@@ -29,9 +29,10 @@ interface Props {
   onReset: () => void;
   onSaveToDocuments?: () => void;
   isSavedToDocuments?: boolean;
+  onOpenDocument?: () => void;
 }
 
-export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments }: Props) {
+export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments, onOpenDocument }: Props) {
   const { Colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [downloading, setDownloading] = useState(false);
@@ -187,6 +188,13 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
           <Text style={st.saveBtnLabel}>
             {isSavedToDocuments ? 'Gespeichert' : 'In Dokumente speichern'}
           </Text>
+        </TouchableOpacity>
+      )}
+
+      {isSavedToDocuments && onOpenDocument && (
+        <TouchableOpacity style={st.openDocBtn} onPress={onOpenDocument} activeOpacity={0.75}>
+          <Text style={[st.openDocLabel, { color: Colors.primary }]}>Dokument öffnen</Text>
+          <Icon name="arrow-forward-outline" size={16} color={Colors.primary} />
         </TouchableOpacity>
       )}
 
@@ -368,6 +376,8 @@ const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => 
   },
   saveBtnDone:   { backgroundColor: '#22C55E' },
   saveBtnLabel:  { color: '#fff', fontSize: 16, fontWeight: '700' },
+  openDocBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10 },
+  openDocLabel:  { fontSize: 14, fontWeight: '600' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

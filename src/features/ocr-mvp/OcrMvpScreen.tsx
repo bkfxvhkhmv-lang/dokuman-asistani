@@ -3,6 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
@@ -54,6 +55,7 @@ interface Props {
 
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
+  const router = useRouter();
   const { dispatch } = useStore();
   const { status, result, error, errorKind, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
@@ -120,6 +122,11 @@ export default function OcrMvpScreen({ onClose }: Props) {
     }
   }, [result, savedDocId, selectedUri, dispatch]);
 
+  const handleOpenDocument = useCallback(() => {
+    if (!savedDocId) return;
+    router.push({ pathname: '/detail', params: { dokId: savedDocId } });
+  }, [savedDocId, router]);
+
   const handleReset = useCallback(() => {
     setSavedDocId(null);
     setSelectedUri(null);
@@ -157,6 +164,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
             onReset={handleReset}
             onSaveToDocuments={handleSaveToDocuments}
             isSavedToDocuments={!!savedDocId}
+            onOpenDocument={savedDocId ? handleOpenDocument : undefined}
           />
         )}
 

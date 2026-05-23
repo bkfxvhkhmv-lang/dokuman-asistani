@@ -82,7 +82,7 @@ export function useDetailMoreItems({
       });
     }
 
-    const antwortTypen: string[] = ['Behörden / Amt', 'Versicherungen'];
+    const antwortTypen: string[] = ['Behörden / Amt', 'Versicherung'];
     if (
       aktiv.includes('mail') ||
       aktiv.includes('einspruch') ||

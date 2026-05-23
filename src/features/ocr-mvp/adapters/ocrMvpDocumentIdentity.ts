@@ -2,7 +2,7 @@ import type { OcrMvpActionSummary } from '@/services/ocrMvpApi';
 
 // Filename-like patterns that are never meaningful document titles.
 const REJECT_TITLE_RE =
-  /^(scan\s?vom|camscanner|img_|dsc_|photo|input(\.|$)|document|upload|belge|unknown|unbekannt)/i;
+  /^(scan[\s_]?vom|camscanner|scanbot|img_|dsc_|photo_|input|document|upload|belge|unknown|unbekannt)/i;
 
 export function isMeaningfulTitle(title: string | null | undefined): boolean {
   if (!title) return false;
@@ -38,6 +38,13 @@ function formatAmount(
   return `${intFormatted},${dec} ${cur}`;
 }
 
+function todayFormatted(): string {
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${d.getFullYear()}`;
+}
+
 function formatDeadline(deadline: string | null | undefined): string | null {
   if (!deadline) return null;
   const d = new Date(deadline);
@@ -67,14 +74,14 @@ export function buildDocumentTitle(
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return label;
+      return `${label} vom ${todayFormatted()}`;
     }
 
     case 'settlement': {
       const entity = s?.vendor_name ?? s?.sender;
       if (entity) return `${entity} · ${label}`;
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return label;
+      return `${label} vom ${todayFormatted()}`;
     }
 
     case 'letter': {
@@ -85,7 +92,7 @@ export function buildDocumentTitle(
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return label;
+      return `${label} vom ${todayFormatted()}`;
     }
 
     case 'insurance': {
@@ -96,12 +103,15 @@ export function buildDocumentTitle(
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return label;
+      return `${label} vom ${todayFormatted()}`;
     }
 
     case 'form': {
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return s?.fields_count ? `${label} · ${s.fields_count} Felder` : label;
+      const today = todayFormatted();
+      return s?.fields_count
+        ? `${label} · ${s.fields_count} Felder · ${today}`
+        : `${label} vom ${today}`;
     }
 
     case 'quote': {
@@ -113,14 +123,14 @@ export function buildDocumentTitle(
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return label;
+      return `${label} vom ${todayFormatted()}`;
     }
 
     default: {
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
       const entity = s?.sender ?? s?.vendor_name;
       if (entity) return `${entity} · ${label}`;
-      return 'Unbenanntes Dokument';
+      return `Dokument vom ${todayFormatted()}`;
     }
   }
 }

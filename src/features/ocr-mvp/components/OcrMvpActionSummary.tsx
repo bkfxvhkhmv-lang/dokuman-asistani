@@ -5,6 +5,7 @@ import {
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
+import { isMeaningfulTitle } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
 
 const KIND_LABEL: Record<string, string> = {
   invoice:    'Rechnung',
@@ -53,7 +54,7 @@ export default function OcrMvpActionSummary({
   const kind      = summary.kind ?? 'unknown';
   const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
   const rawTitle  = summary.title;
-  const title     = (!rawTitle || rawTitle === 'input') ? null : rawTitle;
+  const title     = isMeaningfulTitle(rawTitle) ? rawTitle!.trim() : null;
   const riskCfg   = summary.risk_level ? RISK_CONFIG[summary.risk_level] : null;
 
   const handlePress = (handler: ActionHandler) => {
@@ -62,7 +63,9 @@ export default function OcrMvpActionSummary({
     Alert.alert('Bald verfügbar', 'Diese Funktion wird in Kürze hinzugefügt.');
   };
 
-  const actions = (summary.recommended_actions ?? []).slice(0, 3);
+  const actions = (summary.recommended_actions ?? [])
+    .filter(key => { const c = ACTION_MAP[key]; return c != null && c.handler !== 'soon'; })
+    .slice(0, 3);
 
   return (
     <View style={st.container}>
@@ -83,9 +86,9 @@ export default function OcrMvpActionSummary({
       {/* Form / Settlement meta */}
       {(kind === 'form' || kind === 'settlement') && (
         <View style={st.metaRow}>
-          {summary.fields_count != null && <MetaChip label={`${summary.fields_count} Felder`}   C={Colors} />}
-          {summary.tables_count != null && <MetaChip label={`${summary.tables_count} Tabellen`} C={Colors} />}
-          {summary.lines_count  != null && <MetaChip label={`${summary.lines_count} Zeilen`}    C={Colors} />}
+          {summary.fields_count != null && <MetaChip label={`${summary.fields_count} ${summary.fields_count === 1 ? 'Feld' : 'Felder'}`}     C={Colors} />}
+          {summary.tables_count != null && <MetaChip label={`${summary.tables_count} ${summary.tables_count === 1 ? 'Tabelle' : 'Tabellen'}`} C={Colors} />}
+          {summary.lines_count  != null && <MetaChip label={`${summary.lines_count} ${summary.lines_count === 1 ? 'Zeile' : 'Zeilen'}`}       C={Colors} />}
         </View>
       )}
 
@@ -138,37 +141,26 @@ export default function OcrMvpActionSummary({
           {actions.map((key, idx) => {
             const cfg = ACTION_MAP[key];
             if (!cfg) return null;
-            const isSoon      = cfg.handler === 'soon';
-            const isLoading   = (!isSoon) && (
-              (cfg.handler === 'preview'  && isPreviewing) ||
-              (cfg.handler === 'download' && isDownloading)
-            );
-            const isPrimary   = idx === 0 && !isSoon;
-            const iconColor   = isSoon ? Colors.textTertiary : isPrimary ? '#fff' : Colors.primary;
+            const isLoading = (cfg.handler === 'preview'  && isPreviewing) ||
+                              (cfg.handler === 'download' && isDownloading);
+            const isPrimary = idx === 0;
+            const iconColor = isPrimary ? '#fff' : Colors.primary;
 
             return (
               <TouchableOpacity
                 key={key}
-                style={[st.btn, isPrimary ? st.btnPrimary : isSoon ? st.btnSoon : st.btnOutline]}
+                style={[st.btn, isPrimary ? st.btnPrimary : st.btnOutline]}
                 onPress={() => !isLoading && handlePress(cfg.handler)}
-                activeOpacity={isSoon ? 1 : 0.8}
+                activeOpacity={0.8}
                 disabled={isLoading}
               >
                 {isLoading
                   ? <ActivityIndicator size="small" color={isPrimary ? '#fff' : Colors.primary} />
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
-                <Text style={[
-                  st.btnLabel,
-                  isPrimary ? st.btnLabelPrimary : isSoon ? st.btnLabelSoon : st.btnLabelOutline,
-                ]}>
+                <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
                   {cfg.label}
                 </Text>
-                {isSoon && (
-                  <View style={[st.soonTag, { borderColor: Colors.border }]}>
-                    <Text style={[st.soonText, { color: Colors.textTertiary }]}>bald</Text>
-                  </View>
-                )}
               </TouchableOpacity>
             );
           })}

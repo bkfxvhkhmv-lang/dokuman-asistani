@@ -118,8 +118,8 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <>
           <View style={st.infoBlock}>
             <Row label="Dokumenttyp" value={docLabel} colors={Colors} />
-            {confPct !== null && (
-              <Row label="Konfidenz" value={result.confidence === 0 ? 'Manuell festgelegt' : `${confPct} %`} colors={Colors} />
+            {confPct !== null && confPct > 0 && (
+              <Row label="Konfidenz" value={`${confPct} %`} colors={Colors} />
             )}
           </View>
 
@@ -161,11 +161,9 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         </View>
       )}
 
-      {/* Teknik detaylar — action summary varsa küçük alt satır olarak */}
-      {hasSummary && (
+      {hasSummary && confPct !== null && confPct > 0 && (
         <Text style={[st.techLine, { color: Colors.textTertiary }]}>
-          {result.provider ?? '—'}
-          {confPct !== null ? `  ·  ${confPct === 0 ? 'Manuell festgelegt' : `${confPct} % Konfidenz`}` : ''}
+          {`${confPct} % Konfidenz`}
         </Text>
       )}
 

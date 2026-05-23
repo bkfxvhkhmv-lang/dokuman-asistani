@@ -63,8 +63,23 @@ export default function OcrMvpActionSummary({
     Alert.alert('Bald verfügbar', 'Diese Funktion wird in Kürze hinzugefügt.');
   };
 
+  const hasPreviewData = (summary.fields_count ?? 0) > 0 || (summary.tables_count ?? 0) > 0;
+
+  const previewLabel = (): string => {
+    const hasFields = (summary.fields_count ?? 0) > 0;
+    const hasTables = (summary.tables_count ?? 0) > 0;
+    if (!hasFields && hasTables) return 'Tabellen anzeigen';
+    if (hasFields  && hasTables) return 'Datenvorschau';
+    return 'Felder anzeigen';
+  };
+
   const actions = (summary.recommended_actions ?? [])
-    .filter(key => { const c = ACTION_MAP[key]; return c != null && c.handler !== 'soon'; })
+    .filter(key => {
+      const c = ACTION_MAP[key];
+      if (!c || c.handler === 'soon') return false;
+      if (key === 'show_fields' && !hasPreviewData) return false;
+      return true;
+    })
     .slice(0, 3);
 
   return (
@@ -159,7 +174,7 @@ export default function OcrMvpActionSummary({
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
                 <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
-                  {cfg.label}
+                  {key === 'show_fields' ? previewLabel() : cfg.label}
                 </Text>
               </TouchableOpacity>
             );

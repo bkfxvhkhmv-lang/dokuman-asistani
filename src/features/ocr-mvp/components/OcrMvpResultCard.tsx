@@ -75,7 +75,12 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
     try {
       const ext      = outputExt ?? 'bin';
       const uti      = ext === 'xlsx' ? 'com.microsoft.excel.xlsx' : 'public.plain-text';
-      const uri      = await downloadOcrResult(result.job_id, `briefpilot_output.${ext}`);
+      const kind     = result.action_summary?.kind ?? 'unknown';
+      const label    = DOC_TYPE_LABEL[kind] ?? 'Dokument';
+      const today    = new Date();
+      const dateStr  = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const filename = `${label}_${dateStr}.${ext}`;
+      const uri      = await downloadOcrResult(result.job_id, filename);
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
         await Sharing.shareAsync(uri, { UTI: uti });

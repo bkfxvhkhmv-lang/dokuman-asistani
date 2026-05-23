@@ -74,7 +74,8 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
       : 'Antwort oder Weiterleitung per E-Mail vorbereiten.';
   }
   if (key === 'ai') {
-    return 'Dokument analysieren lassen — KI erklärt Inhalt und Risiken.';
+    if (dok.confidence == null) return 'Dokument analysieren lassen — KI erklärt Inhalt und Risiken.';
+    return null;
   }
 
   return null;

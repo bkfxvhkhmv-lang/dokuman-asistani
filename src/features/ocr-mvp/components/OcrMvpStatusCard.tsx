@@ -7,9 +7,9 @@ import type { OcrMvpStatus } from '@/hooks/useOcrMvpJob';
 type StepState = 'done' | 'active' | 'pending';
 
 const STEPS = [
-  { key: 'upload',  label: 'Belge gönderiliyor...',  doneLabel: 'Belge gönderildi'  },
-  { key: 'process', label: 'OCR işleniyor...',        doneLabel: 'OCR tamamlandı'    },
-  { key: 'finish',  label: 'Sonuç hazırlanıyor...',   doneLabel: 'Sonuç hazır'       },
+  { key: 'upload',  label: 'Dokument wird gesendet ...',    doneLabel: 'Dokument gesendet'  },
+  { key: 'process', label: 'OCR wird verarbeitet ...',      doneLabel: 'OCR abgeschlossen'  },
+  { key: 'finish',  label: 'Ergebnis wird vorbereitet ...', doneLabel: 'Ergebnis bereit'    },
 ];
 
 function getStepState(key: string, status: OcrMvpStatus): StepState {
@@ -19,8 +19,8 @@ function getStepState(key: string, status: OcrMvpStatus): StepState {
 }
 
 const SUB_LABEL: Partial<Record<OcrMvpStatus, string>> = {
-  uploading:  'Dosya sunucuya aktarılıyor',
-  processing: '10–30 saniye sürebilir',
+  uploading:  'Datei wird hochgeladen',
+  processing: 'Kann 10–30 Sekunden dauern',
 };
 
 interface Props {

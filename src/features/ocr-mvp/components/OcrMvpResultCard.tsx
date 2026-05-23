@@ -13,13 +13,13 @@ import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import OcrMvpActionSummary from './OcrMvpActionSummary';
 
 const DOC_TYPE_LABEL: Record<string, string> = {
-  invoice:    'Fatura',
-  settlement: 'Kira Yan Giderleri',
-  insurance:  'Sigorta Belgesi',
-  quote:      'Teklif',
-  form:       'Resmi Form',
-  letter:     'Resmi Yazı',
-  unknown:    'Tanımlanamayan Belge',
+  invoice:    'Rechnung',
+  settlement: 'Nebenkosten',
+  insurance:  'Versicherungsdokument',
+  quote:      'Angebot',
+  form:       'Formular',
+  letter:     'Behördenpost',
+  unknown:    'Unbekanntes Dokument',
 };
 
 const HIGH_RISK_TYPES = new Set(['letter', 'insurance']);
@@ -63,7 +63,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       setPreviewText(text);
       setPreviewVisible(true);
     } catch (e: any) {
-      Alert.alert('Önizleme hatası', e?.message ?? 'Bilinmeyen hata');
+      Alert.alert('Vorschau nicht möglich', e?.message ?? 'Unbekannter Fehler');
     } finally {
       setPreviewing(false);
     }
@@ -79,10 +79,10 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       if (canShare) {
         await Sharing.shareAsync(uri, { UTI: ext === 'xlsx' ? 'com.microsoft.excel.xlsx' : 'public.plain-text' });
       } else {
-        Alert.alert('İndirme tamamlandı', uri);
+        Alert.alert('Download abgeschlossen', uri);
       }
     } catch (e: any) {
-      Alert.alert('İndirme hatası', e?.message ?? 'Bilinmeyen hata');
+      Alert.alert('Herunterladen fehlgeschlagen', e?.message ?? 'Unbekannter Fehler');
     } finally {
       setDownloading(false);
     }
@@ -95,7 +95,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {/* Başlık */}
       <View style={st.header}>
         <View style={st.successDot} />
-        <Text style={st.successLabel}>Tamamlandı</Text>
+        <Text style={st.successLabel}>Abgeschlossen</Text>
       </View>
 
       {/* Action summary paneli veya fallback */}
@@ -110,9 +110,9 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       ) : (
         <>
           <View style={st.infoBlock}>
-            <Row label="Belge tipi" value={docLabel} colors={Colors} />
+            <Row label="Dokumenttyp" value={docLabel} colors={Colors} />
             {confPct !== null && (
-              <Row label="Güven" value={result.confidence === 0 ? 'Zorla belirtildi' : `%${confPct}`} colors={Colors} />
+              <Row label="Konfidenz" value={result.confidence === 0 ? 'Manuell festgelegt' : `${confPct} %`} colors={Colors} />
             )}
           </View>
 
@@ -121,7 +121,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               ? <ActivityIndicator color={Colors.primary} />
               : <>
                   <Icon name="eye-outline" size={20} color={Colors.primary} />
-                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>Sonucu Gör</Text>
+                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>Ergebnis anzeigen</Text>
                 </>}
           </TouchableOpacity>
 
@@ -130,7 +130,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               ? <ActivityIndicator color="#fff" />
               : <>
                   <Icon name="download-outline" size={20} color="#fff" />
-                  <Text style={st.downloadLabel}>İndir / Paylaş</Text>
+                  <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
                 </>}
           </TouchableOpacity>
         </>
@@ -141,7 +141,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <View style={[st.warnBox, st.warnBoxHigh]}>
           <Icon name="warning-outline" size={18} color="#FF6B6B" />
           <Text style={[st.warnText, st.warnTextHigh]}>
-            Bu belge hukuki veya vergi sonucu doğurabilir. Taslağı göndermeden önce uzman görüşü alın.
+            Dieses Dokument kann rechtliche oder steuerliche Konsequenzen haben. Bitte holen Sie vor dem Versand eine Expertenmeinung ein.
           </Text>
         </View>
       )}
@@ -150,7 +150,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {result.needs_review && !isHighRisk && !hasSummary && (
         <View style={st.warnBox}>
           <Icon name="warning-outline" size={18} color="#F59E0B" />
-          <Text style={st.warnText}>Lütfen sonucu göndermeden önce kontrol edin.</Text>
+          <Text style={st.warnText}>Bitte prüfen Sie das Ergebnis, bevor Sie es weiterleiten.</Text>
         </View>
       )}
 
@@ -158,7 +158,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {hasSummary && (
         <Text style={[st.techLine, { color: Colors.textTertiary }]}>
           {result.provider ?? '—'}
-          {confPct !== null ? `  ·  ${confPct === 0 ? 'Zorla belirtildi' : `%${confPct} güven`}` : ''}
+          {confPct !== null ? `  ·  ${confPct === 0 ? 'Manuell festgelegt' : `${confPct} % Konfidenz`}` : ''}
         </Text>
       )}
 
@@ -175,25 +175,25 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
             color="#fff"
           />
           <Text style={st.saveBtnLabel}>
-            {isSavedToDocuments ? 'Kaydedildi' : 'Belgelere Kaydet'}
+            {isSavedToDocuments ? 'Gespeichert' : 'In Dokumente speichern'}
           </Text>
         </TouchableOpacity>
       )}
 
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
-        <Text style={st.resetLabel}>Yeni Belge</Text>
+        <Text style={st.resetLabel}>Neue Analyse</Text>
       </TouchableOpacity>
 
       {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
         <SafeAreaView style={st.modalRoot} edges={['bottom']}>
           <View style={st.modalHeader}>
-            <Text style={st.modalTitle}>{isXlsx ? 'Excel dosyası hazır' : 'Sonuç Önizleme'}</Text>
+            <Text style={st.modalTitle}>{isXlsx ? 'Excel-Datei bereit' : 'Ergebnisvorschau'}</Text>
             <IconButton
               onPress={() => setPreviewVisible(false)}
               style={st.closeBtn}
               activeOpacity={0.6}
-              accessibilityLabel="Kapat"
+              accessibilityLabel="Schließen"
             >
               <Icon name="close" size={22} color={Colors.text} />
             </IconButton>
@@ -203,10 +203,10 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               <View style={{ alignItems: 'center', paddingTop: 48, gap: 16 }}>
                 <Icon name="document-outline" size={56} color={Colors.textSecondary} />
                 <Text style={{ color: Colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
-                  Excel dosyası hazır
+                  Excel-Datei bereit
                 </Text>
                 <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 }}>
-                  Bu belge Excel formatında oluşturuldu.{'\n'}İndirip paylaşabilirsin.
+                  Dieses Dokument wurde als Excel-Datei erstellt.{'\n'}Du kannst es herunterladen und teilen.
                 </Text>
               </View>
             ) : previewText && previewText.trim().length > 0 ? (
@@ -215,7 +215,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               <View style={{ alignItems: 'center', paddingTop: 48, gap: 12 }}>
                 <Icon name="document-outline" size={48} color={Colors.textSecondary} />
                 <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center' }}>
-                  İçerik yüklenemedi.
+                  Inhalt konnte nicht geladen werden.
                 </Text>
               </View>
             )}
@@ -226,7 +226,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
             activeOpacity={0.8}
           >
             <Icon name="download-outline" size={20} color="#fff" />
-            <Text style={st.downloadLabel}>İndir / Paylaş</Text>
+            <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>

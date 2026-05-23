@@ -95,7 +95,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const handleSaveToDocuments = useCallback(async () => {
     if (!result || savedDocId) return;
     if (!selectedUri) {
-      Alert.alert('Kayıt hatası', 'Kaynak dosya URI bulunamadı.');
+      Alert.alert('Speichern fehlgeschlagen', 'Quelldatei konnte nicht gefunden werden.');
       return;
     }
     try {
@@ -109,7 +109,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
       setSavedDocId(draft.document.id);
     } catch (e: any) {
-      Alert.alert('Kayıt hatası', e?.message ?? 'Belge kaydedilemedi.');
+      Alert.alert('Speichern fehlgeschlagen', e?.message ?? 'Dokument konnte nicht gespeichert werden.');
     }
   }, [result, savedDocId, selectedUri, dispatch]);
 
@@ -127,7 +127,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       <View style={st.header}>
         <Text style={st.title}>BriefPilot OCR</Text>
         {onClose && (
-          <IconButton onPress={onClose} accessibilityLabel="Kapat">
+          <IconButton onPress={onClose} accessibilityLabel="Schließen">
             <Icon name="close" size={22} color={Colors.textSecondary} />
           </IconButton>
         )}

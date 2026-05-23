@@ -7,33 +7,33 @@ import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
 
 const KIND_LABEL: Record<string, string> = {
-  invoice:    'Fatura',
-  settlement: 'Kira Yan Giderleri',
-  form:       'Form Belgesi',
-  letter:     'Resmi Yazı',
-  insurance:  'Sigorta Belgesi',
-  quote:      'Teklif',
+  invoice:    'Rechnung',
+  settlement: 'Nebenkosten',
+  form:       'Formular',
+  letter:     'Behördenpost',
+  insurance:  'Versicherungsdokument',
+  quote:      'Angebot',
 };
 
 const RISK_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  dusuk:  { label: 'Düşük Risk',  color: '#22C55E', bg: '#22C55E18' },
-  orta:   { label: 'Orta Risk',   color: '#F59E0B', bg: '#F59E0B18' },
-  yuksek: { label: 'Yüksek Risk', color: '#FF6B6B', bg: '#FF6B6B18' },
+  dusuk:  { label: 'Niedriges Risiko', color: '#22C55E', bg: '#22C55E18' },
+  orta:   { label: 'Mittleres Risiko', color: '#F59E0B', bg: '#F59E0B18' },
+  yuksek: { label: 'Hohes Risiko',     color: '#FF6B6B', bg: '#FF6B6B18' },
 };
 
 type ActionHandler = 'preview' | 'download' | 'soon';
 interface ActionCfg { label: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:          { label: "Excel'e Aktar",      icon: 'download-outline',          handler: 'download' },
-  export_share:          { label: 'Paylaş',             icon: 'share-outline',             handler: 'download' },
-  show_fields:           { label: 'Alanları Gör',       icon: 'list-outline',              handler: 'preview'  },
-  show_summary:          { label: 'Özeti Gör',          icon: 'document-text-outline',     handler: 'preview'  },
-  create_reply_draft:    { label: 'Taslağı Gör',        icon: 'create-outline',            handler: 'preview'  },
-  add_payment_reminder:  { label: 'Ödeme Hatırlatıcı',  icon: 'alarm-outline',             handler: 'soon'     },
-  add_deadline_reminder: { label: 'Takvime Frist Ekle', icon: 'calendar-outline',          handler: 'soon'     },
-  review_missing_fields: { label: 'Eksikleri Kontrol',  icon: 'checkmark-circle-outline',  handler: 'soon'     },
-  manual_review:         { label: 'Uzman İçin Not',     icon: 'alert-circle-outline',      handler: 'soon'     },
+  export_excel:          { label: 'Nach Excel exportieren',    icon: 'download-outline',          handler: 'download' },
+  export_share:          { label: 'Teilen',                    icon: 'share-outline',             handler: 'download' },
+  show_fields:           { label: 'Felder anzeigen',           icon: 'list-outline',              handler: 'preview'  },
+  show_summary:          { label: 'Zusammenfassung anzeigen',  icon: 'document-text-outline',     handler: 'preview'  },
+  create_reply_draft:    { label: 'Entwurf anzeigen',          icon: 'create-outline',            handler: 'preview'  },
+  add_payment_reminder:  { label: 'Zahlungserinnerung',        icon: 'alarm-outline',             handler: 'soon'     },
+  add_deadline_reminder: { label: 'Frist eintragen',           icon: 'calendar-outline',          handler: 'soon'     },
+  review_missing_fields: { label: 'Fehlende prüfen',           icon: 'checkmark-circle-outline',  handler: 'soon'     },
+  manual_review:         { label: 'Hinweis für Experten',      icon: 'alert-circle-outline',      handler: 'soon'     },
 };
 
 interface Props {
@@ -51,7 +51,7 @@ export default function OcrMvpActionSummary({
   const st = styles(Colors);
 
   const kind      = summary.kind ?? 'unknown';
-  const kindLabel = KIND_LABEL[kind] ?? 'Belge';
+  const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
   const rawTitle  = summary.title;
   const title     = (!rawTitle || rawTitle === 'input') ? null : rawTitle;
   const riskCfg   = summary.risk_level ? RISK_CONFIG[summary.risk_level] : null;
@@ -59,7 +59,7 @@ export default function OcrMvpActionSummary({
   const handlePress = (handler: ActionHandler) => {
     if (handler === 'preview')  { onPreview();  return; }
     if (handler === 'download') { onDownload(); return; }
-    Alert.alert('Yakında', 'Bu özellik yakında eklenecek.');
+    Alert.alert('Bald verfügbar', 'Diese Funktion wird in Kürze hinzugefügt.');
   };
 
   const actions = (summary.recommended_actions ?? []).slice(0, 3);
@@ -83,9 +83,9 @@ export default function OcrMvpActionSummary({
       {/* Form / Settlement meta */}
       {(kind === 'form' || kind === 'settlement') && (
         <View style={st.metaRow}>
-          {summary.fields_count != null && <MetaChip label={`${summary.fields_count} alan`} C={Colors} />}
-          {summary.tables_count != null && <MetaChip label={`${summary.tables_count} tablo`} C={Colors} />}
-          {summary.lines_count  != null && <MetaChip label={`${summary.lines_count} satır`}  C={Colors} />}
+          {summary.fields_count != null && <MetaChip label={`${summary.fields_count} Felder`}   C={Colors} />}
+          {summary.tables_count != null && <MetaChip label={`${summary.tables_count} Tabellen`} C={Colors} />}
+          {summary.lines_count  != null && <MetaChip label={`${summary.lines_count} Zeilen`}    C={Colors} />}
         </View>
       )}
 
@@ -100,7 +100,7 @@ export default function OcrMvpActionSummary({
             />
           )}
           {summary.line_items_count != null && (
-            <MetaChip label={`${summary.line_items_count} kalem`} C={Colors} />
+            <MetaChip label={`${summary.line_items_count} Positionen`} C={Colors} />
           )}
         </View>
       )}
@@ -120,7 +120,7 @@ export default function OcrMvpActionSummary({
             <View style={st.metaLine}>
               <Icon name="calendar-outline" size={14} color="#F59E0B" />
               <Text style={[st.metaLineText, { color: '#F59E0B', fontWeight: '700' }]}>
-                Son tarih: {summary.deadline}
+                Frist: {summary.deadline}
               </Text>
             </View>
           )}
@@ -166,7 +166,7 @@ export default function OcrMvpActionSummary({
                 </Text>
                 {isSoon && (
                   <View style={[st.soonTag, { borderColor: Colors.border }]}>
-                    <Text style={[st.soonText, { color: Colors.textTertiary }]}>yakında</Text>
+                    <Text style={[st.soonText, { color: Colors.textTertiary }]}>bald</Text>
                   </View>
                 )}
               </TouchableOpacity>

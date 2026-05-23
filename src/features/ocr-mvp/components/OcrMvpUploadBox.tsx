@@ -9,13 +9,13 @@ import Icon from '@/components/Icon';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 
 const FORCE_TYPE_OPTIONS: { value: OcrMvpForceType | null; label: string }[] = [
-  { value: null,         label: 'Otomatik' },
-  { value: 'invoice',   label: 'Fatura' },
-  { value: 'letter',    label: 'Resmi Yazı' },
-  { value: 'form',      label: 'Form' },
-  { value: 'insurance', label: 'Sigorta / KFZ' },
+  { value: null,         label: 'Automatisch' },
+  { value: 'invoice',   label: 'Rechnung' },
+  { value: 'letter',    label: 'Behördenpost' },
+  { value: 'form',      label: 'Formular' },
+  { value: 'insurance', label: 'Versicherung / KFZ' },
   { value: 'settlement',label: 'Nebenkosten' },
-  { value: 'quote',     label: 'Teklif' },
+  { value: 'quote',     label: 'Angebot' },
 ];
 
 interface Props {
@@ -79,7 +79,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
         <TouchableOpacity style={st.selectedZone} onPress={pickFile} activeOpacity={0.75}>
           <Icon name="document-text" size={36} color={Colors.primary} />
           <Text style={st.fileName} numberOfLines={2}>{selectedFile.name}</Text>
-          <Text style={st.changeHint}>Değiştirmek için dokun</Text>
+          <Text style={st.changeHint}>Zum Ändern tippen</Text>
         </TouchableOpacity>
       ) : (
         <View style={st.pickRow}>
@@ -89,7 +89,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
             ) : (
               <>
                 <Icon name="document-outline" size={30} color={Colors.primary} />
-                <Text style={[st.pickLabel, { color: Colors.text }]}>Dosya Seç</Text>
+                <Text style={[st.pickLabel, { color: Colors.text }]}>Datei auswählen</Text>
                 <Text style={st.pickHint}>PDF · JPG · PNG</Text>
               </>
             )}
@@ -103,15 +103,15 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
             ) : (
               <>
                 <Icon name="camera-outline" size={30} color={Colors.primary} />
-                <Text style={[st.pickLabel, { color: Colors.text }]}>Fotoğraf Çek</Text>
-                <Text style={st.pickHint}>Belge · Makbuz</Text>
+                <Text style={[st.pickLabel, { color: Colors.text }]}>Foto aufnehmen</Text>
+                <Text style={st.pickHint}>Dokument · Beleg</Text>
               </>
             )}
           </TouchableOpacity>
         </View>
       )}
 
-      <Text style={st.sectionLabel}>Belge tipi</Text>
+      <Text style={st.sectionLabel}>Dokumenttyp</Text>
       <View style={st.typeGrid}>
         {FORCE_TYPE_OPTIONS.map(opt => (
           <TouchableOpacity
@@ -137,7 +137,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
         disabled={!selectedFile}
         activeOpacity={0.8}
       >
-        <Text style={st.submitLabel}>İşle</Text>
+        <Text style={st.submitLabel}>Analysieren</Text>
         <Icon name="arrow-forward" size={18} color="#fff" />
       </TouchableOpacity>
     </View>

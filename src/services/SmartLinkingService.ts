@@ -189,25 +189,24 @@ export function findLinksForDocument(dok: Dokument, alleDocs: Dokument[]): Linki
   links.sort((a, b) => b.confidence - a.confidence);
 
   // Build clusters: group by link type
-  const clusterMap: Map<string, string[]> = new Map();
+  const CLUSTER_META: Record<string, { label: string; icon: string }> = {
+    gleicher_absender:  { label: `Alle von ${dok.absender}`, icon: '👤' },
+    gleicher_vorgang:   { label: 'Gleicher Vorgang', icon: '📎' },
+    folgedokument:      { label: 'Dokumentkette', icon: '➡' },
+    zahlung_bezug:      { label: 'Zahlungsbelege', icon: '💶' },
+    vertrag_ergaenzung: { label: 'Vertragsunterlagen', icon: '📋' },
+    ähnlicher_inhalt:   { label: 'Ähnliche Dokumente', icon: '🔗' },
+  };
+  const clusterMap: Map<string, { type: LinkType; ids: string[] }> = new Map();
   for (const link of links) {
     const key = `${link.type}_${link.type === 'gleicher_absender' ? dok.absender : ''}`;
-    if (!clusterMap.has(key)) clusterMap.set(key, []);
-    clusterMap.get(key)!.push(link.nachId);
+    if (!clusterMap.has(key)) clusterMap.set(key, { type: link.type as LinkType, ids: [] });
+    clusterMap.get(key)!.ids.push(link.nachId);
   }
 
   const clusterGruppen: DokumentCluster[] = [];
-  for (const [key, ids] of clusterMap) {
+  for (const [key, { type, ids }] of clusterMap) {
     if (ids.length < 2) continue;
-    const type = key.split('_')[0] as LinkType;
-    const CLUSTER_META: Record<string, { label: string; icon: string }> = {
-      gleicher_absender: { label: `Alle von ${dok.absender}`, icon: '👤' },
-      gleicher_vorgang:  { label: 'Gleicher Vorgang', icon: '📎' },
-      folgedokument:     { label: 'Dokumentkette', icon: '➡' },
-      zahlung_bezug:     { label: 'Zahlungsbelege', icon: '💶' },
-      vertrag_ergaenzung:{ label: 'Vertragsunterlagen', icon: '📋' },
-      ähnlicher_inhalt:  { label: 'Ähnliche Dokumente', icon: '🔗' },
-    };
     const meta = CLUSTER_META[type] || { label: type, icon: '📁' };
     clusterGruppen.push({ id: key, ...meta, dokIds: [dok.id, ...ids], linkType: type });
   }

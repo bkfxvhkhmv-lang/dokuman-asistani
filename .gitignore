@@ -39,3 +39,6 @@ _backup/
 __pycache__/
 *.pyc
 *.pyo
+
+# iOS local framework — 537MB, git'e girmez, disk üzerinde kalır
+ios/opencv2.framework/

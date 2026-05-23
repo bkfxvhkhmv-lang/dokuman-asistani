@@ -198,7 +198,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
         <SafeAreaView style={st.modalRoot} edges={['bottom']}>
           <View style={st.modalHeader}>
-            <Text style={st.modalTitle}>{isXlsx ? 'Excel-Datei bereit' : 'Ergebnisvorschau'}</Text>
+            <Text style={st.modalTitle}>{isXlsx ? 'Datenvorschau' : 'Ergebnisvorschau'}</Text>
             <IconButton
               onPress={() => setPreviewVisible(false)}
               style={st.closeBtn}
@@ -210,15 +210,11 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
           </View>
           <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
             {isXlsx ? (
-              <View style={{ alignItems: 'center', paddingTop: 48, gap: 16 }}>
-                <Icon name="grid-outline" size={56} color={Colors.textSecondary} />
-                <Text style={{ color: Colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
-                  Excel-Datei bereit
-                </Text>
-                <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 }}>
-                  Dieses Dokument wurde als Excel-Datei erstellt.{'\n'}Du kannst es herunterladen und teilen.
-                </Text>
-              </View>
+              <DatenvorschauContent
+                fields={result.action_summary?.fields}
+                tables={result.action_summary?.tables}
+                C={Colors}
+              />
             ) : previewText && previewText.trim().length > 0 ? (
               <Text style={st.previewText} selectable>{previewText}</Text>
             ) : (
@@ -249,6 +245,90 @@ function Row({ label, value, colors }: { label: string; value: string; colors: R
     <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10 }}>
       <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{label}</Text>
       <Text style={{ color: colors.text, fontSize: 13, fontWeight: '600' }}>{value}</Text>
+    </View>
+  );
+}
+
+function DatenvorschauContent({
+  fields,
+  tables,
+  C,
+}: {
+  fields?: { name: string; value: string }[];
+  tables?: { rows: number; cols: number; preview: string[][] }[];
+  C: ReturnType<typeof useTheme>['Colors'];
+}) {
+  if (!fields?.length && !tables?.length) {
+    return (
+      <View style={{ alignItems: 'center', paddingTop: 48, gap: 12 }}>
+        <Icon name="grid-outline" size={48} color={C.textSecondary} />
+        <Text style={{ color: C.textSecondary, fontSize: 14, textAlign: 'center' }}>
+          Keine Vorschaudaten verfügbar.
+        </Text>
+      </View>
+    );
+  }
+  return (
+    <View style={{ gap: 24 }}>
+      {fields && fields.length > 0 && (
+        <View>
+          <Text style={{ color: C.textSecondary, fontSize: 11, fontWeight: '600', letterSpacing: 0.8, marginBottom: 10, textTransform: 'uppercase' }}>
+            Formularfelder
+          </Text>
+          <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border }}>
+            {fields.map((f, i) => (
+              <View key={i} style={{
+                flexDirection: 'row',
+                paddingHorizontal: 14, paddingVertical: 10,
+                backgroundColor: i % 2 === 0 ? C.bgCard : C.bg,
+                borderTopWidth: i > 0 ? StyleSheet.hairlineWidth : 0,
+                borderTopColor: C.border,
+              }}>
+                <Text style={{ flex: 1, color: C.textSecondary, fontSize: 13 }} numberOfLines={2}>{f.name}</Text>
+                <Text style={{ flex: 1, color: C.text, fontSize: 13, fontWeight: '500', textAlign: 'right' }} numberOfLines={2}>{f.value || '—'}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+      {tables && tables.map((t, ti) => (
+        <View key={ti}>
+          <Text style={{ color: C.textSecondary, fontSize: 11, fontWeight: '600', letterSpacing: 0.8, marginBottom: 10, textTransform: 'uppercase' }}>
+            {`Tabelle ${ti + 1} · ${t.rows} Zeilen · ${t.cols} Spalten`}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
+            <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border }}>
+              {t.preview.map((row, ri) => (
+                <View key={ri} style={{
+                  flexDirection: 'row',
+                  backgroundColor: ri === 0 ? C.bgCard : (ri % 2 === 1 ? C.bg : C.bgCard),
+                  borderTopWidth: ri > 0 ? StyleSheet.hairlineWidth : 0,
+                  borderTopColor: C.border,
+                }}>
+                  {row.map((cell, ci) => (
+                    <View key={ci} style={{
+                      width: 110, paddingHorizontal: 10, paddingVertical: 8,
+                      borderLeftWidth: ci > 0 ? StyleSheet.hairlineWidth : 0,
+                      borderLeftColor: C.border,
+                    }}>
+                      <Text style={{
+                        color: ri === 0 ? C.text : C.textSecondary,
+                        fontSize: 12,
+                        fontWeight: ri === 0 ? '600' : '400',
+                      }} numberOfLines={2}>{cell || '—'}</Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+          {t.rows > 5 && (
+            <Text style={{ color: C.textTertiary, fontSize: 11, marginTop: 6, textAlign: 'center' }}>
+              {`Vorschau: 5 von ${t.rows} Zeilen`}
+            </Text>
+          )}
+        </View>
+      ))}
     </View>
   );
 }

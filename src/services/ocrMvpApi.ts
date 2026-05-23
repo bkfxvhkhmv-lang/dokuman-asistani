@@ -43,6 +43,9 @@ export interface OcrMvpActionSummary {
   required_action?: string;
   recommended_step?: string;
   summary?: string | null;
+  // Datenvorschau (Form / Settlement)
+  fields?: { name: string; value: string }[];
+  tables?: { rows: number; cols: number; preview: string[][] }[];
   // Common
   recommended_actions?: string[];
   warnings?: string[];

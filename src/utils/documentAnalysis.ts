@@ -1,16 +1,24 @@
 import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from '@/utils/formatters';
 import type { Dokument } from '@/store';
 
+const MEANINGLESS_ABSENDER = /^(unbekannt|unbekannter absender)$/i;
+const WEAK_TYP              = /^sonstiges$/i;
+
 export function findeAehnlicheDokumente(dok: Dokument, alleDocs: Dokument[], maxAnzahl = 5): (Dokument & { _aehnlichScore: number })[] {
   return alleDocs.filter(d => d.id !== dok.id).map(d => {
     let score = 0;
-    if (d.typ === dok.typ) score += 3;
-    if (dok.absender && d.absender) { const a = dok.absender.toLowerCase().split(' ')[0]; if (d.absender.toLowerCase().includes(a)) score += 2; }
+    if (d.typ === dok.typ && !WEAK_TYP.test(dok.typ ?? '')) score += 3;
+    if (dok.absender && d.absender
+        && !MEANINGLESS_ABSENDER.test(dok.absender.trim())
+        && !MEANINGLESS_ABSENDER.test(d.absender.trim())) {
+      const a = dok.absender.toLowerCase().split(' ')[0];
+      if (d.absender.toLowerCase().includes(a)) score += 2;
+    }
     const meineEtiketten = dok.etiketten || [];
     score += meineEtiketten.filter(e => (d.etiketten || []).includes(e)).length;
     if (d.risiko === dok.risiko) score += 1;
     return { ...d, _aehnlichScore: score };
-  }).filter(d => d._aehnlichScore > 0).sort((a, b) => b._aehnlichScore - a._aehnlichScore).slice(0, maxAnzahl);
+  }).filter(d => d._aehnlichScore >= 2).sort((a, b) => b._aehnlichScore - a._aehnlichScore).slice(0, maxAnzahl);
 }
 
 export interface TextDiffItem { wort: string; status: 'gleich' | 'entfernt' | 'hinzugefuegt' }
@@ -78,7 +86,10 @@ export function baueBeziehungsGraph(dok: Dokument, alleDocs: Dokument[]): { node
     const gewicht: 'stark' | 'mittel' | 'schwach' = d._aehnlichScore >= 4 ? 'stark' : d._aehnlichScore >= 2 ? 'mittel' : 'schwach';
     let grund = '';
     if (d.typ === dok.typ) grund += 'Gleicher Typ · ';
-    if (d.absender && dok.absender && d.absender.split(' ')[0] === dok.absender.split(' ')[0]) grund += 'Gleicher Absender · ';
+    if (d.absender && dok.absender
+        && !MEANINGLESS_ABSENDER.test(dok.absender.trim())
+        && !MEANINGLESS_ABSENDER.test(d.absender.trim())
+        && d.absender.split(' ')[0] === dok.absender.split(' ')[0]) grund += 'Gleicher Absender · ';
     const etShared = (d.etiketten || []).filter(e => (dok.etiketten || []).includes(e));
     if (etShared.length) grund += `Etiketten: ${etShared.join(', ')} · `;
     return { von: dok.id, nach: d.id, gewicht, grund: grund.replace(/ · $/, '') };

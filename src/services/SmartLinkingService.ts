@@ -8,6 +8,8 @@
 import type { Dokument } from '@/store';
 import { findeAehnlicheDokumente } from '@/utils';
 
+const FAKE_ABSENDER = /^(unbekannt|unbekannter absender)$/i;
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type LinkType =
@@ -47,6 +49,7 @@ export interface DokumentCluster {
 
 function absenderAehnlich(a: string | null | undefined, b: string | null | undefined): boolean {
   if (!a || !b) return false;
+  if (FAKE_ABSENDER.test(a.trim()) || FAKE_ABSENDER.test(b.trim())) return false;
   const normalize = (s: string) => s.toLowerCase()
     .replace(/gmbh|ag|kg|e\.v\.|ltd|inc|ug/g, '')
     .replace(/\s+/g, ' ').trim();

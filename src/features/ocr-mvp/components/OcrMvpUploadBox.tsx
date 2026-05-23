@@ -24,7 +24,7 @@ interface Props {
 
 export default function OcrMvpUploadBox({ onSubmit }: Props) {
   const { Colors } = useTheme();
-  const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; mimeType: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; mimeType: string; displayName: string } | null>(null);
   const [forceType, setForceType] = useState<OcrMvpForceType | null>(null);
   const [picking, setPicking] = useState(false);
 
@@ -37,10 +37,12 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
       });
       if (!res.canceled && res.assets.length > 0) {
         const asset = res.assets[0];
+        const mime = asset.mimeType ?? 'application/pdf';
         setSelectedFile({
           uri: asset.uri,
           name: asset.name ?? 'document',
-          mimeType: asset.mimeType ?? 'application/pdf',
+          mimeType: mime,
+          displayName: mime === 'application/pdf' ? (asset.name ?? 'Dokument') : 'Bild ausgewählt',
         });
       }
     } finally {
@@ -64,6 +66,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
           uri: asset.uri,
           name: `photo_${Date.now()}.jpg`,
           mimeType: 'image/jpeg',
+          displayName: 'Foto aufgenommen',
         });
       }
     } finally {
@@ -78,7 +81,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
       {selectedFile ? (
         <TouchableOpacity style={st.selectedZone} onPress={pickFile} activeOpacity={0.75}>
           <Icon name="document-text" size={36} color={Colors.primary} />
-          <Text style={st.fileName} numberOfLines={2}>{selectedFile.name}</Text>
+          <Text style={st.fileName} numberOfLines={2}>{selectedFile.displayName}</Text>
           <Text style={st.changeHint}>Zum Ändern tippen</Text>
         </TouchableOpacity>
       ) : (

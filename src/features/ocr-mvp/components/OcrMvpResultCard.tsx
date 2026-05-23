@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -33,6 +33,7 @@ interface Props {
 
 export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments }: Props) {
   const { Colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -43,8 +44,18 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
   const confPct    = result.confidence != null ? Math.round(result.confidence * 100) : null;
   const hasSummary = !!result.action_summary;
 
+  // output_path uzantısından çıktı formatını belirle — document_type'a güvenme
+  const outputExt = result.output_path?.split('.').pop()?.toLowerCase();
+  const isXlsx = outputExt === 'xlsx';
+
   const handlePreview = async () => {
     if (!result.job_id) return;
+    if (isXlsx) {
+      // xlsx binary'yi text olarak render etmeye çalışma
+      setPreviewText(null);
+      setPreviewVisible(true);
+      return;
+    }
     setPreviewing(true);
     try {
       const res = await fetch(`${OCR_MVP_BASE}/documents/${result.job_id}/download`);
@@ -77,7 +88,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
     }
   };
 
-  const st = styles(Colors);
+  const st = styles(Colors, insets.top);
 
   return (
     <View style={st.container}>
@@ -173,11 +184,11 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <Text style={st.resetLabel}>Yeni Belge</Text>
       </TouchableOpacity>
 
-      {/* Önizleme modal */}
+      {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
-        <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
+        <SafeAreaView style={st.modalRoot} edges={['bottom']}>
           <View style={st.modalHeader}>
-            <Text style={st.modalTitle}>Sonuç Önizleme</Text>
+            <Text style={st.modalTitle}>{isXlsx ? 'Excel dosyası hazır' : 'Sonuç Önizleme'}</Text>
             <IconButton
               onPress={() => setPreviewVisible(false)}
               style={st.closeBtn}
@@ -188,13 +199,23 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
             </IconButton>
           </View>
           <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
-            {previewText && previewText.trim().length > 0 ? (
+            {isXlsx ? (
+              <View style={{ alignItems: 'center', paddingTop: 48, gap: 16 }}>
+                <Icon name="document-outline" size={56} color={Colors.textSecondary} />
+                <Text style={{ color: Colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
+                  Excel dosyası hazır
+                </Text>
+                <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 20 }}>
+                  Bu belge Excel formatında oluşturuldu.{'\n'}İndirip paylaşabilirsin.
+                </Text>
+              </View>
+            ) : previewText && previewText.trim().length > 0 ? (
               <Text style={st.previewText} selectable>{previewText}</Text>
             ) : (
-              <View style={{ alignItems: 'center', paddingTop: 40, gap: 12 }}>
+              <View style={{ alignItems: 'center', paddingTop: 48, gap: 12 }}>
                 <Icon name="document-outline" size={48} color={Colors.textSecondary} />
                 <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center' }}>
-                  Bu belge Excel formatında oluşturuldu.{'\n'}Önizleme desteklenmiyor — indir/paylaş ile aç.
+                  İçerik yüklenemedi.
                 </Text>
               </View>
             )}
@@ -222,7 +243,7 @@ function Row({ label, value, colors }: { label: string; value: string; colors: R
   );
 }
 
-const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
+const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => StyleSheet.create({
   container:    { padding: 20, gap: 16 },
   header:       { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
   successDot:   { width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E' },
@@ -262,7 +283,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   modalRoot:     { flex: 1, backgroundColor: C.bg },
   modalHeader:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 16,
+    paddingHorizontal: 20, paddingTop: insetsTop + 16, paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
   closeBtn:      { padding: 12, marginRight: -4 },

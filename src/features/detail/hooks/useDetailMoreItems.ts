@@ -72,29 +72,40 @@ export function useDetailMoreItems({
       });
     }
 
-    rows.push({
-      key:       'menu_chat',
-      icon:      'chat-circle',
-      label:     'Mit KI chatten',
-      group:     'communication',
-      onPress:   () => { close(); openModal('chat'); },
-    });
+    if (dok.rohText || dok.zusammenfassung) {
+      rows.push({
+        key:     'menu_chat',
+        icon:    'chat-circle',
+        label:   'Mit KI chatten',
+        group:   'communication',
+        onPress: () => { close(); openModal('chat'); },
+      });
+    }
 
-    rows.push({
-      key:       'menu_vorlage',
-      icon:      'envelope-simple',
-      label:     'Antwort schreiben',
-      group:     'communication',
-      onPress:   () => { close(); openModal('yanitSablon'); },
-    });
+    const antwortTypen: string[] = ['Behörden / Amt', 'Versicherungen'];
+    if (
+      aktiv.includes('mail') ||
+      aktiv.includes('einspruch') ||
+      antwortTypen.includes(dok.typ ?? '')
+    ) {
+      rows.push({
+        key:     'menu_vorlage',
+        icon:    'envelope-simple',
+        label:   'Antwort schreiben',
+        group:   'communication',
+        onPress: () => { close(); openModal('yanitSablon'); },
+      });
+    }
 
-    rows.push({
-      key:       'menu_formular',
-      icon:      'clipboard-text',
-      label:     'Formular ausfüllen',
-      group:     'communication',
-      onPress:   () => { close(); openModal('formular'); },
-    });
+    if (aktiv.includes('form')) {
+      rows.push({
+        key:     'menu_formular',
+        icon:    'clipboard-text',
+        label:   'Formular ausfüllen',
+        group:   'communication',
+        onPress: () => { close(); openModal('formular'); },
+      });
+    }
 
     rows.push({
       key: 'menu_teilen',
@@ -114,10 +125,12 @@ export function useDetailMoreItems({
       onPress: tapAsync(actions.handlePDF),
     });
 
-    rows.push({
-      key: 'menu_orig', icon: 'paperclip', label: 'Original teilen', group: 'secondary',
-      onPress: tapAsync(actions.handleOriginalTeilen),
-    });
+    if (dok.uri) {
+      rows.push({
+        key: 'menu_orig', icon: 'paperclip', label: 'Original teilen', group: 'secondary',
+        onPress: tapAsync(actions.handleOriginalTeilen),
+      });
+    }
 
     rows.push({
       key: 'menu_edit', icon: 'pencil-simple', label: 'Dokument bearbeiten', group: 'secondary',
@@ -157,18 +170,22 @@ export function useDetailMoreItems({
       onPress: () => { close(); openModal('signatur'); },
     });
 
-    rows.push({
-      key: 'menu_budget', icon: 'chart-bar', label: 'Ausgaben-Übersicht', group: 'advanced',
-      onPress: () => {
-        close();
-        setBudgetModalVisible(true);
-      },
-    });
+    if (aktiv.includes('zahlen') || dok.typ === 'Rechnungen') {
+      rows.push({
+        key: 'menu_budget', icon: 'chart-bar', label: 'Ausgaben-Übersicht', group: 'advanced',
+        onPress: () => {
+          close();
+          setBudgetModalVisible(true);
+        },
+      });
+    }
 
-    rows.push({
-      key: 'menu_kur', icon: 'buildings', label: 'Behörden & Institutionen', group: 'advanced',
-      onPress: () => { close(); openModal('kurumlar'); },
-    });
+    if (dok.typ === 'Behörden / Amt') {
+      rows.push({
+        key: 'menu_kur', icon: 'buildings', label: 'Behörden & Institutionen', group: 'advanced',
+        onPress: () => { close(); openModal('kurumlar'); },
+      });
+    }
 
     rows.push({
       key: 'menu_h', icon: 'lifebuoy', label: 'Hilfe & Beratung', group: 'advanced',

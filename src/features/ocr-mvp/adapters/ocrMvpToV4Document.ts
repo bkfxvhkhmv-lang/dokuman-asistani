@@ -72,7 +72,12 @@ export function ocrMvpToV4Document(
   options?: OcrMvpSaveOptions,
 ): OcrMvpV4DocumentDraft {
   const s = result.action_summary;
-  const kind = result.document_type ?? result.action_summary?.kind ?? 'unknown';
+  // "unknown" is not a real classification — fall through to action_summary.kind
+  // which is set by the processing pipeline and carries better signal.
+  const rawType = result.document_type?.trim();
+  const kind    = (rawType && rawType !== 'unknown')
+    ? rawType
+    : s?.kind?.trim() || 'unknown';
 
   const document: Dokument = {
     id:              options?.id ?? generateId(),

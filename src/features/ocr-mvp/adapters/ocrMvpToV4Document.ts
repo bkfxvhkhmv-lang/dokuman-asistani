@@ -11,6 +11,16 @@ export interface OcrMvpV4DocumentDraft {
   originalResult: OcrMvpJobStatus;
 }
 
+const KIND_TO_ZUS_LABEL: Record<string, string> = {
+  invoice:    'Rechnung',
+  settlement: 'Nebenkostenabrechnung',
+  form:       'Formular',
+  letter:     'Behördenpost',
+  insurance:  'Versicherungsdokument',
+  quote:      'Angebot',
+  unknown:    'Dokument',
+};
+
 // OCR MVP kind → V4 legacy typ string (normalizeDocumentTyp handles canonical resolution)
 const KIND_TO_LEGACY: Record<string, string> = {
   invoice:    'Rechnung',    // → 'Rechnungen'
@@ -61,6 +71,32 @@ function parseFrist(raw: string | null | undefined): string | null {
 }
 
 
+function buildRohText(s: OcrMvpJobStatus['action_summary']): string | null {
+  if (!s) return null;
+  const lines: string[] = [];
+  for (const f of s.fields ?? []) {
+    const name  = f.name.trim();
+    const value = f.value.trim();
+    if (name && value) lines.push(`${name}: ${value}`);
+  }
+  if ((s.tables_count ?? 0) > 0) lines.push(`Tabellen: ${s.tables_count}`);
+  if ((s.lines_count  ?? 0) > 0) lines.push(`Zeilen: ${s.lines_count}`);
+  return lines.length > 0 ? lines.join('\n') : null;
+}
+
+function buildZusammenfassung(kind: string, s: OcrMvpJobStatus['action_summary']): string | null {
+  if (!s) return null;
+  const parts: string[] = [KIND_TO_ZUS_LABEL[kind] ?? 'Dokument'];
+  if ((s.fields_count ?? 0) > 0) parts.push(`${s.fields_count} Felder`);
+  if ((s.tables_count ?? 0) > 0) parts.push(`${s.tables_count} Tabellen`);
+  if ((s.lines_count  ?? 0) > 0) parts.push(`${s.lines_count} Zeilen`);
+  const datum = (s.fields ?? []).find(f => /datum/i.test(f.name));
+  if (datum?.value?.trim()) parts.push(`Datum: ${datum.value.trim()}`);
+  const az = (s.fields ?? []).find(f => /aktenzeichen/i.test(f.name));
+  if (az?.value?.trim()) parts.push(`Aktenzeichen: ${az.value.trim()}`);
+  return parts.join(' · ');
+}
+
 export interface OcrMvpSaveOptions {
   id?:    string;
   uri?:   string | null;
@@ -84,7 +120,7 @@ export function ocrMvpToV4Document(
     titel:           buildDocumentTitle(kind, s),
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
     absender:        buildDocumentSender(kind, s),
-    zusammenfassung: s?.summary ?? null,
+    zusammenfassung: s?.summary?.trim() || buildZusammenfassung(kind, s) || null,
     warnung:         s?.warnings?.[0] ?? null,
     betrag:          s?.total_brutto ?? s?.amount ?? null,
     waehrung:        s?.currency ?? '€',
@@ -96,7 +132,7 @@ export function ocrMvpToV4Document(
     erledigt:        false,
     uri:             options?.uri ?? null,
     pages:           options?.pages,
-    rohText:         null,
+    rohText:         buildRohText(s),
     iban:            s?.iban ?? null,
     confidence:      typeof result.confidence === 'number' && result.confidence > 0
                        ? result.confidence <= 1

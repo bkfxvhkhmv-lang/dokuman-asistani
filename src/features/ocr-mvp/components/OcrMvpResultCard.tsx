@@ -206,7 +206,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
           <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
             {isXlsx ? (
               <View style={{ alignItems: 'center', paddingTop: 48, gap: 16 }}>
-                <Icon name="document-outline" size={56} color={Colors.textSecondary} />
+                <Icon name="grid-outline" size={56} color={Colors.textSecondary} />
                 <Text style={{ color: Colors.text, fontSize: 16, fontWeight: '700', textAlign: 'center' }}>
                   Excel-Datei bereit
                 </Text>

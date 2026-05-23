@@ -16,17 +16,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHealthQuery } from '@/hooks/queryHooks';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP } from '@/theme';
+import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 
 export default function OfflineBanner() {
   const { Colors: C } = useTheme();
   const { isError, refetch, isFetching } = useHealthQuery();
   const insets = useSafeAreaInsets();
+  const { suppress } = useOfflineBannerSuppression();
 
   const translateY = useSharedValue(-60);
   const opacity    = useSharedValue(0);
 
   useEffect(() => {
-    if (isError) {
+    const shouldShow = isError && !suppress;
+    if (shouldShow) {
       translateY.value = withSpring(0,    { damping: 18, stiffness: 200 });
       opacity.value    = withTiming(1,    { duration: 200 });
     } else {
@@ -37,14 +40,14 @@ export default function OfflineBanner() {
       cancelAnimation(translateY);
       cancelAnimation(opacity);
     };
-  }, [isError]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isError, suppress]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     opacity:   opacity.value,
   }));
 
-  if (!isError) return null;
+  if (!isError || suppress) return null;
 
   return (
     <Animated.View

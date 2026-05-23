@@ -12,6 +12,7 @@ import { useStore } from '@/store';
 import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
+import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
@@ -58,6 +59,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
+  const { setSuppressBanner } = useOfflineBannerSuppression();
+
+  useEffect(() => {
+    setSuppressBanner(true);
+    return () => setSuppressBanner(false);
+  }, [setSuppressBanner]);
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');

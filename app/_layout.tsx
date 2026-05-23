@@ -18,6 +18,7 @@ import { useWidgetSync } from '../src/hooks/useWidgetSync';
 import { useSpeechStopOnBackground } from '../src/hooks/useSpeechStopOnBackground';
 import BackendHealthBootstrap from '../src/providers/BackendHealthBootstrap';
 import { LanguageProvider } from '@/providers/LanguageProvider';
+import { OfflineBannerProvider } from '@/contexts/OfflineBannerContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -162,16 +163,18 @@ export default function RootLayout() {
                 <BackendHealthBootstrap />
                 {/* Keep root surface aligned with active theme */}
                 <ThemedRootSurface>
-                  <ThemedNavigator />
+                  <OfflineBannerProvider>
+                    <ThemedNavigator />
 
-                  {/* Floating hero expansion overlay — above all screens */}
-                  <HeroTransitionOverlay />
+                    {/* Floating hero expansion overlay — above all screens */}
+                    <HeroTransitionOverlay />
 
-                  {/* Offline banner — slides down from top when server unreachable */}
-                  <OfflineBanner />
+                    {/* Offline banner — slides down from top when server unreachable */}
+                    <OfflineBanner />
 
-                  {/* #101/#102 — privacy overlay + biometric gate */}
-                  <PrivacyGateProvider />
+                    {/* #101/#102 — privacy overlay + biometric gate */}
+                    <PrivacyGateProvider />
+                  </OfflineBannerProvider>
                 </ThemedRootSurface>
               </StoreProvider>
             </AuthProvider>

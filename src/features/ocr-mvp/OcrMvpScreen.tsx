@@ -16,6 +16,34 @@ import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
+import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
+
+type SafeError = { title: string; body: string };
+
+function toSafeError(kind: OcrMvpErrorKind, status: string): SafeError {
+  if (status === 'timeout' || kind === 'timeout') {
+    return {
+      title: 'Analyse-Server nicht erreichbar',
+      body: 'Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.',
+    };
+  }
+  if (kind === 'network') {
+    return {
+      title: 'Analyse-Server nicht erreichbar',
+      body: 'Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.',
+    };
+  }
+  if (kind === 'server') {
+    return {
+      title: 'Analyse konnte nicht abgeschlossen werden',
+      body: 'Der Server konnte das Dokument nicht verarbeiten. Bitte versuche es erneut oder prüfe die Backend-Konfiguration.',
+    };
+  }
+  return {
+    title: 'Unerwarteter Fehler',
+    body: 'Die Analyse konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
+  };
+}
 
 type HealthState = 'checking' | 'online' | 'offline';
 
@@ -26,7 +54,7 @@ interface Props {
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
   const { dispatch } = useStore();
-  const { status, result, error, startJob, reset } = useOcrMvpJob();
+  const { status, result, error, errorKind, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
@@ -47,6 +75,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
   }, []);
 
   useEffect(() => { checkHealth(); }, [checkHealth]);
+
+  useEffect(() => {
+    if ((status === 'error' || status === 'timeout') && error && __DEV__) {
+      console.warn('[OcrMvpScreen] Analysefehler (intern, nicht im UI):', error);
+    }
+  }, [status, error]);
 
   const handleSubmit = (
     fileUri: string,
@@ -119,19 +153,20 @@ export default function OcrMvpScreen({ onClose }: Props) {
           />
         )}
 
-        {/* Hata */}
-        {(status === 'error' || status === 'timeout') && (
-          <View style={st.errorBox}>
-            <Icon name="warning-outline" size={28} color="#FF6B6B" />
-            <Text style={st.errorTitle}>
-              {status === 'timeout' ? 'İşlem zaman aşımına uğradı' : 'Bir hata oluştu'}
-            </Text>
-            <Text style={st.errorMsg}>{error}</Text>
-            <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
-              <Text style={st.retryLabel}>Tekrar Dene</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Fehler */}
+        {(status === 'error' || status === 'timeout') && (() => {
+          const safeErr = toSafeError(errorKind, status);
+          return (
+            <View style={st.errorBox}>
+              <Icon name="warning-outline" size={28} color="#FF6B6B" />
+              <Text style={st.errorTitle}>{safeErr.title}</Text>
+              <Text style={st.errorMsg}>{safeErr.body}</Text>
+              <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
+                <Text style={st.retryLabel}>Erneut versuchen</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        })()}
 
         {/* Idle durumda: health check + upload box */}
         {!isActive && (
@@ -140,7 +175,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
               <View style={st.checkingBox}>
                 <ActivityIndicator color={Colors.primary} />
                 <Text style={[st.checkingLabel, { color: Colors.textSecondary }]}>
-                  Analiz sunucusu kontrol ediliyor...
+                  Analyse-Server wird geprüft …
                 </Text>
               </View>
             )}
@@ -148,12 +183,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
             {health === 'offline' && (
               <View style={st.errorBox}>
                 <Icon name="cloud-offline-outline" size={36} color="#FF6B6B" />
-                <Text style={st.errorTitle}>Analiz sunucusuna bağlanılamıyor</Text>
+                <Text style={st.errorTitle}>Analyse-Server nicht erreichbar</Text>
                 <Text style={st.errorMsg}>
-                  Mac ve iPhone aynı Wi-Fi ağında mı?{'\n'}Backend çalışıyor mu?
+                  Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.
                 </Text>
                 <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
-                  <Text style={st.retryLabel}>Tekrar Dene</Text>
+                  <Text style={st.retryLabel}>Erneut versuchen</Text>
                 </TouchableOpacity>
               </View>
             )}

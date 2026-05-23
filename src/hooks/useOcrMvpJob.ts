@@ -8,20 +8,24 @@ const UPLOAD_TIMEOUT_MS = 20_000;
 
 export type OcrMvpStatus = 'idle' | 'uploading' | 'processing' | 'done' | 'error' | 'timeout';
 
+export type OcrMvpErrorKind = 'network' | 'server' | 'timeout' | null;
+
 export interface UseOcrMvpJobReturn {
-  status:   OcrMvpStatus;
-  jobId:    string | null;
-  result:   OcrMvpJobStatus | null;
-  error:    string | null;
-  startJob: (file: OcrMvpFile, forceType?: OcrMvpForceType) => Promise<void>;
-  reset:    () => void;
+  status:    OcrMvpStatus;
+  jobId:     string | null;
+  result:    OcrMvpJobStatus | null;
+  error:     string | null;
+  errorKind: OcrMvpErrorKind;
+  startJob:  (file: OcrMvpFile, forceType?: OcrMvpForceType) => Promise<void>;
+  reset:     () => void;
 }
 
 export function useOcrMvpJob(): UseOcrMvpJobReturn {
-  const [status, setStatus] = useState<OcrMvpStatus>('idle');
-  const [jobId,  setJobId]  = useState<string | null>(null);
-  const [result, setResult] = useState<OcrMvpJobStatus | null>(null);
-  const [error,  setError]  = useState<string | null>(null);
+  const [status,    setStatus]    = useState<OcrMvpStatus>('idle');
+  const [jobId,     setJobId]     = useState<string | null>(null);
+  const [result,    setResult]    = useState<OcrMvpJobStatus | null>(null);
+  const [error,     setError]     = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<OcrMvpErrorKind>(null);
 
   const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const startedRef = useRef<number>(0);
@@ -51,13 +55,15 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
           setStatus('done');
         } else if (data.status === 'error') {
           clearTimer();
-          setError(data.error ?? 'Bilinmeyen hata');
+          setError(data.error ?? null);
+          setErrorKind('server');
           setStatus('error');
         }
         // status === 'processing' → interval devam eder
       } catch (e) {
         clearTimer();
-        setError(e instanceof Error ? e.message : 'Bağlantı hatası');
+        setError(e instanceof Error ? e.message : null);
+        setErrorKind('network');
         setStatus('error');
       }
     }, POLL_INTERVAL_MS);
@@ -85,9 +91,8 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     } catch (e) {
       clearTimeout(uploadTimer);
       const isAbort = e instanceof Error && e.name === 'AbortError';
-      setError(isAbort
-        ? 'Yükleme zaman aşımı — bağlantıyı kontrol edin'
-        : e instanceof Error ? e.message : 'Upload hatası');
+      setError(e instanceof Error ? e.message : null);
+      setErrorKind(isAbort ? 'timeout' : 'network');
       setStatus(isAbort ? 'timeout' : 'error');
     }
   }, [poll]);
@@ -98,7 +103,8 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     setJobId(null);
     setResult(null);
     setError(null);
+    setErrorKind(null);
   }, []);
 
-  return { status, jobId, result, error, startJob, reset };
+  return { status, jobId, result, error, errorKind, startJob, reset };
 }

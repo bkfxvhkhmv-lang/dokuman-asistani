@@ -47,6 +47,14 @@ export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): Ri
   const peerComparison = alleDocs.length >= 3 ? buildPeerComparison(dok, alleDocs) : null;
   const erklaerung = buildErklaerung(dok, gesamtScore, level, faktoren, darkPatterns);
 
+  const fristFak  = faktoren.find(f => f.kategorie === 'frist');
+  const betragFak = faktoren.find(f => f.kategorie === 'betrag');
+  const absenderMissing = !dok.absender || /^(unbekannt|unbekannter absender)$/i.test(String(dok.absender));
+  const isDataInsufficient =
+    ['frist_fehlt', 'frist_none'].includes(fristFak?.id ?? '') &&
+    betragFak?.id === 'betrag_0' &&
+    absenderMissing;
+
   return {
     gesamtScore,
     level,
@@ -60,5 +68,6 @@ export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): Ri
     peerComparison,
     gesundheitsscore,
     erklaerung,
+    isDataInsufficient,
   };
 }

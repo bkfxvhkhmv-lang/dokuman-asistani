@@ -40,6 +40,7 @@ export interface RiskEngineResult {
   peerComparison: PeerComparison | null;
   gesundheitsscore: number;
   erklaerung: string;
+  isDataInsufficient: boolean;
 }
 
 export interface PortfolioRisk {

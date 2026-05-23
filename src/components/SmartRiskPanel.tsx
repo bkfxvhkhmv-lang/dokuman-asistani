@@ -33,7 +33,14 @@ function ScoreGauge({ score, color, bg, textColor }: { score: number; color: str
 export default function SmartRiskPanel({ result, onAktion, compact = false }: SmartRiskPanelProps) {
   const { Colors: C, R } = useTheme();
   const [expanded, setExpanded] = useState(false);
-  const { level } = result;
+  const { level, isDataInsufficient } = result;
+
+  const displayLevel: typeof level = isDataInsufficient ? 'kein' : level;
+  const displayLabel = isDataInsufficient ? 'Risikobewertung unvollständig' : result.levelLabel;
+  const displayErklaerung = isDataInsufficient
+    ? 'Für eine sichere Bewertung fehlen wichtige Angaben wie Betrag, Frist oder Absender.'
+    : result.erklaerung;
+  const vorschlaege = result.reduzierungsVorschlaege.filter(v => v.dringlichkeit !== 'bald');
 
   const LEVEL_BG: Record<RiskLevel, string> = {
     kritisch: C.dangerLight, hoch: C.warningLight, mittel: C.warningLight, niedrig: C.successLight, kein: C.primaryLight,
@@ -48,15 +55,15 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
     verschlechtert: C.danger, stabil: C.warning, verbessert: C.success,
   };
 
-  const bg = LEVEL_BG[level];
-  const border = LEVEL_BORDER[level];
-  const textColor = LEVEL_TEXT[level];
+  const bg = LEVEL_BG[displayLevel];
+  const border = LEVEL_BORDER[displayLevel];
+  const textColor = LEVEL_TEXT[displayLevel];
 
   const scoreForLevel = (l: string) => {
     const lev = l as RiskLevel;
     return { color: LEVEL_BORDER[lev] ?? C.border, bg: LEVEL_BG[lev] ?? C.bgCard, textColor: LEVEL_TEXT[lev] ?? C.text };
   };
-  const { color: gaugeColor, bg: gaugeBg, textColor: gaugeText } = scoreForLevel(level);
+  const { color: gaugeColor, bg: gaugeBg, textColor: gaugeText } = scoreForLevel(displayLevel);
 
   const factorColor = (score: number) =>
     score >= 70 ? C.danger : score >= 40 ? C.warning : C.success;
@@ -68,9 +75,9 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
         borderWidth: 1, borderColor: border + '77' }}>
         <ScoreGauge score={result.gesamtScore} color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: textColor }}>{result.levelLabel}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: textColor }}>{displayLabel}</Text>
           <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
-            {result.erklaerung}
+            {displayErklaerung}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
             <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
@@ -91,26 +98,28 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={{ fontSize: 14, fontWeight: '800', color: textColor, flex: 1 }}>
-              {result.levelLabel}
+              {displayLabel}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-              <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
-              <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>{result.trendLabel}</Text>
-            </View>
+            {!isDataInsufficient && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>{result.trendLabel}</Text>
+              </View>
+            )}
           </View>
           <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4, lineHeight: 16 }}>
-            {result.erklaerung}
+            {displayErklaerung}
           </Text>
         </View>
       </View>
 
-      {/* Reduction suggestions */}
-      {result.reduzierungsVorschlaege.length > 0 && (
+      {/* Reduction suggestions — 'bald' items hidden */}
+      {vorschlaege.length > 0 && (
         <View style={{ marginBottom: 10 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>
             RISIKO SENKEN
           </Text>
-          {result.reduzierungsVorschlaege.map((v, i) => (
+          {vorschlaege.map((v, i) => (
             <TouchableOpacity
               key={i}
               onPress={() => onAktion?.(v.aktion)}

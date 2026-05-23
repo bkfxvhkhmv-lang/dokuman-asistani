@@ -73,16 +73,23 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
     if (!result.job_id) return;
     setDownloading(true);
     try {
-      const ext    = (result.document_type === 'letter' || result.document_type === 'insurance') ? 'md' : 'xlsx';
-      const uri    = await downloadOcrResult(result.job_id, `briefpilot_output.${ext}`);
+      const ext      = outputExt ?? 'bin';
+      const uti      = ext === 'xlsx' ? 'com.microsoft.excel.xlsx' : 'public.plain-text';
+      const uri      = await downloadOcrResult(result.job_id, `briefpilot_output.${ext}`);
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
-        await Sharing.shareAsync(uri, { UTI: ext === 'xlsx' ? 'com.microsoft.excel.xlsx' : 'public.plain-text' });
+        await Sharing.shareAsync(uri, { UTI: uti });
       } else {
-        Alert.alert('Download abgeschlossen', uri);
+        Alert.alert(
+          'Datei gespeichert',
+          'Die Datei wurde lokal zwischengespeichert. Bitte versuche es über die Teilen-Funktion erneut.',
+        );
       }
-    } catch (e: any) {
-      Alert.alert('Herunterladen fehlgeschlagen', e?.message ?? 'Unbekannter Fehler');
+    } catch {
+      Alert.alert(
+        'Download fehlgeschlagen',
+        'Die Datei konnte nicht heruntergeladen werden. Bitte prüfe die Verbindung und versuche es erneut.',
+      );
     } finally {
       setDownloading(false);
     }

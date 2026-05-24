@@ -49,6 +49,9 @@ function formatDateForTitle(iso: string | null | undefined): string | null {
   }
   // DD.MM.YYYY passthrough
   if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(iso.trim())) return iso.trim();
+  // DD.MM.YY → DD.MM.20YY (2-digit year, German documents)
+  const shortYear = iso.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{2})$/);
+  if (shortYear) return `${shortYear[1].padStart(2, '0')}.${shortYear[2].padStart(2, '0')}.20${shortYear[3]}`;
   // Only year — acceptable
   if (/^\d{4}$/.test(iso.trim())) return iso.trim();
   return null;

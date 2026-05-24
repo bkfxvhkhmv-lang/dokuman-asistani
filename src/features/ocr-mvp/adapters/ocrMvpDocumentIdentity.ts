@@ -38,11 +38,46 @@ function formatAmount(
   return `${intFormatted},${dec} ${cur}`;
 }
 
-function todayFormatted(): string {
+function formatDateForTitle(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  // ISO 8601 → DD.MM.YYYY
+  const d = new Date(iso);
+  if (!isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}.${mm}.${d.getFullYear()}`;
+  }
+  // DD.MM.YYYY passthrough
+  if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(iso.trim())) return iso.trim();
+  // Only year — acceptable
+  if (/^\d{4}$/.test(iso.trim())) return iso.trim();
+  return null;
+}
+
+/** Belge tarihi varsa onu kullan, yoksa bugünü (scan tarihi fallback). */
+function titleDate(dokumentDatum: string | null | undefined): string {
+  if (dokumentDatum) {
+    const f = formatDateForTitle(dokumentDatum);
+    if (f) return f;
+  }
   const d = new Date();
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   return `${dd}.${mm}.${d.getFullYear()}`;
+}
+
+// Alanlar içinde belge tarihi — sadece güvenli eşleşmeler
+const DATUM_FIELD_RE = /^(datum|date|rechnungsdatum|ausstellungsdatum|belegdatum|briefdatum|dokumentdatum)$/i;
+
+export function extractDokumentDatum(s: OcrMvpActionSummary | undefined): string | null {
+  if (!s) return null;
+  // Direkt alanlar (öncelik sırası)
+  const raw = s.invoice_date ?? s.document_date ?? null;
+  if (raw?.trim()) return raw.trim();
+  // Form fields içinde güvenli tarih alanı
+  const match = (s.fields ?? []).find(f => DATUM_FIELD_RE.test(f.name.trim()));
+  if (match?.value?.trim()) return match.value.trim();
+  return null;
 }
 
 function formatDeadline(deadline: string | null | undefined): string | null {
@@ -62,8 +97,10 @@ function formatDeadline(deadline: string | null | undefined): string | null {
 export function buildDocumentTitle(
   kind: string,
   s: OcrMvpActionSummary | undefined,
+  dokumentDatum?: string | null,
 ): string {
   const label = buildReadableKind(kind);
+  const dateStr = titleDate(dokumentDatum);
 
   switch (kind) {
     case 'invoice': {
@@ -71,47 +108,42 @@ export function buildDocumentTitle(
         const parts = [s.vendor_name, label];
         const amt = formatAmount(s.total_brutto ?? s.amount, s.currency);
         if (amt) parts.push(amt);
+        parts.push(dateStr);
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return `${label} vom ${todayFormatted()}`;
+      return `${label} vom ${dateStr}`;
     }
 
     case 'settlement': {
       const entity = s?.vendor_name ?? s?.sender;
-      if (entity) return `${entity} · ${label}`;
+      if (entity) return `${entity} · ${label} · ${dateStr}`;
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return `${label} vom ${todayFormatted()}`;
+      return `${label} vom ${dateStr}`;
     }
 
     case 'letter': {
       if (s?.sender) {
-        const parts = [s.sender, label];
-        const dl = formatDeadline(s.deadline);
-        if (dl) parts.push(dl);
+        const parts = [s.sender, label, dateStr];
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return `${label} vom ${todayFormatted()}`;
+      return `${label} vom ${dateStr}`;
     }
 
     case 'insurance': {
       if (s?.sender) {
-        const parts = [s.sender, label];
-        const dl = formatDeadline(s.deadline);
-        if (dl) parts.push(dl);
-        return parts.join(' · ');
+        return `${s.sender} · ${label} · ${dateStr}`;
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return `${label} vom ${todayFormatted()}`;
+      return `${label} vom ${dateStr}`;
     }
 
     case 'form': {
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      const today = todayFormatted();
-      return s?.fields_count
-        ? `${label} · ${s.fields_count} Felder · ${today}`
-        : `${label} vom ${today}`;
+      const sender = s?.sender ?? s?.vendor_name;
+      if (sender) return `${sender} · ${label} · ${dateStr}`;
+      return `${label} · ${dateStr}`;
     }
 
     case 'quote': {
@@ -120,17 +152,18 @@ export function buildDocumentTitle(
         const parts = [entity, label];
         const amt = formatAmount(s?.total_brutto ?? s?.amount, s?.currency);
         if (amt) parts.push(amt);
+        parts.push(dateStr);
         return parts.join(' · ');
       }
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
-      return `${label} vom ${todayFormatted()}`;
+      return `${label} vom ${dateStr}`;
     }
 
     default: {
       if (isMeaningfulTitle(s?.title)) return s!.title!.trim();
       const entity = s?.sender ?? s?.vendor_name;
-      if (entity) return `${entity} · ${label}`;
-      return `Dokument vom ${todayFormatted()}`;
+      if (entity) return `${entity} · ${label} · ${dateStr}`;
+      return `Dokument vom ${dateStr}`;
     }
   }
 }

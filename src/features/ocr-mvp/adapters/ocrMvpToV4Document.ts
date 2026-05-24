@@ -2,7 +2,7 @@ import type { Dokument, ScannedPage } from '@/store/types';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { generateId } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
-import { buildDocumentTitle, buildDocumentSender } from './ocrMvpDocumentIdentity';
+import { buildDocumentTitle, buildDocumentSender, extractDokumentDatum } from './ocrMvpDocumentIdentity';
 
 // Opaque wrapper — store write happens in a separate step, never here.
 export interface OcrMvpV4DocumentDraft {
@@ -86,14 +86,12 @@ function buildRohText(s: OcrMvpJobStatus['action_summary']): string | null {
 
 function buildZusammenfassung(kind: string, s: OcrMvpJobStatus['action_summary']): string | null {
   if (!s) return null;
+  // Kullanıcıya karar aldıran bilgiler: gönderen, konu, Aktenzeichen — teknik sayılar değil.
   const parts: string[] = [KIND_TO_ZUS_LABEL[kind] ?? 'Dokument'];
-  if ((s.fields_count ?? 0) > 0) parts.push(`${s.fields_count} Felder`);
-  if ((s.tables_count ?? 0) > 0) parts.push(`${s.tables_count} Tabellen`);
-  if ((s.lines_count  ?? 0) > 0) parts.push(`${s.lines_count} Zeilen`);
-  const datum = (s.fields ?? []).find(f => /datum/i.test(f.name));
-  if (datum?.value?.trim()) parts.push(`Datum: ${datum.value.trim()}`);
-  const az = (s.fields ?? []).find(f => /aktenzeichen/i.test(f.name));
-  if (az?.value?.trim()) parts.push(`Aktenzeichen: ${az.value.trim()}`);
+  const sender = s.vendor_name ?? s.sender;
+  if (sender?.trim()) parts.push(sender.trim());
+  const az = (s.fields ?? []).find(f => /^aktenzeichen$/i.test(f.name.trim()));
+  if (az?.value?.trim()) parts.push(`Az. ${az.value.trim()}`);
   return parts.join(' · ');
 }
 
@@ -115,9 +113,16 @@ export function ocrMvpToV4Document(
     ? rawType
     : s?.kind?.trim() || 'unknown';
 
+  const dokumentDatum = extractDokumentDatum(s);
+  const rohText       = buildRohText(s);
+
+  // Aktenzeichen — direkt alan veya fields[] içinde
+  const azField = (s?.fields ?? []).find(f => /^aktenzeichen$/i.test(f.name.trim()));
+  const aktenzeichen = azField?.value?.trim() || null;
+
   const document: Dokument = {
     id:              options?.id ?? generateId(),
-    titel:           buildDocumentTitle(kind, s),
+    titel:           buildDocumentTitle(kind, s, dokumentDatum),
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
     absender:        buildDocumentSender(kind, s),
     zusammenfassung: s?.summary?.trim() || buildZusammenfassung(kind, s) || null,
@@ -128,11 +133,13 @@ export function ocrMvpToV4Document(
     risiko:          mapRisiko(s?.risk_level),
     aktionen:        KIND_TO_AKTIONEN[kind] ?? ['ai', 'review'],
     datum:           new Date().toISOString(),
+    dokumentDatum,
     gelesen:         false,
     erledigt:        false,
     uri:             options?.uri ?? null,
     pages:           options?.pages,
-    rohText:         buildRohText(s),
+    rohText,
+    aktenzeichen,
     iban:            s?.iban ?? null,
     confidence:      typeof result.confidence === 'number' && result.confidence > 0
                        ? result.confidence <= 1

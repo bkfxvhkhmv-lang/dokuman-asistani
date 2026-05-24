@@ -132,6 +132,8 @@ export interface Dokument {
   isDemo?: boolean;
   /** Kullanicinin verdigi ozel baslik (otomatik uretilen titel'i ezerse) */
   customTitle?: string | null;
+  /** Belgede yazan tarih (fatura/karar/mektup tarihi) — datum scan tarihidir, bu belge tarihidir */
+  dokumentDatum?: string | null;
   /**
    * Nutzerdefinierter Ordner Pfad („Firma 2026 / Auto“), getrennt von `typ`:
    * `typ` = automatische Hauptkategorie, `userOrdner` = persönliche Ablage.

@@ -65,7 +65,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const a11yLabel = [
     dok.typ, dok.titel, dok.absender,
     isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
-    dok.betrag ? `${(dok.betrag as number).toFixed(2)} Euro` : null,
+    typeof dok.betrag === 'number' && dok.betrag > 0 ? `${dok.betrag.toFixed(2)} Euro` : null,
   ].filter(Boolean).join(', ');
 
   const workflowTone = dok.workflowColor === 'green'
@@ -133,11 +133,11 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
 
       {/* Footer */}
       <View style={styles.footer}>
-        {dok.betrag && dok.betrag > 0 ? (
+        {typeof dok.betrag === 'number' && dok.betrag > 0 ? (
           <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}33` }]}>
             <Money size={13} color={intent.color} weight="regular" />
             <Text style={[styles.amount, { color: intent.color, fontVariant: ['tabular-nums'] }]}>
-              {(dok.betrag as number).toFixed(2)} €
+              {dok.betrag.toFixed(2)} €
             </Text>
           </View>
         ) : <View />}

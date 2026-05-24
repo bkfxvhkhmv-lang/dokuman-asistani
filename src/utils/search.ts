@@ -96,6 +96,36 @@ export function parseNatuerlicheAbfrage(query: string): ParsedAbfrage {
   return { restQuery: rest.trim(), minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, ueberfaellig };
 }
 
+// Umlaute + Türkçe karakterleri normalize eder — "über" ve "uber" aynı sonucu verir.
+function normalizeSearchText(t: string): string {
+  return t
+    .toLowerCase()
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .replace(/ğ/g, 'g').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ç/g, 'c')
+    .replace(/[^a-z0-9.\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Runtime haystack — store'a persist edilmez, her arama anında hesaplanır.
+// Max 2000 karakter; rohText ilk 1000 karakter ile sınırlandırılır.
+export function buildSearchHaystack(d: Dokument): string {
+  const parts: string[] = [
+    d.titel,
+    d.absender,
+    d.typ,
+    d.zusammenfassung ?? '',
+    d.betrag != null ? String(d.betrag) : '',
+    d.aktenzeichen ?? '',
+    d.dokumentDatum ?? '',
+    d.datum,
+    d.frist ?? '',
+    (d.etiketten ?? []).join(' '),
+    (d.rohText ?? '').slice(0, 1000),
+  ];
+  return normalizeSearchText(parts.filter(Boolean).join(' ')).slice(0, 2000);
+}
+
 export interface SearchParams {
   query?: string; minBetrag?: string; maxBetrag?: string;
   vonDatum?: string; bisDatum?: string; typ?: string; risiko?: string; mitErledigt?: boolean;
@@ -109,19 +139,22 @@ export function filterBySearch(docs: Dokument[], { query = '', minBetrag = '', m
   const effectiveBis = bisDatum || parsed.bisDatum;
   const effectiveTyp = (typ && typ !== 'alle') ? typ : (parsed.typ || 'alle');
   const effectiveRisiko = (risiko && risiko !== 'alle') ? risiko : (parsed.risiko || 'alle');
-  const q = parsed.restQuery.toLowerCase();
+  // AND-Logik: alle Wörter müssen im Haystack vorkommen
+  const words = normalizeSearchText(parsed.restQuery).split(' ').filter(w => w.length >= 2);
   return docs.filter(d => {
     if (!mitErledigt && d.erledigt) return false;
     if (parsed.ueberfaellig && (!d.frist || new Date(d.frist) >= new Date())) return false;
-    if (q.length >= 2) {
-      const haystack = `${d.titel} ${d.absender} ${d.typ} ${d.zusammenfassung || ''} ${d.betrag || ''} ${(d.etiketten || []).join(' ')}`.toLowerCase();
-      if (!haystack.includes(q)) return false;
+    if (words.length > 0) {
+      const haystack = buildSearchHaystack(d);
+      if (!words.every(w => haystack.includes(w))) return false;
     }
     const bet = (d.betrag as number) || 0;
     if (effectiveMin !== '' && !isNaN(parseFloat(effectiveMin)) && bet < parseFloat(effectiveMin)) return false;
     if (effectiveMax !== '' && !isNaN(parseFloat(effectiveMax)) && bet > parseFloat(effectiveMax)) return false;
-    if (effectiveVon && d.datum && new Date(d.datum) < new Date(effectiveVon)) return false;
-    if (effectiveBis && d.datum && new Date(d.datum) > new Date(effectiveBis + 'T23:59:59')) return false;
+    // Tarih filtresi: belge tarihi önce, yoksa scan tarihi
+    const effectiveDate = d.dokumentDatum ?? d.datum;
+    if (effectiveVon && effectiveDate && new Date(effectiveDate) < new Date(effectiveVon)) return false;
+    if (effectiveBis && effectiveDate && new Date(effectiveDate) > new Date(effectiveBis + 'T23:59:59')) return false;
     if (effectiveTyp && effectiveTyp !== 'alle' && !documentMatchesTypChip(d.typ, effectiveTyp)) return false;
     if (effectiveRisiko && effectiveRisiko !== 'alle' && d.risiko !== effectiveRisiko) return false;
     return true;

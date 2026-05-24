@@ -49,6 +49,8 @@ export interface OcrMvpActionSummary {
   // Common
   recommended_actions?: string[];
   warnings?: string[];
+  /** Ham OCR metni — tam metin araması için; ilk 2000 karakter */
+  raw_text?: string;
 }
 
 export interface OcrMvpJobStatus {

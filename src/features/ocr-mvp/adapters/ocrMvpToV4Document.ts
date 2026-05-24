@@ -81,6 +81,7 @@ function buildRohText(s: OcrMvpJobStatus['action_summary']): string | null {
   }
   if ((s.tables_count ?? 0) > 0) lines.push(`Tabellen: ${s.tables_count}`);
   if ((s.lines_count  ?? 0) > 0) lines.push(`Zeilen: ${s.lines_count}`);
+  if (s.raw_text?.trim()) lines.push(s.raw_text.trim());
   return lines.length > 0 ? lines.join('\n') : null;
 }
 

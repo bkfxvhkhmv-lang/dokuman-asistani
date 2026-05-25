@@ -53,6 +53,14 @@ function mapRisiko(raw: string | null | undefined): 'hoch' | 'mittel' | 'niedrig
   }
 }
 
+const _FRIST_MONTH_MAP: Record<string, number> = {
+  januar:1, februar:2, märz:3, april:4, mai:5, juni:6,
+  juli:7, august:8, september:9, oktober:10, november:11, dezember:12,
+  january:1, february:2, march:3, june:6, july:7, october:10, december:12,
+  jan:1, feb:2, mär:3, mar:3, apr:4, jun:6, jul:7, aug:8,
+  sep:9, okt:10, oct:10, nov:11, dez:12, dec:12,
+};
+
 // Returns ISO string if parseable, null otherwise — unsafe formats are silently dropped.
 function parseFrist(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -65,6 +73,24 @@ function parseFrist(raw: string | null | undefined): string | null {
   if (match) {
     const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
     if (!isNaN(d.getTime())) return d.toISOString();
+  }
+
+  // "24. März 2017" / "März 2017"
+  const withDay = raw.trim().match(/^(\d{1,2})\.?\s+(\w+)\s+(\d{4})$/i);
+  if (withDay) {
+    const mo = _FRIST_MONTH_MAP[withDay[2].toLowerCase()];
+    if (mo) {
+      const d = new Date(Number(withDay[3]), mo - 1, Number(withDay[1]));
+      if (!isNaN(d.getTime())) return d.toISOString();
+    }
+  }
+  const monthYear = raw.trim().match(/^(\w+)\s+(\d{4})$/i);
+  if (monthYear) {
+    const mo = _FRIST_MONTH_MAP[monthYear[1].toLowerCase()];
+    if (mo) {
+      const d = new Date(Number(monthYear[2]), mo - 1, 1);
+      if (!isNaN(d.getTime())) return d.toISOString();
+    }
   }
 
   return null;

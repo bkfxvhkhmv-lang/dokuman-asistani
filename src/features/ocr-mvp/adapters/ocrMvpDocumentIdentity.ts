@@ -38,6 +38,36 @@ function formatAmount(
   return `${intFormatted},${dec} ${cur}`;
 }
 
+const GERMAN_MONTHS: Record<string, string> = {
+  januar:'01', februar:'02', märz:'03', april:'04',
+  mai:'05', juni:'06', juli:'07', august:'08',
+  september:'09', oktober:'10', november:'11', dezember:'12',
+  // English fallback (LLM sometimes returns English)
+  january:'01', february:'02', march:'03', june:'06',
+  july:'07', october:'10', december:'12',
+  jan:'01', feb:'02', mär:'03', mar:'03', apr:'04',
+  jun:'06', jul:'07', aug:'08', sep:'09',
+  okt:'10', oct:'10', nov:'11', dez:'12', dec:'12',
+};
+
+/** "März 2017" → "01.03.2017"  |  "24. Mai 2026" → "24.05.2026" */
+function parseGermanMonthDate(raw: string): string | null {
+  const t = raw.trim();
+  // "24. März 2017" / "24 März 2017"
+  const withDay = t.match(/^(\d{1,2})\.?\s+(\w+)\s+(\d{4})$/i);
+  if (withDay) {
+    const mm = GERMAN_MONTHS[withDay[2].toLowerCase()];
+    if (mm) return `${withDay[1].padStart(2, '0')}.${mm}.${withDay[3]}`;
+  }
+  // "März 2017"
+  const monthYear = t.match(/^(\w+)\s+(\d{4})$/i);
+  if (monthYear) {
+    const mm = GERMAN_MONTHS[monthYear[1].toLowerCase()];
+    if (mm) return `01.${mm}.${monthYear[2]}`;
+  }
+  return null;
+}
+
 function formatDateForTitle(iso: string | null | undefined): string | null {
   if (!iso) return null;
   // ISO 8601 → DD.MM.YYYY
@@ -54,6 +84,9 @@ function formatDateForTitle(iso: string | null | undefined): string | null {
   if (shortYear) return `${shortYear[1].padStart(2, '0')}.${shortYear[2].padStart(2, '0')}.20${shortYear[3]}`;
   // Only year — acceptable
   if (/^\d{4}$/.test(iso.trim())) return iso.trim();
+  // German/English month names: "März 2017", "24. Mai 2026"
+  const german = parseGermanMonthDate(iso);
+  if (german) return german;
   return null;
 }
 

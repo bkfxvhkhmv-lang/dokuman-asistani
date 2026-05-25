@@ -52,21 +52,23 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
   const bannerKalender = shouldShowDetailDeadlineBanner(dok);
 
   const nextTwin = normalizeNextAction(digitalTwin?.intelligence?.lifecycle?.nextAction);
+  // zahlen nur anbieten wenn Betrag bekannt — ohne Betrag ist Zahlung nicht ausführbar
+  const canZahlen = dok.aktionen?.includes('zahlen') && dok.betrag != null;
 
   if (overdue) {
-    if (nextTwin.includes('zahl')) return 'zahlen';
+    if (nextTwin.includes('zahl') && dok.betrag != null) return 'zahlen';
     if (nextTwin.includes('einspruch')) return 'einspruch';
-    if (dok.aktionen?.includes('zahlen')) return 'zahlen';
+    if (canZahlen) return 'zahlen';
     if (dok.aktionen?.includes('einspruch')) return 'einspruch';
     if (nextTwin.includes('mail') || nextTwin.includes('e-mail')) return 'mail';
     return 'ai';
   }
 
-  if (nextTwin.includes('zahl')) return 'zahlen';
+  if (nextTwin.includes('zahl') && dok.betrag != null) return 'zahlen';
   if (nextTwin.includes('einspruch')) return 'einspruch';
   if (nextTwin.includes('takvim') || nextTwin.includes('kalender')) {
     if (!bannerKalender) return 'kalender';
-    if (dok.aktionen?.includes('zahlen')) return 'zahlen';
+    if (canZahlen) return 'zahlen';
     if (dok.aktionen?.includes('einspruch')) return 'einspruch';
     return 'mail';
   }
@@ -75,11 +77,11 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
 
   if (dok.frist) {
     const dueInDays = Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000);
-    if (dok.aktionen?.includes('zahlen') && dueInDays <= 3) return 'zahlen';
+    if (canZahlen && dueInDays <= 3) return 'zahlen';
     if (dok.aktionen?.includes('einspruch') && dueInDays <= 14) return 'einspruch';
     if (dueInDays <= 7) {
       if (bannerKalender) {
-        if (dok.aktionen?.includes('zahlen')) return 'zahlen';
+        if (canZahlen) return 'zahlen';
         if (dok.aktionen?.includes('einspruch')) return 'einspruch';
         return 'mail';
       }
@@ -94,12 +96,13 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
                 : typeAction.id === 'add_to_calendar'   ? 'kalender'
                 : typeAction.id === 'review_summary'    ? 'ai'
                 : null;
-  const fallbackWithType = typeKey && dok.aktionen?.includes(typeKey)
-    ? typeKey
-    : (['zahlen', 'einspruch', 'kalender', 'mail'] as string[]).find(a => dok.aktionen?.includes(a)) || 'ai';
+  const fallbackWithType = (typeKey === 'zahlen' ? (canZahlen ? 'zahlen' : null) : (typeKey && dok.aktionen?.includes(typeKey) ? typeKey : null))
+    ?? (['einspruch', 'kalender', 'mail'] as string[]).find(a => dok.aktionen?.includes(a))
+    ?? (canZahlen ? 'zahlen' : null)
+    ?? 'ai';
 
   if (fallbackWithType === 'kalender' && bannerKalender) {
-    if (dok.aktionen?.includes('zahlen')) return 'zahlen';
+    if (canZahlen) return 'zahlen';
     if (dok.aktionen?.includes('einspruch')) return 'einspruch';
     return 'mail';
   }
@@ -138,9 +141,10 @@ export function getDetailActionPlan(
 
   const primary = { key: primaryKey, ...ACTION_META[primaryKey], onPress: onPress[primaryKey] };
 
+  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && dok.betrag != null;
   const coreLimit = !dok.erledigt ? 1 : 2;
   const coreSecondaryKeys = ([
-    dok.aktionen?.includes('zahlen') && 'zahlen',
+    canZahlenSecondary && 'zahlen',
     dok.aktionen?.includes('einspruch') && 'einspruch',
     dok.frist && 'kalender',
     'mail',

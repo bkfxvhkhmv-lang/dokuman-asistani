@@ -22,6 +22,41 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   unknown:    'Unbekanntes Dokument',
 };
 
+const UMLAUT_MAP: Record<string, string> = {
+  ä: 'ae', ö: 'oe', ü: 'ue', Ä: 'Ae', Ö: 'Oe', Ü: 'Ue', ß: 'ss',
+};
+
+function sanitizeFilePart(s: string): string {
+  return s
+    .replace(/[äöüÄÖÜß]/g, m => UMLAUT_MAP[m] ?? m)
+    .replace(/[^a-zA-Z0-9\-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .slice(0, 50);
+}
+
+function buildExportFilename(
+  summary: import('@/services/ocrMvpApi').OcrMvpActionSummary | undefined,
+  docType: string | undefined,
+  ext: string,
+): string {
+  const kind  = summary?.kind ?? docType ?? 'unknown';
+  const label = DOC_TYPE_LABEL[kind] ?? 'Dokument';
+
+  const vendor = summary?.vendor_name || summary?.sender;
+  const rawDate = summary?.invoice_date || summary?.document_date;
+  const today = new Date();
+  const dateStr = rawDate
+    ? rawDate.slice(0, 10)
+    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const parts: string[] = [label];
+  if (vendor) parts.push(sanitizeFilePart(vendor));
+  parts.push(dateStr);
+
+  return parts.join('_') + '.' + ext;
+}
+
 const HIGH_RISK_TYPES = new Set(['letter', 'insurance']);
 
 interface Props {
@@ -76,11 +111,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
     try {
       const ext      = outputExt ?? 'bin';
       const uti      = ext === 'xlsx' ? 'com.microsoft.excel.xlsx' : 'public.plain-text';
-      const kind     = result.action_summary?.kind ?? 'unknown';
-      const label    = DOC_TYPE_LABEL[kind] ?? 'Dokument';
-      const today    = new Date();
-      const dateStr  = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-      const filename = `${label}_${dateStr}.${ext}`;
+      const filename = buildExportFilename(result.action_summary, result.document_type, ext);
       const uri      = await downloadOcrResult(result.job_id, filename);
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {

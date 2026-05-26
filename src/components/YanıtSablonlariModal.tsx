@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, TextInput, Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import * as MailComposer from 'expo-mail-composer';
 import { useTheme } from '@/ThemeContext';
 import { formatFrist, formatBetrag } from '@/utils';
 import { getBilgiler, platzhalterDoldur } from '@/services/kisiselBilgi';
@@ -74,6 +75,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: YanıtS
   const C = Colors;
   const [secilenSablon, setSecilenSablon] = useState<Sablon | null>(null);
   const [editText, setEditText] = useState('');
+  const [mailNichtVerfuegbar, setMailNichtVerfuegbar] = useState(false);
 
   const sablonlar = useMemo(() => buildSablonlar(dok), [dok]);
   const passeneSablonlar = dok ? sablonlar.filter(s => s.typen.includes(dok.typ)) : sablonlar;
@@ -87,7 +89,21 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: YanıtS
 
   const handleKopieren = async () => { await Clipboard.setStringAsync(editText); };
   const handleTeilen   = async () => { await Share.share({ message: editText, title: secilenSablon?.label }); };
-  const handleZurueck  = () => { setSecilenSablon(null); setEditText(''); };
+  const handleZurueck  = () => { setSecilenSablon(null); setEditText(''); setMailNichtVerfuegbar(false); };
+
+  const handleMailEntwurf = async () => {
+    const verfuegbar = await MailComposer.isAvailableAsync();
+    if (!verfuegbar) {
+      setMailNichtVerfuegbar(true);
+      return;
+    }
+    setMailNichtVerfuegbar(false);
+    await MailComposer.composeAsync({
+      subject: secilenSablon?.label ?? '',
+      body: editText,
+      recipients: [],
+    });
+  };
 
   return (
     <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
@@ -150,6 +166,13 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: YanıtS
               <TextInput style={{ backgroundColor: C.bgInput, borderRadius: 12, borderWidth: 1, borderColor: C.border, color: C.text, fontSize: 13, padding: 14, lineHeight: 20, minHeight: 320 }}
                 value={editText} onChangeText={setEditText} multiline textAlignVertical="top" />
             </ScrollView>
+            {mailNichtVerfuegbar && (
+              <View style={{ marginHorizontal: 16, marginBottom: 6, padding: 10, borderRadius: 10, backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning }}>
+                <Text style={{ fontSize: 11, color: C.warningText }}>
+                  Mail-App nicht verfügbar. Bitte kopieren oder teilen.
+                </Text>
+              </View>
+            )}
             <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 8 }}>
               <TouchableOpacity onPress={handleKopieren}
                 style={{ flex: 1, borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1.5, borderColor: C.primary, backgroundColor: C.primaryLight }}>
@@ -158,6 +181,12 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: YanıtS
               <TouchableOpacity onPress={handleTeilen}
                 style={{ flex: 1, borderRadius: 12, padding: 14, alignItems: 'center', backgroundColor: C.primary }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>⬆ Teilen</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ paddingHorizontal: 16, paddingTop: 8 }}>
+              <TouchableOpacity onPress={handleMailEntwurf}
+                style={{ borderRadius: 12, padding: 14, alignItems: 'center', borderWidth: 1.5, borderColor: C.border, backgroundColor: C.bgInput }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>✉ E-Mail-Entwurf öffnen</Text>
               </TouchableOpacity>
             </View>
           </>

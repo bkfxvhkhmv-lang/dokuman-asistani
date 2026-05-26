@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { StatusBar, View, StyleSheet, Platform } from 'react-native';
 import { initNativeScannerBridge } from '../src/modules/scanner/engine/NativeScannerBridge';
 import HeroTransitionOverlay from '../src/navigation/HeroTransitionOverlay';
-import OfflineBanner from '../src/components/OfflineBanner';
 import SperrBildschirm from '../src/components/SperrBildschirm';
 import { usePrivacyGate } from '../src/hooks/usePrivacyGate';
 import { Stack, SplashScreen } from 'expo-router';
@@ -168,9 +167,6 @@ export default function RootLayout() {
 
                     {/* Floating hero expansion overlay — above all screens */}
                     <HeroTransitionOverlay />
-
-                    {/* Offline banner — slides down from top when server unreachable */}
-                    <OfflineBanner />
 
                     {/* #101/#102 — privacy overlay + biometric gate */}
                     <PrivacyGateProvider />

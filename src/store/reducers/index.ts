@@ -20,8 +20,9 @@ export function rootReducer(state: StoreState, action: StoreAction): StoreState 
   if (action.type === 'LOAD') {
     const payload = action.payload;
     // Strip demo docs that may have been persisted from earlier app versions.
+    // Also strip by ID prefix for docs persisted before isDemo flag was added.
     const dokumente = payload.dokumente
-      ? payload.dokumente.filter(d => !d.isDemo)
+      ? payload.dokumente.filter(d => !d.isDemo && !d.id?.startsWith('demo-'))
       : state.dokumente;
     return { ...state, ...payload, dokumente };
   }

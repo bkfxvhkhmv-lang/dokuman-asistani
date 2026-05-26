@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
+import { ExpoScannerProvider } from '../scanner/ExpoScannerProvider';
+import type { ScannedAsset } from '../scanner/types';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 
 const FORCE_TYPE_OPTIONS: { value: OcrMvpForceType | null; label: string }[] = [
@@ -24,51 +24,25 @@ interface Props {
 
 export default function OcrMvpUploadBox({ onSubmit }: Props) {
   const { Colors } = useTheme();
-  const [selectedFile, setSelectedFile] = useState<{ uri: string; name: string; mimeType: string; displayName: string } | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
   const [forceType, setForceType] = useState<OcrMvpForceType | null>(null);
   const [picking, setPicking] = useState(false);
 
-  const pickFile = async () => {
+  const handlePickFile = async () => {
     setPicking(true);
     try {
-      const res = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf', 'image/jpeg', 'image/png'],
-        copyToCacheDirectory: true,
-      });
-      if (!res.canceled && res.assets.length > 0) {
-        const asset = res.assets[0];
-        const mime = asset.mimeType ?? 'application/pdf';
-        setSelectedFile({
-          uri: asset.uri,
-          name: asset.name ?? 'document',
-          mimeType: mime,
-          displayName: mime === 'application/pdf' ? (asset.name ?? 'Dokument') : 'Bild ausgewählt',
-        });
-      }
+      const asset = await ExpoScannerProvider.pickFile();
+      if (asset) setSelectedAsset(asset);
     } finally {
       setPicking(false);
     }
   };
 
-  const takePhoto = async () => {
+  const handleTakePhoto = async () => {
     setPicking(true);
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') return;
-      const res = await ImagePicker.launchCameraAsync({
-        mediaTypes: 'images',
-        allowsEditing: false,
-        quality: 1,
-      });
-      if (!res.canceled && res.assets.length > 0) {
-        const asset = res.assets[0];
-        setSelectedFile({
-          uri: asset.uri,
-          name: `photo_${Date.now()}.jpg`,
-          mimeType: 'image/jpeg',
-          displayName: 'Foto aufgenommen',
-        });
-      }
+      const asset = await ExpoScannerProvider.takePhoto();
+      if (asset) setSelectedAsset(asset);
     } finally {
       setPicking(false);
     }
@@ -78,15 +52,15 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
 
   return (
     <View style={st.container}>
-      {selectedFile ? (
-        <TouchableOpacity style={st.selectedZone} onPress={pickFile} activeOpacity={0.75}>
+      {selectedAsset ? (
+        <TouchableOpacity style={st.selectedZone} onPress={handlePickFile} activeOpacity={0.75}>
           <Icon name="document-text" size={36} color={Colors.primary} />
-          <Text style={st.fileName} numberOfLines={2}>{selectedFile.displayName}</Text>
+          <Text style={st.fileName} numberOfLines={2}>{selectedAsset.displayName}</Text>
           <Text style={st.changeHint}>Zum Ändern tippen</Text>
         </TouchableOpacity>
       ) : (
         <View style={st.pickRow}>
-          <TouchableOpacity style={st.pickBtn} onPress={pickFile} activeOpacity={0.75} disabled={picking}>
+          <TouchableOpacity style={st.pickBtn} onPress={handlePickFile} activeOpacity={0.75} disabled={picking}>
             {picking ? (
               <ActivityIndicator color={Colors.primary} />
             ) : (
@@ -100,7 +74,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
 
           <View style={[st.pickDivider, { backgroundColor: Colors.border }]} />
 
-          <TouchableOpacity style={st.pickBtn} onPress={takePhoto} activeOpacity={0.75} disabled={picking}>
+          <TouchableOpacity style={st.pickBtn} onPress={handleTakePhoto} activeOpacity={0.75} disabled={picking}>
             {picking ? (
               <ActivityIndicator color={Colors.primary} />
             ) : (
@@ -114,30 +88,39 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
         </View>
       )}
 
-      <Text style={st.sectionLabel}>Dokumenttyp</Text>
-      <View style={st.typeGrid}>
-        {FORCE_TYPE_OPTIONS.map(opt => (
-          <TouchableOpacity
-            key={opt.value ?? 'auto'}
-            style={[st.typeChip, forceType === opt.value && st.typeChipActive]}
-            onPress={() => setForceType(opt.value)}
-            activeOpacity={0.75}
-          >
-            <Text style={[st.typeChipLabel, forceType === opt.value && st.typeChipLabelActive]}>
-              {opt.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {__DEV__ && (
+        <>
+          <Text style={st.sectionLabel}>Dokumenttyp (Dev)</Text>
+          <View style={st.typeGrid}>
+            {FORCE_TYPE_OPTIONS.map(opt => (
+              <TouchableOpacity
+                key={opt.value ?? 'auto'}
+                style={[st.typeChip, forceType === opt.value && st.typeChipActive]}
+                onPress={() => setForceType(opt.value)}
+                activeOpacity={0.75}
+              >
+                <Text style={[st.typeChipLabel, forceType === opt.value && st.typeChipLabelActive]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
 
       <TouchableOpacity
-        style={[st.submitBtn, !selectedFile && st.submitBtnDisabled]}
+        style={[st.submitBtn, !selectedAsset && st.submitBtnDisabled]}
         onPress={() => {
-          if (selectedFile) {
-            onSubmit(selectedFile.uri, selectedFile.name, selectedFile.mimeType, forceType ?? undefined);
+          if (selectedAsset) {
+            onSubmit(
+              selectedAsset.uri,
+              selectedAsset.name,
+              selectedAsset.mimeType,
+              __DEV__ ? (forceType ?? undefined) : undefined,
+            );
           }
         }}
-        disabled={!selectedFile}
+        disabled={!selectedAsset}
         activeOpacity={0.8}
       >
         <Text style={st.submitLabel}>Analysieren</Text>

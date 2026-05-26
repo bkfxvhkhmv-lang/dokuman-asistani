@@ -246,6 +246,10 @@ export function buildDocumentTitle(
 const SENDER_FIELD_RE =
   /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|dienstleister)/i;
 
+// Payment/banking fields — never the document author, always excluded.
+const PAYMENT_FIELD_RE =
+  /^(bankname|bank$|kreditinstitut|kontoinhaber|zahlungsempf[äa]nger|iban|bic|kontonummer|blz)/i;
+
 const MAX_SENDER_LENGTH = 80;
 
 export function buildDocumentSender(
@@ -262,7 +266,9 @@ export function buildDocumentSender(
   if (direct?.trim()) return direct.trim();
 
   const match = (s.fields ?? []).find(
-    f => SENDER_FIELD_RE.test(f.name.trim()) && f.value.trim().length > 0,
+    f => SENDER_FIELD_RE.test(f.name.trim())
+      && !PAYMENT_FIELD_RE.test(f.name.trim())
+      && f.value.trim().length > 0,
   );
   if (match) {
     const v = match.value.trim();

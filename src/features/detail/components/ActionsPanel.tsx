@@ -13,20 +13,22 @@ import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi'
 // ── Action metadata ───────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',  icon: 'currency-eur',    tone: 'primary' },
-  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch', icon: 'pencil-line',     tone: 'danger' },
-  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',  icon: 'calendar-blank',  tone: 'success' },
-  mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',    icon: 'envelope-simple', tone: 'neutral' },
-  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',    icon: 'magnifying-glass', tone: 'warning' },
-  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen', icon: 'sparkle',         tone: 'neutral' },
-  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',  icon: 'check-circle',    tone: 'neutral' },
+  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',   icon: 'currency-eur',    tone: 'primary' },
+  gutschrift:{ label: 'Gutschrift prüfen',        shortLabel: 'Gutschrift', icon: 'receipt',         tone: 'neutral' },
+  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch',  icon: 'pencil-line',     tone: 'danger' },
+  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',   icon: 'calendar-blank',  tone: 'success' },
+  mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',     icon: 'envelope-simple', tone: 'neutral' },
+  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
+  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen',  icon: 'sparkle',         tone: 'neutral' },
+  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',   icon: 'check-circle',    tone: 'neutral' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
-  ai:       'KI erklärt oder fasst zusammen — du wählst die Sprache.',
-  zahlen:   'Überweisungsdaten oder Banking vorbereiten.',
-  kalender: 'Frist mit Erinnerung im Kalender sichern.',
-  mail:     'Entwurf vorbereiten oder Antwort per E-Mail senden.',
+  ai:        'KI erklärt oder fasst zusammen — du wählst die Sprache.',
+  zahlen:    'Überweisungsdaten oder Banking vorbereiten.',
+  gutschrift:'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
+  kalender:  'Frist mit Erinnerung im Kalender sichern.',
+  mail:      'Entwurf vorbereiten oder Antwort per E-Mail senden.',
   einspruch: 'Mustertext und Fristen für Widerspruch prüfen.',
 };
 
@@ -42,21 +44,24 @@ function normalizeNextAction(nextAction: string | null | undefined): string {
   return nextAction?.toLowerCase?.().trim?.() || '';
 }
 
-/** Priorisiert Bezahlen/Einspruch bei Überfälligkeit; kein Kalender-FAB, wenn der Hinweisstreifen „Frist ins Kalender“ zeigt. */
+/** Priorisiert Bezahlen/Einspruch bei Überfälligkeit; kein Kalender-FAB, wenn der Hinweisstreifen „Frist ins Kalender” zeigt. */
 function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | null | undefined): string {
   if (!dok || dok.erledigt) return 'ai';
   if (dok.confidence != null && dok.confidence < 55) return 'review';
+
+  // Negativer Betrag = Gutschrift / Guthaben — niemals Zahlung anzeigen
+  if (dok.betrag != null && dok.betrag < 0) return 'gutschrift';
 
   const tage = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const overdue = tage !== null && tage < 0;
   const bannerKalender = shouldShowDetailDeadlineBanner(dok);
 
   const nextTwin = normalizeNextAction(digitalTwin?.intelligence?.lifecycle?.nextAction);
-  // zahlen nur anbieten wenn Betrag bekannt — ohne Betrag ist Zahlung nicht ausführbar
-  const canZahlen = dok.aktionen?.includes('zahlen') && dok.betrag != null;
+  // zahlen nur bei positivem Betrag — negativer Betrag ist Gutschrift, kein Zahlungsausgang
+  const canZahlen = dok.aktionen?.includes('zahlen') && dok.betrag != null && dok.betrag > 0;
 
   if (overdue) {
-    if (nextTwin.includes('zahl') && dok.betrag != null) return 'zahlen';
+    if (nextTwin.includes('zahl') && canZahlen) return 'zahlen';
     if (nextTwin.includes('einspruch')) return 'einspruch';
     if (canZahlen) return 'zahlen';
     if (dok.aktionen?.includes('einspruch')) return 'einspruch';
@@ -64,7 +69,7 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
     return 'ai';
   }
 
-  if (nextTwin.includes('zahl') && dok.betrag != null) return 'zahlen';
+  if (nextTwin.includes('zahl') && canZahlen) return 'zahlen';
   if (nextTwin.includes('einspruch')) return 'einspruch';
   if (nextTwin.includes('takvim') || nextTwin.includes('kalender')) {
     if (!bannerKalender) return 'kalender';

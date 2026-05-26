@@ -23,6 +23,10 @@ export function deriveNaechsterSchrittZeile(dok: Dokument, plan: ActionPlan | nu
     const b = formatBetrag(dok.betrag, dok.waehrung || '€');
     return b ? `${b} bezahlen` : (plan?.primary?.label ?? null);
   }
+  if (key === 'gutschrift' && dok.betrag != null) {
+    const b = formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€');
+    return b ? `Gutschrift: ${b} prüfen` : 'Gutschrift prüfen';
+  }
   return plan?.primary?.label ?? null;
 }
 
@@ -53,6 +57,12 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
     if (betragStr && fristStr) return `Diese Rechnung bis zum ${fristStr} bezahlen.`;
     if (betragStr) return `${betragStr} bezahlen.`;
     return 'Zahlung vorbereiten.';
+  }
+  if (key === 'gutschrift') {
+    const absStr = dok.betrag != null ? formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€') : null;
+    return absStr
+      ? `Gutschrift über ${absStr} — keine Zahlung nötig.`
+      : 'Gutschrift oder Guthaben prüfen — keine Zahlung nötig.';
   }
   if (key === 'kalender') {
     return fristStr

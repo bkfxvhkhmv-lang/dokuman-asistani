@@ -43,8 +43,8 @@ function buildFristHot(d: Dokument): HotDoc | null {
     emoji:      tage <= 0 ? '🚨' : '⏰',
     label:      `${dayStr} fällig`,
     sublabel:   `${d.absender}${betragStr}`,
-    action:     d.betrag ? 'bezahlen' : 'ansehen',
-    actionLabel: d.betrag ? 'Jetzt zahlen' : 'Ansehen',
+    action:     (d.betrag ?? 0) > 0 ? 'bezahlen' : 'ansehen',
+    actionLabel: (d.betrag ?? 0) > 0 ? 'Jetzt zahlen' : 'Ansehen',
   };
 }
 

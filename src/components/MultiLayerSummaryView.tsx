@@ -37,7 +37,7 @@ function buildEinfach(dok: Dokument | undefined): string | null {
   };
   const typ = typMap[dok.typ] || 'ein Schreiben';
   teile.push(`📬 ${absender} hat ${typ} geschickt.`);
-  if (dok.betrag) teile.push(` Sie sollen ${dok.betrag.toFixed(2)} € bezahlen.`);
+  if (dok.betrag && dok.betrag > 0) teile.push(` Sie sollen ${dok.betrag.toFixed(2)} € bezahlen.`);
   if (dok.frist)  teile.push(` Das muss bis ${new Date(dok.frist).toLocaleDateString('de-DE')} erledigt sein.`);
   if (dok.risiko === 'hoch')    teile.push(' Das ist dringend — bitte sofort handeln!');
   if (dok.risiko === 'mittel')  teile.push('🔶 Diese Woche sollten Sie sich darum kümmern.');

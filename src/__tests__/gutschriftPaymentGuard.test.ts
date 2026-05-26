@@ -1,10 +1,11 @@
 /**
  * P0 regression: credit documents (betrag < 0) must never show payment copy.
  *
- * Covers the three leak paths fixed in this commit:
+ * Covers leak paths:
  *   - kernPunkte.ts   — summary bullet "Zahlung vorbereiten"
  *   - hints.ts        — handlungsempfehlungen payment lines
- *   - (SimpleDocumentOverview is a React component — covered by zahlenSichtbar logic)
+ *   - (ActionsPanel canZahlenSecondary, SimpleDocumentOverview,
+ *      MultiLayerSummaryView — React component guards, not unit-testable here)
  */
 
 import { buildKernPunkte } from '@/services/smart-summary/kernPunkte';

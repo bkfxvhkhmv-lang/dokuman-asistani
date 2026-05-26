@@ -148,7 +148,7 @@ export function getDetailActionPlan(
 
   const primary = { key: primaryKey, ...ACTION_META[primaryKey], onPress: onPress[primaryKey] };
 
-  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && dok.betrag != null;
+  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
   const coreLimit = !dok.erledigt ? 1 : 2;
   const coreSecondaryKeys = ([
     canZahlenSecondary && 'zahlen',

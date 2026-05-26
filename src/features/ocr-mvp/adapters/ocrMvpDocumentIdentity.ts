@@ -243,12 +243,21 @@ export function buildDocumentTitle(
 }
 
 // Only fields that unambiguously name the sending organisation — never applicant/recipient fields.
+// Note: "Empfänger" is intentionally excluded here; it requires institution-value validation (see below).
 const SENDER_FIELD_RE =
-  /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|dienstleister|empf[äa]nger)/i;
+  /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|dienstleister)/i;
 
 // Payment/banking fields — never the document author, always excluded.
 const PAYMENT_FIELD_RE =
   /^(bankname|bank$|kreditinstitut|kontoinhaber|zahlungsempf[äa]nger|iban|bic|kontonummer|blz)/i;
+
+// "Empfänger" is only a sender signal in Behörden/form/letter context
+// AND only when the value contains a clear institution keyword.
+// "Empfänger: Bayram Gül" → never a sender. "Empfänger: Gemeinde Schmelz" → sender.
+const _EMPFAENGER_FIELD_RE = /^empf[äa]nger$/i;
+const _INSTITUTION_VALUE_RE =
+  /\b(gemeinde|verbandsgemeinde|stadt(?:verwaltung)?|landkreis|kreis(?:verwaltung)?|landratsamt|finanzamt|zollamt|jobcenter|arbeitsamt|ordnungsamt|standesamt|rathaus|beh[oö]rde|polizei|bundesagentur|staatsanwaltschaft|amtsgericht)\b/i;
+const _EMPFAENGER_KINDS = new Set(['form', 'letter', 'settlement']);
 
 const MAX_SENDER_LENGTH = 80;
 
@@ -265,6 +274,7 @@ export function buildDocumentSender(
 
   if (direct?.trim()) return direct.trim();
 
+  // Safe sender fields (Absender, Behörde, Firma, etc.)
   const match = (s.fields ?? []).find(
     f => SENDER_FIELD_RE.test(f.name.trim())
       && !PAYMENT_FIELD_RE.test(f.name.trim())
@@ -273,6 +283,19 @@ export function buildDocumentSender(
   if (match) {
     const v = match.value.trim();
     return v.length <= MAX_SENDER_LENGTH ? v : 'Unbekannt';
+  }
+
+  // "Empfänger" exception: only for Behörden/form/letter, only when value is clearly an institution.
+  if (_EMPFAENGER_KINDS.has(kind)) {
+    const empf = (s.fields ?? []).find(
+      f => _EMPFAENGER_FIELD_RE.test(f.name.trim())
+        && !PAYMENT_FIELD_RE.test(f.name.trim())
+        && _INSTITUTION_VALUE_RE.test(f.value.trim()),
+    );
+    if (empf) {
+      const v = empf.value.trim();
+      return v.length <= MAX_SENDER_LENGTH ? v : 'Unbekannt';
+    }
   }
 
   return 'Unbekannt';

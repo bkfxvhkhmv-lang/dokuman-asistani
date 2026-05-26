@@ -24,17 +24,17 @@ export default function OfflineBanner() {
   const insets = useSafeAreaInsets();
   const { suppress } = useOfflineBannerSuppression();
 
-  const translateY = useSharedValue(-60);
+  const translateY = useSharedValue(60);
   const opacity    = useSharedValue(0);
 
   useEffect(() => {
     const shouldShow = isError && !suppress;
     if (shouldShow) {
-      translateY.value = withSpring(0,    { damping: 18, stiffness: 200 });
-      opacity.value    = withTiming(1,    { duration: 200 });
+      translateY.value = withSpring(0,   { damping: 18, stiffness: 200 });
+      opacity.value    = withTiming(1,   { duration: 200 });
     } else {
-      translateY.value = withSpring(-60,  { damping: 18, stiffness: 200 });
-      opacity.value    = withTiming(0,    { duration: 150 });
+      translateY.value = withSpring(60,  { damping: 18, stiffness: 200 });
+      opacity.value    = withTiming(0,   { duration: 150 });
     }
     return () => {
       cancelAnimation(translateY);
@@ -52,7 +52,7 @@ export default function OfflineBanner() {
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[st.banner, { top: insets.top + 8, backgroundColor: C.warningLight, borderColor: `${C.warning}55` }, animStyle]}
+      style={[st.banner, { bottom: insets.bottom + 16, backgroundColor: C.warningLight, borderColor: `${C.warning}55` }, animStyle]}
     >
       <View style={[st.dot, { backgroundColor: C.warning }]} />
       <Text style={[st.text, { color: C.warningText || C.warning }]} numberOfLines={1}>

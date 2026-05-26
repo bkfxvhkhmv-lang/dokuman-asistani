@@ -137,7 +137,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
           <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}33` }]}>
             <Money size={13} color={intent.color} weight="regular" />
             <Text style={[styles.amount, { color: intent.color, fontVariant: ['tabular-nums'] }]}>
-              {dok.betrag.toFixed(2)} €
+              {new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(dok.betrag)} €
             </Text>
           </View>
         ) : <View />}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -19,7 +19,7 @@ const FORCE_TYPE_OPTIONS: { value: OcrMvpForceType | null; label: string }[] = [
 ];
 
 interface Props {
-  onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType) => void;
+  onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string) => void;
 }
 
 export default function OcrMvpUploadBox({ onSubmit }: Props) {
@@ -48,9 +48,15 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
     return (
       <View style={st.container}>
         <View style={st.selectedCard}>
-          <View style={st.selectedIconCircle}>
-            <Icon name={isCamera ? 'camera' : 'document-text'} size={28} color={C.primary} />
-          </View>
+          {selectedAsset.previewUri ? (
+            <View style={[st.thumbContainer, { borderColor: C.primary + '30' }]}>
+              <Image source={{ uri: selectedAsset.previewUri }} style={st.thumbImage} resizeMode="cover" />
+            </View>
+          ) : (
+            <View style={st.selectedIconCircle}>
+              <Icon name={isPdf ? 'document-text' : 'document-outline'} size={28} color={C.primary} />
+            </View>
+          )}
           <Text style={[st.selectedTitle, { color: C.text }]} numberOfLines={2}>
             {displayTitle}
           </Text>
@@ -86,6 +92,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
             selectedAsset.name,
             selectedAsset.mimeType,
             __DEV__ ? (forceType ?? undefined) : undefined,
+            selectedAsset.previewUri,
           )}
           activeOpacity={0.85}
         >
@@ -232,6 +239,13 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     backgroundColor: C.primary + '14',
     alignItems: 'center', justifyContent: 'center',
   },
+  thumbContainer: {
+    width: 72, height: 88,
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+  },
+  thumbImage: { width: '100%', height: '100%' },
   selectedTitle:    { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   selectedSub:      { fontSize: 13 },
 

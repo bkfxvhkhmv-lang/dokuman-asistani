@@ -4,6 +4,8 @@ export interface ScannedAsset {
   mimeType: string;
   source: 'camera' | 'file' | 'photo-library' | 'scanner';
   displayName: string;
+  /** Local image URI usable as thumbnail. Absent for PDF/file picks. */
+  previewUri?: string;
 }
 
 export interface ScannerProvider {

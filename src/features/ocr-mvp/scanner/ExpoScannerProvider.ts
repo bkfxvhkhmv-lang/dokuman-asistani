@@ -36,6 +36,7 @@ export const ExpoScannerProvider: ScannerProvider = {
       mimeType: 'image/jpeg',
       source: 'camera',
       displayName: 'Foto aufgenommen',
+      previewUri: asset.uri,
     };
   },
 
@@ -55,6 +56,7 @@ export const ExpoScannerProvider: ScannerProvider = {
       mimeType: asset.mimeType ?? 'image/jpeg',
       source: 'photo-library',
       displayName: 'Bild ausgewählt',
+      previewUri: asset.uri,
     };
   },
 

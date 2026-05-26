@@ -61,6 +61,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
+  const [selectedPreviewUri, setSelectedPreviewUri] = useState<string | null>(null);
   const { setSuppressBanner } = useOfflineBannerSuppression();
 
   useEffect(() => {
@@ -96,8 +97,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
     fileName: string,
     mimeType: string,
     forceType?: OcrMvpForceType,
+    previewUri?: string,
   ) => {
     setSelectedUri(fileUri);
+    setSelectedPreviewUri(previewUri ?? null);
     startJob({ uri: fileUri, name: fileName, mimeType }, forceType);
   };
 
@@ -141,6 +144,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const handleReset = useCallback(() => {
     setSavedDocId(null);
     setSelectedUri(null);
+    setSelectedPreviewUri(null);
     reset();
   }, [reset]);
 
@@ -165,7 +169,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       >
         {/* Yükleme ve işleme */}
         {(status === 'uploading' || status === 'processing') && (
-          <OcrMvpStatusCard status={status} />
+          <OcrMvpStatusCard status={status} previewUri={selectedPreviewUri ?? undefined} />
         )}
 
         {/* Tamamlandı */}

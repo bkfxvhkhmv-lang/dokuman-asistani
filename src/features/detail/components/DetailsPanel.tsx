@@ -1,15 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 import { FieldRow } from '@/features/detail/components/details-panel/FieldRow';
-import { buildSmartFieldRows } from '@/features/detail/components/details-panel/buildSmartFieldRows';
+import { groupDocumentFields } from '@/features/detail/components/details-panel/groupDocumentFields';
 import { OcrConfidenceSection } from '@/features/detail/components/details-panel/OcrConfidenceSection';
 import { DocumentPreviewSection } from '@/features/detail/components/details-panel/DocumentPreviewSection';
 import { EtikettenSection } from '@/features/detail/components/details-panel/EtikettenSection';
-import { ExtrahierteKiSection } from '@/features/detail/components/details-panel/ExtrahierteKiSection';
 import { AehnlicheDocsSection } from '@/features/detail/components/details-panel/AehnlicheDocsSection';
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
@@ -34,21 +33,22 @@ export default function DetailsPanel({
   const { S, Colors: C, R } = useTheme();
   const { t: T } = useT();
 
+  const [weitereSichtbar, setWeitereSichtbar] = useState(false);
+
   if (!dok) return null;
 
-  const smartFields = buildSmartFieldRows(dok);
+  const groups = groupDocumentFields(dok, extrahierteFelder);
   const confidencePct = dok.confidence ?? 100;
 
-  const coreRows: { icon: string; label: string; value: string }[] = [
-    { icon: 'tag',           label: T('field.category'), value: dok.typ || '–' },
-    { icon: 'buildings',     label: T('field.sender'),   value: dok.absender || '–' },
-    { icon: 'calendar-blank',label: T('field.date'),     value: formatDatum(dok.datum) || '–' },
-    ...(dok.betrag != null ? [{ icon: 'currency-eur',    label: T('field.amount'),   value: formatBetrag(dok.betrag as number) ?? '–' }] : []),
-    ...(dok.frist  ? [{ icon: 'clock',                   label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
-    ...(dok.risiko ? [{ icon: 'warning-circle',          label: T('field.priority'), value: dok.risiko === 'hoch' ? T('doc.urgent_label') : dok.risiko === 'mittel' ? T('doc.this_week') : T('doc.no_action') }] : []),
+  const wichtigsteRows: { icon: string; label: string; value: string }[] = [
+    { icon: 'buildings',      label: T('field.sender'),   value: dok.absender || '–' },
+    { icon: 'calendar-blank', label: T('field.date'),     value: formatDatum(dok.dokumentDatum ?? dok.datum) || '–' },
+    ...(dok.betrag != null ? [{ icon: 'currency-eur',     label: T('field.amount'),   value: formatBetrag(dok.betrag as number, dok.waehrung) ?? '–' }] : []),
+    ...(dok.frist ? [{ icon: 'clock',                     label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
+    ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value })),
   ];
 
-  const hasContent = !!(dok.uri || smartFields.length > 0 || extrahierteFelder.length > 0 || dok.rohText);
+  const hasContent = !!(dok.uri || groups.wichtigste.length > 0 || groups.zahlung.length > 0 || groups.weitere.length > 0 || dok.rohText);
 
   return (
     <View style={{ padding: S.md, paddingBottom: 16 }}>
@@ -56,48 +56,93 @@ export default function DetailsPanel({
       {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
       <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
 
-      {/* ── 2. Kernfelder ────────────────────────────────────────────────── */}
-      <SectionCard title={T('detail.section.doc_data')}>
-        {coreRows.map((f, i) => (
+      {/* ── 2. Wichtigste Daten ──────────────────────────────────────────── */}
+      <SectionCard title="WICHTIGSTE DATEN">
+        {wichtigsteRows.map((f, i) => (
           <FieldRow
             key={f.label}
             icon={f.icon}
             label={f.label}
             value={f.value}
-            isLast={i === coreRows.length - 1}
+            isLast={i === wichtigsteRows.length - 1}
           />
         ))}
       </SectionCard>
 
-      {/* ── 3. KI-extrahierte Felder (IBAN, Aktenzeichen …) ─────────────── */}
-      {smartFields.length > 0 && (
-        <SectionCard title={T('detail.section.fields')}>
-          {smartFields.map((f, i) => (
+      {/* ── 3. Zahlungsinformationen ──────────────────────────────────────── */}
+      {groups.zahlung.length > 0 && (
+        <SectionCard title="ZAHLUNGSINFORMATIONEN">
+          {groups.zahlung.map((f, i) => (
             <FieldRow
-              key={f.label}
+              key={f.key}
               icon={f.icon}
               label={f.label}
               value={f.value}
               aiSparkle={f.aiSparkle}
-              isLast={i === smartFields.length - 1}
+              isLast={i === groups.zahlung.length - 1}
             />
           ))}
         </SectionCard>
       )}
 
-      {/* ── 4. OCR-Qualitätshinweis ──────────────────────────────────────── */}
+      {/* ── 4. Kontakt ───────────────────────────────────────────────────── */}
+      {groups.kontakt.length > 0 && (
+        <SectionCard title="KONTAKT">
+          {groups.kontakt.map((f, i) => (
+            <FieldRow
+              key={f.key}
+              icon={f.icon}
+              label={f.label}
+              value={f.value}
+              aiSparkle={f.aiSparkle}
+              isLast={i === groups.kontakt.length - 1}
+            />
+          ))}
+        </SectionCard>
+      )}
+
+      {/* ── 5. Weitere Angaben (collapsed) ───────────────────────────────── */}
+      {groups.weitere.length > 0 && (
+        <View style={{ marginBottom: S.md, borderRadius: R.lg, backgroundColor: C.bgCard,
+          borderWidth: 0.5, borderColor: C.border }}>
+          <TouchableOpacity
+            onPress={() => setWeitereSichtbar(v => !v)}
+            activeOpacity={0.7}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+              padding: S.md, paddingBottom: weitereSichtbar ? S.sm : S.md }}
+          >
+            <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>
+              WEITERE ANGABEN
+            </Text>
+            <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
+          </TouchableOpacity>
+          {weitereSichtbar && (
+            <View style={{ paddingHorizontal: S.md, paddingBottom: S.md }}>
+              {groups.weitere.map((f, i) => (
+                <FieldRow
+                  key={f.key}
+                  icon={f.icon}
+                  label={f.label}
+                  value={f.value}
+                  aiSparkle={f.aiSparkle}
+                  isLast={i === groups.weitere.length - 1}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ── 6. OCR-Qualitätshinweis ──────────────────────────────────────── */}
       <OcrConfidenceSection confidencePct={confidencePct} ocrRisiken={ocrRisiken} />
 
-      {/* ── 5. Etiketten ─────────────────────────────────────────────────── */}
+      {/* ── 7. Etiketten ─────────────────────────────────────────────────── */}
       <EtikettenSection mevcutEtiketten={mevcutEtiketten} />
 
-      {/* ── 6. KI-Felder (extended) ──────────────────────────────────────── */}
-      <ExtrahierteKiSection felder={extrahierteFelder} />
-
-      {/* ── 7. Ähnliche Dokumente ────────────────────────────────────────── */}
+      {/* ── 8. Ähnliche Dokumente ────────────────────────────────────────── */}
       <AehnlicheDocsSection dokumente={aehnlicheDoks} />
 
-      {/* ── 8. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
+      {/* ── 9. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
       {dok.rohText ? (
         <>
           <View style={{ height: S.md }} />

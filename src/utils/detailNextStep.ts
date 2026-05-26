@@ -35,7 +35,7 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
 
   const conf = dok.confidence ?? null;
   if (conf !== null && conf < 55) {
-    return 'Bitte Angaben prüfen — OCR-Konfidenz zu niedrig.';
+    return 'Einige Angaben kurz prüfen.';
   }
 
   const tage = dok.frist ? getTageVerbleibend(dok.frist) : null;

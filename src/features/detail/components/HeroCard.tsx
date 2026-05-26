@@ -119,10 +119,10 @@ export default function HeroCard({
             {dok.confidence == null
               ? 'Automatisch erkannt · Angaben bitte kurz prüfen'
               : dok.confidence >= 75
-                ? 'KI-Einschätzung: Erkennung wirkt zuverlässig'
+                ? 'Automatisch erkannt'
                 : dok.confidence >= 55
-                  ? 'KI-Einschätzung: bitte Betrag und Frist prüfen'
-                  : 'KI-Einschätzung: unsichere Daten — manuell gegenlesen'}
+                  ? 'Angaben prüfen'
+                  : 'Einige Angaben prüfen'}
           </Text>
         </View>
       </View>

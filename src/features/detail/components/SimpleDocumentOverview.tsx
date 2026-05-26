@@ -55,10 +55,10 @@ export default function SimpleDocumentOverview({
     conf == null
       ? 'Automatisch erkannt'
       : conf >= 75
-        ? 'KI-Einschätzung: gut lesbar'
+        ? 'KI-geprüft'
         : conf >= 55
-          ? 'KI-Einschätzung: bitte prüfen'
-          : 'KI-Einschätzung: Daten unsicher';
+          ? 'Angaben prüfen'
+          : 'Einige Angaben prüfen';
 
   return (
     <View style={{ marginHorizontal: S.md, marginBottom: S.md, gap: S.md }}>

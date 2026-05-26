@@ -31,16 +31,14 @@ function statusColors(colorKey: string, C: any) {
 }
 
 function confidenceLabel(conf: number): string {
-  const pct = Math.round(conf);
-  if (conf >= 75) return `${pct} % OCR`;
-  if (conf >= 55) return `${pct} % OCR — prüfen`;
-  return `${pct} % OCR — unsicher`;
+  if (conf >= 75) return 'KI-geprüft';
+  if (conf >= 55) return 'Angaben prüfen';
+  return 'Einige Angaben prüfen';
 }
 
 function confidenceColor(conf: number, C: any): string {
   if (conf >= 75) return C.success;
-  if (conf >= 55) return C.warning;
-  return C.danger;
+  return C.warning;
 }
 
 export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {

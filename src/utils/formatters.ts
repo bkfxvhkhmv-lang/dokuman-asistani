@@ -22,7 +22,8 @@ export function formatBetrag(betrag: number | string | null | undefined, waehrun
   if (betrag == null) return null;
   const n = typeof betrag === 'string' ? parseFloat(betrag) : betrag;
   if (isNaN(n)) return null;
-  return `${n.toFixed(2).replace('.', ',')} ${waehrung}`;
+  const sym = (!waehrung || waehrung.toUpperCase() === 'EUR') ? '€' : waehrung;
+  return `${n.toFixed(2).replace('.', ',')} ${sym}`;
 }
 
 export function formatDatum(iso: string | null | undefined): string {

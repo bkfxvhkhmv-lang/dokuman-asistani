@@ -11,6 +11,7 @@ import { DocumentPreviewSection } from '@/features/detail/components/details-pan
 import { EtikettenSection } from '@/features/detail/components/details-panel/EtikettenSection';
 import { AehnlicheDocsSection } from '@/features/detail/components/details-panel/AehnlicheDocsSection';
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
+import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
 import { useT } from '@/hooks/useT';
 
@@ -44,18 +45,33 @@ export default function DetailsPanel({
   const erfasstDatum = formatDatum(dok.datum);
   const showBeideDaten = !!(belegDatum && belegDatum !== erfasstDatum);
 
-  const wichtigsteRows: { icon: string; label: string; value: string }[] = [
-    { icon: 'buildings',      label: T('field.sender'),   value: dok.absender || '–' },
+  const lowConfidence = (dok.confidence ?? 100) < 55;
+
+  const wichtigsteRows: { icon: string; label: string; value: string; status?: FieldStatus; aiSparkle?: boolean }[] = [
+    {
+      icon: 'buildings', label: T('field.sender'), value: dok.absender || '',
+      status: !dok.absender ? 'fehlt' : (lowConfidence ? 'pruefen' : undefined),
+    },
     ...(showBeideDaten
       ? [
           { icon: 'calendar-blank', label: 'Belegdatum',  value: belegDatum! },
-          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–' },
+          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–', status: 'pruefen' as FieldStatus },
         ]
-      : [{ icon: 'calendar-blank', label: T('field.date'), value: belegDatum ?? erfasstDatum ?? '–' }]
+      : [{
+          icon: 'calendar-blank', label: T('field.date'),
+          value: belegDatum ?? erfasstDatum ?? '',
+          status: !dok.dokumentDatum ? 'pruefen' as FieldStatus : undefined,
+        }]
     ),
-    ...(dok.betrag != null ? [{ icon: 'currency-eur',     label: T('field.amount'),   value: formatBetrag(dok.betrag as number, dok.waehrung) ?? '–' }] : []),
-    ...(dok.frist ? [{ icon: 'clock',                     label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
-    ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value })),
+    // Betrag always shown — 'fehlt' if missing
+    {
+      icon: 'currency-eur', label: T('field.amount'),
+      value: dok.betrag != null ? (formatBetrag(dok.betrag as number, dok.waehrung) ?? '') : '',
+      status: dok.betrag == null ? 'fehlt' : undefined,
+    },
+    ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
+    // AI-inferred reference fields — always mark for review
+    ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle })),
   ];
 
   const hasContent = !!(dok.uri || groups.wichtigste.length > 0 || groups.zahlung.length > 0 || groups.weitere.length > 0 || dok.rohText);
@@ -75,6 +91,9 @@ export default function DetailsPanel({
             label={f.label}
             value={f.value}
             isLast={i === wichtigsteRows.length - 1}
+            status={f.status}
+            aiSparkle={f.aiSparkle}
+            showEditAffordance
           />
         ))}
       </SectionCard>
@@ -89,6 +108,7 @@ export default function DetailsPanel({
               label={f.label}
               value={f.value}
               aiSparkle={f.aiSparkle}
+              status={f.aiSparkle ? 'pruefen' : undefined}
               isLast={i === groups.zahlung.length - 1}
             />
           ))}

@@ -4,27 +4,84 @@ import { useTheme } from '@/ThemeContext';
 import AiSparkle from '@/components/AiSparkle';
 import Icon from '@/components/Icon';
 
-export function FieldRow({ icon, label, value, isLast = false, aiSparkle = false }: {
+export type FieldStatus = 'pruefen' | 'fehlt' | undefined;
+
+export function FieldRow({
+  icon, label, value, isLast = false, aiSparkle = false,
+  status, showEditAffordance = false,
+}: {
   icon: string;
   label: string;
   value: string;
   isLast?: boolean;
   aiSparkle?: boolean;
+  status?: FieldStatus;
+  showEditAffordance?: boolean;
 }) {
   const { Colors: C } = useTheme();
+
+  const displayValue = status === 'fehlt' ? null : (value || null);
+
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
-      borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: C.border }}>
+    <View style={{
+      flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
+      borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: C.border,
+    }}>
+      {/* Icon column */}
       <View style={{ width: 26, alignItems: 'center' }}>
         <Icon name={icon} size={20} color={C.textSecondary} />
       </View>
+
+      {/* Label + value */}
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={{ fontSize: 10, color: C.textTertiary, fontWeight: '600' }}>{label.toUpperCase()}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{ fontSize: 10, color: C.textTertiary, fontWeight: '600' }}>
+            {label.toUpperCase()}
+          </Text>
           {aiSparkle && <AiSparkle size={8} />}
         </View>
-        <Text style={{ fontSize: 13, color: C.text, fontWeight: '600', marginTop: 2 }}>{value}</Text>
+
+        {displayValue ? (
+          <Text style={{ fontSize: 13, color: C.text, fontWeight: '600', marginTop: 2 }}>
+            {displayValue}
+          </Text>
+        ) : (
+          <Text style={{ fontSize: 13, color: C.textTertiary, fontStyle: 'italic', marginTop: 2 }}>
+            Nicht erkannt
+          </Text>
+        )}
       </View>
+
+      {/* Status badge — right side */}
+      {status === 'pruefen' && (
+        <View style={{
+          paddingHorizontal: 7, paddingVertical: 2,
+          borderRadius: 6, borderWidth: 0.5,
+          backgroundColor: C.warningLight,
+          borderColor: `${C.warning}66`,
+        }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: C.warning ?? C.warningText }}>
+            Prüfen
+          </Text>
+        </View>
+      )}
+      {status === 'fehlt' && (
+        <View style={{
+          paddingHorizontal: 7, paddingVertical: 2,
+          borderRadius: 6, borderWidth: 0.5,
+          backgroundColor: C.dangerLight,
+          borderColor: `${C.danger}44`,
+        }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: C.danger }}>
+            Fehlt
+          </Text>
+        </View>
+      )}
+
+      {/* Edit affordance — static pencil, no press handler */}
+      {showEditAffordance && !status && (
+        <Icon name="pencil-simple" size={14} color={C.borderLight} />
+      )}
     </View>
   );
 }

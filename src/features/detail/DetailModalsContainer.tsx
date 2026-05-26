@@ -22,6 +22,7 @@ import BelgeChatModal from '@/components/BelgeChatModal';
 
 import SignaturePdfSheet from '@/features/detail/modals/SignaturePdfSheet';
 
+import ExportierenSheet from '@/features/detail/detail-modals/ExportierenSheet';
 import MoreMenuSheet from '@/features/detail/detail-modals/MoreMenuSheet';
 import PaymentPrepareSheet from '@/features/detail/detail-modals/PaymentPrepareSheet';
 import ConfirmSheet from '@/features/detail/detail-modals/ConfirmSheet';
@@ -131,6 +132,15 @@ export default function DetailModalsContainer({
       <PremiumToast config={toastConfig} onHide={hideToast} />
 
       <MoreMenuSheet visible={moreMenu} onClose={() => setMoreMenu(false)} items={moreItems} />
+
+      <ExportierenSheet
+        visible={modal.isOpen('exportieren')}
+        onClose={modal.close}
+        onPDF={() => void actions.handlePDF()}
+        onOriginal={dok.uri ? () => void actions.handleOriginalTeilen() : undefined}
+        onText={() => actions.handleTeilen(modal.anonModus)}
+        onSicherLink={() => actions.handleGuvenliPaylasim()}
+      />
 
       <LoeschenModal
         visible={modal.isOpen('loeschen')}

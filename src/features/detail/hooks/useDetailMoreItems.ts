@@ -108,29 +108,12 @@ export function useDetailMoreItems({
     }
 
     rows.push({
-      key: 'menu_teilen',
+      key: 'menu_exportieren',
       icon: 'upload',
-      label: 'Teilen',
+      label: 'Exportieren',
       group: 'secondary',
-      onPress: () => { close(); actions.handleTeilen(anonModus); },
+      onPress: () => { close(); openModal('exportieren'); },
     });
-
-    rows.push({
-      key: 'menu_sicher', icon: 'share-network', label: 'Sicher teilen', group: 'secondary',
-      onPress: tap(actions.handleGuvenliPaylasim),
-    });
-
-    rows.push({
-      key: 'menu_pdf', icon: 'file-pdf', label: 'PDF exportieren', group: 'secondary',
-      onPress: tapAsync(actions.handlePDF),
-    });
-
-    if (dok.uri) {
-      rows.push({
-        key: 'menu_orig', icon: 'paperclip', label: 'Original teilen', group: 'secondary',
-        onPress: tapAsync(actions.handleOriginalTeilen),
-      });
-    }
 
     rows.push({
       key: 'menu_edit', icon: 'pencil-simple', label: 'Dokument bearbeiten', group: 'secondary',

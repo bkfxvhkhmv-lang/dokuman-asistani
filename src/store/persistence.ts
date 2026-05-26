@@ -17,12 +17,29 @@ import type { StoreState } from '@/store/types';
 import { STORE_KEY } from '@/store/initialState';
 
 /** AsyncStorage'tan persist edilen state'i parse ederek dondurur.
- *  Hata olursa null doner; uygulamayi crash etmez. */
+ *  Hata olursa null doner; uygulamayi crash etmez.
+ *  Demo belgeler read-time'da filtrelenir ve AsyncStorage'a geri yazilir
+ *  (usePersistOnChange timing guvencesi olmadan garantili temizlik). */
 export async function loadPersistedState(): Promise<Partial<StoreState> | null> {
   try {
     const raw = await AsyncStorage.getItem(STORE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as Partial<StoreState>;
+    const parsed = JSON.parse(raw) as Partial<StoreState>;
+
+    if (parsed.dokumente) {
+      const cleaned = parsed.dokumente.filter(
+        d => !d.isDemo && !d.id?.startsWith('demo-'),
+      );
+      if (cleaned.length !== parsed.dokumente.length) {
+        parsed.dokumente = cleaned;
+        const { _duplikat: _omit, ...toSave } = { ...parsed };
+        AsyncStorage.setItem(STORE_KEY, JSON.stringify(toSave)).catch(e =>
+          console.warn('[Store] demo-cleanup write error', e),
+        );
+      }
+    }
+
+    return parsed;
   } catch (e) {
     console.warn('[Store] persistence read error', e);
     return null;

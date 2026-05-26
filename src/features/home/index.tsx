@@ -30,6 +30,7 @@ import { useHomeSuggestions } from '@/hooks/useSmartSuggestions';
 import SmartTimelinePanel from '@/components/SmartTimelinePanel';
 import { useTimelineView } from '@/hooks/useSmartTimeline';
 import { useTheme } from '@/ThemeContext';
+import HomeTriage from '@/features/home/components/HomeTriage';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -197,6 +198,11 @@ export default function Home() {
           </View>
         </View>
       )}
+
+      <HomeTriage
+        docs={data.sichtbareDocs}
+        onPress={() => data.handleTabPress('Dokumente')}
+      />
 
       {/* UrgencyBanner only when naechste is NOT already shown in HotCardSection */}
       <HomeUrgencyBanner

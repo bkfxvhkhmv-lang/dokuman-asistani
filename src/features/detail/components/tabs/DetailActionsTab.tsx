@@ -1,6 +1,7 @@
 import React, { useMemo, Fragment } from 'react';
 import { ScrollView } from 'react-native';
 import ActionsPanel from '@/features/detail/components/ActionsPanel';
+import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
 import SmartActionsPanel from '@/components/SmartActionsPanel';
 import SmartRemindersPanel from '@/components/SmartRemindersPanel';
 import PremiumToast from '@/design/components/PremiumToast';
@@ -23,7 +24,6 @@ type Props = {
   actionPlan: any;
   moreMenuCount?: number;
   onOpenMore: () => void;
-  onBack: () => void;
   onTabScroll: (e: any) => void;
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
@@ -38,7 +38,6 @@ export default function DetailActionsTab({
   actionPlan,
   moreMenuCount,
   onOpenMore,
-  onBack,
   onTabScroll,
   onScrollContentSize,
   onScrollLayout,
@@ -60,13 +59,13 @@ export default function DetailActionsTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
+      {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
       <ActionsPanel
         dok={detail.dok}
         digitalTwin={detail.digitalTwin}
         actionPlan={actionPlan}
         moreMenuCount={moreMenuCount}
         onOpenMore={onOpenMore}
-        onBack={onBack}
       />
       <SmartRemindersPanel
         suggestions={smartReminders.suggestions}

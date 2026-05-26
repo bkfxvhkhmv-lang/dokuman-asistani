@@ -2,7 +2,6 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import DetailsPanel from '@/features/detail/components/DetailsPanel';
 import SmartLinksPanel from '@/components/SmartLinksPanel';
-import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 type Props = {
@@ -43,7 +42,6 @@ export default function DetailDetailsTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
-      {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
       {smartLinks && <SmartLinksPanel result={smartLinks} allDoksMap={allDoksMap} />}
       <DetailsPanel
         dok={detail.dok}

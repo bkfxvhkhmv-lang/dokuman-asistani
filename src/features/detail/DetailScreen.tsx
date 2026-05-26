@@ -302,7 +302,6 @@ export default function Detailbildschirm() {
             actionPlan={actionPlan}
             moreMenuCount={moreMenuCount}
             onOpenMore={() => setMoreMenu(prev => !prev)}
-            onBack={() => handleTabPress('ozet')}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

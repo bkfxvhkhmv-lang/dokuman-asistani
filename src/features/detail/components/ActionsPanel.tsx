@@ -174,12 +174,11 @@ interface ActionsPanelProps {
   digitalTwin?: DocumentDigitalTwinModel | null;
   actionPlan: ActionPlan | null;
   onOpenMore: () => void;
-  onBack: () => void;
-  /** Anzahl zusätzlicher Aktionen seit „Mehr“-Überarbeitung (getrennt vom leeren legacy hidden[]) */
+  /** Anzahl zusätzlicher Aktionen seit „Mehr”-Überarbeitung (getrennt vom leeren legacy hidden[]) */
   moreMenuCount?: number;
 }
 
-export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore, onBack, moreMenuCount = 0 }: ActionsPanelProps) {
+export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore, moreMenuCount = 0 }: ActionsPanelProps) {
   const { Colors: C, S, R } = useTheme();
   if (!dok || !actionPlan) return null;
 
@@ -194,9 +193,6 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
 
   return (
     <View style={{ paddingHorizontal: S.md, paddingTop: S.md }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <AppButton label="Zur Übersicht" variant="secondary" onPress={onBack} style={{ minWidth: 150 }} />
-      </View>
       {primary.onPress && (
         <>
           <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>

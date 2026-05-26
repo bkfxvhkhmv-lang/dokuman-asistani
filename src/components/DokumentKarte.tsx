@@ -166,7 +166,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
               {dok.workflowStamp}
             </Text>
           </View>
-        ) : nextStep ? (
+        ) : nextStep && nextStep.key !== 'overdue' ? (
           <View style={[styles.nextStepBox, { backgroundColor: nextStepColors(nextStep.urgency).bg }]}>
             <Text style={[styles.nextStepText, { color: nextStepColors(nextStep.urgency).text }]}>
               {nextStep.label}

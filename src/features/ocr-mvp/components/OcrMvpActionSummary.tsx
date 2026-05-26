@@ -5,7 +5,15 @@ import {
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
-import { humanizeTitle, formatGermanCurrency } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+import { humanizeTitle, formatGermanCurrency, buildDocumentSender } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+
+const GENERIC_TITLE_FALLBACKS = new Set([
+  'Foto aufgenommen',
+  'Bild ausgewählt',
+  'Dokument aus Fotos',
+  'Analysiertes Dokument',
+  'Datei ausgewählt',
+]);
 
 const KIND_LABEL: Record<string, string> = {
   invoice:    'Rechnung',
@@ -54,7 +62,14 @@ export default function OcrMvpActionSummary({
   const kind      = summary.kind ?? 'unknown';
   const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
   const rawTitle  = summary.title;
-  const title     = humanizeTitle(rawTitle);
+  const humanized = humanizeTitle(rawTitle);
+  const title = (() => {
+    if (!humanized || GENERIC_TITLE_FALLBACKS.has(humanized)) {
+      const sender = buildDocumentSender(kind, summary);
+      if (sender !== 'Unbekannt') return sender;
+    }
+    return humanized;
+  })();
   const riskCfg   = summary.risk_level ? RISK_CONFIG[summary.risk_level] : null;
 
   const handlePress = (handler: ActionHandler) => {

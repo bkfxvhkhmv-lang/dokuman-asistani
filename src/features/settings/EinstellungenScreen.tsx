@@ -287,6 +287,26 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </TouchableOpacity>
         )}
 
+        {__DEV__ && (
+          <TouchableOpacity
+            onPress={() => router.push('/ocr-mvp')}
+            activeOpacity={0.75}
+            style={{
+              alignItems: 'center',
+              paddingVertical: 12,
+              borderRadius: 12,
+              marginTop: 4,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: C.border,
+              backgroundColor: C.bgInput,
+            }}
+          >
+            <Text style={{ color: C.textSecondary, fontSize: fs(13), fontWeight: '600' }}>
+              OCR MVP öffnen
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           onPress={() => setFeedbackVisible(true)}
           activeOpacity={0.75}
@@ -362,16 +382,6 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
             </FlatGroup>
           </>
         ) : null}
-
-        <TouchableOpacity
-          style={{ alignItems: 'center', paddingTop: 20, paddingBottom: 4 }}
-          onPress={() => router.push('/ocr-mvp')}
-          activeOpacity={0.7}
-        >
-          <Text style={{ fontSize: fs(12), color: C.primary, fontWeight: '600' }}>
-            🧪 OCR MVP Test
-          </Text>
-        </TouchableOpacity>
 
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontSize: fs(11), color: C.textTertiary }}>

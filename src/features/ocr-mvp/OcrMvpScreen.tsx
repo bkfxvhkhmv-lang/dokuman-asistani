@@ -56,7 +56,7 @@ interface Props {
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
   const router = useRouter();
-  const { dispatch } = useStore();
+  const { state, dispatch } = useStore();
   const { status, result, error, errorKind, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
@@ -109,6 +109,17 @@ export default function OcrMvpScreen({ onClose }: Props) {
     }
     try {
       const docId = generateId();
+      // Duplicate check mirrors reducer logic (rohText first 120 chars).
+      // Do this before persisting files to avoid orphaned scan data.
+      const draftCheck = ocrMvpToV4Document(result, { id: docId });
+      const sig = draftCheck.document.rohText?.slice(0, 120) ?? null;
+      const existing = sig
+        ? state.dokumente.find(d => d.rohText && d.rohText.slice(0, 120) === sig)
+        : null;
+      if (existing) {
+        setSavedDocId(existing.id);
+        return;
+      }
       const persistedPages = await persistScanFiles(docId, [selectedUri]);
       const draft = ocrMvpToV4Document(result, {
         id:    docId,
@@ -120,7 +131,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     } catch (e: any) {
       Alert.alert('Speichern fehlgeschlagen', e?.message ?? 'Dokument konnte nicht gespeichert werden.');
     }
-  }, [result, savedDocId, selectedUri, dispatch]);
+  }, [result, savedDocId, selectedUri, dispatch, state.dokumente]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;

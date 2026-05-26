@@ -50,9 +50,13 @@ function buildExportFilename(
     ? rawDate.slice(0, 10)
     : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+  const timeStr = `${String(today.getHours()).padStart(2, '0')}${String(today.getMinutes()).padStart(2, '0')}${String(today.getSeconds()).padStart(2, '0')}`;
+  const uid = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
+
   const parts: string[] = [label];
   if (vendor) parts.push(sanitizeFilePart(vendor));
   parts.push(dateStr);
+  parts.push(`${timeStr}_${uid}`);
 
   return parts.join('_') + '.' + ext;
 }
@@ -155,9 +159,6 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <>
           <View style={st.infoBlock}>
             <Row label="Dokumenttyp" value={docLabel} colors={Colors} />
-            {confPct !== null && confPct > 0 && (
-              <Row label="Konfidenz" value={`${confPct} %`} colors={Colors} />
-            )}
           </View>
 
           <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
@@ -198,11 +199,6 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         </View>
       )}
 
-      {hasSummary && confPct !== null && confPct > 0 && (
-        <Text style={[st.techLine, { color: Colors.textTertiary }]}>
-          {`${confPct} % Konfidenz`}
-        </Text>
-      )}
 
       {onSaveToDocuments && (
         <TouchableOpacity

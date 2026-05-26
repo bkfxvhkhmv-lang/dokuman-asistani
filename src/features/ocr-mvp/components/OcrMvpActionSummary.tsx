@@ -98,13 +98,17 @@ export default function OcrMvpActionSummary({
 
       {title && <Text style={[st.title, { color: Colors.text }]} numberOfLines={2}>{title}</Text>}
 
-      {/* Form / Settlement meta */}
+      {/* Form / Settlement meta — muted details line */}
       {(kind === 'form' || kind === 'settlement') && (
-        <View style={st.metaRow}>
-          {summary.fields_count != null && <MetaChip label={`${summary.fields_count} ${summary.fields_count === 1 ? 'Feld' : 'Felder'}`}     C={Colors} />}
-          {summary.tables_count != null && <MetaChip label={`${summary.tables_count} ${summary.tables_count === 1 ? 'Tabelle' : 'Tabellen'}`} C={Colors} />}
-          {summary.lines_count  != null && <MetaChip label={`${summary.lines_count} ${summary.lines_count === 1 ? 'Zeile' : 'Zeilen'}`}       C={Colors} />}
-        </View>
+        summary.fields_count != null || summary.tables_count != null || summary.lines_count != null
+      ) && (
+        <Text style={[st.techDetails, { color: Colors.textTertiary }]}>
+          {[
+            summary.fields_count != null ? `${summary.fields_count} ${summary.fields_count === 1 ? 'Feld' : 'Felder'}` : null,
+            summary.tables_count != null ? `${summary.tables_count} ${summary.tables_count === 1 ? 'Tabelle' : 'Tabellen'}` : null,
+            summary.lines_count  != null ? `${summary.lines_count} ${summary.lines_count === 1 ? 'Zeile' : 'Zeilen'}` : null,
+          ].filter(Boolean).join(' · ')}
+        </Text>
       )}
 
       {/* Invoice meta */}
@@ -204,6 +208,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   riskLabel:       { fontSize: 12, fontWeight: '700' },
   title:           { fontSize: 17, fontWeight: '700', lineHeight: 22 },
   metaRow:         { flexDirection: 'row', flexWrap: 'wrap' },
+  techDetails:     { fontSize: 12, lineHeight: 16 },
   letterMeta:      { gap: 8 },
   metaLine:        { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaLineText:    { fontSize: 13, flex: 1 },

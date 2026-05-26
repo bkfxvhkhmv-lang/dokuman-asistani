@@ -140,10 +140,12 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
   return (
     <View style={st.container}>
-      {/* Başlık */}
-      <View style={st.header}>
-        <View style={st.successDot} />
-        <Text style={st.successLabel}>Abgeschlossen</Text>
+      {/* Status chip — sakin, küçük */}
+      <View style={st.statusRow}>
+        <View style={st.successChip}>
+          <Icon name="checkmark-circle" size={13} color="#22C55E" />
+          <Text style={st.successChipText}>Analyse abgeschlossen</Text>
+        </View>
       </View>
 
       {/* Action summary paneli veya fallback */}
@@ -200,28 +202,27 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       )}
 
 
-      {onSaveToDocuments && (
+      {isSavedToDocuments ? (
+        <View style={st.savedState}>
+          <View style={st.savedBadge}>
+            <Icon name="checkmark-circle" size={14} color="#22C55E" />
+            <Text style={st.savedBadgeText}>Gespeichert</Text>
+          </View>
+          {onOpenDocument && (
+            <TouchableOpacity style={[st.openDocBtn, { borderColor: Colors.primary + '55', backgroundColor: (Colors as any).primaryLight ?? Colors.bgCard }]} onPress={onOpenDocument} activeOpacity={0.75}>
+              <Icon name="arrow-forward-circle-outline" size={18} color={Colors.primary} />
+              <Text style={[st.openDocLabel, { color: Colors.primary }]}>Dokument öffnen</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : onSaveToDocuments && (
         <TouchableOpacity
-          style={[st.saveBtn, isSavedToDocuments && st.saveBtnDone]}
+          style={[st.saveBtn, { borderColor: Colors.primary, backgroundColor: (Colors as any).primaryLight ?? Colors.bgCard }]}
           onPress={onSaveToDocuments}
-          disabled={!!isSavedToDocuments}
           activeOpacity={0.8}
         >
-          <Icon
-            name={isSavedToDocuments ? 'checkmark-circle-outline' : 'folder-open-outline'}
-            size={20}
-            color="#fff"
-          />
-          <Text style={st.saveBtnLabel}>
-            {isSavedToDocuments ? 'Gespeichert' : 'In Dokumente speichern'}
-          </Text>
-        </TouchableOpacity>
-      )}
-
-      {isSavedToDocuments && onOpenDocument && (
-        <TouchableOpacity style={st.openDocBtn} onPress={onOpenDocument} activeOpacity={0.75}>
-          <Text style={[st.openDocLabel, { color: Colors.primary }]}>Dokument öffnen</Text>
-          <Icon name="arrow-forward-outline" size={16} color={Colors.primary} />
+          <Icon name="folder-open-outline" size={18} color={Colors.primary} />
+          <Text style={[st.saveBtnLabel, { color: Colors.primary }]}>In Dokumente speichern</Text>
         </TouchableOpacity>
       )}
 
@@ -369,10 +370,14 @@ function DatenvorschauContent({
 }
 
 const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => StyleSheet.create({
-  container:    { padding: 20, gap: 16 },
-  header:       { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  successDot:   { width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E' },
-  successLabel: { color: '#22C55E', fontSize: 16, fontWeight: '700' },
+  container:       { padding: 20, gap: 16 },
+  statusRow:       { flexDirection: 'row' },
+  successChip:     {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
+    backgroundColor: '#22C55E18', borderWidth: 1, borderColor: '#22C55E40',
+  },
+  successChipText: { color: '#22C55E', fontSize: 12, fontWeight: '600' },
   infoBlock:    {
     backgroundColor: C.bgCard, borderRadius: 14, paddingHorizontal: 16,
     borderWidth: 1, borderColor: C.border,
@@ -382,9 +387,9 @@ const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => 
     backgroundColor: '#F59E0B18', borderRadius: 12, padding: 14,
     borderWidth: 1, borderColor: '#F59E0B40',
   },
-  warnBoxHigh:  { backgroundColor: '#FF6B6B18', borderColor: '#FF6B6B40' },
-  warnText:     { flex: 1, color: '#F59E0B', fontSize: 13, lineHeight: 18 },
-  warnTextHigh: { color: '#FF6B6B' },
+  warnBoxHigh:  { backgroundColor: '#F59E0B0E', borderColor: '#F59E0B30' },
+  warnText:     { flex: 1, color: '#B45309', fontSize: 12, lineHeight: 17 },
+  warnTextHigh: { color: '#B45309' },
   previewBtn:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderRadius: 14, paddingVertical: 15,
@@ -399,12 +404,20 @@ const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => 
   techLine:      { fontSize: 11, textAlign: 'center' },
   saveBtn:       {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15,
+    borderWidth: 1.5, borderRadius: 14, paddingVertical: 14,
   },
-  saveBtnDone:   { backgroundColor: '#22C55E' },
-  saveBtnLabel:  { color: '#fff', fontSize: 16, fontWeight: '700' },
-  openDocBtn:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10 },
-  openDocLabel:  { fontSize: 14, fontWeight: '600' },
+  saveBtnLabel:  { fontSize: 15, fontWeight: '700' },
+  savedState:    { gap: 12 },
+  savedBadge:    {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 8,
+  },
+  savedBadgeText: { color: '#22C55E', fontSize: 13, fontWeight: '600' },
+  openDocBtn:    {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderWidth: 1.5, borderRadius: 14, paddingVertical: 14,
+  },
+  openDocLabel:  { fontSize: 15, fontWeight: '700' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

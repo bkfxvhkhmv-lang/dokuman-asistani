@@ -64,17 +64,19 @@ export function getUngelesen(docs: Dokument[]): number {
 export interface ParsedAbfrage {
   restQuery: string; minBetrag: string; maxBetrag: string;
   vonDatum: string; bisDatum: string; typ: string; risiko: string; ueberfaellig: boolean;
+  angabenPruefen: boolean;
 }
 
 export function parseNatuerlicheAbfrage(query: string): ParsedAbfrage {
   let rest = query;
-  let minBetrag = '', maxBetrag = '', vonDatum = '', bisDatum = '', typ = '', risiko = '', ueberfaellig = false;
+  let minBetrag = '', maxBetrag = '', vonDatum = '', bisDatum = '', typ = '', risiko = '', ueberfaellig = false, angabenPruefen = false;
   const heute = new Date();
   const isoDate = (d: Date) => d.toISOString().slice(0, 10);
   rest = rest.replace(/(?:über|mehr als?)\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur(?:o)?)?/gi, (_, n: string) => { minBetrag = n.replace(',', '.'); return ''; });
   rest = rest.replace(/(?:unter|weniger als?)\s*(\d+(?:[.,]\d+)?)\s*(?:€|eur(?:o)?)?/gi, (_, n: string) => { maxBetrag = n.replace(',', '.'); return ''; });
   rest = rest.replace(/(\d+(?:[.,]\d+)?)\s*(?:€|eur(?:o))/gi, (_, n: string) => { minBetrag = String(parseFloat(n.replace(',', '.')) * 0.9); maxBetrag = String(parseFloat(n.replace(',', '.')) * 1.1); return ''; });
   if (/überfällig|fällig|abgelaufen|verfallen/i.test(rest)) { ueberfaellig = true; rest = rest.replace(/überfällig|fällig|abgelaufen|verfallen/gi, ''); }
+  if (/angaben\s+pr[üu]fen|pr[üu]fen|niedrige?\s+konfidenz|unsicher/i.test(rest)) { angabenPruefen = true; rest = rest.replace(/angaben\s+pr[üu]fen|pr[üu]fen|niedrige?\s+konfidenz|unsicher/gi, ''); }
   if (/heute/i.test(rest)) { vonDatum = isoDate(heute); bisDatum = isoDate(heute); rest = rest.replace(/heute/gi, ''); }
   if (/diese[rn]?\s+woche/i.test(rest)) {
     const mon = new Date(heute); mon.setDate(heute.getDate() - heute.getDay() + (heute.getDay() === 0 ? -6 : 1));
@@ -93,7 +95,7 @@ export function parseNatuerlicheAbfrage(query: string): ParsedAbfrage {
     const rx = new RegExp(`\\b${kw}\\b`, 'i');
     if (rx.test(rest)) { if (!typ) typ = val; rest = rest.replace(rx, ''); }
   }
-  return { restQuery: rest.trim(), minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, ueberfaellig };
+  return { restQuery: rest.trim(), minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, ueberfaellig, angabenPruefen };
 }
 
 // Umlaute + Türkçe karakterleri normalize eder — "über" ve "uber" aynı sonucu verir.
@@ -144,6 +146,7 @@ export function filterBySearch(docs: Dokument[], { query = '', minBetrag = '', m
   return docs.filter(d => {
     if (!mitErledigt && d.erledigt) return false;
     if (parsed.ueberfaellig && (!d.frist || new Date(d.frist) >= new Date())) return false;
+    if (parsed.angabenPruefen && (d.confidence ?? 100) >= 55) return false;
     if (words.length > 0) {
       const haystack = buildSearchHaystack(d);
       if (!words.every(w => haystack.includes(w))) return false;

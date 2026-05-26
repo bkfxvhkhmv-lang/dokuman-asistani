@@ -19,6 +19,7 @@ export const SCHNELLSUCHE: { label: string; query: string; tone?: ChipTone }[] =
   { label: 'Bußgeld',      query: 'Bußgeld'                       },
   { label: 'Versicherung', query: 'Versicherung'                  },
   { label: 'Über 100 €',   query: 'über 100€'                     },
+  { label: 'Angaben prüfen', query: 'angaben prüfen', tone: 'warning' },
 ];
 
 /** Filtre modal'inde dokumenttip secimi. */

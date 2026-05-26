@@ -39,6 +39,25 @@ export const ExpoScannerProvider: ScannerProvider = {
     };
   },
 
+  async pickFromLibrary(): Promise<ScannedAsset | null> {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') return null;
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: false,
+      quality: 1,
+    });
+    if (res.canceled || res.assets.length === 0) return null;
+    const asset = res.assets[0];
+    return {
+      uri: asset.uri,
+      name: `image_${Date.now()}.jpg`,
+      mimeType: asset.mimeType ?? 'image/jpeg',
+      source: 'photo-library',
+      displayName: 'Bild ausgewählt',
+    };
+  },
+
   async scanDocument(): Promise<ScannedAsset[]> {
     const asset = await this.takePhoto();
     return asset ? [asset] : [];

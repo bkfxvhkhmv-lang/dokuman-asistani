@@ -8,6 +8,7 @@ export interface ScannedAsset {
 
 export interface ScannerProvider {
   pickFile(): Promise<ScannedAsset | null>;
+  pickFromLibrary(): Promise<ScannedAsset | null>;
   takePhoto(): Promise<ScannedAsset | null>;
   scanDocument(): Promise<ScannedAsset[]>;
 }

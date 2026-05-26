@@ -23,161 +23,241 @@ interface Props {
 }
 
 export default function OcrMvpUploadBox({ onSubmit }: Props) {
-  const { Colors } = useTheme();
+  const { Colors: C } = useTheme();
   const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
   const [forceType, setForceType] = useState<OcrMvpForceType | null>(null);
   const [picking, setPicking] = useState(false);
 
-  const handlePickFile = async () => {
+  const withPicking = async (fn: () => Promise<ScannedAsset | null>) => {
     setPicking(true);
     try {
-      const asset = await ExpoScannerProvider.pickFile();
+      const asset = await fn();
       if (asset) setSelectedAsset(asset);
     } finally {
       setPicking(false);
     }
   };
 
-  const handleTakePhoto = async () => {
-    setPicking(true);
-    try {
-      const asset = await ExpoScannerProvider.takePhoto();
-      if (asset) setSelectedAsset(asset);
-    } finally {
-      setPicking(false);
-    }
-  };
+  const st = styles(C);
 
-  const st = styles(Colors);
+  if (selectedAsset) {
+    const isCamera = selectedAsset.source === 'camera';
+    const isPdf = selectedAsset.mimeType === 'application/pdf';
+    const displayTitle = isPdf ? selectedAsset.name : selectedAsset.displayName;
+
+    return (
+      <View style={st.container}>
+        <View style={st.selectedCard}>
+          <View style={st.selectedIconCircle}>
+            <Icon name={isCamera ? 'camera' : 'document-text'} size={28} color={C.primary} />
+          </View>
+          <Text style={[st.selectedTitle, { color: C.text }]} numberOfLines={2}>
+            {displayTitle}
+          </Text>
+          <Text style={[st.selectedSub, { color: C.textSecondary }]}>Bereit zur Analyse</Text>
+        </View>
+
+        {__DEV__ && (
+          <View style={st.devPanel}>
+            <Text style={[st.devLabel, { color: C.textTertiary }]}>Developer · Typ überschreiben</Text>
+            <View style={st.typeGrid}>
+              {FORCE_TYPE_OPTIONS.map(opt => (
+                <TouchableOpacity
+                  key={opt.value ?? 'auto'}
+                  style={[st.typeChip, { borderColor: C.border, backgroundColor: C.bgCard },
+                    forceType === opt.value && { borderColor: C.primary, backgroundColor: C.primary + '18' }]}
+                  onPress={() => setForceType(opt.value)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[st.typeChipLabel, { color: C.textSecondary },
+                    forceType === opt.value && { color: C.primary, fontWeight: '600' }]}>
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={[st.primaryBtn, { backgroundColor: C.primary }]}
+          onPress={() => onSubmit(
+            selectedAsset.uri,
+            selectedAsset.name,
+            selectedAsset.mimeType,
+            __DEV__ ? (forceType ?? undefined) : undefined,
+          )}
+          activeOpacity={0.85}
+        >
+          {picking ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Icon name="sparkles" size={18} color="#fff" />
+              <Text style={st.primaryBtnLabel}>Analysieren</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[st.changeBtn, { borderColor: C.border }]}
+          onPress={() => setSelectedAsset(null)}
+          activeOpacity={0.75}
+        >
+          <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>Ändern</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={st.container}>
-      {selectedAsset ? (
-        <TouchableOpacity style={st.selectedZone} onPress={handlePickFile} activeOpacity={0.75}>
-          <Icon name="document-text" size={36} color={Colors.primary} />
-          <Text style={st.fileName} numberOfLines={2}>{selectedAsset.displayName}</Text>
-          <Text style={st.changeHint}>Zum Ändern tippen</Text>
+      <Text style={[st.headline, { color: C.text }]}>Dokument scannen</Text>
+      <Text style={[st.subline, { color: C.textSecondary }]}>
+        BriefPilot erkennt Art, Datum, Absender und nächste Schritte automatisch.
+      </Text>
+
+      <TouchableOpacity
+        style={[st.primaryCard, { backgroundColor: C.bgCard, borderColor: C.primary + '30' }]}
+        onPress={() => withPicking(() => ExpoScannerProvider.takePhoto())}
+        activeOpacity={0.8}
+        disabled={picking}
+      >
+        {picking ? (
+          <ActivityIndicator color={C.primary} size="large" />
+        ) : (
+          <>
+            <View style={[st.iconCircle, { backgroundColor: C.primary + '14' }]}>
+              <Icon name="camera" size={32} color={C.primary} />
+            </View>
+            <Text style={[st.cardTitle, { color: C.text }]}>Dokument scannen</Text>
+            <Text style={[st.cardSub, { color: C.textSecondary }]}>Foto aufnehmen und analysieren</Text>
+          </>
+        )}
+      </TouchableOpacity>
+
+      <View style={st.secondaryRow}>
+        <TouchableOpacity
+          style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
+          onPress={() => withPicking(() => ExpoScannerProvider.pickFile())}
+          activeOpacity={0.75}
+          disabled={picking}
+        >
+          <Icon name="document-outline" size={18} color={C.textSecondary} />
+          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>Datei auswählen</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>PDF · JPG</Text>
         </TouchableOpacity>
-      ) : (
-        <View style={st.pickRow}>
-          <TouchableOpacity style={st.pickBtn} onPress={handlePickFile} activeOpacity={0.75} disabled={picking}>
-            {picking ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : (
-              <>
-                <Icon name="document-outline" size={30} color={Colors.primary} />
-                <Text style={[st.pickLabel, { color: Colors.text }]}>Datei auswählen</Text>
-                <Text style={st.pickHint}>PDF · JPG · PNG</Text>
-              </>
-            )}
-          </TouchableOpacity>
 
-          <View style={[st.pickDivider, { backgroundColor: Colors.border }]} />
-
-          <TouchableOpacity style={st.pickBtn} onPress={handleTakePhoto} activeOpacity={0.75} disabled={picking}>
-            {picking ? (
-              <ActivityIndicator color={Colors.primary} />
-            ) : (
-              <>
-                <Icon name="camera-outline" size={30} color={Colors.primary} />
-                <Text style={[st.pickLabel, { color: Colors.text }]}>Foto aufnehmen</Text>
-                <Text style={st.pickHint}>Dokument · Beleg</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+        <TouchableOpacity
+          style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
+          onPress={() => withPicking(() => ExpoScannerProvider.pickFromLibrary())}
+          activeOpacity={0.75}
+          disabled={picking}
+        >
+          <Icon name="images-outline" size={18} color={C.textSecondary} />
+          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>Aus Fotos</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>Galerie</Text>
+        </TouchableOpacity>
+      </View>
 
       {__DEV__ && (
-        <>
-          <Text style={st.sectionLabel}>Dokumenttyp (Dev)</Text>
+        <View style={st.devPanel}>
+          <Text style={[st.devLabel, { color: C.textTertiary }]}>Developer · Typ überschreiben</Text>
           <View style={st.typeGrid}>
             {FORCE_TYPE_OPTIONS.map(opt => (
               <TouchableOpacity
                 key={opt.value ?? 'auto'}
-                style={[st.typeChip, forceType === opt.value && st.typeChipActive]}
+                style={[st.typeChip, { borderColor: C.border, backgroundColor: C.bgCard },
+                  forceType === opt.value && { borderColor: C.primary, backgroundColor: C.primary + '18' }]}
                 onPress={() => setForceType(opt.value)}
                 activeOpacity={0.75}
               >
-                <Text style={[st.typeChipLabel, forceType === opt.value && st.typeChipLabelActive]}>
+                <Text style={[st.typeChipLabel, { color: C.textSecondary },
+                  forceType === opt.value && { color: C.primary, fontWeight: '600' }]}>
                   {opt.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-        </>
+        </View>
       )}
-
-      <TouchableOpacity
-        style={[st.submitBtn, !selectedAsset && st.submitBtnDisabled]}
-        onPress={() => {
-          if (selectedAsset) {
-            onSubmit(
-              selectedAsset.uri,
-              selectedAsset.name,
-              selectedAsset.mimeType,
-              __DEV__ ? (forceType ?? undefined) : undefined,
-            );
-          }
-        }}
-        disabled={!selectedAsset}
-        activeOpacity={0.8}
-      >
-        <Text style={st.submitLabel}>Analysieren</Text>
-        <Icon name="arrow-forward" size={18} color="#fff" />
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
-  container:    { padding: 20, gap: 16 },
-  pickRow: {
-    flexDirection: 'row',
+  container:        { padding: 20, gap: 20 },
+
+  headline:         { fontSize: 22, fontWeight: '800', letterSpacing: -0.4 },
+  subline:          { fontSize: 14, lineHeight: 21, marginTop: -8 },
+
+  primaryCard: {
     borderWidth: 1.5,
-    borderColor: C.border,
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    backgroundColor: C.bgCard,
-    overflow: 'hidden',
-  },
-  pickBtn: {
-    flex: 1,
+    borderRadius: 20,
+    paddingVertical: 36,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 28,
-    paddingHorizontal: 12,
+    gap: 12,
   },
-  pickDivider:   { width: 1 },
-  pickLabel:     { fontSize: 14, fontWeight: '600' },
-  pickHint:      { color: C.textSecondary, fontSize: 11 },
-  selectedZone: {
-    borderWidth: 1.5,
-    borderColor: C.primary,
-    borderStyle: 'dashed',
-    borderRadius: 16,
-    padding: 32,
+  iconCircle: {
+    width: 72, height: 72, borderRadius: 36,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  cardTitle:        { fontSize: 17, fontWeight: '700' },
+  cardSub:          { fontSize: 13 },
+
+  secondaryRow:     { flexDirection: 'row', gap: 12 },
+  secondaryBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    gap: 6,
+  },
+  secondaryBtnLabel: { fontSize: 13, fontWeight: '600' },
+  secondaryBtnHint:  { fontSize: 11 },
+
+  selectedCard: {
+    borderRadius: 20,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
     gap: 10,
-    backgroundColor: C.bgCard,
+    borderWidth: 1.5,
+    borderColor: C.primary + '40',
+    backgroundColor: C.primary + '08',
   },
-  fileName:      { color: C.text, fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  changeHint:    { color: C.textSecondary, fontSize: 12 },
-  sectionLabel:  { color: C.textSecondary, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
-  typeGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeChip:      {
-    paddingVertical: 6, paddingHorizontal: 14,
-    borderRadius: 20, borderWidth: 1, borderColor: C.border,
-    backgroundColor: C.bgCard,
+  selectedIconCircle: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: C.primary + '14',
+    alignItems: 'center', justifyContent: 'center',
   },
-  typeChipActive:      { borderColor: C.primary, backgroundColor: C.primary + '18' },
-  typeChipLabel:       { color: C.textSecondary, fontSize: 13 },
-  typeChipLabelActive: { color: C.primary, fontWeight: '600' },
-  submitBtn: {
+  selectedTitle:    { fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  selectedSub:      { fontSize: 13 },
+
+  primaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15,
+    borderRadius: 14, paddingVertical: 16,
   },
-  submitBtnDisabled: { opacity: 0.4 },
-  submitLabel:       { color: '#fff', fontSize: 16, fontWeight: '700' },
+  primaryBtnLabel:  { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  changeBtn: {
+    borderWidth: 1, borderRadius: 14, paddingVertical: 13,
+    alignItems: 'center', marginTop: -8,
+  },
+  changeBtnLabel:   { fontSize: 14, fontWeight: '600' },
+
+  devPanel: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: C.border,
+    paddingTop: 16,
+    gap: 10,
+  },
+  devLabel:         { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
+  typeGrid:         { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  typeChip: {
+    paddingVertical: 6, paddingHorizontal: 14,
+    borderRadius: 20, borderWidth: 1,
+  },
+  typeChipLabel:    { fontSize: 13 },
 });

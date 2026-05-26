@@ -5,14 +5,13 @@
  * katmaninin hem de potansiyel migration script'lerinin tek bir
  * referansa ihtiyaci vardir.
  */
-import { DEMO_DOKUMENTE } from '@/features/demo/demoDocuments';
 import type { StoreState } from '@/store/types';
 
 /** AsyncStorage anahtari. v3 = bu app'in 3. major surumunden buyana. */
 export const STORE_KEY = '@briefpilot_v3';
 
 export const INITIAL_STATE: StoreState = {
-  dokumente: DEMO_DOKUMENTE,
+  dokumente: [],
   einstellungen: {
     sprache: 'Deutsch',
     benachrichtigungen: true,

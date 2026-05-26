@@ -18,7 +18,12 @@ export function rootReducer(state: StoreState, action: StoreAction): StoreState 
   // 1) LOAD — tum state'i hidrate eder; AsyncStorage hydration sirasinda
   //    cagrilir. Tek seferlik bir aksiyondur.
   if (action.type === 'LOAD') {
-    return { ...state, ...action.payload };
+    const payload = action.payload;
+    // Strip demo docs that may have been persisted from earlier app versions.
+    const dokumente = payload.dokumente
+      ? payload.dokumente.filter(d => !d.isDemo)
+      : state.dokumente;
+    return { ...state, ...payload, dokumente };
   }
 
   // 2) CLEAR_DUPLIKAT — uyari banner'ini kapatir.

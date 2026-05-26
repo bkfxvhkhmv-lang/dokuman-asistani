@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { getTageVerbleibend } from '@/utils/formatters';
+import { isLowConfidence } from '@/utils/documentGuards';
 import type { Dokument } from '@/store';
 
 interface Props {
@@ -31,7 +32,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
       if (tage !== null && tage < 0)          ueberfaellig++;
       if (tage !== null && tage >= 0 && tage <= 7) dieseWoche++;
       if (d.risiko === 'hoch')                dringend++;
-      if ((d.confidence ?? 100) < 55)         pruefen++;
+      if (isLowConfidence(d))                 pruefen++;
     }
 
     return [

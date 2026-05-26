@@ -7,6 +7,7 @@ import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
 import { excerptForDocumentListCard } from '@/utils/listCardSummary';
 import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
+import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
 import { useT } from '@/hooks/useT';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -41,22 +42,6 @@ function quickIntent(dok: Dokument, C: ThemeColors) {
   return { PhIcon: File, color: C.textSecondary };
 }
 
-type NextStepTone = 'danger' | 'warning' | 'info';
-
-function getNextStepBadge(dok: Dokument): { label: string; tone: NextStepTone } | null {
-  if (dok.erledigt) return null;
-  const tage = dok.frist
-    ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000)
-    : null;
-  if (tage !== null && tage < 0)                                      return { label: 'Überfällig',         tone: 'danger'  };
-  if ((dok.confidence ?? 100) < 55)                                   return { label: 'Angaben prüfen',     tone: 'warning' };
-  if (typeof dok.betrag === 'number' && dok.betrag < 0)               return { label: 'Gutschrift prüfen',  tone: 'info'    };
-  if (dok.risiko === 'hoch')                                          return { label: 'Dringend prüfen',    tone: 'danger'  };
-  if (tage !== null && tage <= 7)                                     return { label: 'Frist diese Woche',  tone: 'warning' };
-  if (dok.aktionen?.includes('zahlen') && dok.betrag && dok.betrag > 0) return { label: 'Zahlung ausstehend', tone: 'warning' };
-  if (dok.aktionen?.includes('einspruch'))                            return { label: 'Einspruch möglich',  tone: 'info'    };
-  return null;
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -94,12 +79,12 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     : null;
 
   const listSnippet = excerptForDocumentListCard(dok);
-  const nextStep    = getNextStepBadge(dok);
+  const nextStep    = deriveNextStep(dok);
 
-  const nextStepColors = (tone: NextStepTone) => {
-    if (tone === 'danger')  return { bg: Colors.dangerLight,  text: Colors.dangerText  };
-    if (tone === 'warning') return { bg: Colors.warningLight, text: Colors.warningText };
-    return                         { bg: Colors.primaryLight, text: Colors.primaryDark };
+  const nextStepColors = (urgency: NextStepUrgency) => {
+    if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };
+    if (urgency === 'warning')  return { bg: Colors.warningLight, text: Colors.warningText };
+    return                             { bg: Colors.primaryLight, text: Colors.primaryDark };
   };
 
   return (
@@ -182,8 +167,8 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
             </Text>
           </View>
         ) : nextStep ? (
-          <View style={[styles.nextStepBox, { backgroundColor: nextStepColors(nextStep.tone).bg }]}>
-            <Text style={[styles.nextStepText, { color: nextStepColors(nextStep.tone).text }]}>
+          <View style={[styles.nextStepBox, { backgroundColor: nextStepColors(nextStep.urgency).bg }]}>
+            <Text style={[styles.nextStepText, { color: nextStepColors(nextStep.urgency).text }]}>
               {nextStep.label}
             </Text>
           </View>

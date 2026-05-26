@@ -87,3 +87,11 @@ export function inferAmountSemantics(amount: number | null | undefined): AmountS
 export function canOfferPaymentAction(amount: number | null | undefined): boolean {
   return inferAmountSemantics(amount) === 'payable';
 }
+
+/**
+ * True when OCR confidence is too low to trust extracted fields.
+ * Uses 0-100 scale (matching app-wide convention); null/undefined → high confidence.
+ */
+export function isLowConfidence(dok: { confidence?: number | null }): boolean {
+  return (dok.confidence ?? 100) < 55;
+}

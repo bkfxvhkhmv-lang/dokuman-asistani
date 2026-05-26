@@ -70,20 +70,49 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
 
   if (compact) {
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12,
-        backgroundColor: bg, borderRadius: R.lg, padding: 12,
-        borderWidth: 1, borderColor: border + '77' }}>
-        <ScoreGauge score={result.gesamtScore} color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: textColor }}>{displayLabel}</Text>
-          <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
-            {displayErklaerung}
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
-            <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
-            <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], fontWeight: '700' }}>{result.trendLabel}</Text>
+      <View style={{ backgroundColor: bg, borderRadius: R.lg, borderWidth: 1, borderColor: border + '77' }}>
+        {/* Header row */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 }}>
+          <ScoreGauge score={result.gesamtScore} color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: textColor }}>{displayLabel}</Text>
+            <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
+              {displayErklaerung}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
+              <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
+              <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], fontWeight: '700' }}>{result.trendLabel}</Text>
+            </View>
           </View>
         </View>
+
+        {/* "Warum?" toggle */}
+        <TouchableOpacity
+          onPress={() => setExpanded(v => !v)}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4,
+            paddingVertical: 8, borderTopWidth: 0.5, borderColor: border + '44' }}
+        >
+          <Text style={{ fontSize: 11, color: textColor, fontWeight: '600' }}>
+            {expanded ? 'Weniger' : 'Warum?'}
+          </Text>
+          <Icon name={expanded ? 'caret-up' : 'caret-down'} size={11} color={textColor} />
+        </TouchableOpacity>
+
+        {/* Top factors — visible after toggle */}
+        {expanded && (
+          <View style={{ paddingHorizontal: 12, paddingBottom: 12 }}>
+            {result.faktoren.slice(0, 4).map((f, i) => (
+              <View key={f.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8,
+                paddingVertical: 6, borderTopWidth: i === 0 ? 0 : 0.5, borderColor: border + '33' }}>
+                <Text style={{ fontSize: 14, width: 22, textAlign: 'center' }}>{f.icon}</Text>
+                <Text style={{ fontSize: 12, color: C.text, flex: 1 }}>{f.beschreibung}</Text>
+                <View style={{ width: 36, height: 3, backgroundColor: C.border, borderRadius: 2, overflow: 'hidden' }}>
+                  <View style={{ height: 3, borderRadius: 2, width: `${f.score}%`, backgroundColor: factorColor(f.score) }} />
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   }
@@ -160,7 +189,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             <View key={f.id} style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Icon name={f.icon} size={13} color={C.textSecondary} />
+                  <Text style={{ fontSize: 13, width: 18, textAlign: 'center' }}>{f.icon}</Text>
                   <Text style={{ fontSize: 11, color: C.text }}>{f.beschreibung}</Text>
                 </View>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: factorColor(f.score) }}>

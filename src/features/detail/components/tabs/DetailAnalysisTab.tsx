@@ -9,6 +9,7 @@ import SmartSummaryCard from '@/components/SmartSummaryCard';
 import SmartRiskPanel from '@/components/SmartRiskPanel';
 import SmartLinksPanel from '@/components/SmartLinksPanel';
 import AnalyseHeaderCard from '@/features/detail/components/AnalyseHeaderCard';
+import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 const ENABLE_RELEASE_DIGITAL_TWIN_PANEL = false;
@@ -59,6 +60,7 @@ export default function DetailAnalysisTab({
       onLayout={onScrollLayout}
     >
       <AnalyseHeaderCard dok={detail.dok} actionPlan={actionPlan} />
+      <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />
 
       <SmartSummaryCard
         result={smartSummary.result}

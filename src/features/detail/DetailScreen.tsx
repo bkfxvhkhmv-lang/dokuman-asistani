@@ -262,6 +262,7 @@ export default function Detailbildschirm() {
         {aktifTab === 'ozet' && !isSimpleMode && (
           <DetailDetailsTab
             detail={detail}
+            actionPlan={actionPlan}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

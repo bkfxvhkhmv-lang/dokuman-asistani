@@ -40,9 +40,19 @@ export default function DetailsPanel({
   const groups = groupDocumentFields(dok, extrahierteFelder);
   const confidencePct = dok.confidence ?? 100;
 
+  const belegDatum   = dok.dokumentDatum ? formatDatum(dok.dokumentDatum) : null;
+  const erfasstDatum = formatDatum(dok.datum);
+  const showBeideDaten = !!(belegDatum && belegDatum !== erfasstDatum);
+
   const wichtigsteRows: { icon: string; label: string; value: string }[] = [
     { icon: 'buildings',      label: T('field.sender'),   value: dok.absender || '–' },
-    { icon: 'calendar-blank', label: T('field.date'),     value: formatDatum(dok.dokumentDatum ?? dok.datum) || '–' },
+    ...(showBeideDaten
+      ? [
+          { icon: 'calendar-blank', label: 'Belegdatum',  value: belegDatum! },
+          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–' },
+        ]
+      : [{ icon: 'calendar-blank', label: T('field.date'), value: belegDatum ?? erfasstDatum ?? '–' }]
+    ),
     ...(dok.betrag != null ? [{ icon: 'currency-eur',     label: T('field.amount'),   value: formatBetrag(dok.betrag as number, dok.waehrung) ?? '–' }] : []),
     ...(dok.frist ? [{ icon: 'clock',                     label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
     ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value })),
@@ -56,8 +66,8 @@ export default function DetailsPanel({
       {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
       <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
 
-      {/* ── 2. Wichtigste Daten ──────────────────────────────────────────── */}
-      <SectionCard title="WICHTIGSTE DATEN">
+      {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
+      <SectionCard title="DOKUMENTDATEN">
         {wichtigsteRows.map((f, i) => (
           <FieldRow
             key={f.label}
@@ -139,16 +149,16 @@ export default function DetailsPanel({
       {/* ── 7. Etiketten ─────────────────────────────────────────────────── */}
       <EtikettenSection mevcutEtiketten={mevcutEtiketten} />
 
-      {/* ── 8. Ähnliche Dokumente ────────────────────────────────────────── */}
-      <AehnlicheDocsSection dokumente={aehnlicheDoks} />
-
-      {/* ── 9. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
+      {/* ── 8. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
       {dok.rohText ? (
         <>
           <View style={{ height: S.md }} />
           <RohTextSection rohText={dok.rohText} />
         </>
       ) : null}
+
+      {/* ── 9. Ähnliche Dokumente — letzter Abschnitt, muted ────────────── */}
+      <AehnlicheDocsSection dokumente={aehnlicheDoks} />
 
       {/* ── Fallback: noch keine Felder erkannt ──────────────────────────── */}
       {!hasContent && (

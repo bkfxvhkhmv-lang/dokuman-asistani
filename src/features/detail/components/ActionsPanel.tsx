@@ -10,6 +10,7 @@ import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/Det
 import { getTageVerbleibend } from '@/utils/formatters';
 import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
+import { canOfferPaymentAction } from '@/utils/documentGuards';
 
 // ── Action metadata ───────────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
 
   const nextTwin = normalizeNextAction(digitalTwin?.intelligence?.lifecycle?.nextAction);
   // zahlen nur bei positivem Betrag — negativer Betrag ist Gutschrift, kein Zahlungsausgang
-  const canZahlen = dok.aktionen?.includes('zahlen') && dok.betrag != null && dok.betrag > 0;
+  const canZahlen = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
 
   if (overdue) {
     if (nextTwin.includes('zahl') && canZahlen) return 'zahlen';

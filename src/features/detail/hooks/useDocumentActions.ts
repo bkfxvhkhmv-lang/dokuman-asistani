@@ -3,7 +3,6 @@ import { applyActionOutcome, createActionOutcome } from '@/features/detail/servi
 import type { StoreAction } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 
-import { runHandleLoeschen } from './document-actions/deletion';
 import { runHandleZahlen, runHandleZahlenMitPartner } from './document-actions/payment';
 import {
   runHandleGuvenliPaylasim,

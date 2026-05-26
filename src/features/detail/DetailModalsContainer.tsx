@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Share } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useToast } from '@/hooks/useToast';
@@ -52,7 +52,15 @@ export default function DetailModalsContainer({
   moreMenu, setMoreMenu, moreItems, beginActionSession, router,
 }: Props) {
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
-  const pendingMarkRef = useRef(false);
+  const pendingMarkRef   = useRef(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const deleteTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
 
   const handleCopyEinspruch = useCallback(async () => {
     await Clipboard.setStringAsync(modal.einspruchText || '');
@@ -99,33 +107,24 @@ export default function DetailModalsContainer({
   }, [modal, beginActionSession]);
 
   const handleDeleteConfirm = useCallback(() => {
-    const snapshot = { ...dok };
-    modal.close();
-    dispatch({ type: 'DELETE_DOKUMENT', id: dokId });
-    router.back();
-
-    let undone = false;
-    const undoTimer = setTimeout(() => {
-      if (!undone) { /* permanent after 3 s */ }
+    setPendingDelete(true);
+    deleteTimerRef.current = setTimeout(() => {
+      deleteTimerRef.current = null;
+      setPendingDelete(false);
+      dispatch({ type: 'DELETE_DOKUMENT', id: dokId });
+      modal.close();
+      router.back();
     }, 3000);
+  }, [dispatch, dokId, modal, router]);
 
-    modal.open('confirm', {
-      title:   'Dokument gelöscht',
-      message: 'Tippe auf Rückgängig, um es wiederherzustellen.',
-      actions: [
-        {
-          text: 'Rückgängig',
-          onPress: () => {
-            undone = true;
-            clearTimeout(undoTimer);
-            dispatch({ type: 'ADD_DOKUMENT', payload: snapshot });
-          },
-        },
-        { text: 'OK', style: 'cancel' },
-      ],
-      autoDismissMs: 3000,
-    } as any);
-  }, [modal, dispatch, dokId, dok, router]);
+  const handleDeleteUndo = useCallback(() => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setPendingDelete(false);
+    modal.close();
+  }, [modal]);
 
   return (
     <>
@@ -137,6 +136,8 @@ export default function DetailModalsContainer({
         visible={modal.isOpen('loeschen')}
         onClose={modal.close}
         onConfirm={handleDeleteConfirm}
+        phase={pendingDelete ? 'pending' : 'confirm'}
+        onUndo={handleDeleteUndo}
       />
 
       <PaymentPrepareSheet

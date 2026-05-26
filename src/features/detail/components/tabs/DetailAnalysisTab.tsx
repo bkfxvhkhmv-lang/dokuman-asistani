@@ -64,7 +64,11 @@ export default function DetailAnalysisTab({
       />
 
       {smartRisk ? (
-        <SmartRiskPanel result={smartRisk} onAktion={handleSmartAction} />
+        <SmartRiskPanel
+          result={smartRisk}
+          onAktion={handleSmartAction}
+          compact={smartRisk.level === 'niedrig' || smartRisk.level === 'kein'}
+        />
       ) : (
         <RiskPanel
           ocrRisiken={detail.ocrRisiken}

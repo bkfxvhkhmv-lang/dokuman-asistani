@@ -101,17 +101,17 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
           flexDirection: 'row',
           borderTopWidth: 0.5, borderTopColor: C.borderLight,
         }}>
-          {dok.betrag ? (
+          {dok.betrag != null ? (
             <View style={{
               flex: 1, padding: S.md,
               borderRightWidth: dok.frist ? 0.5 : 0, borderRightColor: C.borderLight,
             }}>
               <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.5 }}>
-                BETRAG
+                {dok.betrag < 0 ? 'GUTSCHRIFT' : 'BETRAG'}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>
-                  {formatBetrag(dok.betrag, dok.waehrung || '€')}
+                  {formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€')}
                 </Text>
                 {conf != null && <AiSparkle />}
               </View>

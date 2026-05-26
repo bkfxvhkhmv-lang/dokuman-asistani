@@ -38,12 +38,18 @@ export const styles = StyleSheet.create({
   guideFrame: {
     position: 'absolute', top: '10%', alignSelf: 'center', width: GUIDE_W, height: GUIDE_H,
     borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.75)', borderRadius: 6,
+    justifyContent: 'center', alignItems: 'center',
   },
-  corner: { position: 'absolute', width: 28, height: 28, borderRadius: 3 },
-  cornerTL: { top: -1, left: -1,       borderTopWidth: 3, borderLeftWidth: 3,    borderColor: '#fff' },
-  cornerTR: { top: -1, right: -1,      borderTopWidth: 3, borderRightWidth: 3,   borderColor: '#fff' },
-  cornerBL: { bottom: -1, left: -1,    borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#fff' },
-  cornerBR: { bottom: -1, right: -1,   borderBottomWidth: 3, borderRightWidth: 3,borderColor: '#fff' },
+  corner: { position: 'absolute', width: 34, height: 34, borderRadius: 3 },
+  cornerTL: { top: -1, left: -1,       borderTopWidth: 3.5, borderLeftWidth: 3.5,    borderColor: '#fff' },
+  cornerTR: { top: -1, right: -1,      borderTopWidth: 3.5, borderRightWidth: 3.5,   borderColor: '#fff' },
+  cornerBL: { bottom: -1, left: -1,    borderBottomWidth: 3.5, borderLeftWidth: 3.5, borderColor: '#fff' },
+  cornerBR: { bottom: -1, right: -1,   borderBottomWidth: 3.5, borderRightWidth: 3.5,borderColor: '#fff' },
+  guideLabel: {
+    color: 'rgba(255,255,255,0.70)', fontSize: 13, fontWeight: '600',
+    textAlign: 'center', letterSpacing: 0.2,
+    paddingHorizontal: 20,
+  },
 
   // Filter bar
   filterBar: {

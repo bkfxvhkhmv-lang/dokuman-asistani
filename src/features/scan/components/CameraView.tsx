@@ -134,6 +134,24 @@ export default function CameraView(props: CameraViewProps) {
     };
   }, []);
 
+  // Guide pulse — breathes while searching (no corners detected)
+  const guidePulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (detectedCorners) {
+      guidePulse.stopAnimation();
+      guidePulse.setValue(1);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(guidePulse, { toValue: 0.45, duration: 1100, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+        Animated.timing(guidePulse, { toValue: 1,    duration: 1100, useNativeDriver: true, easing: Easing.inOut(Easing.ease) }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [!!detectedCorners, guidePulse]);
+
   const fresh = edgesAreFresh !== false;
   const liveQuality = runQualityGateFromCorners(detectedCorners);
   const isDocumentDetected = !!detectedCorners
@@ -195,11 +213,14 @@ export default function CameraView(props: CameraViewProps) {
         </View>
       ) : (
         // top: insets.top+64 keeps guide frame below the safe area + top bar (never under notch)
-        <View style={[styles.guideFrame, { top: insets.top + 64 }]}>
+        <Animated.View style={[styles.guideFrame, { top: insets.top + 64, opacity: guidePulse }]}>
           {[styles.cornerTL, styles.cornerTR, styles.cornerBL, styles.cornerBR].map((cornerStyle, i) => (
             <View key={i} style={[styles.corner, cornerStyle, { borderColor: cornerColor }]} />
           ))}
-        </View>
+          {!showCaptureToast && (
+            <Text style={styles.guideLabel}>Dokument hier{'\n'}einrahmen</Text>
+          )}
+        </Animated.View>
       )}
 
       <CameraTopBar topInset={insets.top} pageCount={pageCount} onClose={onClose} />

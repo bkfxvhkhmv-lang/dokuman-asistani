@@ -113,6 +113,9 @@ export interface Dokument {
   vertragsnr?: string | null;
   zahlungszweck?: string | null;
   steuerid?: string | null;
+  // Contract fields
+  laufzeitende?: string | null;
+  kuendigungsfrist?: string | null;
   // V12 Categorization
   subtyp?: string | null;
   // #53 OCR bounding boxes for detected entities

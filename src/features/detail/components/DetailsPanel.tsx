@@ -111,6 +111,22 @@ export default function DetailsPanel({
         </SectionCard>
       )}
 
+      {/* ── 4b. Vertragsdetails ───────────────────────────────────────────── */}
+      {groups.vertrag.length > 0 && (
+        <SectionCard title="VERTRAGSDETAILS">
+          {groups.vertrag.map((f, i) => (
+            <FieldRow
+              key={f.key}
+              icon={f.icon}
+              label={f.label}
+              value={f.value}
+              aiSparkle={f.aiSparkle}
+              isLast={i === groups.vertrag.length - 1}
+            />
+          ))}
+        </SectionCard>
+      )}
+
       {/* ── 5. Weitere Angaben (collapsed) ───────────────────────────────── */}
       {groups.weitere.length > 0 && (
         <View style={{ marginBottom: S.md, borderRadius: R.lg, backgroundColor: C.bgCard,

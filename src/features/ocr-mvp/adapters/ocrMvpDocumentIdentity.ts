@@ -244,7 +244,7 @@ export function buildDocumentTitle(
 
 // Only fields that unambiguously name the sending organisation — never applicant/recipient fields.
 const SENDER_FIELD_RE =
-  /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|dienstleister)/i;
+  /^(absender|aussteller|beh[oö]rde|amt|unternehmen|firma|organisation|institution|anbieter|versicherung|dienstleister|empf[äa]nger)/i;
 
 // Payment/banking fields — never the document author, always excluded.
 const PAYMENT_FIELD_RE =

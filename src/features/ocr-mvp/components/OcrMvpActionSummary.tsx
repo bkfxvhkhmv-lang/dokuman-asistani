@@ -5,7 +5,7 @@ import {
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
-import { humanizeTitle, formatGermanCurrency, buildDocumentSender } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+import { humanizeTitle, formatGermanCurrency, buildDocumentSender, buildDocumentTitle, extractDokumentDatum } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
 
 const GENERIC_TITLE_FALLBACKS = new Set([
   'Foto aufgenommen',
@@ -67,6 +67,7 @@ export default function OcrMvpActionSummary({
     if (!humanized || GENERIC_TITLE_FALLBACKS.has(humanized)) {
       const sender = buildDocumentSender(kind, summary);
       if (sender !== 'Unbekannt') return sender;
+      return buildDocumentTitle(kind, summary, extractDokumentDatum(summary));
     }
     return humanized;
   })();

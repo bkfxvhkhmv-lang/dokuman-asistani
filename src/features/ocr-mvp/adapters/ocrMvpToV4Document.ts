@@ -159,7 +159,7 @@ export function ocrMvpToV4Document(
     frist:           parseFrist(s?.deadline ?? s?.due_date),
     risiko:          mapRisiko(s?.risk_level),
     aktionen:        KIND_TO_AKTIONEN[kind] ?? ['ai', 'review'],
-    datum:           new Date().toISOString(),
+    datum:           parseFrist(dokumentDatum) ?? new Date().toISOString(),
     dokumentDatum,
     gelesen:         false,
     erledigt:        false,

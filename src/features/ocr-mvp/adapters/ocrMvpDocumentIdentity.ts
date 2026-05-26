@@ -12,6 +12,113 @@ export function isMeaningfulTitle(title: string | null | undefined): boolean {
   return true;
 }
 
+// ── Title humanization ────────────────────────────────────────────────────────
+
+function safeDecode(text: string): string {
+  try { return decodeURIComponent(text); } catch { return text; }
+}
+
+const FILE_EXT_RE = /\.(pdf|jpg|jpeg|png|xlsx|csv|docx|doc|txt)$/i;
+
+// Only exact-match technical auto-generated filenames.
+const TECH_FILENAME_MAP: { re: RegExp; label: string }[] = [
+  { re: /^image_\d+$/i,   label: 'Dokument aus Fotos' },
+  { re: /^photo_\d+$/i,   label: 'Foto aufgenommen' },
+  { re: /^IMG[_-]?\d+$/i, label: 'Bild ausgewählt' },
+  { re: /^input$/i,        label: 'Analysiertes Dokument' },
+];
+
+// Trailing job-reference suffixes like _ba042699 (2 letters + 4+ hex digits).
+const TECH_SUFFIX_RE = /_[a-z]{2}[0-9a-f]{4,}$/i;
+
+// Conservative set of domain abbreviations — no guessing.
+const ABBREV_MAP: [RegExp, string][] = [
+  [/\bsgb[\s_-]?ii\b/gi, 'SGB II'],
+  [/\bsgb2\b/gi,         'SGB II'],
+  [/\bgez\b/gi,          'GEZ'],
+  [/\bkfz\b/gi,          'KFZ'],
+  [/\baok\b/gi,          'AOK'],
+];
+
+function toTitleCase(text: string): string {
+  return text
+    .split(' ')
+    .map(word => {
+      if (!word) return '';
+      // Preserve all-uppercase abbreviations (SGB, II, GEZ, KFZ…)
+      if (word === word.toUpperCase() && word.length > 1) return word;
+      return word[0].toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
+export function humanizeTitle(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  let t = safeDecode(raw.trim());
+
+  // Strip file extension before pattern matching.
+  t = t.replace(FILE_EXT_RE, '');
+
+  // Exact technical filename → friendly label.
+  for (const { re, label } of TECH_FILENAME_MAP) {
+    if (re.test(t)) return label;
+  }
+
+  // Remove trailing job-reference suffix.
+  t = t.replace(TECH_SUFFIX_RE, '');
+
+  // Hyphens and underscores → spaces.
+  t = t.replace(/[_-]/g, ' ');
+
+  // Expand known abbreviations.
+  for (const [re, expanded] of ABBREV_MAP) {
+    t = t.replace(re, expanded);
+  }
+
+  // Collapse whitespace, trim.
+  t = t.replace(/\s+/g, ' ').trim();
+
+  if (t.length < 3) return null;
+  return toTitleCase(t);
+}
+
+// ── German currency formatting ────────────────────────────────────────────────
+
+const _deFormat = new Intl.NumberFormat('de-DE', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export function formatGermanCurrency(
+  value: number | string | null | undefined,
+  currencyCode?: string | null,
+): string | null {
+  if (value == null) return null;
+
+  let num: number;
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return null;
+    num = value;
+  } else {
+    const cleaned = value
+      .replace(/EUR/gi, '')
+      .replace(/€/g, '')
+      .trim();
+
+    // German notation: 1.234,56 → 1234.56
+    if (/^-?\d{1,3}(\.\d{3})*,\d{2}$/.test(cleaned)) {
+      num = Number(cleaned.replace(/\./g, '').replace(',', '.'));
+    } else {
+      num = Number(cleaned);
+    }
+    if (!Number.isFinite(num)) return String(value);
+  }
+
+  const suffix = (currencyCode && currencyCode !== 'EUR') ? ` ${currencyCode}` : ' €';
+  return _deFormat.format(num) + suffix;
+}
+
 const KIND_LABEL: Record<string, string> = {
   invoice:    'Rechnung',
   settlement: 'Nebenkostenabrechnung',

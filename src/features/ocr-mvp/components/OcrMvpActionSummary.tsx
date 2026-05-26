@@ -5,7 +5,7 @@ import {
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
-import { isMeaningfulTitle } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+import { humanizeTitle, formatGermanCurrency } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
 
 const KIND_LABEL: Record<string, string> = {
   invoice:    'Rechnung',
@@ -54,7 +54,7 @@ export default function OcrMvpActionSummary({
   const kind      = summary.kind ?? 'unknown';
   const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
   const rawTitle  = summary.title;
-  const title     = isMeaningfulTitle(rawTitle) ? rawTitle!.trim() : null;
+  const title     = humanizeTitle(rawTitle);
   const riskCfg   = summary.risk_level ? RISK_CONFIG[summary.risk_level] : null;
 
   const handlePress = (handler: ActionHandler) => {
@@ -114,13 +114,15 @@ export default function OcrMvpActionSummary({
       {/* Invoice meta */}
       {kind === 'invoice' && (
         <View style={st.metaRow}>
-          {(summary.total_brutto ?? summary.amount) != null && (
-            <MetaChip
-              label={`${summary.currency ?? 'EUR'} ${summary.total_brutto ?? summary.amount}`}
-              C={Colors}
-              large
-            />
-          )}
+          {(summary.total_brutto ?? summary.amount) != null && (() => {
+            const formatted = formatGermanCurrency(
+              summary.total_brutto ?? summary.amount,
+              summary.currency,
+            );
+            return formatted
+              ? <MetaChip label={formatted} C={Colors} large />
+              : null;
+          })()}
           {summary.line_items_count != null && (
             <MetaChip label={`${summary.line_items_count} Positionen`} C={Colors} />
           )}

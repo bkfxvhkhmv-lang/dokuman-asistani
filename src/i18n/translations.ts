@@ -24,8 +24,8 @@ const de: Dict = {
   'dash.next_due': 'Nächste Frist', 'dash.all_clear': 'Alles im Griff',
   'dash.check': 'Prüfen', 'dash.scan_now': 'Jetzt scannen',
 
-  'detail.tab.overview': 'Dokument', 'detail.tab.analysis': 'Analyse',
-  'detail.tab.details': 'Details', 'detail.tab.actions': 'Aktionen',
+  'detail.tab.overview': 'Dokument', 'detail.tab.analysis': 'Überblick',
+  'detail.tab.details': 'Details', 'detail.tab.actions': 'Erledigen',
   'detail.step.scanned': 'Gescannt', 'detail.step.analysed': 'Analyse',
   'detail.step.action': 'Aktion', 'detail.step.done': 'Abgeschlossen',
   'detail.status.action_needed': 'Handlung nötig', 'detail.status.in_review': 'In Prüfung',

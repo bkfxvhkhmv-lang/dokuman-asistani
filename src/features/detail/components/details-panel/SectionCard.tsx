@@ -6,7 +6,7 @@ export function SectionCard({ title, children }: { title: string; children: Reac
   return (
     <View style={{ marginBottom: S.md, borderRadius: R.lg, padding: S.md,
       backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary,
+      <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary,
         letterSpacing: 0.8, marginBottom: 10 }}>{title}</Text>
       {children}
     </View>

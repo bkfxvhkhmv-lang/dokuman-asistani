@@ -96,7 +96,7 @@ export default function SmartSummaryCard({
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Zusammenfassung</Text>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: C.text }}>Zusammenfassung</Text>
           <AiSparkle size={10} />
         </View>
         {result && (
@@ -146,14 +146,14 @@ export default function SmartSummaryCard({
             <TypewriterText
               text={result.kurzSatz}
               speed={14}
-              style={{ fontSize: 14, color: C.text, lineHeight: 22 }}
+              style={{ fontSize: 15, color: C.text, lineHeight: 22 }}
             />
           )}
 
           {currentMode === 'mittel' && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 20 }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                <Text key={i} style={{ fontSize: 15, color: C.text, lineHeight: 22 }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
               ))}
             </View>
           )}
@@ -162,15 +162,15 @@ export default function SmartSummaryCard({
             <>
               <MarkdownText
                 text={stripLlmLanguageMetaLines(result.detailText)}
-                style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
+                style={{ fontSize: 13, color: C.text, lineHeight: 18 }}
               />
               {result.handlungsempfehlungen.length > 0 && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary, marginBottom: 6 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.8, marginBottom: 6 }}>
                     EMPFEHLUNGEN
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 12, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                    <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 18, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
                   ))}
                 </View>
               )}

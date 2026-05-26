@@ -106,11 +106,11 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
               flex: 1, padding: S.md,
               borderRightWidth: dok.frist ? 0.5 : 0, borderRightColor: C.borderLight,
             }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.5 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.8 }}>
                 {dok.betrag < 0 ? 'GUTSCHRIFT' : 'BETRAG'}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>
+                <Text style={{ fontSize: 26, fontWeight: '700', color: C.text, letterSpacing: -0.3 }}>
                   {formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€')}
                 </Text>
                 {conf != null && <AiSparkle />}
@@ -120,10 +120,10 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
 
           {dok.frist ? (
             <View style={{ flex: 1, padding: S.md }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.5 }}>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.8 }}>
                 FRIST
               </Text>
-              <Text style={{ fontSize: 18, fontWeight: '800', color: fristCol }}>
+              <Text style={{ fontSize: 26, fontWeight: '700', color: fristCol, letterSpacing: -0.3 }}>
                 {fristStr}
               </Text>
               {tageStr ? (
@@ -145,7 +145,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
           backgroundColor: C.primaryLight,
         }}>
           <Icon name={actionPlan.primary.icon} size={16} color={C.primaryDark} />
-          <Text style={{ fontSize: 12, fontWeight: '700', color: C.primaryDark, flex: 1 }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: C.primaryDark, flex: 1 }}>
             {actionPlan.primary.label}
           </Text>
           <Icon name="caret-right" size={14} color={C.primaryDark} />

@@ -156,7 +156,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
         >
           <Icon name="images-outline" size={18} color={C.textSecondary} />
           <Text style={[st.secondaryBtnLabel, { color: C.text }]}>Aus Fotos</Text>
-          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>Galerie</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>Aus deiner Fotomediathek</Text>
         </TouchableOpacity>
       </View>
 

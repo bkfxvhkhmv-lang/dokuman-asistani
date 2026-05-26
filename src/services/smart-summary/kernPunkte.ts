@@ -1,5 +1,6 @@
 import type { Dokument } from '@/store';
 import { formatBetrag, getTageVerbleibend, analysiereAllgemeinRisiken } from '@/utils';
+import { canOfferPaymentAction } from '@/utils/documentGuards';
 
 export function buildKernPunkte(dok: Dokument): string[] {
   const tage = getTageVerbleibend(dok.frist);
@@ -24,7 +25,7 @@ export function buildKernPunkte(dok: Dokument): string[] {
     punkte.push(`⚠️ ${risiken[0].text}`);
   } else if (dok.erledigt) {
     punkte.push(`✅ Bereits erledigt`);
-  } else if (dok.aktionen?.includes('zahlen')) {
+  } else if (dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag)) {
     punkte.push(`💶 Zahlung vorbereiten`);
   } else if (dok.aktionen?.includes('einspruch')) {
     punkte.push(`✍️ Einspruchoption prüfen`);

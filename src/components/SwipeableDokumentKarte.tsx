@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import * as Haptics from 'expo-haptics';
-import { CheckCircle, Archive, CurrencyEur, PencilSimple, CalendarBlank } from 'phosphor-react-native';
+import { CheckCircle, CalendarBlank, Bell } from 'phosphor-react-native';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import DokumentKarte from '@/components/DokumentKarte';
@@ -11,7 +11,7 @@ import type { Dokument } from '@/store';
 interface SwipeableDokumentKarteProps {
   dok: Dokument;
   onErledigt?: (dok: Dokument) => void;
-  onContextAction?: (dok: Dokument, action: 'bezahlt' | 'einspruch' | 'verschieben' | 'archivieren') => void;
+  onContextAction?: (dok: Dokument, action: 'aufgabe' | 'frist') => void;
   onPress?: (dok: Dokument) => void;
   onLongPress?: (dok: Dokument) => void;
   secilen?: boolean;
@@ -22,16 +22,10 @@ export default function SwipeableDokumentKarte({ dok, onErledigt, onContextActio
   const { Colors } = useTheme();
   const { t: T } = useT();
 
-  const ctx = (() => {
-    const typ = dok.typ;
-    if (typ === 'Rechnung' || (dok.betrag && dok.betrag > 0))
-      return { key: 'bezahlt'    as const, label: T('doc.swipe.paid'),        Icon: CurrencyEur,   color: Colors.success,       bg: Colors.successLight };
-    if (typ === 'Mahnung' || typ === 'Bußgeld')
-      return { key: 'einspruch'  as const, label: T('detail.action.appeal'),  Icon: PencilSimple,  color: Colors.primaryDark,   bg: Colors.primaryLight };
-    if (typ === 'Termin')
-      return { key: 'verschieben' as const, label: T('doc.swipe.reschedule'), Icon: CalendarBlank, color: Colors.primary,       bg: Colors.primaryLight };
-    return   { key: 'archivieren' as const, label: T('detail.action.archive'), Icon: Archive,      color: Colors.textSecondary, bg: Colors.bgInput };
-  })();
+  // Sol panel (sola sürükleme): Frist varsa "Frist", yoksa "Aufgabe"
+  const leftAction = dok.frist
+    ? { key: 'frist'   as const, label: 'Frist',   Icon: CalendarBlank, color: Colors.primary }
+    : { key: 'aufgabe' as const, label: 'Aufgabe',  Icon: Bell,          color: Colors.primary };
 
   const handleDone = () => {
     swipeRef.current?.close();
@@ -39,15 +33,16 @@ export default function SwipeableDokumentKarte({ dok, onErledigt, onContextActio
     onErledigt?.(dok);
   };
 
-  const handleContext = () => {
+  const handleLeftAction = () => {
     swipeRef.current?.close();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onContextAction?.(dok, ctx.key);
+    Haptics.selectionAsync();
+    onContextAction?.(dok, leftAction.key);
   };
 
+  // renderLeftActions → sağa sürükleme (→) → sol panel → Erledigt
   const renderLeftActions = (_progress: Animated.AnimatedInterpolation<number>, drag: Animated.AnimatedInterpolation<number>) => {
-    const scale = drag.interpolate({ inputRange: [0, 80], outputRange: [0.7, 1], extrapolate: 'clamp' });
-    const opacity = drag.interpolate({ inputRange: [0, 56], outputRange: [0, 1], extrapolate: 'clamp' });
+    const scale   = drag.interpolate({ inputRange: [0, 80], outputRange: [0.7, 1], extrapolate: 'clamp' });
+    const opacity = drag.interpolate({ inputRange: [0, 56], outputRange: [0, 1],   extrapolate: 'clamp' });
     return (
       <View style={[st.actionLeft, { backgroundColor: `${Colors.success}18`, borderColor: `${Colors.success}33`, borderWidth: 1 }]} onTouchEnd={handleDone}>
         <Animated.View style={{ transform: [{ scale }], opacity, alignItems: 'center', gap: 4 }}>
@@ -58,14 +53,15 @@ export default function SwipeableDokumentKarte({ dok, onErledigt, onContextActio
     );
   };
 
+  // renderRightActions → sola sürükleme (←) → sağ panel → Frist / Aufgabe
   const renderRightActions = (_progress: Animated.AnimatedInterpolation<number>, drag: Animated.AnimatedInterpolation<number>) => {
-    const scale = drag.interpolate({ inputRange: [-80, 0], outputRange: [1, 0.7], extrapolate: 'clamp' });
-    const opacity = drag.interpolate({ inputRange: [-56, 0], outputRange: [1, 0], extrapolate: 'clamp' });
+    const scale   = drag.interpolate({ inputRange: [-80, 0], outputRange: [1, 0.7], extrapolate: 'clamp' });
+    const opacity = drag.interpolate({ inputRange: [-56, 0], outputRange: [1, 0],   extrapolate: 'clamp' });
     return (
-      <View style={[st.actionRight, { backgroundColor: `${ctx.color}18`, borderColor: `${ctx.color}33`, borderWidth: 1 }]} onTouchEnd={handleContext}>
+      <View style={[st.actionRight, { backgroundColor: `${leftAction.color}18`, borderColor: `${leftAction.color}33`, borderWidth: 1 }]} onTouchEnd={handleLeftAction}>
         <Animated.View style={{ transform: [{ scale }], opacity, alignItems: 'center', gap: 4 }}>
-          <ctx.Icon size={26} color={ctx.color} weight="fill" />
-          <Text style={[st.actionText, { color: ctx.color }]}>{ctx.label}</Text>
+          <leftAction.Icon size={26} color={leftAction.color} weight="fill" />
+          <Text style={[st.actionText, { color: leftAction.color }]}>{leftAction.label}</Text>
         </Animated.View>
       </View>
     );
@@ -74,12 +70,12 @@ export default function SwipeableDokumentKarte({ dok, onErledigt, onContextActio
   return (
     <View
       accessibilityActions={[
-        { name: 'erledigt', label: 'Als erledigt markieren' },
-        { name: ctx.key,    label: ctx.label },
+        { name: 'erledigt',        label: 'Als erledigt markieren' },
+        { name: leftAction.key,    label: leftAction.key === 'frist' ? 'Frist eintragen' : 'Aufgabe hinzufügen' },
       ]}
       onAccessibilityAction={(e: any) => {
         if (e.nativeEvent.actionName === 'erledigt') handleDone();
-        else handleContext();
+        else handleLeftAction();
       }}
     >
       <Swipeable
@@ -100,16 +96,6 @@ export default function SwipeableDokumentKarte({ dok, onErledigt, onContextActio
 }
 
 const st = StyleSheet.create({
-  actionLeft: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 86,
-    marginLeft: 16,
-    marginVertical: 6,
-    borderRadius: 20,
-    borderTopRightRadius: 0,
-    borderBottomRightRadius: 0,
-  },
   actionRight: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -119,6 +105,16 @@ const st = StyleSheet.create({
     borderRadius: 20,
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
+  },
+  actionLeft: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 86,
+    marginLeft: 16,
+    marginVertical: 6,
+    borderRadius: 20,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
   },
   actionText: {
     fontSize: 10,

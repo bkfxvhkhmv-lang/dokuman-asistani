@@ -181,12 +181,7 @@ function HomeRecentListInner({ data }: { data: any }) {
                     onPress={() => openFromList(dok)}
                     onLongPress={() => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
-                    onContextAction={(d, action) => {
-                      if (action === 'bezahlt' || action === 'archivieren')
-                        data.dispatch({ type: 'MARK_ERLEDIGT', id: d.id });
-                      else
-                        navigateWithHero(d.id);
-                    }}
+                    onContextAction={(d) => navigateWithHero(d.id)}
                   />
                 </View>
               </StaggeredRow>

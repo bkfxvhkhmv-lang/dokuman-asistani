@@ -72,10 +72,10 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       {/* ── Top row: status + OCR confidence ─────────────────────────────── */}
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: S.md, paddingTop: 14, paddingBottom: 8,
+        paddingHorizontal: S.md, paddingTop: 16, paddingBottom: 8,
       }}>
-        <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: sc.bg }}>
-          <Text style={{ fontSize: 11, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
+        <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: sc.bg }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
         </View>
         {conf != null && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -88,7 +88,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       </View>
 
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}
-      <View style={{ paddingHorizontal: S.md, paddingBottom: hasFacts ? 10 : 14 }}>
+      <View style={{ paddingHorizontal: S.md, paddingBottom: hasFacts ? 10 : 16 }}>
         <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
           {dok.typ ? dok.typ.toUpperCase() : 'SONSTIGES'}
           {dok.absender ? ` · ${safeDisplayAbsender(dok.absender, dok.confidence)}` : ''}
@@ -110,7 +110,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
                 {dok.betrag < 0 ? 'GUTSCHRIFT' : 'BETRAG'}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>
                   {formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€')}
                 </Text>
                 {conf != null && <AiSparkle />}
@@ -123,7 +123,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
               <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.5 }}>
                 FRIST
               </Text>
-              <Text style={{ fontSize: 15, fontWeight: '800', color: fristCol }}>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: fristCol }}>
                 {fristStr}
               </Text>
               {tageStr ? (
@@ -140,15 +140,15 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       {actionPlan?.primary ? (
         <View style={{
           flexDirection: 'row', alignItems: 'center', gap: 8,
-          paddingHorizontal: S.md, paddingVertical: 10,
+          paddingHorizontal: S.md, paddingVertical: 11,
           borderTopWidth: 0.5, borderTopColor: C.borderLight,
-          backgroundColor: C.bgInput,
+          backgroundColor: C.primaryLight,
         }}>
-          <Icon name={actionPlan.primary.icon} size={16} color={C.textSecondary} />
-          <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, flex: 1 }}>
+          <Icon name={actionPlan.primary.icon} size={16} color={C.primaryDark} />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: C.primaryDark, flex: 1 }}>
             {actionPlan.primary.label}
           </Text>
-          <Text style={{ fontSize: 14, color: C.textTertiary }}>›</Text>
+          <Icon name="caret-right" size={14} color={C.primaryDark} />
         </View>
       ) : null}
     </View>

@@ -10,7 +10,7 @@ const de: Dict = {
   'home.sync.running': 'Synchronisierung läuft…', 'home.sync.ok': 'Synchronisiert',
   'home.sync.error': 'Sync fehlgeschlagen', 'home.sync.retry': '· Erneut versuchen',
   'home.recent': 'Zuletzt erfasst', 'home.no_docs': 'Noch keine Dokumente',
-  'home.no_docs_sub': 'Scanne deinen ersten Brief oder importiere ein PDF, um Fristen und nächste Schritte zu erkennen.',
+  'home.no_docs_sub': 'Scanne deinen ersten Brief. BriefPilot erkennt Absender, Betrag, Frist und den nächsten Schritt.',
   'home.urgency_more': '+{n} weitere', 'home.selection_count': '{n} ausgewählt',
 
   'doc.overdue': 'Überfällig', 'doc.due_today': 'Heute fällig', 'doc.due_days': 'Noch {n} Tage',

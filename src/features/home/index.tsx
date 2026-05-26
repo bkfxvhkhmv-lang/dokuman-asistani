@@ -202,6 +202,7 @@ export default function Home() {
       <HomeTriage
         docs={data.sichtbareDocs}
         onPress={() => data.handleTabPress('Dokumente')}
+        onScanPress={() => router.push('/(tabs)/Kamera')}
       />
 
       {/* UrgencyBanner only when naechste is NOT already shown in HotCardSection */}

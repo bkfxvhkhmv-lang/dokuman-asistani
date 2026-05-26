@@ -8,6 +8,7 @@ import type { Dokument } from '@/store';
 interface Props {
   docs: Dokument[];
   onPress?: (scope: 'dringend' | 'dieseWoche' | 'pruefen' | 'ueberfaellig') => void;
+  onScanPress?: () => void;
 }
 
 interface TriageItem {
@@ -18,7 +19,7 @@ interface TriageItem {
   tone: 'danger' | 'warning' | 'neutral';
 }
 
-export default function HomeTriage({ docs, onPress }: Props) {
+export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
   const { Colors: C, S, R } = useTheme();
 
   const items = useMemo((): TriageItem[] => {
@@ -44,14 +45,33 @@ export default function HomeTriage({ docs, onPress }: Props) {
   const allZero = items.every(i => i.count === 0);
   if (allZero) {
     return (
-      <View style={{ marginHorizontal: S.md, marginBottom: S.md, flexDirection: 'row', alignItems: 'center', gap: 10,
-        paddingHorizontal: S.lg, paddingVertical: 12, borderRadius: R.lg,
-        backgroundColor: C.successLight, borderWidth: 0.5, borderColor: `${C.success}44` }}>
-        <Icon name="check-circle" size={18} color={C.success} />
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.success }}>Alles ruhig</Text>
-          <Text style={{ fontSize: 11, color: C.success, opacity: 0.75, marginTop: 1 }}>Keine dringenden Dokumente.</Text>
+      <View style={{ marginHorizontal: S.md, marginBottom: S.md,
+        paddingHorizontal: S.lg, paddingVertical: 14, borderRadius: R.lg,
+        backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.borderLight }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Icon name="check-circle" size={18} color={C.success} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
+              Keine dringenden Dokumente
+            </Text>
+            <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2, lineHeight: 15 }}>
+              Aktuell gibt es keine überfälligen Fristen oder offenen Prüfungen.
+            </Text>
+          </View>
         </View>
+        {onScanPress && (
+          <TouchableOpacity
+            onPress={onScanPress}
+            style={{ marginTop: 12, paddingVertical: 9, borderRadius: 8,
+              backgroundColor: `${C.primary}0D`, borderWidth: 1, borderColor: `${C.primary}22`,
+              alignItems: 'center' }}
+            activeOpacity={0.75}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '600', color: C.primary }}>
+              Neues Dokument scannen
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }

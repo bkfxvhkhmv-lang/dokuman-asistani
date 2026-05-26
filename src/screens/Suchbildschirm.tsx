@@ -213,7 +213,7 @@ export default function Suchbildschirm() {
                   subtitle={
                     smartSearch.correctionHint
                       ? `Meinten Sie "${smartSearch.correctionHint}"?`
-                      : 'Versuche "Rechnung", "Finanzamt" oder "Mahnung".'
+                      : 'Passe die Suche an oder nutze einen Schnellfilter.'
                   }
                   action={
                     smartSearch.correctionHint
@@ -224,7 +224,7 @@ export default function Suchbildschirm() {
                 {/* Schnelle Vorschläge — nur wenn kein Korrekturhinweis */}
                 {!smartSearch.correctionHint && (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 8, paddingHorizontal: S.lg }}>
-                    {['Rechnung', 'Finanzamt', 'Mahnung', 'Versicherung', 'Bußgeld'].map(vorschlag => (
+                    {['Rechnung', 'Finanzamt', 'Mahnung', 'Versicherung'].map(vorschlag => (
                       <TouchableOpacity
                         key={vorschlag}
                         onPress={() => handleSearchWithSmart(vorschlag)}

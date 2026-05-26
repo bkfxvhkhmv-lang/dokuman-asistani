@@ -81,6 +81,12 @@ export default function Home() {
       .catch(() => setDigest({ text: 'Analyse abgeschlossen.', source: 'local', severity: 'ok', icon: '✅' }));
   }, [data, hotDocs, budget, targets]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleExportierenRoute = useCallback(() => {
+    const ids = JSON.stringify([...data.secilenIds]);
+    data.secimiIptal();
+    router.push({ pathname: '/(tabs)/Export', params: { selectedIds: ids } });
+  }, [data.secilenIds, data.secimiIptal, router]);
+
   useEffect(() => {
     setTabBarCollapsed(false);
     collapsedRef.current = false;
@@ -262,7 +268,7 @@ export default function Home() {
         <HomeSelectionBar
           count={data.secilenIds.size}
           onAbbrechen={data.secimiIptal}
-          onExport={data.handleBatchExport}
+          onExport={handleExportierenRoute}
           onSteuerpaket={data.handleSteuerpaketAuswahl}
           onLoeschen={data.handleBatchLoeschen}
           C={data.Colors}

@@ -10,6 +10,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
@@ -138,7 +139,17 @@ export default function ExportBildschirm() {
   const { S, Colors: C } = useTheme();
   const { t: T } = useT();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const EXPORT_OPTIONS = buildExportOptions(T);
+
+  const { selectedIds: selectedIdsParam } = useLocalSearchParams<{ selectedIds?: string }>();
+
+  const preSelectedIds = useMemo<Set<string> | null>(() => {
+    if (!selectedIdsParam) return null;
+    try { return new Set(JSON.parse(selectedIdsParam) as string[]); } catch { return null; }
+  }, [selectedIdsParam]);
+
+  const isSelectionMode = !!preSelectedIds;
 
   const [aktJahr, setAktJahr]     = useState(AKTUELLES_JAHR);
   const [selected, setSelected]   = useState<Set<string>>(new Set());
@@ -146,12 +157,20 @@ export default function ExportBildschirm() {
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
 
   const dokumente = state.dokumente as Dokument[];
-  const alleDoks  = useMemo(() => dokumente.filter(d => !d.erledigt), [dokumente]);
+
+  const alleDoks  = useMemo(() => {
+    const base = dokumente.filter(d => !d.erledigt);
+    if (preSelectedIds) return base.filter(d => preSelectedIds.has(d.id));
+    return base;
+  }, [dokumente, preSelectedIds]);
 
   const jahresDoks = useMemo(() =>
-    alleDoks.filter(d => {
-      try { return new Date(d.datum).getFullYear() === aktJahr; } catch { return false; }
-    }), [alleDoks, aktJahr]);
+    isSelectionMode
+      ? alleDoks
+      : alleDoks.filter(d => {
+          try { return new Date(d.datum).getFullYear() === aktJahr; } catch { return false; }
+        }),
+    [alleDoks, aktJahr, isSelectionMode]);
 
   const steuerDoks = useMemo(() =>
     collectSteuerpaketDokumente(alleDoks, { jahr: aktJahr }),
@@ -215,37 +234,52 @@ export default function ExportBildschirm() {
         colors={[EXPORT_GRAD_A, EXPORT_GRAD_B]}
         style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20 }}
       >
+        {isSelectionMode && (
+          <TouchableOpacity
+            onPress={() => router.back()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{ marginBottom: 12, alignSelf: 'flex-start' }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.85)' }}>
+              ← Zurück
+            </Text>
+          </TouchableOpacity>
+        )}
         <Text style={{ fontSize: 28, fontWeight: '900', color: '#fff', letterSpacing: -0.5 }}>
           {T('export.title')}
         </Text>
         <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', marginTop: 4 }}>
-          {T('export.subtitle')}
+          {isSelectionMode
+            ? `${alleDoks.length} Dokument${alleDoks.length !== 1 ? 'e' : ''} ausgewählt`
+            : T('export.subtitle')}
         </Text>
 
-        {/* Jahr-Chips */}
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
-          {JAHRE.map(j => {
-            const sel = j === aktJahr;
-            return (
-              <TouchableOpacity
-                key={j}
-                onPress={() => setAktJahr(j)}
-                style={{
-                  paddingHorizontal: 16, paddingVertical: 8,
-                  borderRadius: 999,
-                  backgroundColor: sel ? '#fff' : 'rgba(255,255,255,0.2)',
-                }}
-              >
-                <Text style={{
-                  fontSize: 14, fontWeight: '800',
-                  color: sel ? EXPORT_DARK : '#fff',
-                }}>
-                  {j}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Jahr-Chips — nur im Bibliotheksmodus */}
+        {!isSelectionMode && (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+            {JAHRE.map(j => {
+              const sel = j === aktJahr;
+              return (
+                <TouchableOpacity
+                  key={j}
+                  onPress={() => setAktJahr(j)}
+                  style={{
+                    paddingHorizontal: 16, paddingVertical: 8,
+                    borderRadius: 999,
+                    backgroundColor: sel ? '#fff' : 'rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: 14, fontWeight: '800',
+                    color: sel ? EXPORT_DARK : '#fff',
+                  }}>
+                    {j}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
       </LinearGradient>
 
       <ScrollView

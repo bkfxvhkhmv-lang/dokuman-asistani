@@ -58,7 +58,7 @@ export default function HomeSelectionBar({
         <Text style={{ fontSize: 12, fontWeight: '800', color: C.primary }}>Steuer</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onExport} hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }} style={{ minHeight: 44, justifyContent: 'center' }}>
-        <Text style={{ fontSize: 12, fontWeight: '800', color: C.primary }}>PDF</Text>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: C.primary }}>Exportieren</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={onLoeschen} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ fontSize: 12, fontWeight: '800', color: dangerColor }}>{T('common.delete')}</Text>

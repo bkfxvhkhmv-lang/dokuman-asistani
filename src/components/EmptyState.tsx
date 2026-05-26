@@ -131,13 +131,13 @@ function buildVariants(T: (k: string) => string): Record<EmptyVariant, VariantCo
       tintKey:   'primary',
       title:     T('home.no_docs'),
       subtitle:  T('home.no_docs_sub'),
-      assistant: 'PDF-Export und Pakete für deine Buchhaltung findest du im Dokument unter „PDF exportieren”.',
+      assistant: 'Einfach Brief oder Rechnung abfotografieren — BriefPilot erkennt Betrag, Frist und zeigt dir den nächsten Schritt.',
     },
     search: {
       tintKey:   'primary',
       title:     T('search.empty_title'),
       subtitle:  T('search.empty_sub'),
-      assistant: 'Ich verstehe auch Fragen wie „Welche Rechnungen sind diesen Monat überfällig?”',
+      assistant: 'Tipp: Such nach “Rechnung”, “Finanzamt” oder “Mahnung” — ich verstehe auch natürliche Sprache.',
     },
     tasks: {
       tintKey:   'success',

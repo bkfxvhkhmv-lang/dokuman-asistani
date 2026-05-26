@@ -42,7 +42,19 @@ export default function HomeTriage({ docs, onPress }: Props) {
   }, [docs]);
 
   const allZero = items.every(i => i.count === 0);
-  if (allZero) return null;
+  if (allZero) {
+    return (
+      <View style={{ marginHorizontal: S.md, marginBottom: S.md, flexDirection: 'row', alignItems: 'center', gap: 10,
+        paddingHorizontal: S.lg, paddingVertical: 12, borderRadius: R.lg,
+        backgroundColor: C.successLight, borderWidth: 0.5, borderColor: `${C.success}44` }}>
+        <Icon name="check-circle" size={18} color={C.success} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.success }}>Alles ruhig</Text>
+          <Text style={{ fontSize: 11, color: C.success, opacity: 0.75, marginTop: 1 }}>Keine dringenden Dokumente.</Text>
+        </View>
+      </View>
+    );
+  }
 
   function toneStyle(tone: TriageItem['tone']) {
     if (tone === 'danger')  return { bg: C.dangerLight,  border: `${C.danger}44`,  count: C.danger,  label: C.danger  };

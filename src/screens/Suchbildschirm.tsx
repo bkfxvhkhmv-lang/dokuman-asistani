@@ -209,22 +209,22 @@ export default function Suchbildschirm() {
               <View>
                 <EmptyState
                   variant="search"
-                  title="Keine Treffer gefunden"
+                  title="Keine Treffer"
                   subtitle={
                     smartSearch.correctionHint
                       ? `Meinten Sie "${smartSearch.correctionHint}"?`
-                      : 'Du kannst semantisch weitersuchen oder eine andere Formulierung probieren.'
+                      : 'Versuche "Rechnung", "Finanzamt" oder "Mahnung".'
                   }
                   action={
                     smartSearch.correctionHint
                       ? { label: `„${smartSearch.correctionHint}" suchen`, onPress: () => handleSearchWithSmart(smartSearch.correctionHint!) }
-                      : { label: 'Semantisch suchen', onPress: toggleV4 }
+                      : { label: 'Filter zurücksetzen', onPress: resetFilter }
                   }
                 />
-                {/* Vorschlaege — nur anzeigen wenn kein Korrekturhinweis vorliegt */}
+                {/* Schnelle Vorschläge — nur wenn kein Korrekturhinweis */}
                 {!smartSearch.correctionHint && (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 16, paddingHorizontal: S.lg }}>
-                    {['Rechnung Januar', 'Mahnung Strom', 'Bußgeld 2024', 'Versicherung AXA'].map(vorschlag => (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 8, paddingHorizontal: S.lg }}>
+                    {['Rechnung', 'Finanzamt', 'Mahnung', 'Versicherung', 'Bußgeld'].map(vorschlag => (
                       <TouchableOpacity
                         key={vorschlag}
                         onPress={() => handleSearchWithSmart(vorschlag)}

@@ -5,6 +5,7 @@ import * as MailComposer from 'expo-mail-composer';
 import { useTheme } from '@/ThemeContext';
 import { formatFrist, formatBetrag } from '@/utils';
 import { getBilgiler, platzhalterDoldur } from '@/services/kisiselBilgi';
+import { buildEmailSubject } from '@/utils/replySubject';
 import type { Dokument } from '@/store';
 
 interface Sablon {
@@ -99,7 +100,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: YanıtS
     }
     setMailNichtVerfuegbar(false);
     await MailComposer.composeAsync({
-      subject: secilenSablon?.label ?? '',
+      subject: buildEmailSubject(secilenSablon?.label ?? '', dok),
       body: editText,
       recipients: [],
     });

@@ -41,6 +41,23 @@ function quickIntent(dok: Dokument, C: ThemeColors) {
   return { PhIcon: File, color: C.textSecondary };
 }
 
+type NextStepTone = 'danger' | 'warning' | 'info';
+
+function getNextStepBadge(dok: Dokument): { label: string; tone: NextStepTone } | null {
+  if (dok.erledigt) return null;
+  const tage = dok.frist
+    ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000)
+    : null;
+  if (tage !== null && tage < 0)                                      return { label: 'Überfällig',         tone: 'danger'  };
+  if ((dok.confidence ?? 100) < 55)                                   return { label: 'Angaben prüfen',     tone: 'warning' };
+  if (typeof dok.betrag === 'number' && dok.betrag < 0)               return { label: 'Gutschrift prüfen',  tone: 'info'    };
+  if (dok.risiko === 'hoch')                                          return { label: 'Dringend prüfen',    tone: 'danger'  };
+  if (tage !== null && tage <= 7)                                     return { label: 'Frist diese Woche',  tone: 'warning' };
+  if (dok.aktionen?.includes('zahlen') && dok.betrag && dok.betrag > 0) return { label: 'Zahlung ausstehend', tone: 'warning' };
+  if (dok.aktionen?.includes('einspruch'))                            return { label: 'Einspruch möglich',  tone: 'info'    };
+  return null;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface DokumentKarteProps {
@@ -77,6 +94,13 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     : null;
 
   const listSnippet = excerptForDocumentListCard(dok);
+  const nextStep    = getNextStepBadge(dok);
+
+  const nextStepColors = (tone: NextStepTone) => {
+    if (tone === 'danger')  return { bg: Colors.dangerLight,  text: Colors.dangerText  };
+    if (tone === 'warning') return { bg: Colors.warningLight, text: Colors.warningText };
+    return                         { bg: Colors.primaryLight, text: Colors.primaryDark };
+  };
 
   return (
     <DocumentSurface
@@ -126,14 +150,18 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
       </View>
 
       {!!listSnippet && (
-        <Text style={[styles.summary, { color: Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+        <Text
+          style={[styles.summary, { color: Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]}
+          numberOfLines={1}
+          maxFontSizeMultiplier={1.3}
+        >
           {listSnippet}
         </Text>
       )}
 
       {/* Footer */}
       <View style={styles.footer}>
-        {typeof dok.betrag === 'number' && dok.betrag > 0 ? (
+        {typeof dok.betrag === 'number' && dok.betrag !== 0 ? (
           <View style={[styles.amountBox, { backgroundColor: `${intent.color}1a`, borderWidth: 1, borderColor: `${intent.color}33` }]}>
             <Money size={13} color={intent.color} weight="regular" />
             <Text style={[styles.amount, { color: intent.color, fontVariant: ['tabular-nums'] }]}>
@@ -151,6 +179,12 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
             <View style={[styles.workflowDot, { backgroundColor: workflowTone.text }]} />
             <Text style={[styles.workflowStamp, { color: workflowTone.text }]}>
               {dok.workflowStamp}
+            </Text>
+          </View>
+        ) : nextStep ? (
+          <View style={[styles.nextStepBox, { backgroundColor: nextStepColors(nextStep.tone).bg }]}>
+            <Text style={[styles.nextStepText, { color: nextStepColors(nextStep.tone).text }]}>
+              {nextStep.label}
             </Text>
           </View>
         ) : null}
@@ -179,4 +213,6 @@ const styles = StyleSheet.create({
   workflowStamp: { fontSize: 11, fontWeight: '800', letterSpacing: 0.1 },
   demoBadge:     { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
   demoBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
+  nextStepBox:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  nextStepText:  { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
 });

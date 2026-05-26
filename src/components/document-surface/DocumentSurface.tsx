@@ -112,7 +112,7 @@ const st = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 2,
+    width: 3,
     borderTopLeftRadius: 20,
     borderBottomLeftRadius: 20,
   },

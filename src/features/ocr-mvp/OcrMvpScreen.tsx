@@ -20,30 +20,38 @@ import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 
-type SafeError = { title: string; body: string };
+type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
 function toSafeError(kind: OcrMvpErrorKind, status: string): SafeError {
   if (status === 'timeout' || kind === 'timeout') {
     return {
-      title: 'Analyse-Server nicht erreichbar',
-      body: 'Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.',
+      title: 'Analyse dauert länger als erwartet',
+      body: 'Du kannst es erneut versuchen oder eine andere Datei wählen.',
+      icon: 'time-outline',
+      ctaLabel: 'Erneut versuchen',
     };
   }
   if (kind === 'network') {
     return {
-      title: 'Analyse-Server nicht erreichbar',
-      body: 'Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.',
+      title: 'Verbindung zum Analysedienst nicht möglich',
+      body: 'Prüfe deine Verbindung oder starte den lokalen Dienst neu.',
+      icon: 'wifi-outline',
+      ctaLabel: 'Erneut versuchen',
     };
   }
   if (kind === 'server') {
     return {
-      title: 'Analyse konnte nicht abgeschlossen werden',
-      body: 'Der Server konnte das Dokument nicht verarbeiten. Bitte versuche es erneut oder prüfe die Backend-Konfiguration.',
+      title: 'Dokument konnte nicht gelesen werden',
+      body: 'Versuche ein schärferes Foto oder eine PDF-Datei.',
+      icon: 'document-outline',
+      ctaLabel: 'Andere Datei wählen',
     };
   }
   return {
-    title: 'Unerwarteter Fehler',
-    body: 'Die Analyse konnte nicht abgeschlossen werden. Bitte versuche es erneut.',
+    title: 'Analyse fehlgeschlagen',
+    body: 'Bitte versuche es noch einmal.',
+    icon: 'alert-circle-outline',
+    ctaLabel: 'Erneut versuchen',
   };
 }
 
@@ -187,12 +195,15 @@ export default function OcrMvpScreen({ onClose }: Props) {
         {(status === 'error' || status === 'timeout') && (() => {
           const safeErr = toSafeError(errorKind, status);
           return (
-            <View style={st.errorBox}>
-              <Icon name="warning-outline" size={28} color="#FF6B6B" />
+            <View style={st.errorCard}>
+              <Icon name={safeErr.icon} size={24} color="#F59E0B" />
               <Text style={st.errorTitle}>{safeErr.title}</Text>
               <Text style={st.errorMsg}>{safeErr.body}</Text>
+              {__DEV__ && error && (
+                <Text style={st.errorDebug}>{error}</Text>
+              )}
               <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
-                <Text style={st.retryLabel}>Erneut versuchen</Text>
+                <Text style={st.retryLabel}>{safeErr.ctaLabel}</Text>
               </TouchableOpacity>
             </View>
           );
@@ -211,11 +222,11 @@ export default function OcrMvpScreen({ onClose }: Props) {
             )}
 
             {health === 'offline' && (
-              <View style={st.errorBox}>
-                <Icon name="cloud-offline-outline" size={36} color="#FF6B6B" />
-                <Text style={st.errorTitle}>Analyse-Server nicht erreichbar</Text>
+              <View style={st.errorCard}>
+                <Icon name="cloud-offline-outline" size={24} color="#F59E0B" />
+                <Text style={st.errorTitle}>Verbindung zum Analysedienst nicht möglich</Text>
                 <Text style={st.errorMsg}>
-                  Bitte prüfe, ob Mac und iPhone im selben WLAN sind und der OCR-Backend-Server läuft.
+                  Prüfe deine Verbindung oder starte den lokalen Dienst neu.
                 </Text>
                 <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
                   <Text style={st.retryLabel}>Erneut versuchen</Text>
@@ -245,13 +256,15 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   scrollContent: { paddingBottom: 40 },
   checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },
   checkingLabel: { fontSize: 14 },
-  errorBox:      {
+  errorCard: {
     margin: 20, padding: 24, borderRadius: 16,
-    backgroundColor: '#FF6B6B18', borderWidth: 1, borderColor: '#FF6B6B40',
+    backgroundColor: C.bgCard,
+    borderWidth: 1, borderColor: '#F59E0B30',
     alignItems: 'center', gap: 10,
   },
-  errorTitle:    { color: '#FF6B6B', fontSize: 16, fontWeight: '700', textAlign: 'center' },
+  errorTitle:    { color: C.text, fontSize: 16, fontWeight: '700', textAlign: 'center' },
   errorMsg:      { color: C.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  errorDebug:    { color: C.textTertiary, fontSize: 11, textAlign: 'center', fontFamily: 'monospace', marginTop: 4 },
   retryBtn:      {
     marginTop: 8, paddingVertical: 10, paddingHorizontal: 28,
     backgroundColor: C.bgCard, borderRadius: 12, borderWidth: 1, borderColor: C.border,

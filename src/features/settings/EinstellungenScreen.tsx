@@ -255,7 +255,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
         </FlatGroup>
 
         {/* Beta-Feedback */}
-        {state.dokumente.some(d => d.isDemo) && (
+        {__DEV__ && state.dokumente.some(d => d.isDemo) && (
           <TouchableOpacity
             onPress={() => {
               Alert.alert(

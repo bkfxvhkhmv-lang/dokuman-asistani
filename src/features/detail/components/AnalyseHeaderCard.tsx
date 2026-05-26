@@ -9,6 +9,7 @@ import { View, Text } from 'react-native';
 import AiSparkle from '@/components/AiSparkle';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { T } from '@/design/tokens';
 import {
   computeDocumentStatus,
   DOCUMENT_STATUS_UI,
@@ -89,7 +90,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
 
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}
       <View style={{ paddingHorizontal: S.md, paddingBottom: hasFacts ? 10 : 16 }}>
-        <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
+        <Text style={{ ...T.label, color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
           {dok.typ ? dok.typ.toUpperCase() : 'SONSTIGES'}
           {dok.absender ? ` · ${safeDisplayAbsender(dok.absender, dok.confidence)}` : ''}
         </Text>
@@ -106,11 +107,11 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
               flex: 1, padding: S.md,
               borderRightWidth: dok.frist ? 0.5 : 0, borderRightColor: C.borderLight,
             }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.8 }}>
+              <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 4 }}>
                 {dok.betrag < 0 ? 'GUTSCHRIFT' : 'BETRAG'}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 26, fontWeight: '700', color: C.text, letterSpacing: -0.3 }}>
+                <Text style={{ ...T.heroNumber, color: C.text }}>
                   {formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€')}
                 </Text>
                 {conf != null && <AiSparkle />}
@@ -120,10 +121,10 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
 
           {dok.frist ? (
             <View style={{ flex: 1, padding: S.md }}>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, marginBottom: 4, letterSpacing: 0.8 }}>
+              <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 4 }}>
                 FRIST
               </Text>
-              <Text style={{ fontSize: 26, fontWeight: '700', color: fristCol, letterSpacing: -0.3 }}>
+              <Text style={{ ...T.heroNumber, color: fristCol }}>
                 {fristStr}
               </Text>
               {tageStr ? (
@@ -145,7 +146,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
           backgroundColor: C.primaryLight,
         }}>
           <Icon name={actionPlan.primary.icon} size={16} color={C.primaryDark} />
-          <Text style={{ fontSize: 15, fontWeight: '600', color: C.primaryDark, flex: 1 }}>
+          <Text style={{ ...T.title, color: C.primaryDark, flex: 1 }}>
             {actionPlan.primary.label}
           </Text>
           <Icon name="caret-right" size={14} color={C.primaryDark} />

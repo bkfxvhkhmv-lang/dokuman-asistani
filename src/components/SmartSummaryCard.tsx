@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AiSparkle from '@/components/AiSparkle';
 import { useTheme } from '@/ThemeContext';
+import { T } from '@/design/tokens';
 import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
 import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
 
@@ -96,7 +97,7 @@ export default function SmartSummaryCard({
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: '600', color: C.text }}>Zusammenfassung</Text>
+          <Text style={{ ...T.title, color: C.text }}>Zusammenfassung</Text>
           <AiSparkle size={10} />
         </View>
         {result && (
@@ -146,14 +147,14 @@ export default function SmartSummaryCard({
             <TypewriterText
               text={result.kurzSatz}
               speed={14}
-              style={{ fontSize: 15, color: C.text, lineHeight: 22 }}
+              style={{ ...T.body, color: C.text }}
             />
           )}
 
           {currentMode === 'mittel' && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 15, color: C.text, lineHeight: 22 }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                <Text key={i} style={{ ...T.body, color: C.text }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
               ))}
             </View>
           )}
@@ -162,15 +163,15 @@ export default function SmartSummaryCard({
             <>
               <MarkdownText
                 text={stripLlmLanguageMetaLines(result.detailText)}
-                style={{ fontSize: 13, color: C.text, lineHeight: 18 }}
+                style={{ ...T.meta, color: C.text }}
               />
               {result.handlungsempfehlungen.length > 0 && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.8, marginBottom: 6 }}>
+                  <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 6 }}>
                     EMPFEHLUNGEN
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 13, color: C.text, lineHeight: 18, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                    <Text key={i} style={{ ...T.meta, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
                   ))}
                 </View>
               )}

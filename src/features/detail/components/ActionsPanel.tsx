@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { AppButton, AppCard } from '@/design/components';
+import { T } from '@/design/tokens';
 import Icon from '@/components/Icon';
 import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
@@ -200,14 +201,14 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
     <View style={{ paddingHorizontal: S.md, paddingTop: S.md }}>
       {primary.onPress && (
         <>
-          <Text style={{ fontSize: 11, fontWeight: '600', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>
+          <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>
           <TouchableOpacity onPress={primary.onPress} activeOpacity={0.8}>
             <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Icon name={primary.icon} size={22} color={processColors.text} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 17, fontWeight: '600', color: processColors.text }}>{primary.label}</Text>
-                  <Text style={{ fontSize: 13, color: C.textSecondary, marginTop: 4 }}>
+                  <Text style={{ ...T.title, color: processColors.text }}>{primary.label}</Text>
+                  <Text style={{ ...T.meta, color: C.textSecondary, marginTop: 4 }}>
                     {primary.key === 'review'
                       ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'
                       : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
@@ -227,7 +228,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
 
       {secondary.length > 0 && (
         <>
-          <Text style={{ fontSize: 11, fontWeight: '600', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>SCHNELLE AKTIONEN</Text>
+          <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 10 }}>SCHNELLE AKTIONEN</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
             {secondary.map(action => {
               const tone = toneColors(action.tone ?? 'neutral', C);

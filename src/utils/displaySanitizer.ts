@@ -77,9 +77,6 @@ export function safeDisplayAbsender(
   confidence?: number | null,
 ): string {
   if (!absender || absender.trim().length === 0) return 'Unbekannter Absender';
-  if (confidence !== null && confidence !== undefined && confidence < 45) {
-    return 'Unbekannter Absender';
-  }
   if (isLikelyGarbled(absender)) return 'Unbekannter Absender';
   return absender.trim();
 }

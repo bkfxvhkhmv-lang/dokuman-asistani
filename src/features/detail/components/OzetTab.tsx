@@ -128,11 +128,11 @@ export default function OzetTab({
             />
           ) : null}
 
+          <DocumentSpeechSection dok={dok} prominent />
+
           {dok.pages && dok.pages.length > 0 && onOpenPages && (
             <PagesPreviewCard pages={dok.pages} onOpen={onOpenPages} />
           )}
-
-          <DocumentSpeechSection dok={dok} />
 
           <OzetKarteListe
             kartlar={ozetKartlari ?? []}

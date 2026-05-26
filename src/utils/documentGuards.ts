@@ -1,3 +1,6 @@
+import type { AmountSemantics } from '@/types/normalizedDocument';
+export type { AmountSemantics } from '@/types/normalizedDocument';
+
 /**
  * Central domain guard functions for document field identity.
  *
@@ -62,8 +65,6 @@ export function isSenderCandidate(
 ): boolean {
   return !SENDER_NON_CANDIDATE_NORMS.has(norm(label));
 }
-
-export type AmountSemantics = 'payable' | 'credit' | 'unknown';
 
 /**
  * Classifies a numeric amount by its payment direction.

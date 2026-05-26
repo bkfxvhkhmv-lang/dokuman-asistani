@@ -261,10 +261,7 @@ export default function Detailbildschirm() {
 
         {aktifTab === 'ozet' && !isSimpleMode && (
           <DetailDetailsTab
-            smartLinks={smartLinks}
-            allDoksMap={allDoksMap}
             detail={detail}
-            actionPlan={actionPlan}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}
@@ -282,6 +279,8 @@ export default function Detailbildschirm() {
             detail={detail}
             modal={modal}
             smartRisk={smartRisk}
+            smartLinks={smartLinks}
+            allDoksMap={allDoksMap}
             handleSmartAction={handleSmartAction}
             actions={actions}
             dokId={dokId}

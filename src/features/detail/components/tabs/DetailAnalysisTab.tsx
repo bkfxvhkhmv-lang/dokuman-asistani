@@ -7,6 +7,7 @@ import TasksPanel from '@/features/detail/components/TasksPanel';
 import ChatEntryBar from '@/features/detail/components/ChatEntryBar';
 import SmartSummaryCard from '@/components/SmartSummaryCard';
 import SmartRiskPanel from '@/components/SmartRiskPanel';
+import SmartLinksPanel from '@/components/SmartLinksPanel';
 import AnalyseHeaderCard from '@/features/detail/components/AnalyseHeaderCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
@@ -20,6 +21,8 @@ type Props = {
   detail: any;
   modal: any;
   smartRisk: any;
+  smartLinks: any;
+  allDoksMap: Map<string, { titel: string; typ: string; absender: string }>;
   handleSmartAction: (key: string) => void;
   actions: any;
   dokId: string;
@@ -35,6 +38,8 @@ export default function DetailAnalysisTab({
   detail,
   modal,
   smartRisk,
+  smartLinks,
+  allDoksMap,
   handleSmartAction,
   actions,
   dokId,
@@ -127,6 +132,10 @@ export default function DetailAnalysisTab({
             })
           }
         />
+      )}
+
+      {smartLinks && (
+        <SmartLinksPanel result={smartLinks} allDoksMap={allDoksMap} />
       )}
 
       {ENABLE_RELEASE_CHAT_ENTRY_BAR && (

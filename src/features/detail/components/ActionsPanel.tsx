@@ -198,7 +198,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
   const processColors = toneColors(processTone, C);
 
   return (
-    <View style={{ paddingHorizontal: S.md, paddingTop: S.md }}>
+    <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
       {primary.onPress && (
         <>
           <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 10 }}>NÄCHSTER SCHRITT</Text>
@@ -250,7 +250,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
       {extras > 0 && (
         <TouchableOpacity onPress={onOpenMore}
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-            borderRadius: R.lg, paddingHorizontal: S.md, paddingVertical: 14,
+            borderRadius: R.lg, paddingHorizontal: S.lg, paddingVertical: 14,
             borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bgCard }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Icon name="dots-three" size={18} color={C.textSecondary} />

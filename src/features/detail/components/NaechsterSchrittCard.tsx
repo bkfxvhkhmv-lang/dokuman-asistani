@@ -39,7 +39,7 @@ export default function NaechsterSchrittCard({ dok, actionPlan }: Props) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
-      paddingHorizontal: S.md,
+      paddingHorizontal: S.lg,
       paddingVertical: 12,
     }}>
       <Icon name={iconName} size={18} color={iconColor} />

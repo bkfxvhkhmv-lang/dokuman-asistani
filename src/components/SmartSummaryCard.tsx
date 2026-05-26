@@ -80,7 +80,7 @@ const QUELLE_LABEL: Record<string, string> = {
 export default function SmartSummaryCard({
   result, loading = false, onLoadDetailed, currentMode, onModeChange,
 }: SmartSummaryCardProps) {
-  const { Colors: C, R } = useTheme();
+  const { Colors: C, R, S } = useTheme();
   if (!result && !loading) return null;
 
   const QUELLE_COLOR: Record<string, string> = {
@@ -91,7 +91,7 @@ export default function SmartSummaryCard({
   const sourceColor = result ? QUELLE_COLOR[result.quelle] || C.primary : C.primary;
 
   return (
-    <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: 14,
+    <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: S.lg,
       borderWidth: 0.5, borderColor: C.border, marginBottom: 12 }}>
 
       {/* Header */}

@@ -73,7 +73,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       {/* ── Top row: status + OCR confidence ─────────────────────────────── */}
       <View style={{
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingHorizontal: S.md, paddingTop: 16, paddingBottom: 8,
+        paddingHorizontal: S.lg, paddingTop: 16, paddingBottom: 8,
       }}>
         <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: sc.bg }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
@@ -89,7 +89,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       </View>
 
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}
-      <View style={{ paddingHorizontal: S.md, paddingBottom: hasFacts ? 10 : 16 }}>
+      <View style={{ paddingHorizontal: S.lg, paddingBottom: hasFacts ? 10 : 16 }}>
         <Text style={{ ...T.label, color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
           {dok.typ ? dok.typ.toUpperCase() : 'SONSTIGES'}
           {dok.absender ? ` · ${safeDisplayAbsender(dok.absender, dok.confidence)}` : ''}
@@ -104,7 +104,7 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
         }}>
           {dok.betrag != null ? (
             <View style={{
-              flex: 1, padding: S.md,
+              flex: 1, padding: S.lg,
               borderRightWidth: dok.frist ? 0.5 : 0, borderRightColor: C.borderLight,
             }}>
               <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 4 }}>
@@ -141,15 +141,15 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
       {actionPlan?.primary ? (
         <View style={{
           flexDirection: 'row', alignItems: 'center', gap: 8,
-          paddingHorizontal: S.md, paddingVertical: 11,
+          paddingHorizontal: S.lg, paddingVertical: 11,
           borderTopWidth: 0.5, borderTopColor: C.borderLight,
           backgroundColor: C.primaryLight,
         }}>
-          <Icon name={actionPlan.primary.icon} size={16} color={C.primaryDark} />
+          <Icon name={actionPlan.primary.icon} size={18} color={C.primaryDark} />
           <Text style={{ ...T.title, color: C.primaryDark, flex: 1 }}>
             {actionPlan.primary.label}
           </Text>
-          <Icon name="caret-right" size={14} color={C.primaryDark} />
+          <Icon name="caret-right" size={16} color={C.primaryDark} />
         </View>
       ) : null}
     </View>

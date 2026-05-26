@@ -135,7 +135,7 @@ export default function DetailsPanel({
             onPress={() => setWeitereSichtbar(v => !v)}
             activeOpacity={0.7}
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-              padding: S.md, paddingBottom: weitereSichtbar ? S.sm : S.md }}
+              padding: S.lg, paddingBottom: weitereSichtbar ? S.sm : S.lg }}
           >
             <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>
               WEITERE ANGABEN
@@ -143,7 +143,7 @@ export default function DetailsPanel({
             <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
           </TouchableOpacity>
           {weitereSichtbar && (
-            <View style={{ paddingHorizontal: S.md, paddingBottom: S.md }}>
+            <View style={{ paddingHorizontal: S.lg, paddingBottom: S.lg }}>
               {groups.weitere.map((f, i) => (
                 <FieldRow
                   key={f.key}

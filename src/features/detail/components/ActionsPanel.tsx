@@ -126,6 +126,7 @@ function buildPressMap(handlers: Record<string, (() => void) | undefined>) {
     pdf: handlers.onPDF, sicher: handlers.onSicherTeilen,
     vorlage: handlers.onYanitSablon, institutionen: handlers.onKurumlar,
     hilfe: handlers.onHilfe, partner: handlers.onZahlenMitPartner,
+    gutschrift: handlers.onEdit,
   };
 }
 

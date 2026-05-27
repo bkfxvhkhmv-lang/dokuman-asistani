@@ -16,6 +16,6 @@ export async function finishScanFlow(
   if (useFirst) {
     router.replace({ pathname: '/first-value', params: { dokId } });
   } else {
-    router.replace({ pathname: '/detail', params: { dokId } });
+    router.replace({ pathname: '/detail', params: { dokId, tab: 'ozet' } });
   }
 }

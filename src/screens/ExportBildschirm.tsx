@@ -8,7 +8,7 @@ import {
   StyleSheet, Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -141,6 +141,7 @@ export default function ExportBildschirm() {
   const { S, Colors: C } = useTheme();
   const { t: T } = useT();
   const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const EXPORT_OPTIONS = buildExportOptions(T);
 
@@ -286,7 +287,7 @@ export default function ExportBildschirm() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: tabBarHeight + insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Checkbox Liste */}

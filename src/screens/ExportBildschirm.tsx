@@ -5,7 +5,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  StyleSheet,
+  StyleSheet, Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -193,14 +193,14 @@ export default function ExportBildschirm() {
 
   const handleExport = useCallback(async () => {
     if (selected.size === 0) {
-      showToast({ message: 'Keine Dokumente ausgewählt', tone: 'warning', icon: 'alert-circle-outline' });
+      Alert.alert('Keine Auswahl', 'Bitte wähle mindestens eine Export-Option aus.');
       return;
     }
     setLoading(true);
     try {
       if (selected.has('steuerpaket')) {
         if (steuerDoks.length === 0) {
-          showToast({ message: 'Keine Steuernachweise vorhanden', tone: 'warning', icon: 'alert-circle-outline' });
+          Alert.alert('Keine Steuernachweise', 'Unter den ausgewählten Dokumenten befinden sich keine steuerrelevanten Belege.');
         } else {
           await exportiereTopluPDF(steuerDoks);
         }
@@ -208,7 +208,7 @@ export default function ExportBildschirm() {
       if (selected.has('pdf_alle') || selected.has('originaldokumente')) {
         const docs = selected.has('pdf_alle') ? jahresDoks : alleDoks.filter(d => !!d.uri);
         if (docs.length === 0) {
-          showToast({ message: `Für ${aktJahr} keine Belege gefunden`, tone: 'warning', icon: 'alert-circle-outline' });
+          Alert.alert('Keine Dokumente', isSelectionMode ? 'Keine exportierbaren Dokumente in der Auswahl.' : `Für ${aktJahr} keine Belege gefunden.`);
         } else {
           await exportiereTopluPDF(docs);
         }
@@ -216,14 +216,14 @@ export default function ExportBildschirm() {
     } catch (e: any) {
       console.warn('[ExportBildschirm]', e);
       if (e?.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
-        showToast({ message: 'Teilen nicht verfügbar', tone: 'danger', icon: 'alert-circle' });
+        Alert.alert('Teilen nicht verfügbar', 'Das Gerät unterstützt das Teilen von Dateien nicht.');
       } else {
-        showToast({ message: 'Export fehlgeschlagen', tone: 'danger', icon: 'alert-circle' });
+        Alert.alert('Export fehlgeschlagen', e?.message || 'Bitte versuche es erneut.');
       }
     } finally {
       setLoading(false);
     }
-  }, [selected, steuerDoks, jahresDoks, alleDoks, aktJahr, showToast]);
+  }, [selected, steuerDoks, jahresDoks, alleDoks, aktJahr, isSelectionMode]);
 
   const canExport = selected.size > 0 && !loading;
 

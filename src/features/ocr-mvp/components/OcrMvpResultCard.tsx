@@ -148,7 +148,28 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         </View>
       </View>
 
-      {/* Action summary paneli veya fallback */}
+      {/* PRIMARY CTA — kaydet veya aç */}
+      {isSavedToDocuments ? (
+        <View style={st.savedState}>
+          <View style={st.savedBadge}>
+            <Icon name="checkmark-circle" size={14} color="#22C55E" />
+            <Text style={st.savedBadgeText}>Gespeichert</Text>
+          </View>
+          {onOpenDocument && (
+            <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>
+              <Icon name="arrow-forward-circle-outline" size={18} color="#fff" />
+              <Text style={st.savePrimaryLabel}>Dokument öffnen</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : onSaveToDocuments && (
+        <TouchableOpacity style={st.savePrimaryBtn} onPress={onSaveToDocuments} activeOpacity={0.8}>
+          <Icon name="folder-open-outline" size={18} color="#fff" />
+          <Text style={st.savePrimaryLabel}>In Dokumente speichern</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Action summary paneli oder fallback — Excel export sekundär */}
       {hasSummary ? (
         <OcrMvpActionSummary
           summary={result.action_summary!}
@@ -156,6 +177,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
           onDownload={handleDownload}
           isPreviewing={previewing}
           isDownloading={downloading}
+          actionsSecondary
         />
       ) : (
         <>
@@ -202,29 +224,6 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       )}
 
 
-      {isSavedToDocuments ? (
-        <View style={st.savedState}>
-          <View style={st.savedBadge}>
-            <Icon name="checkmark-circle" size={14} color="#22C55E" />
-            <Text style={st.savedBadgeText}>Gespeichert</Text>
-          </View>
-          {onOpenDocument && (
-            <TouchableOpacity style={[st.openDocBtn, { borderColor: Colors.primary + '55', backgroundColor: (Colors as any).primaryLight ?? Colors.bgCard }]} onPress={onOpenDocument} activeOpacity={0.75}>
-              <Icon name="arrow-forward-circle-outline" size={18} color={Colors.primary} />
-              <Text style={[st.openDocLabel, { color: Colors.primary }]}>Dokument öffnen</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ) : onSaveToDocuments && (
-        <TouchableOpacity
-          style={[st.saveBtn, { borderColor: Colors.primary, backgroundColor: (Colors as any).primaryLight ?? Colors.bgCard }]}
-          onPress={onSaveToDocuments}
-          activeOpacity={0.8}
-        >
-          <Icon name="folder-open-outline" size={18} color={Colors.primary} />
-          <Text style={[st.saveBtnLabel, { color: Colors.primary }]}>In Dokumente speichern</Text>
-        </TouchableOpacity>
-      )}
 
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
         <Text style={st.resetLabel}>Neue Analyse</Text>
@@ -402,22 +401,17 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   downloadLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
   techLine:      { fontSize: 11, textAlign: 'center' },
-  saveBtn:       {
+  savePrimaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderWidth: 1.5, borderRadius: 14, paddingVertical: 14,
+    backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15,
   },
-  saveBtnLabel:  { fontSize: 15, fontWeight: '700' },
+  savePrimaryLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
   savedState:    { gap: 12 },
   savedBadge:    {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 8,
   },
   savedBadgeText: { color: '#22C55E', fontSize: 13, fontWeight: '600' },
-  openDocBtn:    {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderWidth: 1.5, borderRadius: 14, paddingVertical: 14,
-  },
-  openDocLabel:  { fontSize: 15, fontWeight: '700' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

@@ -51,10 +51,11 @@ interface Props {
   onDownload: () => void;
   isPreviewing: boolean;
   isDownloading: boolean;
+  actionsSecondary?: boolean;
 }
 
 export default function OcrMvpActionSummary({
-  summary, onPreview, onDownload, isPreviewing, isDownloading,
+  summary, onPreview, onDownload, isPreviewing, isDownloading, actionsSecondary,
 }: Props) {
   const { Colors } = useTheme();
   const st = styles(Colors);
@@ -180,7 +181,7 @@ export default function OcrMvpActionSummary({
             if (!cfg) return null;
             const isLoading = (cfg.handler === 'preview'  && isPreviewing) ||
                               (cfg.handler === 'download' && isDownloading);
-            const isPrimary = idx === 0;
+            const isPrimary = !actionsSecondary && idx === 0;
             const iconColor = isPrimary ? '#fff' : Colors.primary;
 
             return (

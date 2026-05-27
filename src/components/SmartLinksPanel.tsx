@@ -63,7 +63,7 @@ function LinkRow({ link, dok, onPress, C }: {
           borderWidth: 1, borderColor: isHighConf ? C.primary + '44' : C.border }}>
           <Text style={{ fontSize: 10, fontWeight: '700',
             color: isHighConf ? C.primaryDark : C.textTertiary }}>
-            {link.confidence}%
+            {isHighConf ? 'Passend' : 'Ähnlich'}
           </Text>
         </View>
       </View>

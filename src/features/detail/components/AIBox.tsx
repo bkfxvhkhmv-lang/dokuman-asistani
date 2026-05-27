@@ -62,7 +62,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
               backgroundColor: dok.confidence >= 80 ? C.successLight : dok.confidence >= 55 ? C.warningLight : C.dangerLight }}>
               <Text style={{ fontSize: 11, fontWeight: '700',
                 color: dok.confidence >= 80 ? C.success : dok.confidence >= 55 ? C.warning : C.danger }}>
-                {dok.confidence}% OCR
+                {dok.confidence >= 80 ? 'KI-geprüft' : 'Angaben prüfen'}
               </Text>
             </View>
           )}

@@ -155,19 +155,13 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 ## 6. Açık P0/P1 Sorunlar
 
-### P0 — Test Edilmedi (native rebuild bekleniyor)
-- [ ] **PDF fullscreen render** — `react-native-pdf` native pod eklendi (`c1f81113b`), `npx expo run:ios --device` ile rebuild yapılmadı. Test: PDF yükle → önizlemeye dokun → Pdf component render etmeli, boş/hata göstermemeli.
-- [ ] **Image fullscreen shell** — Header safe area fix (`3ad9d78cc`) rebuild öncesi test edilmedi. Test: scan et → kaydet → önizlemeye dokun → X butonu Dynamic Island ile çakışmamalı.
-- [ ] **Önizleme tap → fullscreen** — DocumentMagnifier kaldırıldı (`4bd710308`), DocumentPreviewSection'daki PanResponder bloğu gitdi. Test: önizleme kartına dokun → fullscreen açılmalı.
+### P0 — KAPANDI 2026-05-28 ✅
+Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
-### P1 — Şüpheli / Onaylanmamış
-- [ ] **Datenvorschau (OCR modal) X butonu** — safe area fix uygulandı mı kontrol edilmedi. Test: OCR yap → Datenvorschau aç → X buton safe area'da mı?
-- [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, bizim değişikliklerimizden önce de vardı. Runtime'ı etkilemiyor ama derleme uyarısı.
-
-### Rebuild Komutu
-```bash
-npx expo run:ios --device
-```
+### P1 — Açık
+- [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, runtime'ı etkilemiyor.
+- [ ] **Export ekranı son öğe görünürlüğü** — device'da onaylanmadı.
+- [ ] **Toplu export selectedIds** — device'da onaylanmadı.
 
 ---
 
@@ -183,18 +177,19 @@ npx expo run:ios --device
 
 ---
 
-## 8. Smoke Checklist (Her Rebuild Sonrası)
+## 8. Smoke Checklist — P0 KAPANDI 2026-05-28
 
 | Test | Beklenen Sonuç | Durum |
 |------|---------------|-------|
-| PDF yükle → önizleme | Küçük önizleme görünür, tap açılır | ⬜ |
-| PDF fullscreen | In-app render, X/Share safe area'da | ⬜ |
-| Scan et → kaydet | Dokument sekmesi açılır (Analyse değil) | ⬜ |
-| OCR kaydet → aç | Dokument sekmesi açılır | ⬜ |
-| Negatif tutar belgesi | Zahlung butonu yok, Gutschrift gösterir | ⬜ |
-| Export ekranı | Son öğe CTA'nın üzerinde görünür | ⬜ |
-| Toplu export | selectedIds doğru filtreleniyor | ⬜ |
-| Frist < 3 gün | Zahlen primary action gösterir | ⬜ |
+| PDF yükle → önizleme | Küçük önizleme görünür, tap açılır | ✅ |
+| PDF fullscreen | In-app render, X/Share safe area'da | ✅ |
+| Scan et → kaydet | Dokument sekmesi açılır (Analyse değil) | ✅ |
+| OCR kaydet → aç | Dokument sekmesi açılır | ✅ |
+| Negatif tutar belgesi | Zahlung butonu yok, Gutschrift gösterir | ✅ |
+| OCR result CTA sırası | In Dokumente speichern primary, Excel secondary | ✅ |
+| Export ekranı | Son öğe CTA'nın üzerinde görünür | ⬜ onaylanmadı |
+| Toplu export | selectedIds doğru filtreleniyor | ⬜ onaylanmadı |
+| Frist < 3 gün | Zahlen primary action gösterir | ⬜ onaylanmadı |
 
 ---
 

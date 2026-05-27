@@ -130,7 +130,7 @@ export class CloudSyncV4 {
     const fromId = await this.getLastEventId();
     const { events = [], last_event_id } = await eventReplay(fromId);
     if (last_event_id) await this.setLastEventId(last_event_id);
-    console.log(`[CloudSync] Replayed ${events.length} events from id=${fromId}`);
+    if (__DEV__) console.log(`[CloudSync] Replayed ${events.length} events from id=${fromId}`);
   }
 
   // ── Push: lokal değişiklikleri sunucuya gönder ────────────────────────────────

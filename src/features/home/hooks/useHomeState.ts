@@ -173,9 +173,18 @@ export function useHomeState() {
 
   const handleLongPress = useCallback((dok: Dokument) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (aktiv === 'Ordner') { setVerschiebenDok(dok); setKlassorVerschiebenModal(true); }
-    else { setSecilenModus(true); setSecilenIds(new Set([dok.id])); }
-  }, [aktiv]);
+    if (aktiv === 'Ordner') { setVerschiebenDok(dok); setKlassorVerschiebenModal(true); return; }
+    if (secilenModus) {
+      setSecilenIds(prev => {
+        const next = new Set(prev);
+        next.has(dok.id) ? next.delete(dok.id) : next.add(dok.id);
+        return next;
+      });
+    } else {
+      setSecilenModus(true);
+      setSecilenIds(new Set([dok.id]));
+    }
+  }, [aktiv, secilenModus]);
 
   const handleSecim = useCallback((dok: Dokument) => {
     if (!secilenModus) return;

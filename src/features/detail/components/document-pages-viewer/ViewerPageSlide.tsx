@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Dimensions, StyleSheet, type LayoutRectangle } from 'react-native';
-import * as Sharing from 'expo-sharing';
+import { View, Text, Image, Dimensions, type LayoutRectangle } from 'react-native';
+import Pdf from 'react-native-pdf';
 import Icon from '@/components/Icon';
 import DocumentMagnifier from '@/components/DocumentMagnifier';
 import { documentPagesViewerStyles as st } from '@/features/detail/components/document-pages-viewer/styles';
@@ -38,18 +38,14 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
 
   if (isPdf) {
     return (
-      <View style={st.pageWrap}>
-        <View style={pdfSt.fallbackCard}>
-          <Icon name="document-outline" size={48} color="rgba(255,255,255,0.45)" />
-          <Text style={pdfSt.fallbackText}>PDF-Vorschau ist noch nicht verfügbar.</Text>
-          <TouchableOpacity
-            style={pdfSt.openBtn}
-            onPress={() => Sharing.shareAsync(uri)}
-            activeOpacity={0.75}
-          >
-            <Text style={pdfSt.openBtnLabel}>Datei öffnen</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={[st.pageWrap, { backgroundColor: '#1a1a1a' }]}>
+        <Pdf
+          source={{ uri, cache: true }}
+          style={{ flex: 1, width: imgW }}
+          enablePaging={false}
+          horizontal={false}
+          onError={() => null}
+        />
       </View>
     );
   }
@@ -71,26 +67,3 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
   );
 }
 
-const pdfSt = StyleSheet.create({
-  fallbackCard: {
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 32,
-  },
-  fallbackText: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  openBtn: {
-    marginTop: 4,
-    paddingHorizontal: 24,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-  },
-  openBtnLabel: { color: '#fff', fontSize: 14, fontWeight: '600' },
-});

@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-import * as Sharing from 'expo-sharing';
 import DetailsPanel from '@/features/detail/components/DetailsPanel';
 import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
@@ -47,14 +46,7 @@ export default function DetailDetailsTab({
         aehnlicheDoks={detail.aehnlicheDoks}
         ocrRisiken={detail.ocrRisiken}
         graph={detail.graph}
-        onOpenFullscreen={onOpenPages ? () => {
-          const uri = detail.dok?.uri as string | undefined;
-          if (uri?.toLowerCase().endsWith('.pdf')) {
-            void Sharing.shareAsync(uri);
-          } else {
-            onOpenPages(0);
-          }
-        } : undefined}
+        onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
         onEdit={onEdit}
         onExport={onExport}
         onLoeschen={onLoeschen}

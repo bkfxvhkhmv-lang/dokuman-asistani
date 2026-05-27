@@ -167,6 +167,8 @@ function HomeRecentListInner({ data }: { data: any }) {
                     onPress={(dok) => openFromList(dok)}
                     onLongPressDok={(dok) => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
+                    secilen={!!data.secilenIds?.has?.(stack.lead.id)}
+                    isSelectionMode={!!data.secilenModus}
                   />
                 </View>
               </StaggeredRow>

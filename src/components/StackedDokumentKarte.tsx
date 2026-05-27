@@ -15,15 +15,17 @@ import type { DocStack } from '@/services/CardStackService';
 import type { Dokument } from '@/store';
 
 interface Props {
-  stack:   DocStack;
-  onPress: (dok: Dokument) => void;
-  onErledigt?: (dok: Dokument) => void;
-  onLongPressDok?: (dok: Dokument) => void;
+  stack:            DocStack;
+  onPress:          (dok: Dokument) => void;
+  onErledigt?:      (dok: Dokument) => void;
+  onLongPressDok?:  (dok: Dokument) => void;
+  secilen?:         boolean;
+  isSelectionMode?: boolean;
 }
 
 const SPRING_CFG  = { damping: 22, stiffness: 240, mass: 0.8 };
 
-export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLongPressDok }: Props) {
+export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLongPressDok, secilen, isSelectionMode }: Props) {
   const { Colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -34,12 +36,13 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLon
   const progress = useSharedValue(0);
 
   const toggle = useCallback(() => {
+    if (isSelectionMode) { onPress(stack.lead); return; }
     if (!stack.isStack) { onPress(stack.lead); return; }
     const next = expanded ? 0 : 1;
     progress.value = withSpring(next, SPRING_CFG);
     setExpanded(!expanded);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, [expanded, stack, progress, onPress]);
+  }, [expanded, stack, progress, onPress, isSelectionMode]);
 
   // Chevron rotation for expand indicator
   const chevronStyle = useAnimatedStyle(() => ({
@@ -73,13 +76,20 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLon
       {/* ── Lead card ────────────────────────────────────────────────────── */}
       <TouchableOpacity
         onPress={toggle}
-        activeOpacity={stack.isStack ? 0.92 : 1}
+        activeOpacity={stack.isStack && !isSelectionMode ? 0.92 : 1}
         style={st.leadWrap}
       >
         <DokumentKarte dok={stack.lead} onPress={stack.isStack ? undefined : onPress} onLongPress={onLongPressDok} />
 
-        {/* Stack badge + chevron */}
-        {stack.isStack && (
+        {/* Selection checkmark */}
+        {isSelectionMode && (
+          <View style={[st.selectionBadge, { backgroundColor: secilen ? Colors.primary : Colors.bgCard, borderColor: secilen ? Colors.primary : Colors.border }]}>
+            {secilen && <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>✓</Text>}
+          </View>
+        )}
+
+        {/* Stack badge + chevron — hidden in selection mode */}
+        {stack.isStack && !isSelectionMode && (
           <View style={[st.badge, { backgroundColor: Colors.primary }]}>
             <Text style={st.badgeText}>{stack.docs.length}</Text>
             <Animated.Text style={[st.chevron, chevronStyle]}>›</Animated.Text>
@@ -216,4 +226,9 @@ const st = StyleSheet.create({
   badgeText:    { color: '#fff', fontSize: 11, fontWeight: '800' },
   chevron:      { color: '#fff', fontSize: 14, fontWeight: '400', lineHeight: 16 },
   expandDivider:{ borderTopWidth: 0.5, marginTop: 4, marginBottom: 4, marginHorizontal: 8 },
+  selectionBadge: {
+    position: 'absolute', top: 10, right: 10,
+    width: 22, height: 22, borderRadius: 11, borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center', zIndex: 10,
+  },
 });

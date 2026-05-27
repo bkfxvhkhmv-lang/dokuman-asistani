@@ -1,0 +1,211 @@
+# BriefPilot MRT — Master Reference & Tracker
+
+**Protokol:** Her yeni oturumda bu dosyayı önce oku. Kod yazmadan önce buraya bak. Her commit sonrası güncelle.
+
+---
+
+## 1. Amaç & Protokol
+
+Bu dosya BriefPilot iOS uygulamasının:
+- Temel kullanım akışlarını (what must work)
+- Mimari kararları (why it works this way)
+- Son commit tarihçesini (what was fixed)
+- Açık P0/P1 sorunları (what's broken)
+- Kod yazmadan önce uyulması gereken kuralları
+
+tek yerde tutar.
+
+**Her oturum başı zorunlu adım:**
+1. `docs/BRIEFPILOT_MRT.md` oku
+2. Mevcut durumu ve bir sonraki doğru adımı söyle
+3. Kullanıcı onayı olmadan kod yazma
+
+**Her commit sonrası zorunlu adım:**
+- Bölüm 5 (Commit Log) ve Bölüm 6 (Açık Sorunlar) güncelle
+
+---
+
+## 2. Ürün Prensipleri
+
+- **Ciddi belge uygulaması.** Oyuncak değil. Her UI kararı "bir banka müşterisi bunu kullanabilir mi?" sorusuna göre verilir.
+- **PDF birincil dosya türüdür.** Uygulama in-app PDF render eder; kullanıcıyı başka uygulamaya yönlendiremez.
+- **Gutschrift (negatif tutar) asla Zahlung aksiyonu üretmez.** `canOfferPaymentAction(dok.betrag)` guard her zaman uygulanır.
+- **Dokunma alanı ≥ 44×44pt.** Her `TouchableOpacity` için `hitSlop` veya `padding ≥ 12`.
+- **Yanlış bilgi hiç bilgiden kötüdür.** Confidence < 55 ise alanlar `'Unbekannt'` gösterir, uydurma değil.
+- **Koda bakarak proaktif hata bul.** Kullanıcı test etmeden önce akış okunur; olası sorunlar bildirilir.
+
+---
+
+## 3. Temel Kullanım Akışları (ne çalışmalı)
+
+### 3.1 PDF Upload → Tam Ekran
+- Kullanıcı PDF yükler → Detay ekranında önizleme kartı görünür
+- Ön izleme kartına dokun → `DocumentPagesViewer` modal açılır
+- PDF `react-native-pdf` ile in-app render edilir (share sheet değil)
+- X ve Share butonları Dynamic Island'ın altında, güvenli alanda durur
+- İçerik (PDF) header'ın altından başlar (absolute değil, normal akış)
+
+### 3.2 Scan → Tam Ekran
+- Kamera ile tarama → Analiz → Kaydet → `scanNavigate.ts::finishScanFlow`
+- `router.replace('/detail', { dokId, tab: 'ozet' })` — Dokument sekmesi açılır, Analyse değil
+- Önizleme resmine dokun → `DocumentPagesViewer` açılır
+- Image branch: `DocumentMagnifier` ile zoom (fullscreen içinde)
+
+### 3.3 OCR MVP → Dokument Aç
+- OCR tamamlanır → "Speichern" → "Dokument öffnen" butonu
+- `router.push('/detail', { dokId, tab: 'ozet' })` — Dokument sekmesi açılır
+- `OcrMvpScreen.tsx::handleOpenDocument`
+
+### 3.4 Export Akışı
+- Tek belge: Detay → paylaş → ExportBildschirm
+- Toplu: Liste → seç → Exportieren → ExportBildschirm (selectedIds param)
+- Son öğeler CTA'nın üstünde görünür: `paddingBottom = tabBarHeight + insets.bottom + 80`
+
+### 3.5 Gutschrift (Negatif Tutar) Akışı
+- `dok.betrag < 0` → `inferPrimaryKey` → `'gutschrift'` döner
+- `buildPressMap.gutschrift = handlers.onEdit` (Angaben prüfen)
+- Zahlung menü öğesi hiç gösterilmez
+- `canOfferPaymentAction(betrag)` false döner → tüm ödeme CTAları gizlenir
+
+### 3.6 Frist & Kalender Akışı
+- `shouldShowDetailDeadlineBanner(dok)` true ise → Kalender butonu gösterilmez (banner zaten gösteriyor)
+- Kalender yerine başka aksiyon (Zahlen/Einspruch/Mail) gösterilir
+
+---
+
+## 4. Mimari Kararlar
+
+### 4.1 PDF Viewer
+```
+react-native-pdf (Pdf component)
+  peer dep: react-native-blob-util ^0.24.9
+  native rebuild gerekli: npx expo run:ios --device
+```
+- `ViewerPageSlide.tsx`: PDF branch → `<Pdf>`, Image branch → `<Image>` + `DocumentMagnifier`
+- Hata durumunda fallback: "PDF extern öffnen" → `Sharing.shareAsync(uri)`
+
+### 4.2 Fullscreen Viewer Shell
+```
+DocumentPagesViewer.tsx
+  └── ViewerTopBar (normal flow, NOT absolute)
+       ├── topBarSafeWrapper: { paddingTop: insets.top, backgroundColor: rgba(0,0,0,0.88) }
+       └── topBar: { height: 56, paddingHorizontal: 16, flexDirection: 'row' }
+  └── <View style={{ flex: 1 }} onLayout → contentHeight>
+       └── ScrollView (PDF/image content)
+       └── ThumbStrip (≥2 sayfa)
+```
+- Neden: `position: absolute` → içerik header altında render oluyordu
+- `useSafeAreaInsets()` ViewerTopBar içinde kullanılır, prop olarak geçilmez
+
+### 4.3 canOfferPaymentAction Guard
+```ts
+// src/utils/documentGuards.ts
+export function canOfferPaymentAction(betrag: number | null | undefined): boolean {
+  if (betrag == null) return true;
+  return betrag > 0;
+}
+```
+Her payment action noktasında çağrılır: `inferPrimaryKey`, `getDetailActionPlan`, MoreMenu item builder.
+
+### 4.4 Tab Parametresi
+```ts
+// useDetailBildschirmLogic.ts
+const { dokId: dokIdParam, tab: tabParam } = useLocalSearchParams<...>();
+useDetailScreenAnimations(tabParam ?? 'analiz');
+```
+Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
+
+### 4.5 StickyBottomCTA
+```tsx
+// design/components/StickyBottomCTA.tsx
+// Güvenli alan padding = tabBarHeight + insets.bottom + 80
+```
+`useBottomTabBarHeight()` sadece görsel bar yüksekliğini verir, home indicator dahil değil.
+`insets.bottom` home indicator + safe area verir.
+
+### 4.6 DocumentMagnifier & PanResponder
+- `DocumentMagnifier` sadece `ViewerPageSlide` içinde (fullscreen image) kullanılır
+- `DocumentPreviewSection` (önizleme kartı) içinde kullanılmaz — `onStartShouldSetPanResponder: () => true` tüm dokunmaları tüketiyordu
+
+---
+
+## 5. Son Commit Tarihçesi
+
+| Hash | Konu |
+|------|------|
+| `4bd710308` | fix(core-flows): three proactive fixes from code audit — gutschrift handler, ExportBildschirm insets, scan tab |
+| `57e663fb9` | fix(navigation): open Dokument tab after saving from OCR |
+| `3ad9d78cc` | fix(viewer): move fullscreen header to normal flow, fix safe area |
+| `c1f81113b` | feat(document-preview): in-app PDF viewer mit react-native-pdf |
+| `a24efd3b6` | fix(document-preview): PDF in Vollbild mit react-native-pdf anzeigen |
+| `80cac4e02` | fix(document-preview): PDF Vollbild öffnet natives Viewer via Sharing |
+| `1985ebf82` | fix(document-preview): show PDF open fallback instead of broken image preview |
+| `159cb8bfe` | fix(ui): add insets.bottom to StickyBottomCTA tab padding |
+| `2e07fdaa5` | chore(logs): guard production console.log in CloudSyncV4 |
+| `3db76ed98` | fix(copy): hide technical confidence percentages from UI |
+| `18fe086c9` | fix(ui): standardize safe-area actions and touch targets |
+| `6494bba47` | fix(export): replace silent toasts with Alert for export errors |
+| `9ebfc2fe1` | fix(selection): long press toggles in active selection mode |
+| `7c5e46255` | fix(summary): guard payment menu item + fix batch selection visual |
+| `0107c875b` | refactor(export): route batch export through export screen |
+| `43c076b2f` | fix(summary): close remaining payment copy leaks for credit documents |
+
+---
+
+## 6. Açık P0/P1 Sorunlar
+
+### P0 — Test Edilmedi (native rebuild bekleniyor)
+- [ ] **PDF fullscreen render** — `react-native-pdf` native pod eklendi (`c1f81113b`), `npx expo run:ios --device` ile rebuild yapılmadı. Test: PDF yükle → önizlemeye dokun → Pdf component render etmeli, boş/hata göstermemeli.
+- [ ] **Image fullscreen shell** — Header safe area fix (`3ad9d78cc`) rebuild öncesi test edilmedi. Test: scan et → kaydet → önizlemeye dokun → X butonu Dynamic Island ile çakışmamalı.
+- [ ] **Önizleme tap → fullscreen** — DocumentMagnifier kaldırıldı (`4bd710308`), DocumentPreviewSection'daki PanResponder bloğu gitdi. Test: önizleme kartına dokun → fullscreen açılmalı.
+
+### P1 — Şüpheli / Onaylanmamış
+- [ ] **Datenvorschau (OCR modal) X butonu** — safe area fix uygulandı mı kontrol edilmedi. Test: OCR yap → Datenvorschau aç → X buton safe area'da mı?
+- [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, bizim değişikliklerimizden önce de vardı. Runtime'ı etkilemiyor ama derleme uyarısı.
+
+### Rebuild Komutu
+```bash
+npx expo run:ios --device
+```
+
+---
+
+## 7. Kod Yazmadan Önceki Kurallar
+
+1. **MRT'yi oku.** Bu dosyayı okumadan tek satır kod yazma.
+2. **Beklenen vs. Mevcut yaz.** Hangi akışı düzeltiyorsun? Ne olması gerekiyor, şu an ne oluyor?
+3. **Sadece o akışın dosyaları.** İlgisiz dosyalara dokunma.
+4. **Plan önce, kod sonra.** Kullanıcıya planı göster, onay al.
+5. **Commit sonrası MRT güncelle.** Bölüm 5 ve 6'yı güncelle.
+6. **Görüşünü önce yaz.** Her değişiklik öncesi "Görüşüm:" ile başla.
+7. **Dayanağın olmadan konuşma.** Emin değilsen "bilmiyorum, şuraya bakayım" de.
+
+---
+
+## 8. Smoke Checklist (Her Rebuild Sonrası)
+
+| Test | Beklenen Sonuç | Durum |
+|------|---------------|-------|
+| PDF yükle → önizleme | Küçük önizleme görünür, tap açılır | ⬜ |
+| PDF fullscreen | In-app render, X/Share safe area'da | ⬜ |
+| Scan et → kaydet | Dokument sekmesi açılır (Analyse değil) | ⬜ |
+| OCR kaydet → aç | Dokument sekmesi açılır | ⬜ |
+| Negatif tutar belgesi | Zahlung butonu yok, Gutschrift gösterir | ⬜ |
+| Export ekranı | Son öğe CTA'nın üzerinde görünür | ⬜ |
+| Toplu export | selectedIds doğru filtreleniyor | ⬜ |
+| Frist < 3 gün | Zahlen primary action gösterir | ⬜ |
+
+---
+
+## 9. Backlog (Motor Bittikten Sonra)
+
+Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List Card → Swipe → AI Reply → Onboarding → App Icon**
+
+- **PDF araçları:** PDF split/merge UI (altyapı mevcut, UI yok)
+- **Cloud voice:** Sesli not → transkript → belge
+- **Professional UI reset:** Tüm ekranlar için görsel denetim
+- **Localization audit:** Türkçe/Almanca karışık string'ler
+- **Onboarding:** First-value akışı (`/first-value` route)
+- **App icon:** Final versiyon
+- **DATEV export:** `ENABLE_RELEASE_DATEV_EXPORT` flag açılınca aktif
+- **Partner email:** Zahlen mit Partner akışı test edilmedi

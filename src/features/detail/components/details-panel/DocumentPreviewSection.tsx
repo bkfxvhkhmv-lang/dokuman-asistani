@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/ThemeContext';
 import DocumentEntityOverlay from '@/components/DocumentEntityOverlay';
 import DocumentMagnifier from '@/components/DocumentMagnifier';
 import DocumentSpotlight from '@/components/DocumentSpotlight';
-import Icon from '@/components/Icon';
 import type { Dokument } from '@/store';
 import type { EntityBox } from '@/services/visionApi';
 
@@ -20,42 +18,6 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
   const [spotlightBox, setSpotlightBox] = useState<EntityBox | null>(null);
 
   if (!dok.uri) return null;
-
-  const isPdf = dok.uri.toLowerCase().endsWith('.pdf');
-
-  if (isPdf) {
-    return (
-      <View style={{
-        marginBottom: S.md,
-        borderRadius: R.lg,
-        overflow: 'hidden',
-        backgroundColor: C.bgCard,
-        borderWidth: 0.5,
-        borderColor: C.border,
-        ...Shadow.sm,
-        padding: S.md,
-        alignItems: 'center',
-        gap: 12,
-      }}>
-        <Icon name="document-text" size={40} color={C.textTertiary} />
-        <Text style={{ color: C.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 19 }}>
-          Dieses PDF kann aktuell nicht direkt in der Vorschau angezeigt werden.
-        </Text>
-        <TouchableOpacity
-          onPress={() => void Sharing.shareAsync(dok.uri!)}
-          activeOpacity={0.75}
-          style={{
-            flexDirection: 'row', alignItems: 'center', gap: 8,
-            backgroundColor: C.primary, borderRadius: 10,
-            paddingHorizontal: 20, paddingVertical: 11,
-          }}
-        >
-          <Icon name="export" size={16} color="#fff" />
-          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>PDF öffnen</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   const inner = (
     <View

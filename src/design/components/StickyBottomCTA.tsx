@@ -2,10 +2,12 @@
  * StickyBottomCTA — safe-area-aware bottom action bar.
  *
  * Tab screens: pass tabBarHeight={useBottomTabBarHeight()} so the bar
- * clears the tab bar + home indicator automatically.
+ * clears the tab bar. We also add insets.bottom explicitly because
+ * useBottomTabBarHeight() may return only the visual bar height (~49px)
+ * without the home-indicator inset (~34px) depending on the RN version.
  *
- * Modals / full-screen non-tab: omit tabBarHeight; the component falls
- * back to safeArea.bottom + 16.
+ * Modals / full-screen non-tab: omit tabBarHeight; falls back to
+ * safeArea.bottom + 16.
  */
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
@@ -25,7 +27,7 @@ export default function StickyBottomCTA({ children, tabBarHeight, noBorder, styl
 
   const paddingBottom =
     tabBarHeight != null
-      ? tabBarHeight + 8
+      ? tabBarHeight + insets.bottom + 16
       : Math.max(16, insets.bottom + 16);
 
   return (

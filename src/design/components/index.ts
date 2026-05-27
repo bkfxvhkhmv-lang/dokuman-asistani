@@ -14,3 +14,5 @@ export { default as PipelineStatus } from './PipelineStatus';
 export { default as ActionCard } from './ActionCard';
 export { default as SummaryCard } from './SummaryCard';
 export { default as DashboardSummary } from './DashboardSummary';
+export { default as HeaderIconButton } from './HeaderIconButton';
+export { default as StickyBottomCTA }  from './StickyBottomCTA';

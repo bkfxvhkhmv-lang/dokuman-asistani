@@ -142,9 +142,9 @@ const styles = StyleSheet.create({
   scanOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
   scanFrame:   { width: 220, height: 220, borderWidth: 2, borderColor: '#fff', borderRadius: 12 },
   scanHint:    { color: '#fff', marginTop: 16, fontSize: 13 },
-  kapatBtn:    { position: 'absolute', right: 20, padding: 8 },
+  kapatBtn:    { position: 'absolute', right: 20, padding: 12 },
   baslik:      { fontSize: 18, fontWeight: '700', marginBottom: 16 },
   butonlar:    { flexDirection: 'row', gap: 12, marginTop: 20 },
   btn:         { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },
-  kapat:       { alignSelf: 'center', marginTop: 16, padding: 8 },
+  kapat:       { alignSelf: 'center', marginTop: 16, padding: 14 },
 });

@@ -124,6 +124,7 @@ export default function AppSheet({
             <TouchableOpacity
               onPress={onClose}
               activeOpacity={0.82}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={[st.closeButton, { backgroundColor: Colors.bg, borderColor: Colors.border }]}
             >
               <Text style={[st.closeLabel, { color: Colors.textSecondary }]}>{T('common.close')}</Text>
@@ -171,7 +172,7 @@ const st = StyleSheet.create({
   headerCopy:  { flex: 1, paddingRight: 8 },
   title:       { fontSize: 18, fontWeight: '700', letterSpacing: -0.2 },
   subtitle:    { fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 18 },
-  closeButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
+  closeButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
   closeLabel:  { fontSize: 12, fontWeight: '700' },
   body:        {},
   footer:      { marginTop: 12 },

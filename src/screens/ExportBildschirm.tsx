@@ -8,7 +8,8 @@ import {
   StyleSheet, Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '@/store';
@@ -19,6 +20,7 @@ import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport
 import { exportiereTopluPDF } from '@/utils/exporters';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
+import StickyBottomCTA from '@/design/components/StickyBottomCTA';
 import type { Dokument } from '@/store';
 
 // Export-Lila — eigene Sektionsfarbe (wie Accountable: jede Sektion hat eigene Farbe)
@@ -138,7 +140,7 @@ export default function ExportBildschirm() {
   const { state } = useStore();
   const { S, Colors: C } = useTheme();
   const { t: T } = useT();
-  const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const router = useRouter();
   const EXPORT_OPTIONS = buildExportOptions(T);
 
@@ -237,7 +239,7 @@ export default function ExportBildschirm() {
         {isSelectionMode && (
           <TouchableOpacity
             onPress={() => router.back()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             style={{ marginBottom: 12, alignSelf: 'flex-start' }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.85)' }}>
@@ -283,7 +285,8 @@ export default function ExportBildschirm() {
       </LinearGradient>
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 140 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Checkbox Liste */}
@@ -315,15 +318,7 @@ export default function ExportBildschirm() {
         </View>
       </ScrollView>
 
-      {/* Sticky CTA */}
-      <View style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0,
-        paddingBottom: Math.max(16, insets.bottom + 12),
-        paddingTop: 12,
-        paddingHorizontal: 16,
-        backgroundColor: C.bg,
-        borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.borderLight,
-      }}>
+      <StickyBottomCTA tabBarHeight={tabBarHeight}>
         {selected.size > 0 && (
           <Text style={{ textAlign: 'center', fontSize: 12, color: C.textSecondary, marginBottom: 8 }}>
             {T('export.cta_selected', { n: selected.size, s: selected.size !== 1 ? 'en' : '', year: String(aktJahr) })}
@@ -351,7 +346,7 @@ export default function ExportBildschirm() {
             {loading ? 'Wird exportiert…' : T('export.cta')}
           </Text>
         </TouchableOpacity>
-      </View>
+      </StickyBottomCTA>
       <PremiumToast config={toastConfig} onHide={hideToast} />
     </SafeAreaView>
   );

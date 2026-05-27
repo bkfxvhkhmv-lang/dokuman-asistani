@@ -46,6 +46,8 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
   if (!syncStatus || syncStatus === 'idle' || syncStatus === 'ok' || syncStatus === 'success' || syncStatus === 'synced') return null;
 
   const isError   = syncStatus === 'error';
+  // Don't alarm on first-ever sync failure — only meaningful after a prior success.
+  if (isError && !letzterSync) return null;
   const isSyncing = syncStatus === 'syncing';
 
   const accent    = isError ? colors.danger : colors.primary;

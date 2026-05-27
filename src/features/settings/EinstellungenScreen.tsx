@@ -3,7 +3,7 @@
  */
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, StyleSheet, Switch, Alert } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { safeBack } from '@/navigation/safeBack';
 import Constants from 'expo-constants';
@@ -56,6 +56,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
 
   const prefs = usePersistedPrefs();
   const [experteEin, setExperteEin] = useState(false);
+  const { bottom: safeBottom } = useSafeAreaInsets();
 
   const datenschutz = state.einstellungen.datenschutzModus;
 
@@ -133,7 +134,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
       )}
 
       <ScrollView
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: safeBottom + 88 }}
         showsVerticalScrollIndicator={false}
       >
         <Text

@@ -26,7 +26,7 @@ function EventRow({
     : C.success;
 
   const tageLabel = isOverdue
-    ? T('doc.due_days', { n: Math.abs(tage!) })
+    ? T('doc.overdue')
     : isToday ? T('doc.today')
     : tage !== null ? T('doc.due_days', { n: tage })
     : new Date(event.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });

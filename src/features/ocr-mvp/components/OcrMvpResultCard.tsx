@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import StickyBottomCTA from '@/design/components/StickyBottomCTA';
+import HeaderIconButton from '@/design/components/HeaderIconButton';
 import * as Sharing from 'expo-sharing';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
-import IconButton from '@/components/IconButton';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
 import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
@@ -73,7 +74,6 @@ interface Props {
 
 export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments, onOpenDocument }: Props) {
   const { Colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -136,7 +136,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
     }
   };
 
-  const st = styles(Colors, insets.top);
+  const st = styles(Colors);
 
   return (
     <View style={st.container}>
@@ -232,19 +232,17 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
       {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
-        <SafeAreaView style={st.modalRoot} edges={['bottom']}>
+        <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
           <View style={st.modalHeader}>
             <Text style={st.modalTitle}>{isXlsx ? 'Datenvorschau' : 'Ergebnisvorschau'}</Text>
-            <IconButton
+            <HeaderIconButton
+              name="close"
               onPress={() => setPreviewVisible(false)}
-              style={st.closeBtn}
-              activeOpacity={0.6}
               accessibilityLabel="Schließen"
-            >
-              <Icon name="close" size={22} color={Colors.text} />
-            </IconButton>
+              color={Colors.text}
+            />
           </View>
-          <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16 }}>
+          <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
             {isXlsx ? (
               <DatenvorschauContent
                 fields={result.action_summary?.fields}
@@ -262,14 +260,16 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               </View>
             )}
           </ScrollView>
-          <TouchableOpacity
-            style={st.downloadBtn}
-            onPress={() => { setPreviewVisible(false); handleDownload(); }}
-            activeOpacity={0.8}
-          >
-            <Icon name="download-outline" size={20} color="#fff" />
-            <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
-          </TouchableOpacity>
+          <StickyBottomCTA noBorder>
+            <TouchableOpacity
+              style={st.modalDownloadBtn}
+              onPress={() => { setPreviewVisible(false); handleDownload(); }}
+              activeOpacity={0.8}
+            >
+              <Icon name="download-outline" size={20} color="#fff" />
+              <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
+            </TouchableOpacity>
+          </StickyBottomCTA>
         </SafeAreaView>
       </Modal>
     </View>
@@ -369,7 +369,7 @@ function DatenvorschauContent({
   );
 }
 
-const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => StyleSheet.create({
+const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   container:       { padding: 20, gap: 16 },
   statusRow:       { flexDirection: 'row' },
   successChip:     {
@@ -423,10 +423,13 @@ const styles = (C: ReturnType<typeof useTheme>['Colors'], insetsTop: number) => 
   modalRoot:     { flex: 1, backgroundColor: C.bg },
   modalHeader:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: insetsTop + 16, paddingBottom: 16,
+    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
-  closeBtn:      { padding: 12, marginRight: -4 },
+  modalDownloadBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#22C55E', borderRadius: 14, paddingVertical: 15,
+  },
   modalTitle:    { color: C.text, fontSize: 17, fontWeight: '700' },
   modalScroll:   { flex: 1 },
   previewText:   { color: C.text, fontSize: 13, lineHeight: 20, fontFamily: 'monospace' },

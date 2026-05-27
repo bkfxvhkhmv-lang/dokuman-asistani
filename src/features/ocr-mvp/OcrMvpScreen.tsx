@@ -146,7 +146,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;
-    router.push({ pathname: '/detail', params: { dokId: savedDocId } });
+    router.push({ pathname: '/detail', params: { dokId: savedDocId, tab: 'ozet' } });
   }, [savedDocId, router]);
 
   const handleReset = useCallback(() => {

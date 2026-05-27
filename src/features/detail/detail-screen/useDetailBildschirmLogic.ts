@@ -20,7 +20,7 @@ import type { PulseUrgency } from '@/components/FloatingActionPulse';
 
 export function useDetailBildschirmLogic() {
   const router = useRouter();
-  const { dokId: dokIdParam } = useLocalSearchParams<{ dokId?: string | string[] }>();
+  const { dokId: dokIdParam, tab: tabParam } = useLocalSearchParams<{ dokId?: string | string[]; tab?: string }>();
   const dokId =
     typeof dokIdParam === 'string'
       ? dokIdParam.trim()
@@ -44,7 +44,7 @@ export function useDetailBildschirmLogic() {
     mountOpacity, mountScale, handleBack: animatedBack,
     tabOpacity, tabScale, aktifTab, handleTabPress,
     swipeX, panResponder,
-  } = useDetailScreenAnimations();
+  } = useDetailScreenAnimations(tabParam ?? 'analiz');
 
   const handleBack = () => animatedBack(() => safeBack(router));
 

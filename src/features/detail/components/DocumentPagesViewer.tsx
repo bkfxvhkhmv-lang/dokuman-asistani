@@ -16,6 +16,7 @@ import EmptyPagesModal from '@/features/detail/components/document-pages-viewer/
 import ViewerTopBar from '@/features/detail/components/document-pages-viewer/ViewerTopBar';
 import ViewerPageSlide from '@/features/detail/components/document-pages-viewer/ViewerPageSlide';
 import ThumbStrip from '@/features/detail/components/document-pages-viewer/ThumbStrip';
+import { Dimensions } from 'react-native';
 import { SCREEN_W } from '@/features/detail/components/document-pages-viewer/constants';
 import { documentPagesViewerStyles as st } from '@/features/detail/components/document-pages-viewer/styles';
 
@@ -96,7 +97,7 @@ export default function DocumentPagesViewer({
     }
   }, [onShare, sortedPages, active]);
 
-  const topPadding = Math.max(12, insets.top + 8);
+  const [contentHeight, setContentHeight] = useState(Dimensions.get('window').height);
   const thumbBottomPad = Math.max(12, insets.bottom + 8);
 
   if (sortedPages.length === 0) {
@@ -107,46 +108,51 @@ export default function DocumentPagesViewer({
     <Modal visible={visible} animationType="fade" presentationStyle="overFullScreen" transparent>
       <View style={st.root}>
         <ViewerTopBar
-          paddingTop={topPadding}
           activeIndex={active}
           pageCount={sortedPages.length}
           onClose={onClose}
           onShare={handleShare}
         />
 
-        {verifying && (
-          <View style={st.verifyOverlay} pointerEvents="none">
-            <ActivityIndicator size="small" color="#fff" />
-          </View>
-        )}
-
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleScroll}
-          style={st.swiper}
-          contentContainerStyle={{ alignItems: 'center' }}
+        <View
+          style={{ flex: 1 }}
+          onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
         >
-          {sortedPages.map(page => (
-            <ViewerPageSlide
-              key={page.id}
-              uri={page.uri}
-              isMissing={missingPages.has(page.id)}
-            />
-          ))}
-        </ScrollView>
+          {verifying && (
+            <View style={st.verifyOverlay} pointerEvents="none">
+              <ActivityIndicator size="small" color="#fff" />
+            </View>
+          )}
 
-        {sortedPages.length >= 2 && (
-          <ThumbStrip
-            sortedPages={sortedPages}
-            active={active}
-            missingPages={missingPages}
-            paddingBottom={thumbBottomPad}
-            onPickIndex={goToPage}
-          />
-        )}
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleScroll}
+            style={st.swiper}
+            contentContainerStyle={{ alignItems: 'center' }}
+          >
+            {sortedPages.map(page => (
+              <ViewerPageSlide
+                key={page.id}
+                uri={page.uri}
+                isMissing={missingPages.has(page.id)}
+                availableHeight={contentHeight}
+              />
+            ))}
+          </ScrollView>
+
+          {sortedPages.length >= 2 && (
+            <ThumbStrip
+              sortedPages={sortedPages}
+              active={active}
+              missingPages={missingPages}
+              paddingBottom={thumbBottomPad}
+              onPickIndex={goToPage}
+            />
+          )}
+        </View>
       </View>
     </Modal>
   );

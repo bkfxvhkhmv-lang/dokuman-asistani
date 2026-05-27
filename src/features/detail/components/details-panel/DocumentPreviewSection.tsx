@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import DocumentEntityOverlay from '@/components/DocumentEntityOverlay';
-import DocumentMagnifier from '@/components/DocumentMagnifier';
 import DocumentSpotlight from '@/components/DocumentSpotlight';
 import type { Dokument } from '@/store';
 import type { EntityBox } from '@/services/visionApi';
@@ -46,11 +45,6 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
         scaleX={1}
         scaleY={1}
         onDismiss={() => setSpotlightBox(null)}
-      />
-      <DocumentMagnifier
-        uri={dok.uri}
-        containerWidth={imgSize.w}
-        containerHeight={imgSize.h}
       />
     </View>
   );

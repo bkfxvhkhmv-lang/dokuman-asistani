@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity, type LayoutRectangle } from 'react-native';
+import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Pdf from 'react-native-pdf';
 import * as Sharing from 'expo-sharing';
 import Icon from '@/components/Icon';
@@ -9,20 +9,20 @@ import { documentPagesViewerStyles as st } from '@/features/detail/components/do
 interface Props {
   uri: string;
   isMissing: boolean;
+  availableHeight?: number;
 }
 
 const WINDOW = Dimensions.get('window');
 
-export default function ViewerPageSlide({ uri, isMissing }: Props) {
-  const [viewport, setViewport] = useState<LayoutRectangle | null>(null);
+export default function ViewerPageSlide({ uri, isMissing, availableHeight }: Props) {
   const [pdfError, setPdfError] = useState(false);
 
-  const imgW = viewport && viewport.width > 40 ? viewport.width : WINDOW.width;
-  const imgH = viewport && viewport.height > 40 ? viewport.height : WINDOW.height * 0.82;
+  const W = WINDOW.width;
+  const H = availableHeight ?? WINDOW.height * 0.88;
 
   if (isMissing) {
     return (
-      <View style={st.pageWrap}>
+      <View style={[st.pageWrap, { width: W, height: H }]}>
         <View style={st.missingCard}>
           <Icon name="alert-circle" size={36} color="#F87171" />
           <Text style={st.missingTitle}>Seite nicht mehr verfügbar</Text>
@@ -39,10 +39,7 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
 
   if (isPdf) {
     return (
-      <View
-        style={[st.pageWrap, { backgroundColor: '#1a1a1a' }]}
-        onLayout={e => setViewport(e.nativeEvent.layout)}
-      >
+      <View style={[st.pageWrap, { width: W, height: H, backgroundColor: '#1a1a1a' }]}>
         {pdfError ? (
           <View style={{ alignItems: 'center', gap: 14, paddingHorizontal: 32 }}>
             <Icon name="alert-circle" size={36} color="rgba(255,255,255,0.5)" />
@@ -64,7 +61,7 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
         ) : (
           <Pdf
             source={{ uri, cache: true }}
-            style={{ flex: 1, width: imgW }}
+            style={{ width: W, height: H }}
             enablePaging={false}
             horizontal={false}
             renderActivityIndicator={() => <ActivityIndicator color="rgba(255,255,255,0.6)" size="large" />}
@@ -76,18 +73,13 @@ export default function ViewerPageSlide({ uri, isMissing }: Props) {
   }
 
   return (
-    <View
-      style={[st.pageWrap, { overflow: 'hidden' }]}
-      onLayout={e => setViewport(e.nativeEvent.layout)}
-    >
-      <View style={{ position: 'relative', width: imgW, height: imgH }}>
-        <Image
-          source={{ uri }}
-          style={{ width: imgW, height: imgH }}
-          resizeMode="contain"
-        />
-        <DocumentMagnifier uri={uri} containerWidth={imgW} containerHeight={imgH} />
-      </View>
+    <View style={[st.pageWrap, { width: W, height: H, overflow: 'hidden' }]}>
+      <Image
+        source={{ uri }}
+        style={{ width: W, height: H }}
+        resizeMode="contain"
+      />
+      <DocumentMagnifier uri={uri} containerWidth={W} containerHeight={H} />
     </View>
   );
 }

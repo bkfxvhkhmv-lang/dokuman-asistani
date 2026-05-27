@@ -1,26 +1,22 @@
 import { StyleSheet } from 'react-native';
-import { SCREEN_W, SCREEN_H } from '@/features/detail/components/document-pages-viewer/constants';
+import { SCREEN_W } from '@/features/detail/components/document-pages-viewer/constants';
 
 export const documentPagesViewerStyles = StyleSheet.create({
   root:    { flex: 1, backgroundColor: '#000' },
 
+  topBarSafeWrapper: {
+    backgroundColor: 'rgba(0,0,0,0.88)',
+  },
   topBar: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0,
-    height: 60,
-    paddingHorizontal: 14,
+    height: 56,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   iconBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 44, height: 44,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
   },
   indicator: {
     paddingHorizontal: 12, paddingVertical: 6,
@@ -32,21 +28,15 @@ export const documentPagesViewerStyles = StyleSheet.create({
 
   verifyOverlay: {
     position: 'absolute',
-    top: 64, left: 0, right: 0,
+    top: 8, left: 0, right: 0,
     alignItems: 'center',
     zIndex: 9,
   },
 
   swiper: { flex: 1 },
   pageWrap: {
-    width: SCREEN_W,
-    height: SCREEN_H,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  pageImage: {
-    width: SCREEN_W,
-    height: SCREEN_H,
   },
 
   missingCard: {

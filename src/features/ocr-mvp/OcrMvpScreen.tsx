@@ -34,7 +34,7 @@ function toSafeError(kind: OcrMvpErrorKind, status: string): SafeError {
   if (kind === 'network') {
     return {
       title: 'Verbindung zum Analysedienst nicht möglich',
-      body: 'Prüfe deine Verbindung oder starte den lokalen Dienst neu.',
+      body: 'Die Analyse ist aktuell nicht verfügbar. Bitte versuche es später erneut.',
       icon: 'wifi-outline',
       ctaLabel: 'Erneut versuchen',
     };
@@ -162,7 +162,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
       <View style={st.header}>
-        <Text style={st.title}>BriefPilot OCR</Text>
+        <Text style={st.title}>Neue Analyse</Text>
         {onClose && (
           <IconButton onPress={onClose} accessibilityLabel="Schließen">
             <Icon name="close" size={22} color={Colors.textSecondary} />
@@ -216,7 +216,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
               <View style={st.checkingBox}>
                 <ActivityIndicator color={Colors.primary} />
                 <Text style={[st.checkingLabel, { color: Colors.textSecondary }]}>
-                  Analyse-Server wird geprüft …
+                  Analyse wird vorbereitet …
                 </Text>
               </View>
             )}
@@ -224,9 +224,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
             {health === 'offline' && (
               <View style={st.errorCard}>
                 <Icon name="cloud-offline-outline" size={24} color="#F59E0B" />
-                <Text style={st.errorTitle}>Verbindung zum Analysedienst nicht möglich</Text>
+                <Text style={st.errorTitle}>Analyse nicht verfügbar</Text>
                 <Text style={st.errorMsg}>
-                  Prüfe deine Verbindung oder starte den lokalen Dienst neu.
+                  Die Analyse ist aktuell nicht verfügbar. Bitte versuche es später erneut.
                 </Text>
                 <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
                   <Text style={st.retryLabel}>Erneut versuchen</Text>

@@ -19,7 +19,6 @@ import SkiaRefreshIndicator from '@/components/SkiaRefreshIndicator';
 import { generateDigest } from '@/services/DigestAIService';
 import type { DigestResult } from '@/services/DigestAIService';
 import { analyzeAllTargets } from '@/services/TargetService';
-import { HOME_ALL_GOOD_BODY, HOME_ALL_GOOD_TITLE } from '@/product/strategyCopy';
 import DashboardSummary from '@/design/components/DashboardSummary';
 import AppBottomSheet from '@/components/AppBottomSheet';
 import PdfMergeDragModal from '@/components/PdfMergeDragModal';
@@ -183,27 +182,6 @@ export default function Home() {
         />
       )}
 
-      {/* allClear — no urgent docs, system has data */}
-      {hotDocs.length === 0 && (data.alleDocs?.length ?? 0) > 0 && !data.initialLaden && (
-        <View style={{
-          marginHorizontal: 16, marginBottom: 12,
-          paddingHorizontal: 16, paddingVertical: 14,
-          borderRadius: 16, borderWidth: 1,
-          borderColor: `${data.Colors.success}44`,
-          backgroundColor: data.Colors.successLight,
-          flexDirection: 'row', alignItems: 'center', gap: 12,
-        }}>
-          <Text style={{ fontSize: 22 }}>✓</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: data.Colors.successText ?? data.Colors.success }}>
-              {HOME_ALL_GOOD_TITLE}
-            </Text>
-            <Text style={{ fontSize: 12, color: data.Colors.successText ?? data.Colors.success, opacity: 0.75, marginTop: 2 }}>
-              {HOME_ALL_GOOD_BODY}
-            </Text>
-          </View>
-        </View>
-      )}
 
       <HomeTriage
         docs={data.sichtbareDocs}

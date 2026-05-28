@@ -244,6 +244,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [x] **Raw title backlog — P1-A Messages** — `calendar.ts`, `notifyContent.ts`, `SmartRemindersService.ts`, `WidgetDataService.ts` display-only sanitize edildi. Takvim, bildirim, reminder ve widget yüzeylerinde ham `%20` title basılmaz.
 - [x] **Raw title backlog — P1-B Share/Export** — `exporters.ts`, `document-actions/sharing.ts`, `documentActionFlows.ts`, `SignaturePdfSheet.tsx` display-only sanitize edildi. Share/export/mail/signature copy’de ham `%20` title basılmaz.
 - [x] **Raw title backlog — P1-C Summaries/Guidance** — `MultiLayerSummaryView.tsx`, `SmartRegionsView.tsx`, `labels.ts`, `homeSuggestions.ts`, `AutoWorkflowEngine.ts`, `documentAnalysis.ts` display-only sanitize edildi. Summary/guidance/suggestion/workflow copy’de ham `%20` title basılmaz.
+- [x] **Budget detail raw title** — `src/components/budget-grafik/SeciliAyDetay.tsx` fallback `d.absender || d.titel || d.typ` → `d.absender || safeDisplayTitel(...)`. Budget/ay detay listesinde ham `%20` title basılmaz.
 - [ ] **Ürün kuralı genişletmesi** — ham `dok.titel` kullanıcıya görünen copy, notifications, calendar events, share messages, widgets veya summaries içinde doğrudan kullanılmayacak.
 
 ### P2 — Backlog (UI Reset Phase 2)

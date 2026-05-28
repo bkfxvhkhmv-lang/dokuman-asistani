@@ -10,7 +10,7 @@ No new decisions, no new code — read-only state of the branch.
 | Field | Value |
 |-------|-------|
 | Branch | `feature/ocr-api-integration` |
-| Last commit | `pending current commit` — `fix(display): sanitize document titles in summaries and guidance` |
+| Last commit | `pending current commit` — `fix(display): sanitize budget detail document titles` |
 | Working tree | clean |
 | iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — committed `0651e5728` |
 | Build script | `build_device.sh` — `.gitignore`'da (`03ed08406`) |
@@ -89,6 +89,7 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | Remaining raw title surfaces — P1-A Messages | ✅ Done | `calendar.ts`, `notifyContent.ts`, `SmartRemindersService.ts`, `WidgetDataService.ts` now sanitize display titles |
 | Remaining raw title surfaces — P1-B Share/Export | ✅ Done | `exporters.ts`, `document-actions/sharing.ts`, `documentActionFlows.ts`, `SignaturePdfSheet.tsx` now sanitize display titles |
 | Remaining raw title surfaces — P1-C Summaries/Guidance | ✅ Done | `MultiLayerSummaryView.tsx`, `SmartRegionsView.tsx`, `labels.ts`, `homeSuggestions.ts`, `AutoWorkflowEngine.ts`, `documentAnalysis.ts` now sanitize display titles |
+| Remaining raw title surfaces — Budget detail | ✅ Done | `SeciliAyDetay.tsx` now uses sanitized display title fallback |
 | ~~`ios/project.pbxproj` commit~~ | ~~Pre-TestFlight~~ | ✅ Done `0651e5728` |
 | ~~`build_device.sh` gitignore~~  | ~~Pre-TestFlight~~ | ✅ Done `03ed08406` |
 
@@ -137,7 +138,7 @@ Recommended order:
 4. ~~Title sanitizer (Steuer%20, Bis, Angaben prüfen)~~ ✅ `baec9ae1`
 5. ~~Search Alle boş liste~~ ✅ `f5a24dd4`
 6. **Rebuild + clean state smoke** — reset via DEV button, upload fresh docs, run checklist below.
-7. **Rebuild + broad smoke** — verify Search, Share/Export, Notifications/Widget/Calendar, Summary/Guidance on device.
+7. **Rebuild + broad smoke** — verify Search, Share/Export, Notifications/Widget/Calendar, Summary/Guidance, Budget detail on device.
 8. **TestFlight prep** — after smoke PASS.
 
 **Completed after snapshot:**
@@ -180,4 +181,4 @@ Notlar:
 
 ---
 
-*Updated 2026-05-28 evening — P1-A, P1-B and P1-C cleanup landed. Remaining raw title debt should now be limited to non-user-visible data paths or separately approved surfaces. Next: rebuild and broad smoke verification.*
+*Updated 2026-05-28 evening — P1-A, P1-B, P1-C and budget detail cleanup landed. Remaining raw title debt should now be limited to non-user-visible data paths. Next: rebuild and broad smoke verification.*

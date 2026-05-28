@@ -133,6 +133,7 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 | Hash | Konu |
 |------|------|
+| `2b87d4d42` | fix(copy): make OCR result screen production-safe — teknik Server/lokaler Dienst dili kaldırıldı, başlık "Neue Analyse" |
 | `c45d23bc5` | fix(ocr-result): make save primary action before export — In Dokumente speichern primary, Excel secondary |
 | `4bd710308` | fix(core-flows): three proactive fixes from code audit — gutschrift handler, ExportBildschirm insets, scan tab |
 | `57e663fb9` | fix(navigation): open Dokument tab after saving from OCR |

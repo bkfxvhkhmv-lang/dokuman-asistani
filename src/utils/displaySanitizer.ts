@@ -56,6 +56,20 @@ export function humanizeTitle(raw: string | null | undefined): string | null {
   return toTitleCase(t);
 }
 
+// ── Export-safe document title ────────────────────────────────────────────────
+
+/**
+ * Decodes URL-encoded document titles for display in export PDFs.
+ * Only decodes and normalizes — does not infer missing spaces or reformat.
+ */
+export function safeDisplayDocumentTitleForExport(value: string | null | undefined): string {
+  if (!value || value.trim().length === 0) return 'Unbekanntes Dokument';
+  let decoded = value;
+  try { decoded = decodeURIComponent(value); } catch { decoded = value; }
+  const normalized = decoded.replace(/\s+/g, ' ').trim();
+  return normalized.length > 0 ? normalized : 'Unbekanntes Dokument';
+}
+
 // ── Absender / Titel display sanitization ────────────────────────────────────
 
 function isLikelyGarbled(s: string): boolean {

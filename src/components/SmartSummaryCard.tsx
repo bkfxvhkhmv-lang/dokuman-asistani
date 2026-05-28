@@ -73,7 +73,7 @@ const MODE_LABEL: Record<SummaryMode, string> = {
 
 const QUELLE_LABEL: Record<string, string> = {
   lokal:    'Offline',
-  ki_cloud: 'KI-Analyse',
+  ki_cloud: 'Cloud-Analyse',
   ki_cache: 'Zwischengespeichert',
 };
 
@@ -138,7 +138,7 @@ export default function SmartSummaryCard({
         <View style={{ alignItems: 'center', paddingVertical: 20 }}>
           <ActivityIndicator color={C.primary} />
           <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 8 }}>
-            KI analysiert…
+            Analysiert …
           </Text>
         </View>
       ) : result ? (
@@ -184,7 +184,7 @@ export default function SmartSummaryCard({
               style={{ backgroundColor: C.primary, borderRadius: R.md,
                 padding: 12, alignItems: 'center' }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
-                KI-Analyse laden
+                Analyse laden
               </Text>
             </TouchableOpacity>
           )}

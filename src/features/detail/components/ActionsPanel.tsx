@@ -26,7 +26,7 @@ const ACTION_META: Record<string, { label: string; shortLabel: string; icon: str
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
-  ai:        'KI erklärt oder fasst zusammen — du wählst die Sprache.',
+  ai:        'Dokument erklären oder zusammenfassen.',
   zahlen:    'Überweisungsdaten oder Banking vorbereiten.',
   gutschrift:'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
   kalender:  'Frist mit Erinnerung im Kalender sichern.',

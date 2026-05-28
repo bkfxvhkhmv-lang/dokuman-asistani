@@ -32,6 +32,7 @@ No new decisions, no new code — read-only state of the branch.
 | Remaining raw title UI surfaces | ✅ Code fix landed — device verify pending | SmartLinksPanel, SmartTimelinePanel, PdfMergeDragModal, DocumentContextSheet, DocumentAnalysisProgressCard, ContextualGuidance now sanitize display titles via central helper |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
 | Vorlesen (native TTS) | ✅ Wiring fix landed — device verify pending | `DocumentSpeechSection` now belongs to the normal detail user flow; source-independent, text-dependent |
+| Vorlesen locale selection | ✅ P1 fix landed — multilingual verify pending | Spoken voice now follows inferred spoken-text language instead of app/AI locale alone |
 | Regelmarkt / Automationen | ✅ Hidden in production — backend pending | Route may remain, but production settings no longer expose unfinished marketplace copy |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
 
@@ -146,6 +147,7 @@ Recommended order:
 **Vorlesen note:**
 - Fixed as render-placement bug, not OCR-source limitation.
 - Product rule: if `rohText` or `pages[].ocrText` exists, Vorlesen should be visible in the normal detail flow.
+- Spoken locale now follows inferred text language for full-text Vorlesen and inferred critical-text language for critical-points Vorlesen.
 - PDF upload without extracted text still needs a future unavailable-state or text extraction improvement.
 
 **Completed after snapshot:**

@@ -6,9 +6,8 @@ import { HIT_SLOP_LG } from '@/theme';
 import type { Dokument } from '@/store';
 import { getDocumentSpeechPlainText } from '@/services/tts/documentPlainText';
 import { buildCriticalActionsSpeakText } from '@/services/tts/criticalActionsSpeakText';
-import { ttsLocaleForAppLang } from '@/services/tts/locales';
+import { inferSpeechLocaleFromText, ttsLocaleForAppLang } from '@/services/tts/locales';
 import { splitTextIntoSpeechChunks, speakChunksSequentially, stopAllSpeech } from '@/services/tts/speakChunks';
-import { useAiLangPreference } from '@/hooks/useAiLangPreference';
 import { useLangPreference } from '@/hooks/useLangPreference';
 import { speechUi, speechA11yLabel } from '@/i18n/speechUiStrings';
 
@@ -24,7 +23,6 @@ type Kind = 'full' | 'critical';
 export default function DocumentSpeechSection({ dok, prominent = false }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
   const { lang } = useLangPreference();
-  const { aiLang } = useAiLangPreference();
 
   const [busyKind, setBusyKind] = useState<Kind | null>(null);
   const [playingKind, setPlayingKind] = useState<Kind | null>(null);
@@ -35,6 +33,10 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
   const hasFull = fullText.length > 0;
   const criticalText = buildCriticalActionsSpeakText(dok, lang) ?? '';
   const hasCritical = criticalText.trim().length > 0;
+  const appLocale = ttsLocaleForAppLang(lang);
+  const deviceAwareFallback = ttsLocaleForAppLang(lang, 'en-US');
+  const fullTextLocale = inferSpeechLocaleFromText(fullText, deviceAwareFallback);
+  const criticalLocale = inferSpeechLocaleFromText(criticalText, appLocale);
 
   const killPlayback = useCallback(async () => {
     cancelledRef.current = true;
@@ -72,10 +74,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
         setBusyKind(null);
         setPlayingKind(kind);
         await speakChunksSequentially(chunks, {
-          language:
-            kind === 'critical'
-              ? ttsLocaleForAppLang(lang)
-              : ttsLocaleForAppLang(aiLang),
+          language: kind === 'critical' ? criticalLocale : fullTextLocale,
           rate: kind === 'critical' ? 0.95 : 0.9,
           cancelledRef,
         });
@@ -84,7 +83,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
         setBusyKind(null);
       }
     },
-    [aiLang, busyKind, killPlayback, lang, playingKind],
+    [busyKind, criticalLocale, fullTextLocale, killPlayback, playingKind],
   );
 
   if (!hasFull && !hasCritical) return null;

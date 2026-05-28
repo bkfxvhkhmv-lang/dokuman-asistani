@@ -3,6 +3,7 @@ import type { Dokument } from '@/store';
 import { getDocumentSpeechPlainText } from '@/services/tts/documentPlainText';
 import { buildCriticalActionsSpeakText } from '@/services/tts/criticalActionsSpeakText';
 import { speechUi } from '@/i18n/speechUiStrings';
+import { inferSpeechLocaleFromText } from '@/services/tts/locales';
 
 describe('splitTextIntoSpeechChunks', () => {
   it('handles short text', () => {
@@ -70,5 +71,23 @@ describe('speechUi', () => {
     expect(speechUi('de', 'stop')).toContain('Anhalten');
     expect(speechUi('tr', 'full_listen')).toContain('Belgeyi dinle');
     expect(speechUi('tr', 'stop')).toContain('Durdur');
+  });
+});
+
+describe('inferSpeechLocaleFromText', () => {
+  it('detects French text', () => {
+    expect(inferSpeechLocaleFromText('Bonjour Madame, veuillez payer la facture.', 'de-DE')).toBe('fr-FR');
+  });
+
+  it('detects German text', () => {
+    expect(inferSpeechLocaleFromText('Sehr geehrte Damen und Herren, bitte zahlen Sie den Betrag.', 'en-US')).toBe('de-DE');
+  });
+
+  it('detects Turkish text', () => {
+    expect(inferSpeechLocaleFromText('Sayın kullanıcı, ödeme için son tarih yarındır.', 'de-DE')).toBe('tr-TR');
+  });
+
+  it('falls back when no signal is found', () => {
+    expect(inferSpeechLocaleFromText('12345 ###', 'en-US')).toBe('en-US');
   });
 });

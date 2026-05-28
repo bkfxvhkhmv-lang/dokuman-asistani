@@ -182,6 +182,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |
 | `pending current commit` | chore(feature-flags): hide automation marketplace until backend is available — production settings no longer expose Regelmarkt/Automationen while the backend endpoint is missing |
+| `pending current commit` | fix(speech): infer read-aloud locale from spoken text — full text Vorlesen now follows inferred document text language; critical points follow inferred critical-summary text language, with app/device fallback |
 | `e2dc5f31e` | fix(speech): show read-aloud in normal detail flow — `DocumentSpeechSection` now renders in `DetailDetailsTab`; Vorlesen is source-independent and text-dependent in the normal detail user flow |
 | `d112162b4` | fix(display): sanitize document titles across remaining UI surfaces — SmartLinksPanel/SmartTimelinePanel/PdfMergeDragModal/DocumentContextSheet/DocumentAnalysisProgressCard/ContextualGuidance now use central display sanitizer; raw `%20`, `Bis`, `Angaben prüfen` no longer render as document titles in these UI surfaces |
 | `baec9ae1` | fix(display): sanitize document titles across timeline and exports — eventCore/useSmartTimeline safeDisplayTitel; dateExtraction "Bis"→"Zahlung fällig"; safeDisplayTitel no "Angaben prüfen"; single-doc PDF title sanitized; 10/10 test PASS |

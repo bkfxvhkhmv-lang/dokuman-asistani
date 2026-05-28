@@ -176,6 +176,8 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
+| `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |
 | `baec9ae1` | fix(display): sanitize document titles across timeline and exports — eventCore/useSmartTimeline safeDisplayTitel; dateExtraction "Bis"→"Zahlung fällig"; safeDisplayTitel no "Angaben prüfen"; single-doc PDF title sanitized; 10/10 test PASS |
 | `8fc93fd3` | chore(dev): DEV-only "Alle Dokumente löschen" reset button in Einstellungen — __DEV__ guard, production etkisi yok |

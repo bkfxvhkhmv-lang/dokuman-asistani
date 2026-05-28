@@ -127,12 +127,57 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 - `DocumentMagnifier` sadece `ViewerPageSlide` içinde (fullscreen image) kullanılır
 - `DocumentPreviewSection` (önizleme kartı) içinde kullanılmaz — `onStartShouldSetPanResponder: () => true` tüm dokunmaları tüketiyordu
 
+### 4.7 Excel Export — Mimari Karar (2026-05-28)
+
+**Durum:** Excel V7 backend-side accepted as Steuerberater-readable V1.
+
+```
+Endpoint:  GET /documents/{job_id}/download  ← değişmedi
+Generator: briefpilot_ocr_mvp/modules/invoice_to_excel.py (v7)
+Schema:    briefpilot_ocr_mvp/schema.py (v7)
+Mobile:    Excel ÜRETMİYOR — sadece download ediyor
+```
+
+**V7 düzeltmeleri (commit `4f796c4`):**
+- Belegdatum: DD.MM.YYYY normalize (Almanca ay adları dahil)
+- Gutschrift: negatif tutar → mutlak değer + Zahlungsrichtung=Einnahme + Belegart=Gutschrift
+- Yeni alanlar: Steuersatz, Kategorie, Kundennummer, Vertragsnummer, Fälligkeit, IBAN
+- Pozisyon sayfası: tekrarlayan boş toplam satırları temizlendi, tek SUM formülü
+- Rohdaten: ABBYY xlsx kopyası yerine düz OCR metin dump (opsiyonel sheet)
+
+**Kesin HAYIR — bu etiketler hiçbir yerde kullanılmaz:**
+- `DATEV Export` — DATEV/EXTF implementasyonu yok, ayrı sprint gerektirir
+- `Accountable-kompatibel` — test edilmedi, resmi uyumluluk beyan edilemez
+
+**Önerilen UI label:**
+- `Excel für Steuerberater herunterladen` (OCR Result ekranı)
+- Sublabel: Belegdatum, Lieferant, Beträge, Kategorie alanlarını içerir
+
+**Excel erişilebilirlik kararı (2026-05-28):**
+```
+Excel download = SADECE OCR Result ekranında, job canlıyken.
+Detail ExportierenSheet'e Excel eklenmez — veri yok.
+```
+- `OcrMvpJobStatus.job_id` ve `output_path` kayıtlı `Dokument`'a yazılmıyor
+- `Dokument` tipinde `ocrJobId` / `xlsxPath` alanı yok
+- Detail ekranında `GET /documents/{job_id}/download` için gereken bilgi yok
+- Backend TTL politikası bilinmiyor; persist edilse bile link expire edebilir
+
+Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Text / Sicherer Link.
+
+**Backlog — Excel'i detail'e taşımak istersen:**
+- `feat(export): persist ocrJobId on saved Dokument` — tip + adapter + TTL kararı
+- veya: `backend endpoint: regenerate Excel from saved document id` — ayrı sprint
+
 ---
 
 ## 5. Son Commit Tarihçesi
 
 | Hash | Konu |
 |------|------|
+| `4655b5f` | fix(export): clarify export option labels and excel copy — pdf_alle/originaldokumente ayrı açıklamalar, export_excel label V7'ye güncellendi, xlsx fallback label netleştirildi |
+| `c3793a6` | fix(export): run selected batch export options independently — pdf_alle+originaldokumente OR-block ayrıldı; ikisi seçiliyse ikisi de çalışır, biri artık silently drop edilmiyor |
+| `4f796c4` | feat(export): Steuerberater-Excel V7 — invoice_to_excel.py + schema.py v7; Gutschrift-Normalisierung, deutsche Monatsnamen, duplikate Summenzeilen entfernt. Excel V7 backend accepted as Steuerberater-readable V1. Not DATEV. 31/31 PASS. |
 | `5f86e8009` | fix(detail): remove duplicate next-step banner from actions tab — NaechsterSchrittCard Erledigen sekmesinden kaldırıldı; ActionsPanel tek next-step yüzeyi |
 | `a7c50f8f5` | fix(detail): remove duplicate warning footer from overview hero — AnalyseHeaderCard footer kaldırıldı; NaechsterSchrittCard tek yönlendirme yüzeyi |
 | `2ecf63ac2` | fix(home): remove duplicate all-clear message — HomeTriage allZero kartı yeterli, inline blok kaldırıldı |
@@ -175,6 +220,11 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [ ] **SmartActionsPanel default collapsed** — `expandedGruppe` başlangıç değeri `null` olmalı; şu an `'organisation'` açık geliyor.
 - [ ] **Erledigt pill** — secondary aksiyonlardan MoreMenu'ye taşınabilir; iş adımı değil durum değişikliği.
 - [ ] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (aksiyon edit modal açıyor, label uyumsuz).
+
+### Export Audit — KAPANDI 2026-05-28 ✅
+- [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)
+- [x] P2 descriptions: `pdf_alle`/`originaldokumente` ayrı sublabel, `export_excel` label V7 (`4655b5f`)
+- [x] Excel detail availability: job_id persist edilmiyor → detail sheet'e Excel eklenmez (karar MRT'de)
 
 ---
 

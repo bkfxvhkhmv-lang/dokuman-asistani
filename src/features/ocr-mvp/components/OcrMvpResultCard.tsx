@@ -196,9 +196,9 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
           <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
             {downloading
-              ? <ActivityIndicator color="#fff" />
+              ? <ActivityIndicator color={Colors.primary} />
               : <>
-                  <Icon name="download-outline" size={20} color="#fff" />
+                  <Icon name="download-outline" size={20} color={Colors.primary} />
                   <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
                 </>}
           </TouchableOpacity>
@@ -265,7 +265,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               onPress={() => { setPreviewVisible(false); handleDownload(); }}
               activeOpacity={0.8}
             >
-              <Icon name="download-outline" size={20} color="#fff" />
+              <Icon name="download-outline" size={20} color={Colors.primary} />
               <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
             </TouchableOpacity>
           </StickyBottomCTA>
@@ -396,10 +396,11 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   downloadBtn:  {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#22C55E', borderRadius: 14, paddingVertical: 15,
+    borderRadius: 14, paddingVertical: 15,
     marginHorizontal: 16, marginBottom: 16,
+    borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
   },
-  downloadLabel: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  downloadLabel: { color: C.primary, fontSize: 16, fontWeight: '700' },
   techLine:      { fontSize: 11, textAlign: 'center' },
   savePrimaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -422,7 +423,8 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   modalDownloadBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: '#22C55E', borderRadius: 14, paddingVertical: 15,
+    borderRadius: 14, paddingVertical: 15,
+    borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
   },
   modalTitle:    { color: C.text, fontSize: 17, fontWeight: '700' },
   modalScroll:   { flex: 1 },

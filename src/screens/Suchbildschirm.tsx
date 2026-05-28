@@ -160,7 +160,7 @@ export default function Suchbildschirm() {
                 <View style={{ alignItems: 'center', paddingVertical: 24 }}>
                   <ActivityIndicator color={C.primary} />
                   <Text style={{ fontSize: 12, color: C.textTertiary, marginTop: 8 }}>
-                    Semantische Suche läuft…
+                    Intelligente Suche läuft…
                   </Text>
                 </View>
               ) : (
@@ -171,14 +171,14 @@ export default function Suchbildschirm() {
                     marginLeft: S.lg, marginBottom: 8,
                   }}
                 >
-                  {(v4Ergebnisse as SemanticResult[]).length} SEMANTISCHE TREFFER
+                  {(v4Ergebnisse as SemanticResult[]).length} INTELLIGENTE TREFFER
                 </Text>
               )
             }
             ListEmptyComponent={!v4Laden ? (
               <View style={{ alignItems: 'center', marginTop: 60 }}>
                 <Icon name="bulb" size={36} color={C.text} style={{ marginBottom: 12 }} />
-                <Text style={{ fontSize: 15, color: C.textSecondary }}>Keine semantischen Treffer</Text>
+                <Text style={{ fontSize: 15, color: C.textSecondary }}>Keine Treffer</Text>
                 {query.length > 0 && (
                   <Text style={{ fontSize: 15, fontWeight: '600', color: C.text, marginTop: 4 }}>
                     "{query}"

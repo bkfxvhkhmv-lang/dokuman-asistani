@@ -35,7 +35,7 @@ export function V4Banner({ ftsWeight, setFtsWeight, C, S }: V4BannerProps) {
         Intelligente Suche aktiv
       </Text>
       <View style={{ flexDirection: 'row', gap: 6 }}>
-        {([['Text', 0.7], ['Mix', 0.5], ['Semantik', 0.3]] as [string, number][]).map(([label, val]) => (
+        {([['Text', 0.7], ['Kombiniert', 0.5], ['Intelligent', 0.3]] as [string, number][]).map(([label, val]) => (
           <TouchableOpacity
             key={label}
             onPress={() => setFtsWeight(val)}

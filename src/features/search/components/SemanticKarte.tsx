@@ -66,7 +66,7 @@ export default function SemanticKarte({ result, query, onPress, C }: Props) {
           </Text>
         )}
         <View style={{ flex: 1 }} />
-        <Text style={{ fontSize: 10, color: C.textTertiary }}>V4 Semantik</Text>
+        <Text style={{ fontSize: 10, color: C.textTertiary }}>Intelligente Suche</Text>
       </View>
     </TouchableOpacity>
   );

@@ -31,8 +31,8 @@ No new decisions, no new code — read-only state of the branch.
 | Batch export (selectedIds) | ✅ PASS — title decode re-verify pending | Logic PASS device smoke; URL-encoded titles fixed `3fb9f127`; re-export needed to confirm decode |
 | Remaining raw title UI surfaces | ✅ Code fix landed — device verify pending | SmartLinksPanel, SmartTimelinePanel, PdfMergeDragModal, DocumentContextSheet, DocumentAnalysisProgressCard, ContextualGuidance now sanitize display titles via central helper |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
-| Vorlesen (native TTS) | ✅ Wiring fix landed — device verify pending | `DocumentSpeechSection` now belongs to the normal detail user flow; source-independent, text-dependent |
-| Vorlesen locale selection | ✅ P1 fix landed — multilingual verify pending | Spoken voice now follows inferred spoken-text language instead of app/AI locale alone |
+| Vorlesen (native TTS) | ✅ PASS 2026-05-29 | Volltext anhören ✅ · Anhalten sofortig ✅ · Kritische Punkte ✅ — `d25d68f4f` interruptRef race condition fix |
+| Vorlesen locale selection | ✅ PASS 2026-05-29 | Spoken locale follows inferred text language — `e052f7450` |
 | Regelmarkt / Automationen | ✅ Hidden in production — backend pending | Route may remain, but production settings no longer expose unfinished marketplace copy |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
 

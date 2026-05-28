@@ -181,8 +181,9 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 | `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |
-| `pending current commit` | chore(feature-flags): hide automation marketplace until backend is available — production settings no longer expose Regelmarkt/Automationen while the backend endpoint is missing |
-| `pending current commit` | fix(speech): infer read-aloud locale from spoken text — full text Vorlesen now follows inferred document text language; critical points follow inferred critical-summary text language, with app/device fallback |
+| `05abceb1f` | chore(feature-flags): hide automation marketplace until backend is available — production settings no longer expose Regelmarkt/Automationen while the backend endpoint is missing |
+| `e052f7450` | fix(speech): infer read-aloud locale from spoken text — full text Vorlesen now follows inferred document text language; critical points follow inferred critical-summary text language, with app/device fallback |
+| `d25d68f4f` | fix(speech): stop full-text read-aloud immediately on Anhalten — interruptRef resolves current chunk promise instantly; race condition between onDone and cancelledRef check eliminated; Volltext Anhalten PASS |
 | `e2dc5f31e` | fix(speech): show read-aloud in normal detail flow — `DocumentSpeechSection` now renders in `DetailDetailsTab`; Vorlesen is source-independent and text-dependent in the normal detail user flow |
 | `d112162b4` | fix(display): sanitize document titles across remaining UI surfaces — SmartLinksPanel/SmartTimelinePanel/PdfMergeDragModal/DocumentContextSheet/DocumentAnalysisProgressCard/ContextualGuidance now use central display sanitizer; raw `%20`, `Bis`, `Angaben prüfen` no longer render as document titles in these UI surfaces |
 | `baec9ae1` | fix(display): sanitize document titles across timeline and exports — eventCore/useSmartTimeline safeDisplayTitel; dateExtraction "Bis"→"Zahlung fällig"; safeDisplayTitel no "Angaben prüfen"; single-doc PDF title sanitized; 10/10 test PASS |
@@ -237,7 +238,8 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 **Clean-state smoke — 2026-05-28 akşam (6 belge, temiz veri):**
 - Search Alle (9 sonuç) ✅ — Rechnungen/Behörden/Nachweise chip grupları ✅
 - Encoded title (%20) yok ✅ — Bis ana başlık değil ✅ — Angaben prüfen sadece action chip ✅
-- Kalan: Preview persistence + Vorlesen + Fristen yeni build test edilmedi
+- **Vorlesen: PASS** (2026-05-29) — Volltext anhören + Anhalten ✅, Kritische Punkte ✅, locale inference ✅
+- Kalan: Preview persistence + Fristen yeni build test edilmedi
 
 ### P1 — Açık
 - [x] **Überblick footer tekrarı** — `AnalyseHeaderCard` footer kaldırıldı (`a7c50f8f5`). NaechsterSchrittCard tek yönlendirme yüzeyi.

@@ -97,16 +97,10 @@ export function useDocumentPipeline(
       try {
         persistedPages = await persistScanFiles(documentId, pages.map(p => p.uri));
       } catch (e) {
-        console.warn('[useDocumentPipeline] persistScanFiles failed', e);
-        // Persist edilemezse en azindan eski uri'lari kullanmaya devam et
-        // (kayitsiz kalmaktan iyi). Ama logda bunu goruyoruz.
-        persistedPages = pages.map((p, i) => ({
-          id:        generateId(),
-          uri:       p.uri,
-          order:     i + 1,
-          rotation:  0 as const,
-          createdAt: new Date().toISOString(),
-        }));
+        // Cache URIs must not reach the store — dead paths cause blank previews.
+        // Log the failure and save without pages; caller sees empty preview state.
+        console.error('[useDocumentPipeline] persistScanFiles failed — document saved without preview', e);
+        persistedPages = [];
       }
 
       const leadPage = persistedPages[0];

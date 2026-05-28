@@ -19,6 +19,7 @@ import { analysiereText, extractTextFromImage } from '@/services/visionApi';
 import { runSmartAutoFill, mergeAutoFillIntoDokument } from '@/services/SmartAutoFillService';
 import { runSmartCategorization, applyCategoryToVisionResult } from '@/services/SmartCategorizationService';
 import { generateId } from '@/utils';
+import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import {
   buildUploadNotificationContent,
   ensureAndroidDefaultNotificationChannel,
@@ -113,6 +114,10 @@ export async function processSharedFile(
     const merged = mergeAutoFillIntoDokument(autoFillResult, {});
     const documentId = generateId();
 
+    // Copy source file to documentDirectory before writing to store.
+    // Cache URIs are evicted by iOS — store must only contain stable paths.
+    const persistedPages = await persistScanFiles(documentId, [uri]);
+
     const typ = String(merged.typ || 'Sonstiges');
     const absender = String(merged.absender || 'Unbekannter Absender');
 
@@ -132,7 +137,8 @@ export async function processSharedFile(
       datum:           new Date().toISOString(),
       gelesen:         false,
       erledigt:        false,
-      uri:             uri,
+      uri:             persistedPages[0]?.uri ?? null,
+      pages:           persistedPages,
       rohText:         rawText || null,
     };
 

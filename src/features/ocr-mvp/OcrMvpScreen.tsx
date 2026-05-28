@@ -12,6 +12,7 @@ import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import { useStore } from '@/store';
 import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
+import type { ScannedPage } from '@/store';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
@@ -70,6 +71,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [selectedPreviewUri, setSelectedPreviewUri] = useState<string | null>(null);
+  const [earlyPersistedDocId, setEarlyPersistedDocId] = useState<string | null>(null);
+  const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
   const { setSuppressBanner } = useOfflineBannerSuppression();
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     }
   }, [status, error]);
 
-  const handleSubmit = (
+  const handleSubmit = async (
     fileUri: string,
     fileName: string,
     mimeType: string,
@@ -109,19 +112,41 @@ export default function OcrMvpScreen({ onClose }: Props) {
   ) => {
     setSelectedUri(fileUri);
     setSelectedPreviewUri(previewUri ?? null);
+    setEarlyPersistedDocId(null);
+    setEarlyPersistedPages(null);
+
+    // Persist the source file immediately — before OCR completes — so the
+    // cache URI is never the final stored path regardless of how long OCR takes.
+    try {
+      const docId = generateId();
+      const pages = await persistScanFiles(docId, [fileUri]);
+      setEarlyPersistedDocId(docId);
+      setEarlyPersistedPages(pages);
+    } catch (e) {
+      // Early persist failed — handleSaveToDocuments will retry at save time.
+      console.error('[OcrMvpScreen] early persist failed', e);
+    }
+
     startJob({ uri: fileUri, name: fileName, mimeType }, forceType);
   };
 
   const handleSaveToDocuments = useCallback(async () => {
     if (!result || savedDocId) return;
-    if (!selectedUri) {
-      Alert.alert('Speichern fehlgeschlagen', 'Quelldatei konnte nicht gefunden werden.');
-      return;
-    }
     try {
-      const docId = generateId();
+      // Use early-persisted data if available; otherwise retry persist now.
+      let docId = earlyPersistedDocId;
+      let persistedPages = earlyPersistedPages;
+
+      if (!docId || !persistedPages?.length) {
+        if (!selectedUri) {
+          Alert.alert('Speichern fehlgeschlagen', 'Quelldatei konnte nicht gefunden werden.');
+          return;
+        }
+        docId = generateId();
+        persistedPages = await persistScanFiles(docId, [selectedUri]);
+      }
+
       // Duplicate check mirrors reducer logic (rohText first 120 chars).
-      // Do this before persisting files to avoid orphaned scan data.
       const draftCheck = ocrMvpToV4Document(result, { id: docId });
       const sig = draftCheck.document.rohText?.slice(0, 120) ?? null;
       const existing = sig
@@ -131,7 +156,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
         setSavedDocId(existing.id);
         return;
       }
-      const persistedPages = await persistScanFiles(docId, [selectedUri]);
+
       const draft = ocrMvpToV4Document(result, {
         id:    docId,
         uri:   persistedPages[0]?.uri ?? null,
@@ -142,7 +167,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     } catch (e: any) {
       Alert.alert('Speichern fehlgeschlagen', e?.message ?? 'Dokument konnte nicht gespeichert werden.');
     }
-  }, [result, savedDocId, selectedUri, dispatch, state.dokumente]);
+  }, [result, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;
@@ -153,6 +178,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
     setSavedDocId(null);
     setSelectedUri(null);
     setSelectedPreviewUri(null);
+    setEarlyPersistedDocId(null);
+    setEarlyPersistedPages(null);
     reset();
   }, [reset]);
 

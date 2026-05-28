@@ -133,6 +133,7 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 | Hash | Konu |
 |------|------|
+| `5f86e8009` | fix(detail): remove duplicate next-step banner from actions tab — NaechsterSchrittCard Erledigen sekmesinden kaldırıldı; ActionsPanel tek next-step yüzeyi |
 | `a7c50f8f5` | fix(detail): remove duplicate warning footer from overview hero — AnalyseHeaderCard footer kaldırıldı; NaechsterSchrittCard tek yönlendirme yüzeyi |
 | `2ecf63ac2` | fix(home): remove duplicate all-clear message — HomeTriage allZero kartı yeterli, inline blok kaldırıldı |
 | `1f86909d2` | refactor(detail): remove Ähnliche Dokumente — confidence leak + gürültü, gelecekte Verlauf/Vergleich olarak yeniden yapılacak |
@@ -171,6 +172,9 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
 ### P2 — Backlog (UI Reset Phase 2)
 - [ ] **SmartRiskPanel explanation/suggestions** — varsayılan gizli, tap ile aç. Şu an her zaman görünüyor.
+- [ ] **SmartActionsPanel default collapsed** — `expandedGruppe` başlangıç değeri `null` olmalı; şu an `'organisation'` açık geliyor.
+- [ ] **Erledigt pill** — secondary aksiyonlardan MoreMenu'ye taşınabilir; iş adımı değil durum değişikliği.
+- [ ] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (aksiyon edit modal açıyor, label uyumsuz).
 
 ---
 

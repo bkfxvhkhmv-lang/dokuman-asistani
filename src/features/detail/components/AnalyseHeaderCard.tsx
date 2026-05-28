@@ -1,13 +1,13 @@
 /**
  * AnalyseHeaderCard — scanned document at-a-glance for the Analyse tab.
  *
- * Answers in one screen-height: status, sender, amount, deadline, next step.
+ * Answers in one screen-height: status, sender, amount, deadline.
  * OCR confidence pill prevents users from acting on bad data.
+ * Next-step guidance lives in NaechsterSchrittCard, not here.
  */
 import React from 'react';
 import { View, Text } from 'react-native';
 import AiSparkle from '@/components/AiSparkle';
-import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { T } from '@/design/tokens';
 import {
@@ -16,12 +16,10 @@ import {
 } from '@/features/detail/constants/documentStatus';
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
 import { safeDisplayAbsender } from '@/utils/displaySanitizer';
-import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import type { Dokument } from '@/store';
 
 interface Props {
   dok: Dokument;
-  actionPlan: ActionPlan | null;
 }
 
 function statusColors(colorKey: string, C: any) {
@@ -42,7 +40,7 @@ function confidenceColor(conf: number, C: any): string {
   return C.warning;
 }
 
-export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
+export default function AnalyseHeaderCard({ dok }: Props) {
   const { Colors: C, S, R } = useTheme();
 
   const status   = computeDocumentStatus(dok);
@@ -137,21 +135,6 @@ export default function AnalyseHeaderCard({ dok, actionPlan }: Props) {
         </View>
       )}
 
-      {/* ── Nächster Schritt footer ───────────────────────────────────────── */}
-      {actionPlan?.primary ? (
-        <View style={{
-          flexDirection: 'row', alignItems: 'center', gap: 8,
-          paddingHorizontal: S.lg, paddingVertical: 11,
-          borderTopWidth: 0.5, borderTopColor: C.borderLight,
-          backgroundColor: C.primaryLight,
-        }}>
-          <Icon name={actionPlan.primary.icon} size={18} color={C.primaryDark} />
-          <Text style={{ ...T.title, color: C.primaryDark, flex: 1 }}>
-            {actionPlan.primary.label}
-          </Text>
-          <Icon name="caret-right" size={16} color={C.primaryDark} />
-        </View>
-      ) : null}
     </View>
   );
 }

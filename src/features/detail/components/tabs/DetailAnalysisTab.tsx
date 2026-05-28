@@ -59,7 +59,7 @@ export default function DetailAnalysisTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
-      <AnalyseHeaderCard dok={detail.dok} actionPlan={actionPlan} />
+      <AnalyseHeaderCard dok={detail.dok} />
       <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />
 
       <SmartSummaryCard

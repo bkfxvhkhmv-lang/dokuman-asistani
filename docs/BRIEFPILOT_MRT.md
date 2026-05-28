@@ -176,6 +176,8 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `8fc93fd3` | chore(dev): DEV-only "Alle Dokumente löschen" reset button in Einstellungen — __DEV__ guard, production etkisi yok |
+| `fee62528` | fix(storage): persist scan file paths relative to document directory — relativePath field; persistence hydration+migration; 16/16 test PASS |
 | `2092164c` | fix(storage): persist document source files before saving — ShareUploadService: persistScanFiles+pages; useDocumentPipeline: no cache URI fallback; OcrMvpScreen: early persist at selection time |
 | `d7248215` | fix(layout): fallback when tab bar height context is missing — DetailScreen + ExportBildschirm: useBottomTabBarHeight()→useContext(BottomTabBarHeightContext)??49; Detail crash on router.push fixed |
 | `3fb9f127` | fix(export): decode document titles in batch PDF — safeDisplayDocumentTitleForExport helper; exportiereTopluPDF dok.titel raw→decoded; 8/8 test PASS |

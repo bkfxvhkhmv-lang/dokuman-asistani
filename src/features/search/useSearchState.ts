@@ -61,7 +61,7 @@ export function useSearchState(docs: Dokument[]) {
     [docs, query, minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, mitErledigt]
   );
 
-  const zeigeSuche = query.length >= 2 || filterAktiv;
+  const zeigeSuche = query.length >= 1 || filterAktiv || typ !== 'alle';
 
   const triggerV4Search = useCallback((text: string) => {
     if (!v4Modus || text.trim().length < 3) { clearV4(); return; }

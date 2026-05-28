@@ -14,7 +14,7 @@ import { AppInput } from '@/design/components';
 import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
 import SpringChip from '@/features/search/components/SpringChip';
-import { TYPEN, RISIKEN } from '@/features/search/components/constants';
+import { RISIKEN } from '@/features/search/components/constants';
 import { useT } from '@/hooks/useT';
 
 interface Props {
@@ -78,47 +78,45 @@ export default function SearchFilterModal({
         </Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
           <View style={{ flex: 1 }}>
-            <AppInput label="Von" placeholder="2024-01-01" value={vonDatum} onChangeText={setVonDatum} />
+            <AppInput label="Von" placeholder="TT.MM.JJJJ" value={vonDatum} onChangeText={setVonDatum} />
           </View>
           <View style={{ flex: 1 }}>
-            <AppInput label="Bis" placeholder="2024-12-31" value={bisDatum} onChangeText={setBisDatum} />
+            <AppInput label="Bis" placeholder="TT.MM.JJJJ" value={bisDatum} onChangeText={setBisDatum} />
           </View>
         </View>
 
-        {/* DOKUMENTTYP */}
+        {/* BEREICH */}
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          DOKUMENTTYP
+          BEREICH
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {TYPEN.map(t => (
-              <SpringChip
-                key={t}
-                onPress={() => setTyp(t)}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+          {(['alle', 'Rechnungen', 'Behörden', 'Nachweise'] as const).map(t => (
+            <SpringChip
+              key={t}
+              onPress={() => setTyp(t)}
+              style={{
+                paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
+                borderWidth: 1,
+                borderColor:     typ === t ? C.primary : C.border,
+                backgroundColor: typ === t ? C.primaryLight : 'transparent',
+              }}
+            >
+              <Text
                 style={{
-                  paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
-                  borderWidth: 1,
-                  borderColor:     typ === t ? C.primary : C.border,
-                  backgroundColor: typ === t ? C.primaryLight : 'transparent',
+                  fontSize: 12,
+                  fontWeight: typ === t ? '700' : '400',
+                  color:      typ === t ? C.primaryDark : C.textSecondary,
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: typ === t ? '700' : '400',
-                    color:      typ === t ? C.primaryDark : C.textSecondary,
-                  }}
-                >
-                  {t === 'alle' ? 'Alle' : t}
-                </Text>
-              </SpringChip>
-            ))}
-          </View>
-        </ScrollView>
+                {t === 'alle' ? 'Alle' : t}
+              </Text>
+            </SpringChip>
+          ))}
+        </View>
 
-        {/* RISIKOLEVEL */}
+        {/* PRÜFSTATUS */}
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          RISIKOLEVEL
+          PRÜFSTATUS
         </Text>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
           {RISIKEN.map(r => {

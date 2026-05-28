@@ -278,7 +278,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
                 Was bedeutet dieses Dokument?
               </Text>
               <Text style={{ fontSize: 13, color: C.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
-                Die KI erklärt das Dokument auf {seciliDilObj.name}.{'\n'}
+                Das Dokument wird auf {seciliDilObj.name} erklärt.{'\n'}
                 Der Dokumentinhalt wird niemals übertragen.
               </Text>
               <TouchableOpacity onPress={() => handleAcikla()}
@@ -293,7 +293,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           {yukleniyor && (
             <View style={{ alignItems: 'center', paddingVertical: 48 }}>
               <ActivityIndicator size="large" color={C.primary} />
-              <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>KI analysiert…</Text>
+              <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>Analysiert …</Text>
               <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 6 }}>
                 Dauert in der Regel 3–10 Sekunden
               </Text>

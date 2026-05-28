@@ -77,7 +77,7 @@ export function useDetailMoreItems({
       rows.push({
         key:     'menu_chat',
         icon:    'chat-circle',
-        label:   'Mit KI chatten',
+        label:   'Fragen zum Dokument',
         group:   'communication',
         onPress: () => { close(); openModal('chat'); },
       });

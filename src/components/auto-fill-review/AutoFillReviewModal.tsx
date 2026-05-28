@@ -124,7 +124,7 @@ export default function AutoFillReviewModal({
               <View style={{ alignItems: 'center', paddingVertical: 48 }}>
                 <ActivityIndicator size="large" color={C.primary} />
                 <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>
-                  KI analysiert Dokument…
+                  Dokument wird analysiert …
                 </Text>
               </View>
             ) : (

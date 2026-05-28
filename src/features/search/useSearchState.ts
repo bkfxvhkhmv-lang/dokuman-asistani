@@ -28,6 +28,7 @@ export function useSearchState(docs: Dokument[]) {
   const [suchVerlauf, setSuchVerlauf] = useState<string[]>([]);
   const [v4Modus, setV4Modus]         = useState(false);
   const [ftsWeight, setFtsWeight]     = useState(0.5);
+  const [chipTapped, setChipTapped]   = useState(false);
   const v4Timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -61,7 +62,12 @@ export function useSearchState(docs: Dokument[]) {
     [docs, query, minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, mitErledigt]
   );
 
-  const zeigeSuche = query.length >= 1 || filterAktiv || typ !== 'alle';
+  const handleTyp = useCallback((value: string) => {
+    setTyp(value);
+    setChipTapped(true);
+  }, []);
+
+  const zeigeSuche = query.length >= 1 || filterAktiv || chipTapped;
 
   const triggerV4Search = useCallback((text: string) => {
     if (!v4Modus || text.trim().length < 3) { clearV4(); return; }
@@ -100,6 +106,7 @@ export function useSearchState(docs: Dokument[]) {
     setRisiko('alle');
     setMitErledigt(false);
     setFilterOffen(false);
+    setChipTapped(false);
   }, []);
 
   return {
@@ -110,7 +117,7 @@ export function useSearchState(docs: Dokument[]) {
     maxBetrag, setMaxBetrag,
     vonDatum, setVonDatum,
     bisDatum, setBisDatum,
-    typ, setTyp,
+    typ, setTyp, handleTyp,
     risiko, setRisiko,
     mitErledigt, setMitErledigt,
     suchVerlauf, setSuchVerlauf,

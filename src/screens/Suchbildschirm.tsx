@@ -49,7 +49,7 @@ export default function Suchbildschirm() {
     query, filterOffen, setFilterOffen,
     minBetrag, setMinBetrag, maxBetrag, setMaxBetrag,
     vonDatum, setVonDatum, bisDatum, setBisDatum,
-    typ, setTyp, risiko, setRisiko,
+    typ, setTyp, handleTyp, risiko, setRisiko,
     mitErledigt, setMitErledigt,
     suchVerlauf, setSuchVerlauf,
     v4Modus, ftsWeight, setFtsWeight,
@@ -119,7 +119,7 @@ export default function Suchbildschirm() {
           C={C}
           S={S}
         />
-        {!v4Modus ? <SearchCategoryChips typ={typ} onTyp={setTyp} C={C} S={S} /> : null}
+        {!v4Modus ? <SearchCategoryChips typ={typ} onTyp={handleTyp} C={C} S={S} /> : null}
 
         {/* Banner / hint katmanlari */}
         {v4Modus && (

@@ -175,6 +175,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `3d6415a` | docs(mrt): document excel export availability decision — job_id persist edilmiyor, detail sheet'e Excel eklenmez kararı |
 | `4655b5f` | fix(export): clarify export option labels and excel copy — pdf_alle/originaldokumente ayrı açıklamalar, export_excel label V7'ye güncellendi, xlsx fallback label netleştirildi |
 | `c3793a6` | fix(export): run selected batch export options independently — pdf_alle+originaldokumente OR-block ayrıldı; ikisi seçiliyse ikisi de çalışır, biri artık silently drop edilmiyor |
 | `4f796c4` | feat(export): Steuerberater-Excel V7 — invoice_to_excel.py + schema.py v7; Gutschrift-Normalisierung, deutsche Monatsnamen, duplikate Summenzeilen entfernt. Excel V7 backend accepted as Steuerberater-readable V1. Not DATEV. 31/31 PASS. |

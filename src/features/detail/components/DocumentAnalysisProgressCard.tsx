@@ -114,8 +114,8 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
 
       <View style={{ marginTop: 4, marginBottom: S.md }}>
         {stepLine('Auf Gerät gespeichert', 'done', 'upload')}
-        {stepLine('Text wird erkannt (OCR)', stepText as 'done' | 'active' | 'wait' | 'error', 'ocr')}
-        {stepLine('KI‑Zusammenfassung & Felder', stepAi as 'done' | 'active' | 'wait' | 'error', 'ai')}
+        {stepLine('Dokument wird erkannt', stepText as 'done' | 'active' | 'wait' | 'error', 'ocr')}
+        {stepLine('Zusammenfassung wird erstellt', stepAi as 'done' | 'active' | 'wait' | 'error', 'ai')}
       </View>
 
       <Text style={{ fontSize: fs(11), color: C.textTertiary }}>
@@ -138,7 +138,7 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={{ fontSize: fs(14), fontWeight: '700', color: '#fff' }}>
-              {info.phase === 'error' ? 'Erneut versuchen' : 'Mit Server aktualisieren'}
+              {info.phase === 'error' ? 'Erneut versuchen' : 'Aktualisieren'}
             </Text>
           )}
         </TouchableOpacity>

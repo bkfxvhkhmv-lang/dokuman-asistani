@@ -10,10 +10,10 @@ export default function V4JobStatusRibbon({ dok }: { dok: Dokument }) {
   if (!status || status === 'completed') return null;
 
   let line: string;
-  if (status === 'pending') line = '📨 Server wartet auf Verarbeitung';
-  else if (status === 'processing') line = '⚙️ Server verarbeitet (OCR) …';
-  else if (status === 'failed') line = '⚠️ Server-Verarbeitung fehlgeschlagen';
-  else line = `Serverstatus: ${status}`;
+  if (status === 'pending') line = 'Dokument wird vorbereitet …';
+  else if (status === 'processing') line = 'Dokument wird analysiert …';
+  else if (status === 'failed') line = 'Analyse fehlgeschlagen';
+  else line = 'Status: Unbekannt';
 
   return (
     <View

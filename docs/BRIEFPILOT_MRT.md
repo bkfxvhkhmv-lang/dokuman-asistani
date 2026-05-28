@@ -228,6 +228,11 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 ### P0 — KAPANDI 2026-05-28 ✅
 Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
+**Clean-state smoke — 2026-05-28 akşam (6 belge, temiz veri):**
+- Search Alle (9 sonuç) ✅ — Rechnungen/Behörden/Nachweise chip grupları ✅
+- Encoded title (%20) yok ✅ — Bis ana başlık değil ✅ — Angaben prüfen sadece action chip ✅
+- Kalan: Preview persistence + Vorlesen + Fristen yeni build test edilmedi
+
 ### P1 — Açık
 - [x] **Überblick footer tekrarı** — `AnalyseHeaderCard` footer kaldırıldı (`a7c50f8f5`). NaechsterSchrittCard tek yönlendirme yüzeyi.
 - [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, runtime'ı etkilemiyor.

@@ -175,6 +175,8 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `5663b6a` | fix(ui): make OCR download action secondary — downloadBtn/modalDownloadBtn hardcoded #22C55E kaldırıldı; outlined/neutral style; Save/Open primary kalır, Excel/download secondary |
+| `b919b6e` | fix(copy): remove technical OCR and AI wording — "OCR wird verarbeitet" → "Dokument wird analysiert", "KI-Detail" → "Ausführlich", "Lokal · Offline" → "Offline", "KI · Gecacht" → "Zwischengespeichert"; ConfidencePill raw % kaldırıldı |
 | `54b9760` | refactor(detail): reduce secondary action noise — SmartActionsPanel null default, gutschrift label düzeltildi, Erledigt pill → MoreMenu |
 | `3d6415a` | docs(mrt): document excel export availability decision — job_id persist edilmiyor, detail sheet'e Excel eklenmez kararı |
 | `4655b5f` | fix(export): clarify export option labels and excel copy — pdf_alle/originaldokumente ayrı açıklamalar, export_excel label V7'ye güncellendi, xlsx fallback label netleştirildi |
@@ -222,6 +224,8 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [x] **SmartActionsPanel default collapsed** — `expandedGruppe = null` yapıldı (`54b9760`).
 - [x] **Erledigt pill** — secondary pill'den kaldırıldı, MoreMenu secondary grubuna taşındı (`54b9760`).
 - [x] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (`54b9760`). `deriveNextStep`/`detailNextStep`'teki label'lar Überblick konteksti için ayrı — dokunulmadı.
+- [x] **OCR teknik dil temizliği** — "OCR" → "Dokument/Analyse", "KI-Detail" → "Ausführlich", cache/offline labels sadeleşti, confidence raw % kaldırıldı (`b919b6e`).
+- [x] **OCR download buton hiyerarşisi** — downloadBtn/modalDownloadBtn primary green'den secondary outlined'a taşındı; Save/Open primary kalır (`5663b6a`).
 
 ### Export Audit — KAPANDI 2026-05-28 ✅
 - [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)

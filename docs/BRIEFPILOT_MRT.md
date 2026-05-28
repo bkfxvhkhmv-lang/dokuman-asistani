@@ -175,6 +175,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `54b9760` | refactor(detail): reduce secondary action noise — SmartActionsPanel null default, gutschrift label düzeltildi, Erledigt pill → MoreMenu |
 | `3d6415a` | docs(mrt): document excel export availability decision — job_id persist edilmiyor, detail sheet'e Excel eklenmez kararı |
 | `4655b5f` | fix(export): clarify export option labels and excel copy — pdf_alle/originaldokumente ayrı açıklamalar, export_excel label V7'ye güncellendi, xlsx fallback label netleştirildi |
 | `c3793a6` | fix(export): run selected batch export options independently — pdf_alle+originaldokumente OR-block ayrıldı; ikisi seçiliyse ikisi de çalışır, biri artık silently drop edilmiyor |
@@ -218,9 +219,9 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
 ### P2 — Backlog (UI Reset Phase 2)
 - [ ] **SmartRiskPanel explanation/suggestions** — varsayılan gizli, tap ile aç. Şu an her zaman görünüyor.
-- [ ] **SmartActionsPanel default collapsed** — `expandedGruppe` başlangıç değeri `null` olmalı; şu an `'organisation'` açık geliyor.
-- [ ] **Erledigt pill** — secondary aksiyonlardan MoreMenu'ye taşınabilir; iş adımı değil durum değişikliği.
-- [ ] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (aksiyon edit modal açıyor, label uyumsuz).
+- [x] **SmartActionsPanel default collapsed** — `expandedGruppe = null` yapıldı (`54b9760`).
+- [x] **Erledigt pill** — secondary pill'den kaldırıldı, MoreMenu secondary grubuna taşındı (`54b9760`).
+- [x] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (`54b9760`). `deriveNextStep`/`detailNextStep`'teki label'lar Überblick konteksti için ayrı — dokunulmadı.
 
 ### Export Audit — KAPANDI 2026-05-28 ✅
 - [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)

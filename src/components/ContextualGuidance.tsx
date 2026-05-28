@@ -4,6 +4,7 @@ import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { ColorPalette } from '@/theme';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface GuidanceCard {
   id: string;
@@ -25,7 +26,7 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
   if (kritisch.length > 0) {
     cards.push({ id: 'kritisch', icon: 'warning-circle',
       title: `${kritisch.length} dringende${kritisch.length === 1 ? 's Dokument' : ' Dokumente'}`,
-      sub: kritisch.slice(0, 2).map(d => d.absender || d.titel).join(', '),
+      sub: kritisch.slice(0, 2).map(d => d.absender || safeDisplayTitel(d.titel, d.typ, d.confidence)).join(', '),
       color: C.danger, bg: C.dangerLight, action: () => {}, actionLabel: 'Jetzt ansehen', priority: 10 });
   }
 
@@ -37,7 +38,7 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
   if (heuteUndMorgen.length > 0) {
     cards.push({ id: 'heutemorgen', icon: 'clock',
       title: `${heuteUndMorgen.length} Frist${heuteUndMorgen.length === 1 ? '' : 'en'} heute / morgen`,
-      sub: heuteUndMorgen[0].titel,
+      sub: safeDisplayTitel(heuteUndMorgen[0].titel, heuteUndMorgen[0].typ, heuteUndMorgen[0].confidence),
       color: C.warning, bg: C.warningLight,
       action: () => router.push({ pathname: '/detail', params: { dokId: heuteUndMorgen[0].id } }),
       actionLabel: 'Öffnen', priority: 9 });
@@ -61,7 +62,10 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
   if (dieseWoche.length > 0) {
     cards.push({ id: 'deadline', icon: 'calendar-blank',
       title: `${dieseWoche.length} Frist${dieseWoche.length === 1 ? '' : 'en'} diese Woche`,
-      sub: dieseWoche.map(d => d.absender || d.titel).slice(0, 2).join(', '),
+      sub: dieseWoche
+        .map(d => d.absender || safeDisplayTitel(d.titel, d.typ, d.confidence))
+        .slice(0, 2)
+        .join(', '),
       color: C.success, bg: C.successLight,
       action: () => router.push({ pathname: '/detail', params: { dokId: dieseWoche[0].id } }),
       actionLabel: 'Im Kalender eintragen', priority: 6 });

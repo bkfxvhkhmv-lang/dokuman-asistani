@@ -28,6 +28,11 @@ const ABBREV_MAP: [RegExp, string][] = [
   [/\baok\b/gi,          'AOK'],
 ];
 
+const RESERVED_DISPLAY_TITLES = new Set([
+  'angaben prüfen',
+  'bis',
+]);
+
 function toTitleCase(text: string): string {
   return text
     .split(' ')
@@ -111,5 +116,9 @@ export function safeDisplayTitel(
     return typ || 'Unbekanntes Dokument';
   }
   const humanized = humanizeTitle(titel);
-  return humanized ?? titel.trim();
+  const candidate = (humanized ?? titel.trim()).trim();
+  if (RESERVED_DISPLAY_TITLES.has(candidate.toLowerCase())) {
+    return typ || 'Unbekanntes Dokument';
+  }
+  return candidate;
 }

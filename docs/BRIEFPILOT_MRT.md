@@ -34,6 +34,7 @@ tek yerde tutar.
 - **Dokunma alanı ≥ 44×44pt.** Her `TouchableOpacity` için `hitSlop` veya `padding ≥ 12`.
 - **Yanlış bilgi hiç bilgiden kötüdür.** Confidence < 55 ise alanlar `'Unbekannt'` gösterir, uydurma değil.
 - **Koda bakarak proaktif hata bul.** Kullanıcı test etmeden önce akış okunur; olası sorunlar bildirilir.
+- **Ham belge başlığı UI'a basılmaz.** `dok.titel` / `d.titel` / `item.titel` kullanıcıya görünen yüzeylerde doğrudan render edilmez; merkezi display sanitizer kullanılır.
 
 ---
 
@@ -180,6 +181,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 | `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |
+| `pending current commit` | fix(display): sanitize document titles across remaining UI surfaces — SmartLinksPanel/SmartTimelinePanel/PdfMergeDragModal/DocumentContextSheet/DocumentAnalysisProgressCard/ContextualGuidance now use central display sanitizer; raw `%20`, `Bis`, `Angaben prüfen` no longer render as document titles in these UI surfaces |
 | `baec9ae1` | fix(display): sanitize document titles across timeline and exports — eventCore/useSmartTimeline safeDisplayTitel; dateExtraction "Bis"→"Zahlung fällig"; safeDisplayTitel no "Angaben prüfen"; single-doc PDF title sanitized; 10/10 test PASS |
 | `8fc93fd3` | chore(dev): DEV-only "Alle Dokumente löschen" reset button in Einstellungen — __DEV__ guard, production etkisi yok |
 | `fee62528` | fix(storage): persist scan file paths relative to document directory — relativePath field; persistence hydration+migration; 16/16 test PASS |

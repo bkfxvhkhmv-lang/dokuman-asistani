@@ -14,6 +14,7 @@ import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import { HIT_SLOP } from '@/theme';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface Action {
   key:     string;
@@ -93,7 +94,7 @@ export default function DocumentContextSheet({
     <AppSheet
       visible={!!dok}
       onClose={onClose}
-      title={dok.titel || dok.typ}
+      title={safeDisplayTitel(dok.titel, dok.typ || 'Unbekanntes Dokument', dok.confidence)}
       subtitle={dok.absender}
     >
       <View style={st.list}>

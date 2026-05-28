@@ -6,6 +6,7 @@ import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import type { RadiusTokens } from '@/theme';
 import type { TimelineEvent, TimelineView, WochenZusammenfassung } from '@/services/SmartTimelineService';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 // ── Single event row ───────────────────────────────────────────────────────────
 
@@ -46,7 +47,7 @@ function EventRow({
           {event.label}
         </Text>
         <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }} numberOfLines={1}>
-          {event.dokumentTitel}
+          {safeDisplayTitel(event.dokumentTitel)}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
@@ -131,7 +132,9 @@ function WochenCard({ summary, C, R }: { summary: WochenZusammenfassung; C: Them
         <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
           <View style={{ width: 5, height: 5, borderRadius: 2.5,
             backgroundColor: (d.tage ?? 1) <= 0 ? C.danger : (d.tage ?? 1) <= 3 ? C.warning : C.success }} />
-          <Text style={{ fontSize: 12, color: C.text, flex: 1 }} numberOfLines={1}>{d.titel}</Text>
+          <Text style={{ fontSize: 12, color: C.text, flex: 1 }} numberOfLines={1}>
+            {safeDisplayTitel(d.titel)}
+          </Text>
           <Text style={{ fontSize: 11, color: C.textTertiary }}>
             {d.tage !== null ? (d.tage <= 0 ? T('doc.overdue') : `${d.tage}T`) : '–'}
           </Text>

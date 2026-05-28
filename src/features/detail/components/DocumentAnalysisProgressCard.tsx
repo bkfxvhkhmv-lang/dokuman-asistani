@@ -5,6 +5,7 @@ import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import type { PipelineUiPhase } from '@/utils/documentPipelineStatus';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 function phaseColors(phase: PipelineUiPhase, C: ThemeColors) {
   switch (phase) {
@@ -49,6 +50,7 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
       : info.phase === 'processing'
         ? 'active'
         : 'wait';
+  const displayTitle = safeDisplayTitel(dok.dateiName || dok.titel, dok.typ, dok.confidence);
 
   const onSync = useCallback(async () => {
     setBusy(true);
@@ -104,7 +106,7 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
         DOKUMENT-ANALYSE
       </Text>
       <Text style={{ fontSize: fs(15), fontWeight: '700', color: C.text }} numberOfLines={1}>
-        {dok.dateiName || dok.titel}
+        {displayTitle}
       </Text>
       <Text style={{ fontSize: fs(13), color: tone.label, marginTop: 6, marginBottom: S.sm }}>
         {info.phase === 'error'

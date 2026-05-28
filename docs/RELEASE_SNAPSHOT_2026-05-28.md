@@ -29,6 +29,7 @@ No new decisions, no new code — read-only state of the branch.
 | OCR result CTA hierarchy | ✅ PASS | "In Dokumente speichern" primary; Excel/Download secondary outlined |
 | Single document export | ✅ PASS | `exportiereTopluPDF` via share sheet |
 | Batch export (selectedIds) | ✅ PASS — title decode re-verify pending | Logic PASS device smoke; URL-encoded titles fixed `3fb9f127`; re-export needed to confirm decode |
+| Remaining raw title UI surfaces | ✅ Code fix landed — device verify pending | SmartLinksPanel, SmartTimelinePanel, PdfMergeDragModal, DocumentContextSheet, DocumentAnalysisProgressCard, ContextualGuidance now sanitize display titles via central helper |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
 | Vorlesen (native TTS) | ⬜ Not verified this session | `expo-speech` wired; no regression reported |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
@@ -116,6 +117,7 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 
 - Excel V7: **31/31 PASS** (RunPod, Python unit tests on `invoice_to_excel.py`)
 - `safeDisplayDocumentTitleForExport`: **8/8 PASS** (Jest, `src/__tests__/exportDocumentTitle.test.ts`)
+- `displaySanitizer` + export title tests: **18/18 PASS** (`src/__tests__/displaySanitizer.test.ts`, `src/__tests__/exportDocumentTitle.test.ts`)
 - No Detox suite present in mobile repo.
 
 ---
@@ -159,6 +161,7 @@ Recommended order:
 | 11 | App restart → belge aç → Dokument tab | Preview hâlâ görünür (relativePath) |
 | 12 | Vorlesen — analizli belgede | Ses başlar, Anhalten çalışır |
 | 13 | Fristen & Termine yeni build | "Bis" başlık yok, "Steuer%20..." yok |
+| 14 | SmartLinks/Timeline/Merge/Context/Progress/Guidance | Encoded or placeholder raw title görünmez |
 
 **Sonuç formatı:**
 ```
@@ -173,4 +176,4 @@ Notlar:
 
 ---
 
-*Updated 2026-05-28 evening — post-sprint P0/P1 fixes applied. Next: rebuild + clean state smoke.*
+*Updated 2026-05-28 evening — remaining raw title UI surfaces sanitized in code. Manual device verification still required for the touched screens.*

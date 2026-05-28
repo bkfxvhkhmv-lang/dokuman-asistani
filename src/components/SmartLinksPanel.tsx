@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import type { LinkingResult, DocumentLink } from '@/services/SmartLinkingService';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface SmartLinksPanelProps {
   result: LinkingResult;
@@ -44,7 +45,7 @@ function LinkRow({ link, dok, onPress, C }: {
           style={{ fontSize: 13, fontWeight: '600', color: C.text }}
           numberOfLines={2}
           ellipsizeMode="tail">
-          {dok.titel}
+          {safeDisplayTitel(dok.titel, dok.typ)}
         </Text>
         <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
           {LINK_TYPE_LABEL[link.type] || link.type} · {dok.typ}

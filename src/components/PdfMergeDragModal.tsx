@@ -6,6 +6,7 @@ import { uploadDocumentV4 } from '@/services/v4Api';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 const ITEM_H = 60;
 
@@ -101,7 +102,9 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
                 <View style={[st.badge, { backgroundColor: isDragging ? C.primary : C.primaryLight }]}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: isDragging ? '#fff' : C.primaryDark }}>{i + 1}</Text>
                 </View>
-                <Text style={[st.rowTitle, { color: C.text }]} numberOfLines={1}>{dok.titel}</Text>
+                <Text style={[st.rowTitle, { color: C.text }]} numberOfLines={1}>
+                  {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
+                </Text>
                 <Text style={{ fontSize: 18, color: C.textTertiary, paddingHorizontal: 4 }}>☰</Text>
               </Animated.View>
             );

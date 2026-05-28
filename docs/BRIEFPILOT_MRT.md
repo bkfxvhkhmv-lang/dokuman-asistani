@@ -181,7 +181,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 | `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |
-| `pending current commit` | fix(display): sanitize document titles across remaining UI surfaces — SmartLinksPanel/SmartTimelinePanel/PdfMergeDragModal/DocumentContextSheet/DocumentAnalysisProgressCard/ContextualGuidance now use central display sanitizer; raw `%20`, `Bis`, `Angaben prüfen` no longer render as document titles in these UI surfaces |
+| `d112162b4` | fix(display): sanitize document titles across remaining UI surfaces — SmartLinksPanel/SmartTimelinePanel/PdfMergeDragModal/DocumentContextSheet/DocumentAnalysisProgressCard/ContextualGuidance now use central display sanitizer; raw `%20`, `Bis`, `Angaben prüfen` no longer render as document titles in these UI surfaces |
 | `baec9ae1` | fix(display): sanitize document titles across timeline and exports — eventCore/useSmartTimeline safeDisplayTitel; dateExtraction "Bis"→"Zahlung fällig"; safeDisplayTitel no "Angaben prüfen"; single-doc PDF title sanitized; 10/10 test PASS |
 | `8fc93fd3` | chore(dev): DEV-only "Alle Dokumente löschen" reset button in Einstellungen — __DEV__ guard, production etkisi yok |
 | `fee62528` | fix(storage): persist scan file paths relative to document directory — relativePath field; persistence hydration+migration; 16/16 test PASS |
@@ -241,6 +241,13 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, runtime'ı etkilemiyor.
 - [ ] **Export ekranı son öğe görünürlüğü** — device'da onaylanmadı.
 - [ ] **Toplu export selectedIds** — device'da onaylanmadı.
+- [ ] **Raw title backlog — P1-A Messages** — kullanıcıya görünen dış yüzeylerde ham `dok.titel` hâlâ var:
+  `src/utils/calendar.ts`, `src/services/smart-notifications/notifyContent.ts`, `src/services/SmartRemindersService.ts`, `src/services/WidgetDataService.ts`
+- [ ] **Raw title backlog — P1-B Share/Export** — paylaşım, export, template copy yüzeyleri sanitize edilmeli:
+  `src/utils/exporters.ts`, `src/features/detail/hooks/document-actions/sharing.ts`, `src/features/detail/services/documentActionFlows.ts`, `src/features/detail/modals/SignaturePdfSheet.tsx`
+- [ ] **Raw title backlog — P1-C Summaries/Guidance** — özet ve yönlendirme metinlerinde ham title kalmış:
+  `src/components/MultiLayerSummaryView.tsx`, `src/components/SmartRegionsView.tsx`, `src/utils/labels.ts`, `src/services/smart-suggestions/homeSuggestions.ts`, `src/core/intelligence/AutoWorkflowEngine.ts`, `src/utils/documentAnalysis.ts`
+- [ ] **Ürün kuralı genişletmesi** — ham `dok.titel` kullanıcıya görünen copy, notifications, calendar events, share messages, widgets veya summaries içinde doğrudan kullanılmayacak.
 
 ### P2 — Backlog (UI Reset Phase 2)
 - [x] **SmartRiskPanel explanation/suggestions** — `useState(false)` zaten mevcut. Detay (faktörler/darkPatterns/peerComparison) toggle arkasında. Özet (score+label+erklaerung+vorschlaege) her zaman görünür — bu intended UX. Already satisfied, kod değişikliği gerekmez.

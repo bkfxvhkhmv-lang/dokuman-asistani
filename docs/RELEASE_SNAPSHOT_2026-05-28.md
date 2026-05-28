@@ -10,7 +10,7 @@ No new decisions, no new code — read-only state of the branch.
 | Field | Value |
 |-------|-------|
 | Branch | `feature/ocr-api-integration` |
-| Last commit | `4a8c4c13a` — `chore(mrt): log title sanitizer and search fix commits` |
+| Last commit | `d112162b4` — `fix(display): sanitize document titles across remaining UI surfaces` |
 | Working tree | clean |
 | iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — committed `0651e5728` |
 | Build script | `build_device.sh` — `.gitignore`'da (`03ed08406`) |
@@ -86,6 +86,9 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | Localization deeper i18n audit | Future | Türkçe/Almanca string mix exists; not P1. |
 | Home `DashboardSummary` / `HomeUrgencyBanner` visual overlap | Optional | No crash, no data loss. |
 | Detail Excel download (requires job_id persistence) | Backlog | See §4. |
+| Remaining raw title surfaces — P1-A Messages | P1 | `calendar.ts`, `notifyContent.ts`, `SmartRemindersService.ts`, `WidgetDataService.ts` |
+| Remaining raw title surfaces — P1-B Share/Export | P1 | `exporters.ts`, `document-actions/sharing.ts`, `documentActionFlows.ts`, `SignaturePdfSheet.tsx` |
+| Remaining raw title surfaces — P1-C Summaries/Guidance | P1 | `MultiLayerSummaryView.tsx`, `SmartRegionsView.tsx`, `labels.ts`, `homeSuggestions.ts`, `AutoWorkflowEngine.ts`, `documentAnalysis.ts` |
 | ~~`ios/project.pbxproj` commit~~ | ~~Pre-TestFlight~~ | ✅ Done `0651e5728` |
 | ~~`build_device.sh` gitignore~~  | ~~Pre-TestFlight~~ | ✅ Done `03ed08406` |
 
@@ -134,7 +137,8 @@ Recommended order:
 4. ~~Title sanitizer (Steuer%20, Bis, Angaben prüfen)~~ ✅ `baec9ae1`
 5. ~~Search Alle boş liste~~ ✅ `f5a24dd4`
 6. **Rebuild + clean state smoke** — reset via DEV button, upload fresh docs, run checklist below.
-7. **TestFlight prep** — after smoke PASS.
+7. **P1-A Messages** — sanitize calendar / notifications / reminders / widget title copy.
+8. **TestFlight prep** — after smoke PASS.
 
 **Completed after snapshot:**
 - Source file persistence → `relativePath` model (`fee62528`, `2092164c`)
@@ -176,4 +180,4 @@ Notlar:
 
 ---
 
-*Updated 2026-05-28 evening — remaining raw title UI surfaces sanitized in code. Manual device verification still required for the touched screens.*
+*Updated 2026-05-28 evening — first UI title cleanup landed (`d112162b4`). Remaining raw title surfaces are tracked as P1-A / P1-B / P1-C backlog. Next recommended code fix: P1-A Messages.*

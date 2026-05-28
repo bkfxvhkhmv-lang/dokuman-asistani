@@ -133,6 +133,7 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 | Hash | Konu |
 |------|------|
+| `a7c50f8f5` | fix(detail): remove duplicate warning footer from overview hero — AnalyseHeaderCard footer kaldırıldı; NaechsterSchrittCard tek yönlendirme yüzeyi |
 | `2ecf63ac2` | fix(home): remove duplicate all-clear message — HomeTriage allZero kartı yeterli, inline blok kaldırıldı |
 | `1f86909d2` | refactor(detail): remove Ähnliche Dokumente — confidence leak + gürültü, gelecekte Verlauf/Vergleich olarak yeniden yapılacak |
 | `821532cb2` | fix(home): hide empty triage counters — sıfır sayaçlar gizlendi, sadece aktif kategoriler görünür |
@@ -163,9 +164,13 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
 ### P1 — Açık
+- [x] **Überblick footer tekrarı** — `AnalyseHeaderCard` footer kaldırıldı (`a7c50f8f5`). NaechsterSchrittCard tek yönlendirme yüzeyi.
 - [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, runtime'ı etkilemiyor.
 - [ ] **Export ekranı son öğe görünürlüğü** — device'da onaylanmadı.
 - [ ] **Toplu export selectedIds** — device'da onaylanmadı.
+
+### P2 — Backlog (UI Reset Phase 2)
+- [ ] **SmartRiskPanel explanation/suggestions** — varsayılan gizli, tap ile aç. Şu an her zaman görünüyor.
 
 ---
 

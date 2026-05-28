@@ -176,6 +176,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `40d402cb` | fix(layout): replace hardcoded safe-area padding leftovers — Home paddingBottom 152→dynamic; DetailScreen footerPad 132→dynamic; ExportBildschirm hitSlop→HIT_SLOP_LG; OcrMvpResultCard #22C55E→C.success/C.successLight/C.successBorder |
 | `994db2b` | fix(copy): simplify modal and secondary AI wording — BelgeAciklamaModal/AutoFillReviewModal KI loading text; 'Mit KI chatten' → 'Fragen zum Dokument' |
 | `5106c25` | fix(copy): simplify analysis wording in summary and actions — SmartSummaryCard KI→Cloud-Analyse/Analysiert/Analyse laden; ActionsPanel ai hint KI dili kaldırıldı |
 | `060fec3` | fix(copy): remove technical processing wording from detail — V4JobStatusRibbon emoji+Server+OCR kaldırıldı; DocumentAnalysisProgressCard OCR/KI step label + 'Mit Server' düzeltildi |
@@ -235,6 +236,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [x] **V4JobStatusRibbon + DocumentAnalysisProgressCard teknik dil** — Server/OCR/KI step label ve durum metni sadeleştirildi (`060fec3`).
 - [x] **SmartSummaryCard + ActionsPanel KI etiketleri** — "KI analysiert"/"KI-Analyse"/"KI erklärt" kaldırıldı, kaynak pill "Cloud-Analyse" (`5106c25`).
 - [x] **P2 modal KI dili** — `BelgeAciklamaModal`, `AutoFillReviewModal`, `useDetailMoreItems` temizlendi (`994db2b`).
+- [x] **Layout / Safe-Area Final Pass** — Home/Detail hardcoded padding→dynamic; ExportBildschirm hitSlop standardize; OcrMvpResultCard hardcoded success renk token'larına taşındı (`40d402cb`).
 
 ### Export Audit — KAPANDI 2026-05-28 ✅
 - [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)

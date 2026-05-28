@@ -208,12 +208,19 @@ export default function ExportBildschirm() {
           await exportiereTopluPDF(steuerDoks);
         }
       }
-      if (selected.has('pdf_alle') || selected.has('originaldokumente')) {
-        const docs = selected.has('pdf_alle') ? jahresDoks : alleDoks.filter(d => !!d.uri);
-        if (docs.length === 0) {
+      if (selected.has('pdf_alle')) {
+        if (jahresDoks.length === 0) {
           Alert.alert('Keine Dokumente', isSelectionMode ? 'Keine exportierbaren Dokumente in der Auswahl.' : `Für ${aktJahr} keine Belege gefunden.`);
         } else {
-          await exportiereTopluPDF(docs);
+          await exportiereTopluPDF(jahresDoks);
+        }
+      }
+      if (selected.has('originaldokumente')) {
+        const originalDoks = alleDoks.filter(d => !!d.uri);
+        if (originalDoks.length === 0) {
+          Alert.alert('Keine Originaldokumente', isSelectionMode ? 'Keine Originaldateien in der Auswahl.' : 'Keine Originaldokumente gefunden.');
+        } else {
+          await exportiereTopluPDF(originalDoks);
         }
       }
     } catch (e: any) {

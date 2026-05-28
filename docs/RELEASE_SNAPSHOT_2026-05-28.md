@@ -134,6 +134,14 @@ Recommended order:
 6. **Rebuild + clean state smoke** — reset via DEV button, upload fresh docs, run checklist below.
 7. **TestFlight prep** — after smoke PASS.
 
+**Completed after snapshot:**
+- Source file persistence → `relativePath` model (`fee62528`, `2092164c`)
+- Title decode / timeline labels → `baec9ae1`
+- Search Alle behavior → `495c55a1`, `f5a24dd4`
+- 3 main search groups → `18a8d1e0`
+- Search copy (V4/Semantik) → `32c12055`
+- Search visual density → P2 backlog, TestFlight blocker değil
+
 **Remaining smoke checklist (clean state required):**
 
 | # | Test | Beklenen |
@@ -148,6 +156,9 @@ Recommended order:
 | 8 | Fristen & Termine | "Bis" başlık olarak görünmez |
 | 9 | Herhangi belge başlığı | `%20` encoded karakter yok |
 | 10 | Herhangi belge başlığı | "Angaben prüfen" başlık olarak yok |
+| 11 | App restart → belge aç → Dokument tab | Preview hâlâ görünür (relativePath) |
+| 12 | Vorlesen — analizli belgede | Ses başlar, Anhalten çalışır |
+| 13 | Fristen & Termine yeni build | "Bis" başlık yok, "Steuer%20..." yok |
 
 **Sonuç formatı:**
 ```

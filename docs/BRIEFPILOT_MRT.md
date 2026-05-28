@@ -176,6 +176,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `32c12055` | fix(copy): normalize search wording — V4/Semantik/semantic kaldırıldı; Text/Mix/Semantik→Text/Kombiniert/Intelligent; error message Almanca |
 | `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
 | `f5a24dd4` | fix(search): show document results when alle filter is selected — zeigeSuche: query≥1 OR filterAktiv OR typ≠alle |

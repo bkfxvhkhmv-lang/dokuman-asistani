@@ -10,12 +10,10 @@ No new decisions, no new code — read-only state of the branch.
 | Field | Value |
 |-------|-------|
 | Branch | `feature/ocr-api-integration` |
-| Last commit | `40d402cb2` — `fix(layout): replace hardcoded safe-area padding leftovers` |
-| Working tree | `docs/BRIEFPILOT_MRT.md` modified (unsaved MRT note), nothing else staged |
-| iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — modified (native dependency rebuild from react-native-pdf) |
-| Build script | `build_device.sh` — untracked, device build helper, not committed intentionally |
-
-**Note on `project.pbxproj`:** This file changed during the `react-native-pdf` native rebuild (`npx expo run:ios --device`). It reflects the peer dependency `react-native-blob-util ^0.24.9` being linked. It should be committed before any TestFlight prep so CI builds the correct native target.
+| Last commit | `3137a77a9` — `chore(mrt): log export title decode fix` |
+| Working tree | clean |
+| iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — committed `0651e5728` (ReactNativeBlobUtil privacy bundle) |
+| Build script | `build_device.sh` — added to `.gitignore` (`03ed08406`), not committed intentionally |
 
 ---
 
@@ -30,7 +28,7 @@ No new decisions, no new code — read-only state of the branch.
 | Gutschrift document → no Zahlung CTA | ✅ PASS | `canOfferPaymentAction(betrag)` guard in all action surfaces |
 | OCR result CTA hierarchy | ✅ PASS | "In Dokumente speichern" primary; Excel/Download secondary outlined |
 | Single document export | ✅ PASS | `exportiereTopluPDF` via share sheet |
-| Batch export (selectedIds) | ⬜ Device not yet confirmed | Logic correct; `c3793a6` OR-bug fixed; needs device smoke |
+| Batch export (selectedIds) | ✅ PASS — title decode re-verify pending | Logic PASS device smoke; URL-encoded titles fixed `3fb9f127`; re-export needed to confirm decode |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
 | Vorlesen (native TTS) | ⬜ Not verified this session | `expo-speech` wired; no regression reported |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
@@ -87,8 +85,8 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | Localization deeper i18n audit | Future | Türkçe/Almanca string mix exists; not P1. |
 | Home `DashboardSummary` / `HomeUrgencyBanner` visual overlap | Optional | No crash, no data loss. |
 | Detail Excel download (requires job_id persistence) | Backlog | See §4. |
-| `ios/project.pbxproj` commit | Pre-TestFlight | Must be committed before CI build. |
-| `build_device.sh` gitignore or commit decision | Pre-TestFlight | Contains local paths; review before committing. |
+| ~~`ios/project.pbxproj` commit~~ | ~~Pre-TestFlight~~ | ✅ Done `0651e5728` |
+| ~~`build_device.sh` gitignore~~  | ~~Pre-TestFlight~~ | ✅ Done `03ed08406` |
 
 ---
 
@@ -109,15 +107,16 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | OCR save → Dokument tab | ✅ Verified |
 | Gutschrift no-Zahlung | ✅ Verified |
 | OCR Excel download | ✅ Verified |
-| Batch export (selectedIds) | ⬜ Not confirmed this sprint |
-| Export bottom padding (last item above CTA) | ⬜ Not confirmed this sprint |
-| Vorlesen | ⬜ Not confirmed this sprint |
-| Delete / Undo | ⬜ Not confirmed this sprint |
+| Batch export (selectedIds) | ✅ Logic PASS | 2-doc batch confirmed on device; URL title decode fix `3fb9f127`; re-export to confirm decoded display |
+| Export bottom padding (last item above CTA) | ⬜ Not confirmed |  |
+| Vorlesen | ⬜ Not confirmed |  |
+| Delete / Undo | ⬜ Not confirmed |  |
 
 ### Automated Tests
 
 - Excel V7: **31/31 PASS** (RunPod, Python unit tests on `invoice_to_excel.py`)
-- No Jest / Detox suite present in mobile repo.
+- `safeDisplayDocumentTitleForExport`: **8/8 PASS** (Jest, `src/__tests__/exportDocumentTitle.test.ts`)
+- No Detox suite present in mobile repo.
 
 ---
 
@@ -127,13 +126,15 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 
 Recommended order:
 
-1. **Commit `project.pbxproj`** — native dependency change must be in version control before any CI/TestFlight build.
-2. **Short device smoke** — focus on the four ⬜ items above (batch export, export padding, Vorlesen, Delete/Undo). If any is a blocker, fix it. If all pass, mark ✅.
-3. **TestFlight prep** — increment build number, run `eas build --platform ios --profile preview` or equivalent, submit internal build.
-4. **P3 polish** — only after TestFlight build confirms no regression.
+1. ~~Commit `project.pbxproj`~~ ✅ `0651e5728`
+2. ~~`.gitignore` for `build_device.sh`~~ ✅ `03ed08406`
+3. **Batch export re-export on device** — same 2 docs, confirm `Steuer B 30` (not `Steuer%20B%2030`) in PDF title.
+4. **Remaining device smoke** — export padding, Vorlesen, Delete/Undo.
+5. **TestFlight prep** — increment build number, `eas build --platform ios --profile preview`.
+6. **P3 polish** — only after TestFlight build confirms no regression.
 
 **No known P0 blocker as of 2026-05-28.**
 
 ---
 
-*Generated at end of Professional UI Reset sprint. Next review: after device smoke or TestFlight build.*
+*Updated after post-snapshot fixes: `0651e5728` `03ed08406` `3fb9f127`. Next review: batch re-export confirm + remaining smoke.*

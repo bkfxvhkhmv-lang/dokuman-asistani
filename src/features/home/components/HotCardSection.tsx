@@ -11,6 +11,7 @@ import Animated, { cancelAnimation, Layout,
 } from 'react-native-reanimated';
 import GlassCard from '@/design/components/GlassCard';
 import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 import { PRIORITY_COLOR, type HotDoc } from '@/services/PriorityService';
 
 interface Props {
@@ -94,9 +95,9 @@ function HotCard({ hot, onPress }: { hot: HotDoc; onPress: () => void }) {
             />
           )}
 
-          {/* Header row: emoji + priority badge */}
+          {/* Header row: icon + priority badge */}
           <View style={st.header}>
-            <Text style={st.emoji}>{hot.emoji}</Text>
+            <Icon name={hot.icon} size={28} color={accentColor} />
             <View style={[st.priorityBadge, { backgroundColor: `${accentColor}22` }]}>
               <Text style={[st.priorityText, { color: accentColor }]}>
                 {hot.priority === 'kritisch' ? 'KRITISCH'
@@ -134,7 +135,6 @@ const st = StyleSheet.create({
   },
   pulseBorder:  { borderRadius: 18, borderWidth: 1.5, position: 'absolute', inset: 0 },
   header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  emoji:        { fontSize: 28 },
   priorityBadge:{ borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 },
   priorityText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
   label:        { fontSize: 15, fontWeight: '700', marginBottom: 4 },

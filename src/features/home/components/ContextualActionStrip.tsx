@@ -120,7 +120,7 @@ export default function ContextualActionStrip({
 
       {/* ── Left: info ── */}
       <View style={st.left}>
-        <Text style={st.emoji}>{hotDoc.emoji}</Text>
+        <Icon name={hotDoc.icon} size={18} color={palette.text} />
         <View style={st.textBlock}>
           <Text style={[st.label, { color: palette.text }]} numberOfLines={1}>
             {hotDoc.label}
@@ -174,7 +174,6 @@ const st = StyleSheet.create({
     gap:           8,
     overflow:      'hidden',
   },
-  emoji:     { fontSize: 18 },
   textBlock: { flex: 1 },
   label: {
     fontSize:      12,

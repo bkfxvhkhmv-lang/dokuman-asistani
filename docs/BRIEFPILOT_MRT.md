@@ -176,6 +176,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `3fb9f127` | fix(export): decode document titles in batch PDF — safeDisplayDocumentTitleForExport helper; exportiereTopluPDF dok.titel raw→decoded; 8/8 test PASS |
 | `40d402cb` | fix(layout): replace hardcoded safe-area padding leftovers — Home paddingBottom 152→dynamic; DetailScreen footerPad 132→dynamic; ExportBildschirm hitSlop→HIT_SLOP_LG; OcrMvpResultCard #22C55E→C.success/C.successLight/C.successBorder |
 | `994db2b` | fix(copy): simplify modal and secondary AI wording — BelgeAciklamaModal/AutoFillReviewModal KI loading text; 'Mit KI chatten' → 'Fragen zum Dokument' |
 | `5106c25` | fix(copy): simplify analysis wording in summary and actions — SmartSummaryCard KI→Cloud-Analyse/Analysiert/Analyse laden; ActionsPanel ai hint KI dili kaldırıldı |

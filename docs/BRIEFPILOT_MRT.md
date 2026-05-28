@@ -222,7 +222,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [ ] **Toplu export selectedIds** — device'da onaylanmadı.
 
 ### P2 — Backlog (UI Reset Phase 2)
-- [ ] **SmartRiskPanel explanation/suggestions** — varsayılan gizli, tap ile aç. Şu an her zaman görünüyor.
+- [x] **SmartRiskPanel explanation/suggestions** — `useState(false)` zaten mevcut. Detay (faktörler/darkPatterns/peerComparison) toggle arkasında. Özet (score+label+erklaerung+vorschlaege) her zaman görünür — bu intended UX. Already satisfied, kod değişikliği gerekmez.
 - [x] **SmartActionsPanel default collapsed** — `expandedGruppe = null` yapıldı (`54b9760`).
 - [x] **Erledigt pill** — secondary pill'den kaldırıldı, MoreMenu secondary grubuna taşındı (`54b9760`).
 - [x] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (`54b9760`). `deriveNextStep`/`detailNextStep`'teki label'lar Überblick konteksti için ayrı — dokunulmadı.

@@ -83,11 +83,13 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
     return                         { bg: C.bgCard,       border: C.borderLight,    count: C.textTertiary, label: C.textTertiary };
   }
 
+  const visibleItems = items.filter(i => i.count > 0);
+
   return (
     <View style={[st.wrap, { marginHorizontal: S.md, marginBottom: S.md }]}>
       <Text style={[st.header, { color: C.textTertiary }]}>HEUTE WICHTIG</Text>
       <View style={st.grid}>
-        {items.map(item => {
+        {visibleItems.map(item => {
           const ts = toneStyle(item.tone);
           return (
             <TouchableOpacity

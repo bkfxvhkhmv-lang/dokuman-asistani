@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -30,19 +30,15 @@ const RISK_CONFIG: Record<string, { label: string; color: string; bg: string }> 
   yuksek: { label: 'Hohes Risiko',     color: '#FF6B6B', bg: '#FF6B6B18' },
 };
 
-type ActionHandler = 'preview' | 'download' | 'soon';
+type ActionHandler = 'preview' | 'download';
 interface ActionCfg { label: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:          { label: 'Excel für Steuerberater herunterladen', icon: 'download-outline', handler: 'download' },
-  export_share:          { label: 'Teilen',                    icon: 'share-outline',             handler: 'download' },
-  show_fields:           { label: 'Felder anzeigen',           icon: 'list-outline',              handler: 'preview'  },
-  show_summary:          { label: 'Zusammenfassung anzeigen',  icon: 'document-text-outline',     handler: 'preview'  },
-  create_reply_draft:    { label: 'Entwurf anzeigen',          icon: 'create-outline',            handler: 'preview'  },
-  add_payment_reminder:  { label: 'Zahlungserinnerung',        icon: 'alarm-outline',             handler: 'soon'     },
-  add_deadline_reminder: { label: 'Frist eintragen',           icon: 'calendar-outline',          handler: 'soon'     },
-  review_missing_fields: { label: 'Fehlende prüfen',           icon: 'checkmark-circle-outline',  handler: 'soon'     },
-  manual_review:         { label: 'Hinweis für Experten',      icon: 'alert-circle-outline',      handler: 'soon'     },
+  export_excel:       { label: 'Excel für Steuerberater herunterladen', icon: 'download-outline',      handler: 'download' },
+  export_share:       { label: 'Teilen',                                icon: 'share-outline',         handler: 'download' },
+  show_fields:        { label: 'Felder anzeigen',                       icon: 'list-outline',          handler: 'preview'  },
+  show_summary:       { label: 'Zusammenfassung anzeigen',              icon: 'document-text-outline', handler: 'preview'  },
+  create_reply_draft: { label: 'Entwurf anzeigen',                      icon: 'create-outline',        handler: 'preview'  },
 };
 
 interface Props {
@@ -77,7 +73,6 @@ export default function OcrMvpActionSummary({
   const handlePress = (handler: ActionHandler) => {
     if (handler === 'preview')  { onPreview();  return; }
     if (handler === 'download') { onDownload(); return; }
-    Alert.alert('Bald verfügbar', 'Diese Funktion wird in Kürze hinzugefügt.');
   };
 
   const hasPreviewData = (summary.fields_count ?? 0) > 0 || (summary.tables_count ?? 0) > 0;
@@ -93,7 +88,7 @@ export default function OcrMvpActionSummary({
   const actions = (summary.recommended_actions ?? [])
     .filter(key => {
       const c = ACTION_MAP[key];
-      if (!c || c.handler === 'soon') return false;
+      if (!c) return false;
       if (key === 'show_fields' && !hasPreviewData) return false;
       return true;
     })
@@ -239,11 +234,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   btnPrimary:      { backgroundColor: C.primary },
   btnOutline:      { borderWidth: 1.5, borderColor: C.primary, backgroundColor: (C as any).primaryLight ?? C.bgCard },
-  btnSoon:         { borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard },
   btnLabel:        { fontSize: 15, fontWeight: '700' },
   btnLabelPrimary: { color: '#fff' },
   btnLabelOutline: { color: C.primary },
-  btnLabelSoon:    { color: C.textTertiary },
-  soonTag:         { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1 },
-  soonText:        { fontSize: 10 },
 });

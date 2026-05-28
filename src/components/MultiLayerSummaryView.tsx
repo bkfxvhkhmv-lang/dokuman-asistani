@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 type TabId = 'kurz' | 'punkte' | 'einfach' | 'technisch' | 'hukuki';
 
@@ -17,7 +18,8 @@ function buildKurz(dok: Dokument | undefined): string | null {
   if (!dok) return null;
   const betrag = dok.betrag ? ` (${dok.betrag.toFixed(2)} €)` : '';
   const frist  = dok.frist  ? ` bis ${new Date(dok.frist).toLocaleDateString('de-DE')}` : '';
-  return `${dok.absender || 'Eine Behörde'} hat ${dok.titel || 'ein Dokument'} gesendet${betrag}${frist}.`;
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+  return `${dok.absender || 'Eine Behörde'} hat ${displayTitle || 'ein Dokument'} gesendet${betrag}${frist}.`;
 }
 
 function buildPunkte(dok: Dokument | undefined): string[] | null {

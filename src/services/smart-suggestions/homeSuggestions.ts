@@ -1,6 +1,7 @@
 import type { Dokument } from '@/store';
 import type { HomeSuggestion, SuggestionPriority } from './types';
 import { tageVerbleibend } from './helpers';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 export function runHomeSuggestions(docs: Dokument[]): HomeSuggestion[] {
   const heute = new Date(); heute.setHours(0, 0, 0, 0);
@@ -23,7 +24,7 @@ export function runHomeSuggestions(docs: Dokument[]): HomeSuggestion[] {
   if (dieseWoche.length > 0 && überfällig.length === 0) {
     result.push({
       icon: '⏰', titel: `${dieseWoche.length} Dokument${dieseWoche.length > 1 ? 'e' : ''} diese Woche fällig`,
-      beschreibung: dieseWoche.slice(0, 2).map(d => d.titel).join(', '),
+      beschreibung: dieseWoche.slice(0, 2).map(d => safeDisplayTitel(d.titel, d.typ, d.confidence)).join(', '),
       priority: 'hoch', aktion: 'filter_diese_woche',
     });
   }

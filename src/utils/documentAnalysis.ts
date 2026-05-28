@@ -1,5 +1,6 @@
 import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from '@/utils/formatters';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 const MEANINGLESS_ABSENDER = /^(unbekannt|unbekannter absender)$/i;
 const WEAK_TYP              = /^sonstiges$/i;
@@ -105,8 +106,8 @@ export function erstelleWochenzusammenfassung(docs: Dokument[]): string {
   const ueberfaellig = offene.filter(d => d.frist && new Date(d.frist) < heute);
   const offen = offene.filter(d => !d.frist);
   let text = `📋 BriefPilot — Wochenzusammenfassung\n${heute.toLocaleDateString('de-DE')}\n\n`;
-  if (ueberfaellig.length > 0) { text += `⛔ ÜBERFÄLLIG (${ueberfaellig.length}):\n`; ueberfaellig.forEach(d => { text += `  • ${d.titel}${d.betrag ? ` — ${(d.betrag as number).toFixed(2)} €` : ''}\n`; }); text += '\n'; }
-  if (faellig.length > 0) { text += ` FÄLLIG DIESE WOCHE (${faellig.length}):\n`; faellig.forEach(d => { const restTage = Math.ceil((new Date(d.frist!).getTime() - heute.getTime()) / 86400000); text += `  • ${d.titel} — in ${restTage} Tag${restTage !== 1 ? 'en' : ''}\n`; }); text += '\n'; }
+  if (ueberfaellig.length > 0) { text += `⛔ ÜBERFÄLLIG (${ueberfaellig.length}):\n`; ueberfaellig.forEach(d => { text += `  • ${safeDisplayTitel(d.titel, d.typ, d.confidence)}${d.betrag ? ` — ${(d.betrag as number).toFixed(2)} €` : ''}\n`; }); text += '\n'; }
+  if (faellig.length > 0) { text += ` FÄLLIG DIESE WOCHE (${faellig.length}):\n`; faellig.forEach(d => { const restTage = Math.ceil((new Date(d.frist!).getTime() - heute.getTime()) / 86400000); text += `  • ${safeDisplayTitel(d.titel, d.typ, d.confidence)} — in ${restTage} Tag${restTage !== 1 ? 'en' : ''}\n`; }); text += '\n'; }
   if (offen.length > 0) text += `📂 WEITERE OFFENE DOKUMENTE: ${offen.length}\n\n`;
   const gesamtBetrag = offene.filter(d => d.betrag).reduce((s, d) => s + ((d.betrag as number) || 0), 0);
   if (gesamtBetrag > 0) text += ` Offene Gesamtsumme: ${gesamtBetrag.toFixed(2)} €\n\n`;

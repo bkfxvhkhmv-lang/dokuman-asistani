@@ -1,5 +1,6 @@
 import { formatBetrag } from '@/utils/formatters';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 export function schlagoEtikettenVor(dok: Dokument, haufig: string[] = []): string[] {
   const set = new Set<string>();
@@ -24,23 +25,24 @@ export function generiereAufgabenVorschlaege(dok: Dokument): AufgabeVorschlag[] 
   const vorschlaege: AufgabeVorschlag[] = [];
   const heute = new Date(); heute.setHours(0, 0, 0, 0);
   const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r.toISOString().slice(0, 10); };
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   if (dok.betrag && (dok.betrag) > 0 && !dok.erledigt) {
     const frist = dok.frist ? new Date(dok.frist) : null;
     const tage = frist ? Math.round((frist.getTime() - heute.getTime()) / 86400000) : null;
     vorschlaege.push({ id: `auto_zahlung_${dok.id}`, titel: `Zahlung: ${formatBetrag(dok.betrag)} an ${dok.absender || 'Empfänger'}`, frist: dok.frist ? dok.frist.slice(0, 10) : addDays(heute, 14), prioritaet: tage !== null && tage <= 3 ? 'hoch' : tage !== null && tage <= 7 ? 'mittel' : 'niedrig', grund: tage !== null ? `Fällig in ${tage} Tagen` : 'Kein Fälligkeitsdatum', icon: '💶' });
   }
-  if (dok.typ === 'Mahnung')        vorschlaege.push({ id: `auto_mahnung_${dok.id}`,   titel: `Mahnung beantworten: ${dok.absender || dok.titel}`, frist: addDays(heute, 3),  prioritaet: 'hoch',   grund: 'Mahnungen erfordern schnelle Reaktion',         icon: '⚠️' });
-  if (dok.typ === 'Bußgeld')        vorschlaege.push({ id: `auto_bussgeld_${dok.id}`,  titel: `Einspruch prüfen: ${dok.titel}`,                   frist: addDays(heute, 14), prioritaet: 'hoch',   grund: 'Einspruchsfrist läuft (in der Regel 14 Tage)',  icon: '🚔' });
-  if (dok.typ === 'Steuerbescheid') vorschlaege.push({ id: `auto_steuer_${dok.id}`,    titel: `Steuerbescheid prüfen: ${dok.titel}`,              frist: addDays(heute, 28), prioritaet: 'mittel', grund: 'Einspruchsfrist: 1 Monat nach Bekanntgabe',    icon: '📊' });
+  if (dok.typ === 'Mahnung')        vorschlaege.push({ id: `auto_mahnung_${dok.id}`,   titel: `Mahnung beantworten: ${dok.absender || displayTitle}`, frist: addDays(heute, 3),  prioritaet: 'hoch',   grund: 'Mahnungen erfordern schnelle Reaktion',         icon: '⚠️' });
+  if (dok.typ === 'Bußgeld')        vorschlaege.push({ id: `auto_bussgeld_${dok.id}`,  titel: `Einspruch prüfen: ${displayTitle}`,                   frist: addDays(heute, 14), prioritaet: 'hoch',   grund: 'Einspruchsfrist läuft (in der Regel 14 Tage)',  icon: '🚔' });
+  if (dok.typ === 'Steuerbescheid') vorschlaege.push({ id: `auto_steuer_${dok.id}`,    titel: `Steuerbescheid prüfen: ${displayTitle}`,              frist: addDays(heute, 28), prioritaet: 'mittel', grund: 'Einspruchsfrist: 1 Monat nach Bekanntgabe',    icon: '📊' });
   if (dok.typ === 'Vertrag') {
     const rohLower = (dok.rohText || '').toLowerCase();
     const kuendMatch = rohLower.match(/kündigung.*?(\d+)\s*(?:wochen|monate?|tage)/);
     const fristTage = kuendMatch ? (rohLower.includes('monat') ? parseInt(kuendMatch[1]) * 30 : parseInt(kuendMatch[1]) * 7) : 30;
-    vorschlaege.push({ id: `auto_vertrag_${dok.id}`, titel: `Vertrag kündigen oder verlängern: ${dok.titel}`, frist: addDays(heute, fristTage), prioritaet: 'mittel', grund: `Kündigungsfrist beachten (ca. ${fristTage} Tage)`, icon: '📝' });
+    vorschlaege.push({ id: `auto_vertrag_${dok.id}`, titel: `Vertrag kündigen oder verlängern: ${displayTitle}`, frist: addDays(heute, fristTage), prioritaet: 'mittel', grund: `Kündigungsfrist beachten (ca. ${fristTage} Tage)`, icon: '📝' });
   }
   if (dok.typ === 'Behörde' && dok.frist) {
     const tage = Math.round((new Date(dok.frist).getTime() - heute.getTime()) / 86400000);
-    if (tage > 0 && tage <= 30) vorschlaege.push({ id: `auto_behoerde_${dok.id}`, titel: `Behördenpost beantworten: ${dok.titel}`, frist: dok.frist.slice(0, 10), prioritaet: tage <= 7 ? 'hoch' : 'mittel', grund: `Antwortfrist in ${tage} Tagen`, icon: '🏛' });
+    if (tage > 0 && tage <= 30) vorschlaege.push({ id: `auto_behoerde_${dok.id}`, titel: `Behördenpost beantworten: ${displayTitle}`, frist: dok.frist.slice(0, 10), prioritaet: tage <= 7 ? 'hoch' : 'mittel', grund: `Antwortfrist in ${tage} Tagen`, icon: '🏛' });
   }
   const fehlend: string[] = [];
   if (!dok.betrag && ['Rechnung', 'Mahnung', 'Bußgeld'].includes(dok.typ)) fehlend.push('Betrag');

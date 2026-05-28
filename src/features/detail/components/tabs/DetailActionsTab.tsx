@@ -1,7 +1,6 @@
 import React, { useMemo, Fragment } from 'react';
 import { ScrollView } from 'react-native';
 import ActionsPanel from '@/features/detail/components/ActionsPanel';
-import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
 import SmartActionsPanel from '@/components/SmartActionsPanel';
 import SmartRemindersPanel from '@/components/SmartRemindersPanel';
 import PremiumToast from '@/design/components/PremiumToast';
@@ -59,7 +58,6 @@ export default function DetailActionsTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
-      {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
       <ActionsPanel
         dok={detail.dok}
         digitalTwin={detail.digitalTwin}

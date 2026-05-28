@@ -176,6 +176,8 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `5106c25` | fix(copy): simplify analysis wording in summary and actions — SmartSummaryCard KI→Cloud-Analyse/Analysiert/Analyse laden; ActionsPanel ai hint KI dili kaldırıldı |
+| `060fec3` | fix(copy): remove technical processing wording from detail — V4JobStatusRibbon emoji+Server+OCR kaldırıldı; DocumentAnalysisProgressCard OCR/KI step label + 'Mit Server' düzeltildi |
 | `d6ce83b` | refactor(home): remove emoji from core home UI — SmartFolderService/PriorityService emoji→icon field; HomeSmartFolders/HotCardSection/ContextualActionStrip Phosphor icon render eder |
 | `5663b6a` | fix(ui): make OCR download action secondary — downloadBtn/modalDownloadBtn hardcoded #22C55E kaldırıldı; outlined/neutral style; Save/Open primary kalır, Excel/download secondary |
 | `b919b6e` | fix(copy): remove technical OCR and AI wording — "OCR wird verarbeitet" → "Dokument wird analysiert", "KI-Detail" → "Ausführlich", "Lokal · Offline" → "Offline", "KI · Gecacht" → "Zwischengespeichert"; ConfidencePill raw % kaldırıldı |
@@ -229,6 +231,9 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [x] **OCR teknik dil temizliği** — "OCR" → "Dokument/Analyse", "KI-Detail" → "Ausführlich", cache/offline labels sadeleşti, confidence raw % kaldırıldı (`b919b6e`).
 - [x] **OCR download buton hiyerarşisi** — downloadBtn/modalDownloadBtn primary green'den secondary outlined'a taşındı; Save/Open primary kalır (`5663b6a`).
 - [x] **Home emoji kaldırıldı** — SmartFolderService/PriorityService `emoji`→`icon` (Phosphor); core home bileşenler Icon render eder. Ürün kararı: core UI'da emoji yok (`d6ce83b`).
+- [x] **V4JobStatusRibbon + DocumentAnalysisProgressCard teknik dil** — Server/OCR/KI step label ve durum metni sadeleştirildi (`060fec3`).
+- [x] **SmartSummaryCard + ActionsPanel KI etiketleri** — "KI analysiert"/"KI-Analyse"/"KI erklärt" kaldırıldı, kaynak pill "Cloud-Analyse" (`5106c25`).
+- [ ] **P2 modal KI dili** — `BelgeAciklamaModal`, `AutoFillReviewModal`, `useDetailMoreItems` "Mit KI chatten" — secondary path, sonraki batch.
 
 ### Export Audit — KAPANDI 2026-05-28 ✅
 - [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)

@@ -9,7 +9,6 @@ import { groupDocumentFields } from '@/features/detail/components/details-panel/
 import { OcrConfidenceSection } from '@/features/detail/components/details-panel/OcrConfidenceSection';
 import { DocumentPreviewSection } from '@/features/detail/components/details-panel/DocumentPreviewSection';
 import { EtikettenSection } from '@/features/detail/components/details-panel/EtikettenSection';
-import { AehnlicheDocsSection } from '@/features/detail/components/details-panel/AehnlicheDocsSection';
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
@@ -193,10 +192,7 @@ export default function DetailsPanel({
         </>
       ) : null}
 
-      {/* ── 9. Ähnliche Dokumente — letzter Abschnitt, muted ────────────── */}
-      <AehnlicheDocsSection dokumente={aehnlicheDoks} />
-
-      {/* ── Fallback: noch keine Felder erkannt ──────────────────────────── */}
+{/* ── Fallback: noch keine Felder erkannt ──────────────────────────── */}
       {!hasContent && (
         <View style={{
           alignItems: 'center', paddingVertical: 32, gap: 10,

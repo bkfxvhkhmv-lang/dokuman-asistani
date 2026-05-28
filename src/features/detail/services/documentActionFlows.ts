@@ -2,8 +2,13 @@ import * as MailComposer from 'expo-mail-composer';
 import { formatBetrag, formatFrist, genEinspruchText, exportierePDFZuDatei } from '@/utils';
 import { openBankingAppWithPayment } from '@/services/formFillerService';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 type DokumentErweitert = Dokument;
+
+function displayTitleFor(dok: DokumentErweitert): string {
+  return safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+}
 
 export interface SendProfile {
   match?: RegExp;
@@ -17,9 +22,9 @@ const INSTITUTION_SEND_PROFILES: SendProfile[] = [
   {
     match: /finanzamt/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Steuersache${dok.aktenzeichen ? ` — AZ ${dok.aktenzeichen}` : ''} — ${dok.titel}`,
+    subjectTemplate: ({ dok }) => `Steuersache${dok.aktenzeichen ? ` — AZ ${dok.aktenzeichen}` : ''} — ${displayTitleFor(dok)}`,
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie das Dokument "${dok.titel}".${
+      `Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie das Dokument "${displayTitleFor(dok)}".${
         dok.aktenzeichen ? `\nAktenzeichen: ${dok.aktenzeichen}` : ''
       }\n\nBitte bestätigen Sie kurz den Eingang.\n\nMit freundlichen Grüßen`,
   },
@@ -28,23 +33,23 @@ const INSTITUTION_SEND_PROFILES: SendProfile[] = [
     preferredChannel: 'email', requiresAttachment: true,
     subjectTemplate: ({ dok }) => `Rückmeldung zum Vorgang${dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : ''}`,
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nbezugnehmend auf "${dok.titel}" übersende ich Ihnen das beigefügte Dokument.${
+      `Sehr geehrte Damen und Herren,\n\nbezugnehmend auf "${displayTitleFor(dok)}" übersende ich Ihnen das beigefügte Dokument.${
         dok.aktenzeichen ? `\nAktenzeichen: ${dok.aktenzeichen}` : ''
       }\n\nMit freundlichen Grüßen`,
   },
   {
     match: /beitragsservice|ard zdf deutschlandradio/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Beitragsservice${dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : ''} — ${dok.titel}`,
+    subjectTemplate: ({ dok }) => `Beitragsservice${dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : ''} — ${displayTitleFor(dok)}`,
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nim Anhang finden Sie die Unterlagen zu "${dok.titel}".\n\nIch bitte um kurze Rückmeldung zum Eingang.\n\nMit freundlichen Grüßen`,
+      `Sehr geehrte Damen und Herren,\n\nim Anhang finden Sie die Unterlagen zu "${displayTitleFor(dok)}".\n\nIch bitte um kurze Rückmeldung zum Eingang.\n\nMit freundlichen Grüßen`,
   },
   {
     match: /versicherung|assekuranz|krankenkasse/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Unterlagen zu ${dok.titel}`,
+    subjectTemplate: ({ dok }) => `Unterlagen zu ${displayTitleFor(dok)}`,
     bodyTemplate: ({ dok }) =>
-      `Guten Tag,\n\nanbei sende ich Ihnen die Unterlagen zu "${dok.titel}".${
+      `Guten Tag,\n\nanbei sende ich Ihnen die Unterlagen zu "${displayTitleFor(dok)}".${
         dok.aktenzeichen ? `\nReferenz: ${dok.aktenzeichen}` : ''
       }\n\nMit freundlichen Grüßen`,
   },
@@ -59,7 +64,7 @@ export function getInstitutionSendProfile(dok: DokumentErweitert): SendProfile {
     preferredChannel: 'email',
     requiresAttachment: true,
     subjectTemplate: ({ dok: d }) =>
-      `${d.absender || 'Dokument'} — ${d.titel}${d.aktenzeichen ? ` — AZ ${d.aktenzeichen}` : ''}`,
+      `${d.absender || 'Dokument'} — ${displayTitleFor(d)}${d.aktenzeichen ? ` — AZ ${d.aktenzeichen}` : ''}`,
     bodyTemplate: ({ dok: d }) =>
       `${d.zusammenfassung || ''}${d.betrag ? `\nBetrag: ${formatBetrag(d.betrag)}` : ''}${
         d.frist ? `\nFrist: ${formatFrist(d.frist)}` : ''
@@ -78,7 +83,7 @@ export function buildPaymentSheetData(dok: DokumentErweitert, { partnerEmail = n
     amount:       dok.betrag ? formatBetrag(dok.betrag) : 'Kein Betrag erkannt',
     recipient:    dok.absender || 'Unbekannter Empfänger',
     iban:         dok.iban || '',
-    reference:    dok.aktenzeichen || dok.titel || '',
+    reference:    dok.aktenzeichen || displayTitleFor(dok) || '',
     partnerEmail,
     onOpenBanking: () => openBankingAppWithPayment(dok),
     onMarkPaid,
@@ -95,7 +100,7 @@ export async function resolveMailAttachmentUris(dok: DokumentErweitert): Promise
   try {
     if (dok.v4DocId) {
       const { downloadOriginalFileToCache } = await import('@/services/v4Api');
-      const fileUri = await downloadOriginalFileToCache(dok.v4DocId, dok.dateiName || `${dok.titel}.pdf`);
+      const fileUri = await downloadOriginalFileToCache(dok.v4DocId, dok.dateiName || `${displayTitleFor(dok)}.pdf`);
       return [fileUri];
     }
   } catch (e) {
@@ -130,8 +135,8 @@ export async function composePartnerPaymentNotice(dok: DokumentErweitert, partne
 
   await MailComposer.composeAsync({
     recipients: [partnerEmail],
-    subject: `Zahlung: ${dok.titel}`,
-    body: `Hallo,\n\n${dok.titel}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag)}\n` : ''}${
+    subject: `Zahlung: ${displayTitleFor(dok)}`,
+    body: `Hallo,\n\n${displayTitleFor(dok)}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag)}\n` : ''}${
       dok.frist ? `Frist: ${formatFrist(dok.frist)}\n` : ''
     }\n\n---\nBriefPilot`,
   });

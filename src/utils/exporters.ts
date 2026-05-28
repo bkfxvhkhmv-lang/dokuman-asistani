@@ -20,24 +20,27 @@ async function assertPdfLooksValid(uri: string): Promise<void> {
 }
 
 export async function shareDokument(dok: Dokument): Promise<void> {
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
   const lines = [
-    ` BriefPilot — ${dok.titel}`, `👤 ${dok.absender}`,
+    ` BriefPilot — ${displayTitle}`, `👤 ${dok.absender}`,
     dok.betrag ? ` Betrag: ${formatBetrag(dok.betrag as number)}` : null,
     dok.frist  ? ` Frist: ${formatFrist(dok.frist)}` : null,
     ``, dok.zusammenfassung, dok.warnung ? `\n ${dok.warnung}` : null,
   ].filter(Boolean).join('\n');
-  await Share.share({ message: lines, title: dok.titel });
+  await Share.share({ message: lines, title: displayTitle });
 }
 
 export function genEinspruchText(dok: Dokument): string {
   const heute = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-  return `Sehr geehrte Damen und Herren,\n\nhiermit lege ich fristgerecht Einspruch gegen folgenden Bescheid ein:\n\nBetreff: ${dok.titel}\nAbsender: ${dok.absender}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag as number)}` : ''}\n\nBegründung:\n[Bitte hier Ihre Begründung einfügen]\n\nIch bitte um schriftliche Eingangsbestätigung und Aussetzung der Vollziehung bis zur Entscheidung.\n\nMit freundlichen Grüßen,\n\n[Ihr Name]\n[Ihre Adresse]\n${heute}`;
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
+  return `Sehr geehrte Damen und Herren,\n\nhiermit lege ich fristgerecht Einspruch gegen folgenden Bescheid ein:\n\nBetreff: ${displayTitle}\nAbsender: ${dok.absender}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag as number)}` : ''}\n\nBegründung:\n[Bitte hier Ihre Begründung einfügen]\n\nIch bitte um schriftliche Eingangsbestätigung und Aussetzung der Vollziehung bis zur Entscheidung.\n\nMit freundlichen Grüßen,\n\n[Ihr Name]\n[Ihre Adresse]\n${heute}`;
 }
 
 export async function sendEinspruchMail(dok: Dokument): Promise<boolean> {
   const isAvailable = await MailComposer.isAvailableAsync();
   if (!isAvailable) return false;
-  await MailComposer.composeAsync({ subject: `Einspruch: ${dok.titel}`, body: genEinspruchText(dok) });
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
+  await MailComposer.composeAsync({ subject: `Einspruch: ${displayTitle}`, body: genEinspruchText(dok) });
   return true;
 }
 
@@ -45,7 +48,8 @@ export async function exportiereEinspruchPDF(dok: Dokument, einspruchText: strin
   const Print = await import('expo-print');
   const Sharing = await import('expo-sharing');
   const heute = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
-  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>body{font-family:Georgia,serif;max-width:680px;margin:60px auto;color:#222;font-size:14px;line-height:1.8}.header{border-bottom:2px solid #534AB7;padding-bottom:18px;margin-bottom:28px}.label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px}.betreff{font-size:16px;font-weight:bold;color:#534AB7;margin-bottom:24px}.body{white-space:pre-wrap}.footer{margin-top:40px;border-top:1px solid #eee;padding-top:16px;font-size:11px;color:#aaa;text-align:center}</style></head><body><div class="header"><div class="label">BriefPilot — Einspruch-Vorlage</div><h1 style="font-size:22px;margin:6px 0;color:#222;">${dok.titel}</h1><div style="color:#888;font-size:12px;">${dok.absender} &nbsp;·&nbsp; ${heute}</div></div><div class="betreff">Einspruch / Widerspruch</div><div class="body">${einspruchText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>')}</div><div class="footer">Erstellt mit BriefPilot · Unverbindliche Vorlage — kein Rechtsrat</div></body></html>`;
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
+  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>body{font-family:Georgia,serif;max-width:680px;margin:60px auto;color:#222;font-size:14px;line-height:1.8}.header{border-bottom:2px solid #534AB7;padding-bottom:18px;margin-bottom:28px}.label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px}.betreff{font-size:16px;font-weight:bold;color:#534AB7;margin-bottom:24px}.body{white-space:pre-wrap}.footer{margin-top:40px;border-top:1px solid #eee;padding-top:16px;font-size:11px;color:#aaa;text-align:center}</style></head><body><div class="header"><div class="label">BriefPilot — Einspruch-Vorlage</div><h1 style="font-size:22px;margin:6px 0;color:#222;">${displayTitle}</h1><div style="color:#888;font-size:12px;">${dok.absender} &nbsp;·&nbsp; ${heute}</div></div><div class="betreff">Einspruch / Widerspruch</div><div class="body">${einspruchText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>')}</div><div class="footer">Erstellt mit BriefPilot · Unverbindliche Vorlage — kein Rechtsrat</div></body></html>`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   const dest = uri.replace(/\.pdf$/, '') + `_Einspruch_${dok.id}.pdf`;
   await FileSystem.moveAsync({ from: uri, to: dest });
@@ -85,7 +89,7 @@ async function exportRasterPdfFromStoredPages(dok: Dokument): Promise<string | n
       {
         profile: 'standard',
         metadata: {
-          title: dok.titel,
+          title: safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence),
           subject: dok.absender ?? undefined,
           documentType: dok.typ,
         },

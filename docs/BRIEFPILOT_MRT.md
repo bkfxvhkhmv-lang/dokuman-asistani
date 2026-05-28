@@ -242,8 +242,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [ ] **Export ekranı son öğe görünürlüğü** — device'da onaylanmadı.
 - [ ] **Toplu export selectedIds** — device'da onaylanmadı.
 - [x] **Raw title backlog — P1-A Messages** — `calendar.ts`, `notifyContent.ts`, `SmartRemindersService.ts`, `WidgetDataService.ts` display-only sanitize edildi. Takvim, bildirim, reminder ve widget yüzeylerinde ham `%20` title basılmaz.
-- [ ] **Raw title backlog — P1-B Share/Export** — paylaşım, export, template copy yüzeyleri sanitize edilmeli:
-  `src/utils/exporters.ts`, `src/features/detail/hooks/document-actions/sharing.ts`, `src/features/detail/services/documentActionFlows.ts`, `src/features/detail/modals/SignaturePdfSheet.tsx`
+- [x] **Raw title backlog — P1-B Share/Export** — `exporters.ts`, `document-actions/sharing.ts`, `documentActionFlows.ts`, `SignaturePdfSheet.tsx` display-only sanitize edildi. Share/export/mail/signature copy’de ham `%20` title basılmaz.
 - [ ] **Raw title backlog — P1-C Summaries/Guidance** — özet ve yönlendirme metinlerinde ham title kalmış:
   `src/components/MultiLayerSummaryView.tsx`, `src/components/SmartRegionsView.tsx`, `src/utils/labels.ts`, `src/services/smart-suggestions/homeSuggestions.ts`, `src/core/intelligence/AutoWorkflowEngine.ts`, `src/utils/documentAnalysis.ts`
 - [ ] **Ürün kuralı genişletmesi** — ham `dok.titel` kullanıcıya görünen copy, notifications, calendar events, share messages, widgets veya summaries içinde doğrudan kullanılmayacak.

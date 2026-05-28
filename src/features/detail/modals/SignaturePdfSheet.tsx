@@ -21,6 +21,7 @@ import { AppSheet } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import { detailModalStyles as st } from '@/features/detail/detail-modals/styles';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface Props {
   visible: boolean;
@@ -93,9 +94,10 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       }
 
       if (await Sharing.isAvailableAsync()) {
+        const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
         await Sharing.shareAsync(out.uri, {
           mimeType: 'application/pdf',
-          dialogTitle: dok.titel ?? 'BriefPilot',
+          dialogTitle: displayTitle || 'BriefPilot',
         });
       } else {
         Alert.alert(t('common.done'), t('signature.success_no_share'));

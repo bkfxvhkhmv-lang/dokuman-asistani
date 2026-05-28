@@ -3,6 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import type { Dokument } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
   anonymisiereText,
   shareDokument,
@@ -32,7 +33,8 @@ export async function runHandleOriginalTeilen(params: {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   try {
     const { shareOriginalFile } = await import('@/services/v4Api');
-    await shareOriginalFile(dok.v4DocId, dok.dateiName || `${dok.titel}.pdf`);
+    const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+    await shareOriginalFile(dok.v4DocId, dok.dateiName || `${displayTitle}.pdf`);
   } catch (e: unknown) {
     openNotice('Fehler', (e as Error).message || 'Datei konnte nicht geteilt werden.');
   }
@@ -58,10 +60,11 @@ export async function runHandleSicherTeilenMitTTL(params: {
     const { createShareLink } = await import('@/services/v4Api');
     const res = await createShareLink(dok.v4DocId, ttl);
     if (!res?.share_url) throw new Error('Es wurde kein Freigabelink zurückgegeben.');
+    const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
     await Clipboard.setStringAsync(res.share_url);
     await Share.share({
-      message: `${dok.titel}\n\nBriefPilot Sicherer Link:\n${res.share_url}\n\nGültigkeit: ${ttl}`,
-      title: dok.titel,
+      message: `${displayTitle}\n\nBriefPilot Sicherer Link:\n${res.share_url}\n\nGültigkeit: ${ttl}`,
+      title: displayTitle,
     });
     modal.close();
   } catch (e: unknown) {

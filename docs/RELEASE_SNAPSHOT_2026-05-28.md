@@ -32,6 +32,7 @@ No new decisions, no new code — read-only state of the branch.
 | Remaining raw title UI surfaces | ✅ Code fix landed — device verify pending | SmartLinksPanel, SmartTimelinePanel, PdfMergeDragModal, DocumentContextSheet, DocumentAnalysisProgressCard, ContextualGuidance now sanitize display titles via central helper |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
 | Vorlesen (native TTS) | ✅ Wiring fix landed — device verify pending | `DocumentSpeechSection` now belongs to the normal detail user flow; source-independent, text-dependent |
+| Regelmarkt / Automationen | ✅ Hidden in production — backend pending | Route may remain, but production settings no longer expose unfinished marketplace copy |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
 
 ---
@@ -82,6 +83,7 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | ExportBildschirm inline comments cleanup | P3 | Cosmetic only. |
 | DATEV EXTF export | Future | `ENABLE_RELEASE_DATEV_EXPORT` flag gates it. |
 | PDF split/merge UI | Future | Infrastructure exists, no UI. |
+| Regelmarkt / Automationen | Hidden backlog | Backend endpoint still missing; production UI entry should stay hidden until service is available. |
 | Cloud voice note → transcript | Future | Not started. |
 | Localization deeper i18n audit | Future | Türkçe/Almanca string mix exists; not P1. |
 | Home `DashboardSummary` / `HomeUrgencyBanner` visual overlap | Optional | No crash, no data loss. |

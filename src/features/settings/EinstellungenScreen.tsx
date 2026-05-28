@@ -53,6 +53,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const { lang, changeLang } = useLangPreference();
   const { aiLang, changeAiLang } = useAiLangPreference();
   const { config: sheetConfig, showSheet, hideSheet } = useSheet();
+  const showAutomationMarketplace = __DEV__;
 
   const prefs = usePersistedPrefs();
   const [experteEin, setExperteEin] = useState(false);
@@ -403,10 +404,14 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
 
         {experteEin ? (
           <>
-            <SettingsSectionTitle label="Automatisierung" />
-            <FlatGroup>
-              <AutomationCard flat onOpenRegelmarkt={() => router.push('/(tabs)/Marktplatz')} />
-            </FlatGroup>
+            {showAutomationMarketplace ? (
+              <>
+                <SettingsSectionTitle label="Automatisierung" />
+                <FlatGroup>
+                  <AutomationCard flat onOpenRegelmarkt={() => router.push('/(tabs)/Marktplatz')} />
+                </FlatGroup>
+              </>
+            ) : null}
             <SettingsSectionTitle label="Recht & Daten" />
             <FlatGroup>
               <PrivacyLegalExtras />

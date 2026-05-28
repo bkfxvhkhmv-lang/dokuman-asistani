@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import DetailsPanel from '@/features/detail/components/DetailsPanel';
 import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
+import DocumentSpeechSection from '@/features/detail/components/DocumentSpeechSection';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 type Props = {
@@ -39,6 +40,7 @@ export default function DetailDetailsTab({
       onLayout={onScrollLayout}
     >
       {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
+      {detail.dok && <DocumentSpeechSection dok={detail.dok} prominent />}
       <DetailsPanel
         dok={detail.dok}
         mevcutEtiketten={detail.mevcutEtiketten}

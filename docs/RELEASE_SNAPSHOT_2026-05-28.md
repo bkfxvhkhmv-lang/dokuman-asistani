@@ -31,7 +31,7 @@ No new decisions, no new code — read-only state of the branch.
 | Batch export (selectedIds) | ✅ PASS — title decode re-verify pending | Logic PASS device smoke; URL-encoded titles fixed `3fb9f127`; re-export needed to confirm decode |
 | Remaining raw title UI surfaces | ✅ Code fix landed — device verify pending | SmartLinksPanel, SmartTimelinePanel, PdfMergeDragModal, DocumentContextSheet, DocumentAnalysisProgressCard, ContextualGuidance now sanitize display titles via central helper |
 | Excel V7 backend download | ✅ PASS | `GET /documents/{job_id}/download`; V7 schema 31/31 tests PASS |
-| Vorlesen (native TTS) | ⬜ Not verified this session | `expo-speech` wired; no regression reported |
+| Vorlesen (native TTS) | ✅ Wiring fix landed — device verify pending | `DocumentSpeechSection` now belongs to the normal detail user flow; source-independent, text-dependent |
 | Delete / Undo | ⬜ Not verified this session | Logic exists; no smoke this sprint |
 
 ---
@@ -114,7 +114,7 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 | OCR Excel download | ✅ Verified |
 | Batch export (selectedIds) | ✅ Logic PASS | 2-doc batch confirmed on device; URL title decode fix `3fb9f127`; re-export to confirm decoded display |
 | Export bottom padding (last item above CTA) | ⬜ Not confirmed |  |
-| Vorlesen | ⬜ Not confirmed |  |
+| Vorlesen | ✅ Wiring fix landed — rebuild verify pending | OCR/rohText or page OCR text should now surface Vorlesen in the normal detail flow |
 | Delete / Undo | ⬜ Not confirmed |  |
 
 ### Automated Tests
@@ -140,6 +140,11 @@ Recommended order:
 6. **Rebuild + clean state smoke** — reset via DEV button, upload fresh docs, run checklist below.
 7. **Rebuild + broad smoke** — verify Search, Share/Export, Notifications/Widget/Calendar, Summary/Guidance, Budget detail on device.
 8. **TestFlight prep** — after smoke PASS.
+
+**Vorlesen note:**
+- Fixed as render-placement bug, not OCR-source limitation.
+- Product rule: if `rohText` or `pages[].ocrText` exists, Vorlesen should be visible in the normal detail flow.
+- PDF upload without extracted text still needs a future unavailable-state or text extraction improvement.
 
 **Completed after snapshot:**
 - Source file persistence → `relativePath` model (`fee62528`, `2092164c`)

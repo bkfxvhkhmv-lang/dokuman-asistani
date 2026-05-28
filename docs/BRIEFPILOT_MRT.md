@@ -133,6 +133,7 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 | Hash | Konu |
 |------|------|
+| `1f86909d2` | refactor(detail): remove Ähnliche Dokumente — confidence leak + gürültü, gelecekte Verlauf/Vergleich olarak yeniden yapılacak |
 | `821532cb2` | fix(home): hide empty triage counters — sıfır sayaçlar gizlendi, sadece aktif kategoriler görünür |
 | `2b87d4d42` | fix(copy): make OCR result screen production-safe — teknik Server/lokaler Dienst dili kaldırıldı, başlık "Neue Analyse" |
 | `c45d23bc5` | fix(ocr-result): make save primary action before export — In Dokumente speichern primary, Excel secondary |
@@ -199,6 +200,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
 Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List Card → Swipe → AI Reply → Onboarding → App Icon**
 
+- **Verlauf/Vergleich:** Ähnliche Dokumente kaldırıldı (`1f86909d2`). Yerine: aynı Absender/Kundennummer belgelerini grupla, tarihe/tutara göre sırala, önceki fatura ile karşılaştır, grup Excel export. Şimdi değil.
 - **PDF araçları:** PDF split/merge UI (altyapı mevcut, UI yok)
 - **Cloud voice:** Sesli not → transkript → belge
 - **Professional UI reset:** Tüm ekranlar için görsel denetim

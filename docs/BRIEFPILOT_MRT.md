@@ -133,6 +133,7 @@ Tab ID'leri: `'analiz'` (Analyse), `'ozet'` (Dokument), `'eylem'` (Aktionen)
 
 | Hash | Konu |
 |------|------|
+| `2ecf63ac2` | fix(home): remove duplicate all-clear message — HomeTriage allZero kartı yeterli, inline blok kaldırıldı |
 | `1f86909d2` | refactor(detail): remove Ähnliche Dokumente — confidence leak + gürültü, gelecekte Verlauf/Vergleich olarak yeniden yapılacak |
 | `821532cb2` | fix(home): hide empty triage counters — sıfır sayaçlar gizlendi, sadece aktif kategoriler görünür |
 | `2b87d4d42` | fix(copy): make OCR result screen production-safe — teknik Server/lokaler Dienst dili kaldırıldı, başlık "Neue Analyse" |

@@ -10,10 +10,10 @@ No new decisions, no new code — read-only state of the branch.
 | Field | Value |
 |-------|-------|
 | Branch | `feature/ocr-api-integration` |
-| Last commit | `3137a77a9` — `chore(mrt): log export title decode fix` |
+| Last commit | `4a8c4c13a` — `chore(mrt): log title sanitizer and search fix commits` |
 | Working tree | clean |
-| iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — committed `0651e5728` (ReactNativeBlobUtil privacy bundle) |
-| Build script | `build_device.sh` — added to `.gitignore` (`03ed08406`), not committed intentionally |
+| iOS project | `ios/BriefPilot.xcodeproj/project.pbxproj` — committed `0651e5728` |
+| Build script | `build_device.sh` — `.gitignore`'da (`03ed08406`) |
 
 ---
 
@@ -126,15 +126,40 @@ These are confirmed non-blocking for release. Do not fix before snapshot review.
 
 Recommended order:
 
-1. ~~Commit `project.pbxproj`~~ ✅ `0651e5728`
+1. ~~`project.pbxproj` commit~~ ✅ `0651e5728`
 2. ~~`.gitignore` for `build_device.sh`~~ ✅ `03ed08406`
-3. **Batch export re-export on device** — same 2 docs, confirm `Steuer B 30` (not `Steuer%20B%2030`) in PDF title.
-4. **Remaining device smoke** — export padding, Vorlesen, Delete/Undo.
-5. **TestFlight prep** — increment build number, `eas build --platform ios --profile preview`.
-6. **P3 polish** — only after TestFlight build confirms no regression.
+3. ~~Source file persistence (cacheDirectory bug)~~ ✅ `2092164c` + `fee62528`
+4. ~~Title sanitizer (Steuer%20, Bis, Angaben prüfen)~~ ✅ `baec9ae1`
+5. ~~Search Alle boş liste~~ ✅ `f5a24dd4`
+6. **Rebuild + clean state smoke** — reset via DEV button, upload fresh docs, run checklist below.
+7. **TestFlight prep** — after smoke PASS.
 
-**No known P0 blocker as of 2026-05-28.**
+**Remaining smoke checklist (clean state required):**
+
+| # | Test | Beklenen |
+|---|------|---------|
+| 1 | Einstellungen → DEV reset | Tüm belgeler silinir |
+| 2 | PDF/JPEG upload → kaydet | Dokument sekmesinde preview görünür |
+| 3 | Kamera scan → kaydet | Dokument sekmesinde preview görünür |
+| 4 | App yeniden başlat → belge aç | Preview hâlâ görünür (relativePath fix) |
+| 5 | Search → Alle chip | Belge listesi görünür, boş değil |
+| 6 | Search → Rechnungen chip | Sadece Rechnung tipi belgeler |
+| 7 | Search → 1 karakter yaz | Arama başlar |
+| 8 | Fristen & Termine | "Bis" başlık olarak görünmez |
+| 9 | Herhangi belge başlığı | `%20` encoded karakter yok |
+| 10 | Herhangi belge başlığı | "Angaben prüfen" başlık olarak yok |
+
+**Sonuç formatı:**
+```
+Search Alle:             PASS/FAIL
+Category chip:           PASS/FAIL
+Encoded title:           PASS/FAIL
+Bis label:               PASS/FAIL
+Angaben prüfen as title: PASS/FAIL
+Preview persistence:     PASS/FAIL
+Notlar:
+```
 
 ---
 
-*Updated after post-snapshot fixes: `0651e5728` `03ed08406` `3fb9f127`. Next review: batch re-export confirm + remaining smoke.*
+*Updated 2026-05-28 evening — post-sprint P0/P1 fixes applied. Next: rebuild + clean state smoke.*

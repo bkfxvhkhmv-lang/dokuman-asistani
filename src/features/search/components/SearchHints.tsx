@@ -32,7 +32,7 @@ export function V4Banner({ ftsWeight, setFtsWeight, C, S }: V4BannerProps) {
       }}
     >
       <Text style={{ fontSize: 11, fontWeight: '600', color: C.primaryDark }}>
-        Semantische Suche aktiv (V4)
+        Intelligente Suche aktiv
       </Text>
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {([['Text', 0.7], ['Mix', 0.5], ['Semantik', 0.3]] as [string, number][]).map(([label, val]) => (

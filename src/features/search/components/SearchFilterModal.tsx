@@ -185,7 +185,7 @@ export default function SearchFilterModal({
             }}
             onPress={onReset}
           >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>{T('common.retry')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>Zurücksetzen</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -195,7 +195,7 @@ export default function SearchFilterModal({
             }}
             onPress={onClose}
           >
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>{T('common.done')}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Anwenden</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -20,15 +20,15 @@ export const CANONICAL_DOCUMENT_TYPES = [
 
 export type CanonicalDocumentType = (typeof CANONICAL_DOCUMENT_TYPES)[number];
 
-/** Filter-Chips unter der Suche (key = Dokument.typ oder Alle). */
+/**
+ * 3 Hauptgruppen + Alle.
+ * Rechnungen = Zahlungen; Behörden = Ämter/Fristen/Steuer; Nachweise = Verträge/Versicherung/Nachweis.
+ */
 export const SEARCH_CATEGORY_QUICK_CHIPS = [
-  { filter: 'alle', label: 'Alle' },
-  { filter: 'Rechnungen', label: 'Rechnungen' },
-  { filter: 'Behörden / Amt', label: 'Behörden' },
-  { filter: 'Steuer', label: 'Steuer' },
-  { filter: 'Garantie / Kaufbeleg', label: 'Garantie' },
-  { filter: 'Versicherung', label: 'Versicherung' },
-  { filter: 'Gesundheit', label: 'Gesundheit' },
+  { filter: 'alle',        label: 'Alle'        },
+  { filter: 'Rechnungen',  label: 'Rechnungen'  },
+  { filter: 'Behörden',    label: 'Behörden'    },
+  { filter: 'Nachweise',   label: 'Nachweise'   },
 ] as const;
 
 /** Bekannte OCR-/Klassifikator-Kürzel → kanonisches `typ`-Label */
@@ -99,14 +99,23 @@ export function documentMatchesTypChip(dokTyp: string | undefined | null, chip: 
   const nDoc = normalizeDocumentTyp(t);
 
   switch (chip) {
+    // ── 3 Hauptgruppen ────────────────────────────────────────────────────
     case 'Rechnungen':
-      return ['Rechnungen', 'Rechnung'].includes(t) || nDoc === 'Rechnungen';
+      return ['Rechnungen', 'Rechnung', 'Mahnung / Zahlungserinnerung', 'Mahnung', 'Bank / Finanzen'].includes(t)
+        || ['Rechnungen', 'Mahnung / Zahlungserinnerung', 'Bank / Finanzen'].includes(nDoc);
+    case 'Behörden':
+      return ['Behörde', 'Bußgeld', 'Termin', 'Behörden / Amt', 'Steuer', 'Steuerbescheid', 'Schule / Kita', 'Finanzamt'].includes(t)
+        || ['Behörden / Amt', 'Steuer', 'Schule / Kita'].includes(nDoc);
+    case 'Nachweise':
+      return ['Versicherung', 'Garantie', 'Garantie / Kaufbeleg', 'Gesundheit', 'Vertrag', 'Kündigung', 'Verträge', 'Nachweis', 'Bescheinigung', 'Formular'].includes(t)
+        || ['Versicherung', 'Garantie / Kaufbeleg', 'Gesundheit', 'Verträge', 'Sonstiges'].includes(nDoc);
+    // ── Legacy einzelne Typen (Filtermodal) ──────────────────────────────
+    case 'Behörden / Amt':
+      return ['Behörde', 'Bußgeld', 'Termin'].includes(t) || nDoc === 'Behörden / Amt';
     case 'Mahnung / Zahlungserinnerung':
       return nDoc === 'Mahnung / Zahlungserinnerung' || t === 'Mahnung';
     case 'Verträge':
       return ['Vertrag', 'Kündigung', 'Verträge'].includes(t) || nDoc === 'Verträge';
-    case 'Behörden / Amt':
-      return ['Behörde', 'Bußgeld', 'Termin'].includes(t) || nDoc === 'Behörden / Amt';
     case 'Steuer':
       return ['Steuer', 'Steuerbescheid'].includes(t) || nDoc === 'Steuer';
     case 'Garantie / Kaufbeleg':

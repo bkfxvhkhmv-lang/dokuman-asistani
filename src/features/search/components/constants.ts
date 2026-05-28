@@ -10,15 +10,9 @@ export type ChipTone = 'default' | 'warning' | 'danger';
 
 /** Arama ekrani aciliriken gosterilen onerilen aramalar. */
 export const SCHNELLSUCHE: { label: string; query: string; tone?: ChipTone }[] = [
-  { label: 'Überfällig',   query: 'überfällig',  tone: 'danger'  },
-  { label: 'Diese Woche',  query: 'diese Woche'                   },
-  { label: 'Dringend',     query: 'dringend',    tone: 'warning' },
-  { label: 'Rechnung',     query: 'Rechnung'                      },
-  { label: 'Mahnung',      query: 'Mahnung',     tone: 'warning' },
-  { label: 'Finanzamt',    query: 'Finanzamt'                     },
-  { label: 'Bußgeld',      query: 'Bußgeld'                       },
-  { label: 'Versicherung', query: 'Versicherung'                  },
-  { label: 'Über 100 €',   query: 'über 100€'                     },
+  { label: 'Überfällig',     query: 'überfällig',    tone: 'danger'  },
+  { label: 'Diese Woche',    query: 'diese Woche'                    },
+  { label: 'Über 100 €',     query: 'über 100€'                      },
   { label: 'Angaben prüfen', query: 'angaben prüfen', tone: 'warning' },
 ];
 

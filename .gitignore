@@ -42,3 +42,6 @@ __pycache__/
 
 # iOS local framework — 537MB, git'e girmez, disk üzerinde kalır
 ios/opencv2.framework/
+
+# Local device build script — hardcoded device UUID + Team ID, machine-specific
+build_device.sh

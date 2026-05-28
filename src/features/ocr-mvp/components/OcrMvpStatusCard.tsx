@@ -8,7 +8,7 @@ type StepState = 'done' | 'active' | 'pending';
 
 const STEPS = [
   { key: 'upload',  label: 'Dokument wird gesendet ...',    doneLabel: 'Dokument gesendet'  },
-  { key: 'process', label: 'OCR wird verarbeitet ...',      doneLabel: 'OCR abgeschlossen'  },
+  { key: 'process', label: 'Dokument wird analysiert …',    doneLabel: 'Analyse abgeschlossen' },
   { key: 'finish',  label: 'Ergebnis wird vorbereitet ...', doneLabel: 'Ergebnis bereit'    },
 ];
 

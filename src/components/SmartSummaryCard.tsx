@@ -67,14 +67,14 @@ interface SmartSummaryCardProps {
 const MODE_LABEL: Record<SummaryMode, string> = {
   kurz:        '1 Satz',
   mittel:      '3 Punkte',
-  detailliert: 'KI-Detail',
+  detailliert: 'Ausführlich',
 };
 
 
 const QUELLE_LABEL: Record<string, string> = {
-  lokal:    'Lokal · Offline',
+  lokal:    'Offline',
   ki_cloud: 'KI-Analyse',
-  ki_cache: 'KI · Gecacht',
+  ki_cache: 'Zwischengespeichert',
 };
 
 export default function SmartSummaryCard({

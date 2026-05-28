@@ -18,7 +18,7 @@ export function ConfidencePill({ confidence, score }: ConfidencePillProps) {
     }}>
       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.dot }} />
       <Text style={{ fontSize: 10, fontWeight: '700', color: c.text }}>
-        {CONFIDENCE_LABEL[confidence]} {score > 0 ? `${score}%` : ''}
+        {CONFIDENCE_LABEL[confidence]}
       </Text>
     </View>
   );

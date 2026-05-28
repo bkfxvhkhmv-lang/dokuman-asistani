@@ -106,9 +106,10 @@ export function safeDisplayTitel(
   typ?: string | null,
   confidence?: number | null,
 ): string {
-  const fallback = typ ? `${typ} · Angaben prüfen` : 'Dokument · Angaben prüfen';
   if (!titel || titel.trim().length === 0) return typ || 'Unbekanntes Dokument';
-  if (confidence !== null && confidence !== undefined && confidence < 45) return fallback;
+  if (confidence !== null && confidence !== undefined && confidence < 45) {
+    return typ || 'Unbekanntes Dokument';
+  }
   const humanized = humanizeTitle(titel);
   return humanized ?? titel.trim();
 }

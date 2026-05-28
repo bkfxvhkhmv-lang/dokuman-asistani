@@ -10,7 +10,7 @@ interface ExtractedDate {
 const DATE_PATTERNS: { pattern: RegExp; label: string; typ: TimelineEventType }[] = [
   { pattern: /zahlungsfrist[:\s]+(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i,  label: 'Zahlungsfrist',    typ: 'zahlung_frist' },
   { pattern: /fällig(?:\s+am)?[:\s]+(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i, label: 'Fällig',         typ: 'zahlung_frist' },
-  { pattern: /bis\s+(?:spätestens\s+)?(?:zum\s+)?(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i, label: 'Bis',  typ: 'zahlung_frist' },
+  { pattern: /bis\s+(?:spätestens\s+)?(?:zum\s+)?(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i, label: 'Zahlung fällig',  typ: 'zahlung_frist' },
   { pattern: /vertragsende[:\s]+(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i,   label: 'Vertragsende',     typ: 'vertrag_ende' },
   { pattern: /kündigung.*?(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i,         label: 'Kündigung',        typ: 'vertrag_ende' },
   { pattern: /laufzeit.*?bis[:\s]+(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})/i, label: 'Laufzeitende',     typ: 'vertrag_ende' },

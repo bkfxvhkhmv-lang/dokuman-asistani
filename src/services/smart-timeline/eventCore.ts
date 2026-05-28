@@ -1,5 +1,5 @@
 import type { Dokument } from '@/store';
-
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { TimelineEvent, TimelineEventType } from './types';
 
 export const EVENT_ICONS: Record<TimelineEventType, string> = {
@@ -53,7 +53,7 @@ export function buildEvent(
   return {
     id: `${dok.id}_${typ}_${datum}`,
     dokumentId:     dok.id,
-    dokumentTitel:  dok.titel,
+    dokumentTitel:  safeDisplayTitel(dok.titel, dok.typ, dok.confidence),
     dokumentTyp:    dok.typ,
     absender:       dok.absender,
     typ,

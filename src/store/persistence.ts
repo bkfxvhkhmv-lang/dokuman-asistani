@@ -13,8 +13,56 @@
  */
 import { useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
 import type { StoreState } from '@/store/types';
 import { STORE_KEY } from '@/store/initialState';
+
+/**
+ * Extracts the path relative to documentDirectory from an absolute sandbox URI.
+ * Works even if the UUID in the path has changed since the URI was stored.
+ * e.g. "file:///.../<UUID>/Documents/scans/abc/page-1.jpg" → "scans/abc/page-1.jpg"
+ */
+function extractRelativePath(uri: string | null | undefined): string | null {
+  if (!uri) return null;
+  const match = uri.match(/\/Documents\/(.+)$/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Rehydrates file URIs in a single document from stored relativePath fields.
+ * Also migrates old absolute-path documents to relativePath on first load.
+ */
+function rehydrateDocumentFiles(dok: any): any {
+  const docDir = FileSystem.documentDirectory ?? '';
+
+  // Rehydrate pages
+  if (Array.isArray(dok.pages)) {
+    dok.pages = dok.pages.map((p: any) => {
+      if (p.relativePath) {
+        return { ...p, uri: docDir + p.relativePath };
+      }
+      // Migration: old absolute path — extract relativePath and rehydrate
+      const rel = extractRelativePath(p.uri);
+      if (rel) {
+        return { ...p, uri: docDir + rel, relativePath: rel };
+      }
+      return p;
+    });
+  }
+
+  // Rehydrate dok.uri from fileRelativePath
+  if (dok.fileRelativePath) {
+    return { ...dok, uri: docDir + dok.fileRelativePath };
+  }
+  // Migration: if dok.uri is an old absolute path pointing to scans/
+  if (dok.uri && !dok.fileRelativePath) {
+    const rel = extractRelativePath(dok.uri);
+    if (rel) {
+      return { ...dok, uri: docDir + rel, fileRelativePath: rel };
+    }
+  }
+  return dok;
+}
 
 /** AsyncStorage'tan persist edilen state'i parse ederek dondurur.
  *  Hata olursa null doner; uygulamayi crash etmez.
@@ -27,11 +75,13 @@ export async function loadPersistedState(): Promise<Partial<StoreState> | null> 
     const parsed = JSON.parse(raw) as Partial<StoreState>;
 
     if (parsed.dokumente) {
-      const cleaned = parsed.dokumente.filter(
-        d => !d.isDemo && !d.id?.startsWith('demo-'),
-      );
-      if (cleaned.length !== parsed.dokumente.length) {
-        parsed.dokumente = cleaned;
+      const cleaned = parsed.dokumente
+        .filter((d: any) => !d.isDemo && !d.id?.startsWith('demo-'))
+        .map(rehydrateDocumentFiles);
+      parsed.dokumente = cleaned;
+      // Write back only if demo docs were stripped (to persist migration)
+      const hadDemoItems = cleaned.length !== parsed.dokumente.length;
+      if (hadDemoItems) {
         const { _duplikat: _omit, ...toSave } = { ...parsed };
         AsyncStorage.setItem(STORE_KEY, JSON.stringify(toSave)).catch(e =>
           console.warn('[Store] demo-cleanup write error', e),

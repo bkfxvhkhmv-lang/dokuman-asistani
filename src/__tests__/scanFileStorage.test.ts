@@ -86,6 +86,11 @@ describe('persistScanFiles', () => {
     expect(pages[0].uri).toBe('file:///doc/scans/dok-42/page-1.jpg');
     expect(pages[2].uri).toBe('file:///doc/scans/dok-42/page-3.png');
 
+    // relativePath documentDirectory-relative olarak set edilmeli
+    expect(pages[0].relativePath).toBe('scans/dok-42/page-1.jpg');
+    expect(pages[1].relativePath).toBe('scans/dok-42/page-2.jpg');
+    expect(pages[2].relativePath).toBe('scans/dok-42/page-3.png');
+
     // Her sayfanin id ve createdAt'i var
     pages.forEach(p => {
       expect(p.id).toBeTruthy();

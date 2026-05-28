@@ -47,14 +47,17 @@ export interface ActionHistoryEntry {
  */
 export interface ScannedPage {
   id: string;
+  /** Runtime absolute URI — rehydrated from relativePath on load. Never store cacheDirectory paths. */
   uri: string;
+  /** Path relative to FileSystem.documentDirectory, e.g. "scans/<dokId>/page-1.jpg".
+   *  Survives app container UUID changes; uri is recomputed from this on load. */
+  relativePath?: string;
   order: number;
   rotation?: 0 | 90 | 180 | 270;
   width?: number;
   height?: number;
   ocrText?: string | null;
   ocrConfidence?: number | null;
-  /** Hangi tarih/zamanda dosya sisteminde olusturuldu */
   createdAt?: string;
 }
 
@@ -129,6 +132,9 @@ export interface Dokument {
    * edilir; cacheDirectory'den **asla** dogrudan kullanilmazlar.
    */
   pages?: ScannedPage[];
+  /** relativePath of the lead source file (first page), relative to documentDirectory.
+   *  Used to rehydrate dok.uri when the sandbox container UUID changes. */
+  fileRelativePath?: string | null;
   /** Henuz OCR/analiz tamamlanmamis optimistic placeholder bayragi */
   isOptimistic?: boolean;
   /** Demo modu belgeleri — kullanici verisine karistirilmaz */

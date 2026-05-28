@@ -137,9 +137,10 @@ export async function processSharedFile(
       datum:           new Date().toISOString(),
       gelesen:         false,
       erledigt:        false,
-      uri:             persistedPages[0]?.uri ?? null,
-      pages:           persistedPages,
-      rohText:         rawText || null,
+      uri:              persistedPages[0]?.uri ?? null,
+      fileRelativePath: persistedPages[0]?.relativePath ?? null,
+      pages:            persistedPages,
+      rohText:          rawText || null,
     };
 
     // Step 3 — value-first "done" notification

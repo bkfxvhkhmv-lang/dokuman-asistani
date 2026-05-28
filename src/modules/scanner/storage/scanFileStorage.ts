@@ -62,7 +62,8 @@ export async function persistScanFiles(
       if (!src) {
         throw new Error(`persistScanFiles: sayfa ${i + 1} için kaynak URI bos`);
       }
-      const target = `${dir}page-${i + 1}.${extOf(src)}`;
+      const relPath = `scans/${dokId}/page-${i + 1}.${extOf(src)}`;
+      const target  = `${FileSystem.documentDirectory}${relPath}`;
 
       // Eğer kaynak zaten doğru hedefse (aynı belgeyi yeniden persist
       // ediyorsak), kopyalamaya gerek yok.
@@ -70,11 +71,12 @@ export async function persistScanFiles(
         const info = await FileSystem.getInfoAsync(target);
         if (info.exists) {
           return {
-            id:        generateId(),
-            uri:       target,
-            order:     i + 1,
-            rotation:  0 as const,
-            createdAt: now,
+            id:           generateId(),
+            uri:          target,
+            relativePath: relPath,
+            order:        i + 1,
+            rotation:     0 as const,
+            createdAt:    now,
           };
         }
       }
@@ -82,11 +84,12 @@ export async function persistScanFiles(
       await FileSystem.copyAsync({ from: src, to: target });
 
       return {
-        id:        generateId(),
-        uri:       target,
-        order:     i + 1,
-        rotation:  0 as const,
-        createdAt: now,
+        id:           generateId(),
+        uri:          target,
+        relativePath: relPath,
+        order:        i + 1,
+        rotation:     0 as const,
+        createdAt:    now,
       };
     }),
   );
@@ -145,15 +148,17 @@ export async function appendScanFiles(
 
   const appended = await Promise.all(
     newSources.map(async (src, i) => {
-      const order = startOrder + i + 1;
-      const target = `${dir}page-${order}.${extOf(src)}`;
+      const order   = startOrder + i + 1;
+      const relPath = `scans/${dokId}/page-${order}.${extOf(src)}`;
+      const target  = `${FileSystem.documentDirectory}${relPath}`;
       await FileSystem.copyAsync({ from: src, to: target });
       return {
-        id:        generateId(),
-        uri:       target,
+        id:           generateId(),
+        uri:          target,
+        relativePath: relPath,
         order,
-        rotation:  0 as const,
-        createdAt: now,
+        rotation:     0 as const,
+        createdAt:    now,
       };
     }),
   );

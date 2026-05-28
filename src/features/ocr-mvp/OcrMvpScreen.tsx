@@ -158,9 +158,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
       }
 
       const draft = ocrMvpToV4Document(result, {
-        id:    docId,
-        uri:   persistedPages[0]?.uri ?? null,
-        pages: persistedPages,
+        id:               docId,
+        uri:              persistedPages[0]?.uri ?? null,
+        fileRelativePath: persistedPages[0]?.relativePath ?? null,
+        pages:            persistedPages,
       });
       dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
       setSavedDocId(draft.document.id);

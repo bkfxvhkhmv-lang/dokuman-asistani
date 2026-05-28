@@ -123,9 +123,10 @@ function buildZusammenfassung(kind: string, s: OcrMvpJobStatus['action_summary']
 }
 
 export interface OcrMvpSaveOptions {
-  id?:    string;
-  uri?:   string | null;
-  pages?: ScannedPage[];
+  id?:               string;
+  uri?:              string | null;
+  fileRelativePath?: string | null;
+  pages?:            ScannedPage[];
 }
 
 export function ocrMvpToV4Document(
@@ -163,8 +164,9 @@ export function ocrMvpToV4Document(
     dokumentDatum,
     gelesen:         false,
     erledigt:        false,
-    uri:             options?.uri ?? null,
-    pages:           options?.pages,
+    uri:              options?.uri ?? null,
+    fileRelativePath: options?.fileRelativePath ?? null,
+    pages:            options?.pages,
     rohText,
     aktenzeichen,
     iban:            s?.iban ?? null,

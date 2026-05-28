@@ -28,6 +28,7 @@ tek yerde tutar.
 ## 2. Ürün Prensipleri
 
 - **Ciddi belge uygulaması.** Oyuncak değil. Her UI kararı "bir banka müşterisi bunu kullanabilir mi?" sorusuna göre verilir.
+- **Core UI'da emoji yok.** SmartFolders, HotCards, ActionStrip gibi core bileşenlerde sadece Phosphor icon + renk token kullanılır. Onboarding / pazarlama alanları ayrı karar.
 - **PDF birincil dosya türüdür.** Uygulama in-app PDF render eder; kullanıcıyı başka uygulamaya yönlendiremez.
 - **Gutschrift (negatif tutar) asla Zahlung aksiyonu üretmez.** `canOfferPaymentAction(dok.betrag)` guard her zaman uygulanır.
 - **Dokunma alanı ≥ 44×44pt.** Her `TouchableOpacity` için `hitSlop` veya `padding ≥ 12`.
@@ -175,6 +176,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `d6ce83b` | refactor(home): remove emoji from core home UI — SmartFolderService/PriorityService emoji→icon field; HomeSmartFolders/HotCardSection/ContextualActionStrip Phosphor icon render eder |
 | `5663b6a` | fix(ui): make OCR download action secondary — downloadBtn/modalDownloadBtn hardcoded #22C55E kaldırıldı; outlined/neutral style; Save/Open primary kalır, Excel/download secondary |
 | `b919b6e` | fix(copy): remove technical OCR and AI wording — "OCR wird verarbeitet" → "Dokument wird analysiert", "KI-Detail" → "Ausführlich", "Lokal · Offline" → "Offline", "KI · Gecacht" → "Zwischengespeichert"; ConfidencePill raw % kaldırıldı |
 | `54b9760` | refactor(detail): reduce secondary action noise — SmartActionsPanel null default, gutschrift label düzeltildi, Erledigt pill → MoreMenu |
@@ -226,6 +228,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [x] **gutschrift label** — "Gutschrift prüfen" → "Angaben bearbeiten" (`54b9760`). `deriveNextStep`/`detailNextStep`'teki label'lar Überblick konteksti için ayrı — dokunulmadı.
 - [x] **OCR teknik dil temizliği** — "OCR" → "Dokument/Analyse", "KI-Detail" → "Ausführlich", cache/offline labels sadeleşti, confidence raw % kaldırıldı (`b919b6e`).
 - [x] **OCR download buton hiyerarşisi** — downloadBtn/modalDownloadBtn primary green'den secondary outlined'a taşındı; Save/Open primary kalır (`5663b6a`).
+- [x] **Home emoji kaldırıldı** — SmartFolderService/PriorityService `emoji`→`icon` (Phosphor); core home bileşenler Icon render eder. Ürün kararı: core UI'da emoji yok (`d6ce83b`).
 
 ### Export Audit — KAPANDI 2026-05-28 ✅
 - [x] P1 data loss: `handleExport` OR-bug → iki bağımsız if bloğu (`c3793a6`)

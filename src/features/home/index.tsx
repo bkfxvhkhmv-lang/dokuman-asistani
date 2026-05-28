@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
 import { ScrollView, View, RefreshControl, Text, Animated, Modal, TouchableOpacity, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { styles } from '@/features/home/styles';
 import HomeHeader from '@/features/home/components/HomeHeader';
@@ -47,6 +48,8 @@ export default function Home() {
   const collapsedRef  = useRef(false);
 
   const { Colors: C } = useTheme();
+  const tabBarHeight = useBottomTabBarHeight();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const budget  = useMemo(() => buildBudgetSnapshot(data.sichtbareDocs), [data.sichtbareDocs]);
   const hotDocs = useMemo(() => buildHotDocs(data.sichtbareDocs),        [data.sichtbareDocs]);
   const { suggestions: homeSuggestions, handleHomeSuggestion } = useHomeSuggestions(data.alleDocs ?? []);
@@ -123,7 +126,7 @@ export default function Home() {
     <View style={[styles.container, { backgroundColor: data.Colors.bg }]}>
     <ScrollView
       style={{ flex: 1 }}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + bottomInset + 24 }]}
       showsVerticalScrollIndicator={false}
       onScroll={Animated.event(
         [{ nativeEvent: { contentOffset: { y: scrollY } } }],

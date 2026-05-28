@@ -143,7 +143,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {/* Status chip — sakin, küçük */}
       <View style={st.statusRow}>
         <View style={st.successChip}>
-          <Icon name="checkmark-circle" size={13} color="#22C55E" />
+          <Icon name="checkmark-circle" size={13} color={Colors.success} />
           <Text style={st.successChipText}>Analyse abgeschlossen</Text>
         </View>
       </View>
@@ -152,7 +152,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {isSavedToDocuments ? (
         <View style={st.savedState}>
           <View style={st.savedBadge}>
-            <Icon name="checkmark-circle" size={14} color="#22C55E" />
+            <Icon name="checkmark-circle" size={14} color={Colors.success} />
             <Text style={st.savedBadgeText}>Gespeichert</Text>
           </View>
           {onOpenDocument && (
@@ -374,9 +374,9 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   successChip:     {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
-    backgroundColor: '#22C55E18', borderWidth: 1, borderColor: '#22C55E40',
+    backgroundColor: C.successLight, borderWidth: 1, borderColor: C.successBorder,
   },
-  successChipText: { color: '#22C55E', fontSize: 12, fontWeight: '600' },
+  successChipText: { color: C.success, fontSize: 12, fontWeight: '600' },
   infoBlock:    {
     backgroundColor: C.bgCard, borderRadius: 14, paddingHorizontal: 16,
     borderWidth: 1, borderColor: C.border,
@@ -412,7 +412,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 8,
   },
-  savedBadgeText: { color: '#22C55E', fontSize: 13, fontWeight: '600' },
+  savedBadgeText: { color: C.success, fontSize: 13, fontWeight: '600' },
   resetBtn:      { alignItems: 'center', paddingVertical: 12 },
   resetLabel:    { color: C.textSecondary, fontSize: 14 },
   modalRoot:     { flex: 1, backgroundColor: C.bg },

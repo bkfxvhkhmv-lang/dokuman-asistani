@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Speech from 'expo-speech';
@@ -38,6 +39,8 @@ const ENABLE_RELEASE_DEADLINE_BANNER = false;
 
 export default function Detailbildschirm() {
   const { Colors: C, isSimpleMode } = useTheme();
+  const tabBarHeight = useBottomTabBarHeight();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const { dispatch } = useStore();
   const L = useDetailBildschirmLogic();
 
@@ -165,7 +168,7 @@ export default function Detailbildschirm() {
   const releaseShowDeadlineBanner = ENABLE_RELEASE_DEADLINE_BANNER && showDeadlineStrip;
 
   const footerPad =
-    132 +
+    tabBarHeight + bottomInset + 24 +
     (releaseShowPrimaryFab ? 112 : 0) +
     (releaseShowDeadlineBanner ? 84 : 0);
 

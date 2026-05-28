@@ -16,6 +16,7 @@ import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
+import { HIT_SLOP_LG } from '@/theme';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
 import { exportiereTopluPDF } from '@/utils/exporters';
 import { useToast } from '@/hooks/useToast';
@@ -247,7 +248,7 @@ export default function ExportBildschirm() {
         {isSelectionMode && (
           <TouchableOpacity
             onPress={() => router.back()}
-            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+            hitSlop={HIT_SLOP_LG}
             style={{ marginBottom: 12, alignSelf: 'flex-start' }}
           >
             <Text style={{ fontSize: 14, fontWeight: '600', color: 'rgba(255,255,255,0.85)' }}>

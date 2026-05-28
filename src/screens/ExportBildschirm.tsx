@@ -2,14 +2,14 @@
  * ExportBildschirm — Accountable-style: Checkbox-Auswahl + ein CTA.
  * Nutzer wählt WAS exportiert wird, dann WANN, dann Export.
  */
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useContext } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
   StyleSheet, Alert,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '@/store';
@@ -141,7 +141,7 @@ export default function ExportBildschirm() {
   const { state } = useStore();
   const { S, Colors: C } = useTheme();
   const { t: T } = useT();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 49;
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const EXPORT_OPTIONS = buildExportOptions(T);

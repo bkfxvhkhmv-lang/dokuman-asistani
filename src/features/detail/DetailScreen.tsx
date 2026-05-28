@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useContext } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Speech from 'expo-speech';
@@ -39,7 +39,7 @@ const ENABLE_RELEASE_DEADLINE_BANNER = false;
 
 export default function Detailbildschirm() {
   const { Colors: C, isSimpleMode } = useTheme();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 49;
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { dispatch } = useStore();
   const L = useDetailBildschirmLogic();

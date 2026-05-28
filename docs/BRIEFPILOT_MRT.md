@@ -176,6 +176,7 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `2092164c` | fix(storage): persist document source files before saving — ShareUploadService: persistScanFiles+pages; useDocumentPipeline: no cache URI fallback; OcrMvpScreen: early persist at selection time |
 | `d7248215` | fix(layout): fallback when tab bar height context is missing — DetailScreen + ExportBildschirm: useBottomTabBarHeight()→useContext(BottomTabBarHeightContext)??49; Detail crash on router.push fixed |
 | `3fb9f127` | fix(export): decode document titles in batch PDF — safeDisplayDocumentTitleForExport helper; exportiereTopluPDF dok.titel raw→decoded; 8/8 test PASS |
 | `40d402cb` | fix(layout): replace hardcoded safe-area padding leftovers — Home paddingBottom 152→dynamic; DetailScreen footerPad 132→dynamic; ExportBildschirm hitSlop→HIT_SLOP_LG; OcrMvpResultCard #22C55E→C.success/C.successLight/C.successBorder |

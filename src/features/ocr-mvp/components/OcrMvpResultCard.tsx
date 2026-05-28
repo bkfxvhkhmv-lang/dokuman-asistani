@@ -199,7 +199,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               ? <ActivityIndicator color="#fff" />
               : <>
                   <Icon name="download-outline" size={20} color="#fff" />
-                  <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
+                  <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
                 </>}
           </TouchableOpacity>
         </>
@@ -266,7 +266,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               activeOpacity={0.8}
             >
               <Icon name="download-outline" size={20} color="#fff" />
-              <Text style={st.downloadLabel}>Herunterladen / Teilen</Text>
+              <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
             </TouchableOpacity>
           </StickyBottomCTA>
         </SafeAreaView>

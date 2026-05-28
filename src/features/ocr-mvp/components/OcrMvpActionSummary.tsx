@@ -34,7 +34,7 @@ type ActionHandler = 'preview' | 'download' | 'soon';
 interface ActionCfg { label: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:          { label: 'Nach Excel exportieren',    icon: 'download-outline',          handler: 'download' },
+  export_excel:          { label: 'Excel für Steuerberater herunterladen', icon: 'download-outline', handler: 'download' },
   export_share:          { label: 'Teilen',                    icon: 'share-outline',             handler: 'download' },
   show_fields:           { label: 'Felder anzeigen',           icon: 'list-outline',              handler: 'preview'  },
   show_summary:          { label: 'Zusammenfassung anzeigen',  icon: 'document-text-outline',     handler: 'preview'  },

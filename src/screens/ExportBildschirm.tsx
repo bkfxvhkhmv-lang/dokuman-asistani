@@ -54,14 +54,14 @@ function buildExportOptions(T: (k: string) => string): ExportOption[] {
     {
       id: 'pdf_alle',
       label: T('tab.documents'),
-      description: T('export.subtitle'),
+      description: 'Alle ausgewählten Dokumente als lesbares PDF.',
       icon: 'file-pdf',
       premium: false,
     },
     {
       id: 'originaldokumente',
       label: T('doc.scanned'),
-      description: T('export.subtitle'),
+      description: 'Original-Scans und hochgeladene Dateien.',
       icon: 'files',
       premium: false,
     },

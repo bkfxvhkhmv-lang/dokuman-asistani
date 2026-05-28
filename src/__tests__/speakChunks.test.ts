@@ -1,9 +1,15 @@
-import { splitTextIntoSpeechChunks } from '@/services/tts/speakChunks';
+import * as Speech from 'expo-speech';
+import { splitTextIntoSpeechChunks, speakChunksSequentially } from '@/services/tts/speakChunks';
 import type { Dokument } from '@/store';
 import { getDocumentSpeechPlainText } from '@/services/tts/documentPlainText';
 import { buildCriticalActionsSpeakText } from '@/services/tts/criticalActionsSpeakText';
 import { speechUi } from '@/i18n/speechUiStrings';
 import { inferSpeechLocaleFromText } from '@/services/tts/locales';
+
+jest.mock('expo-speech', () => ({
+  stop: jest.fn(async () => undefined),
+  speak: jest.fn(),
+}));
 
 describe('splitTextIntoSpeechChunks', () => {
   it('handles short text', () => {
@@ -15,6 +21,24 @@ describe('splitTextIntoSpeechChunks', () => {
     const ch = splitTextIntoSpeechChunks(long, 120);
     expect(ch.length).toBeGreaterThan(1);
     expect(ch.every(c => c.length <= 520)).toBe(true);
+  });
+
+  it('cancellation prevents next chunk from starting', async () => {
+    const speakMock = Speech.speak as jest.Mock;
+    const cancelledRef = { current: false };
+
+    speakMock.mockImplementationOnce((_text: string, opts: { onStopped?: () => void }) => {
+      cancelledRef.current = true;
+      opts.onStopped?.();
+    });
+
+    await speakChunksSequentially(['erste', 'zweite'], {
+      language: 'de-DE',
+      cancelledRef,
+    });
+
+    expect(speakMock).toHaveBeenCalledTimes(1);
+    expect(speakMock.mock.calls[0]?.[0]).toBe('erste');
   });
 });
 

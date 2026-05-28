@@ -121,7 +121,15 @@ export function useDetailMoreItems({
       onPress: tap(actions.handleEdit),
     });
 
-    if (dok.erledigt) {
+    if (!dok.erledigt) {
+      rows.push({
+        key: 'menu_erl',
+        icon: 'check-circle',
+        label: 'Als erledigt markieren',
+        group: 'secondary',
+        onPress: tap(actions.handleErledigt),
+      });
+    } else {
       rows.push({
         key: 'menu_erl',
         icon: 'arrow-counter-clockwise',

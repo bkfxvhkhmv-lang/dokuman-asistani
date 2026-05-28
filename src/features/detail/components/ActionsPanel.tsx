@@ -16,7 +16,7 @@ import { canOfferPaymentAction } from '@/utils/documentGuards';
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
   zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',   icon: 'currency-eur',    tone: 'primary' },
-  gutschrift:{ label: 'Gutschrift prüfen',        shortLabel: 'Gutschrift', icon: 'receipt',         tone: 'neutral' },
+  gutschrift:{ label: 'Angaben bearbeiten',        shortLabel: 'Bearbeiten', icon: 'receipt',         tone: 'neutral' },
   einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch',  icon: 'pencil-line',     tone: 'danger' },
   kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',   icon: 'calendar-blank',  tone: 'success' },
   mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',     icon: 'envelope-simple', tone: 'neutral' },
@@ -162,9 +162,7 @@ export function getDetailActionPlan(
     .filter(k => k !== primaryKey)
     .slice(0, coreLimit);
 
-  const secondaryKeys = !dok.erledigt
-    ? [...coreSecondaryKeys, 'erledigt']
-    : coreSecondaryKeys;
+  const secondaryKeys = coreSecondaryKeys;
 
   const secondary = secondaryKeys
     .map(key => ({ key, ...ACTION_META[key], onPress: onPress[key] }))

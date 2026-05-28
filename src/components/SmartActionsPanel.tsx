@@ -83,7 +83,7 @@ export default function SmartActionsPanel({
   omitKeys,
 }: SmartActionsPanelProps) {
   const { Colors: C, R } = useTheme();
-  const [expandedGruppe, setExpandedGruppe] = useState<ActionGruppe | null>('organisation');
+  const [expandedGruppe, setExpandedGruppe] = useState<ActionGruppe | null>(null);
 
   const omit = omitKeys?.length ? new Set(omitKeys) : OMITTABLE;
 

@@ -3,6 +3,7 @@ import * as LucideCalendar from 'expo-calendar';
 // Use lazy import pattern below instead
 import { getTageVerbleibend } from '@/utils/formatters';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
   ensureAndroidDefaultNotificationChannel,
   withAndroidNotificationChannel,
@@ -23,8 +24,9 @@ export async function addToLucideCalendar(dok: Dokument): Promise<boolean> {
     if (!cal) return false;
     const start = new Date(dok.frist!); start.setHours(9, 0, 0, 0);
     const end   = new Date(dok.frist!); end.setHours(10, 0, 0, 0);
+    const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
     await LucideCalendar.createEventAsync(cal.id, {
-      title: `BriefPilot · ${dok.titel}`,
+      title: `BriefPilot · ${displayTitle}`,
       startDate: start,
       endDate: end,
       allDay: false,
@@ -60,10 +62,11 @@ export async function sablonHatirlaticiPlanle(dok: Dokument, sablon: Hatirlatici
     hedef.setMonth(hedef.getMonth() + sablon.aySayisi);
     hedef.setHours(9, 0, 0, 0);
     if (hedef <= jetzt) return null;
+    const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
     await ensureAndroidDefaultNotificationChannel();
     const content = withAndroidNotificationChannel({
       title: `Bildirim  ${sablon.label} — Erinnerung`,
-      body: `${dok.titel}: ${sablon.hinweis}`,
+      body: `${displayTitle}: ${sablon.hinweis}`,
       data: { dokId: dok.id, sablonId: sablon.id },
     });
     const id = await Notifications.scheduleNotificationAsync({
@@ -118,7 +121,7 @@ export async function scheduleFristLocalNotifications(dok: Dokument): Promise<vo
     for (const d of slots) uniqMap.set(d.getTime(), d);
     const uniq = [...uniqMap.values()].sort((a, b) => a.getTime() - b.getTime());
 
-    const headline = (dok.titel || 'Dokument').slice(0, 120);
+    const headline = safeDisplayTitel(dok.titel, dok.typ, dok.confidence).slice(0, 120);
     const datumStr = fristDt.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 
     let idx = 0;

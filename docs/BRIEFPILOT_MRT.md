@@ -241,8 +241,7 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - [ ] **ActionsPanel TS hataları** — `src/features/detail/components/ActionsPanel.tsx:206+` `TS2769: No overload matches this call`. Pre-existing, runtime'ı etkilemiyor.
 - [ ] **Export ekranı son öğe görünürlüğü** — device'da onaylanmadı.
 - [ ] **Toplu export selectedIds** — device'da onaylanmadı.
-- [ ] **Raw title backlog — P1-A Messages** — kullanıcıya görünen dış yüzeylerde ham `dok.titel` hâlâ var:
-  `src/utils/calendar.ts`, `src/services/smart-notifications/notifyContent.ts`, `src/services/SmartRemindersService.ts`, `src/services/WidgetDataService.ts`
+- [x] **Raw title backlog — P1-A Messages** — `calendar.ts`, `notifyContent.ts`, `SmartRemindersService.ts`, `WidgetDataService.ts` display-only sanitize edildi. Takvim, bildirim, reminder ve widget yüzeylerinde ham `%20` title basılmaz.
 - [ ] **Raw title backlog — P1-B Share/Export** — paylaşım, export, template copy yüzeyleri sanitize edilmeli:
   `src/utils/exporters.ts`, `src/features/detail/hooks/document-actions/sharing.ts`, `src/features/detail/services/documentActionFlows.ts`, `src/features/detail/modals/SignaturePdfSheet.tsx`
 - [ ] **Raw title backlog — P1-C Summaries/Guidance** — özet ve yönlendirme metinlerinde ham title kalmış:

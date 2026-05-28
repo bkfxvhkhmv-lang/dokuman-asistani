@@ -1,5 +1,6 @@
 import type { Dokument } from '@/store';
 import { formatBetrag, getTageVerbleibend } from '@/utils';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 function betragStr(dok: Dokument): string | null {
   return dok.betrag ? formatBetrag(dok.betrag as number) : null;
@@ -24,6 +25,7 @@ export function buildUploadNotificationContent(
   const betrag = betragStr(dok);
   const absender = dok.absender !== 'Unbekannter Absender' ? dok.absender : dok.typ;
   const anomaly = detectAmountAnomaly(dok, alleDocs);
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
 
   if (anomaly !== null) {
     const pct = Math.round(Math.abs(anomaly) * 100);
@@ -67,6 +69,6 @@ export function buildUploadNotificationContent(
   return {
     title: `${absender}: ${dok.typ} erkannt`,
     body: [betrag, tage !== null && tage >= 0 ? `Frist in ${tage} Tagen` : null, dok.zusammenfassung?.slice(0, 60)]
-      .filter(Boolean).join(' — ') || dok.titel,
+      .filter(Boolean).join(' — ') || displayTitle,
   };
 }

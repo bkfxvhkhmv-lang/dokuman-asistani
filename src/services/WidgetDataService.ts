@@ -16,6 +16,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { getTageVerbleibend, formatBetrag } from '@/utils';
 import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 export const WIDGET_FILE = `${FileSystem.documentDirectory}widget_data.json`;
 export const APP_GROUP   = 'group.com.briefpilot.app';
@@ -77,7 +78,7 @@ export function buildWidgetSnapshot(docs: Dokument[]): WidgetSnapshot {
 
   const topItems: WidgetItem[] = urgent.slice(0, 3).map(d => ({
     id:       d.id,
-    titel:    d.titel.slice(0, 30),
+    titel:    safeDisplayTitel(d.titel, d.typ, d.confidence).slice(0, 30),
     absender: d.absender !== 'Unbekannter Absender' ? d.absender.slice(0, 24) : d.typ,
     typ:      d.typ,
     betrag:   d.betrag ? formatBetrag(d.betrag as number) : null,

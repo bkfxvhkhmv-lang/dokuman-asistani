@@ -15,6 +15,7 @@ import {
   withAndroidNotificationChannel,
 } from '@/services/SmartNotificationsService';
 import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '@/utils';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import * as Notifications from 'expo-notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
@@ -62,6 +63,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
   const suggestions: ReminderSuggestion[] = [];
   const tage = getTageVerbleibend(dok.frist);
   const now = new Date();
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
 
   // Deadline reminders
   if (dok.frist && !dok.erledigt) {
@@ -84,7 +86,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
             dringend:     t <= 2,
             icon:         t <= 2 ? '🔴' : '🟡',
             typ:          'deadline',
-            notifTitle:   `${t === 1 ? '🔴 Morgen fällig' : `⏰ ${t} Tage bis Frist`}: ${dok.titel}`,
+            notifTitle:   `${t === 1 ? '🔴 Morgen fällig' : `⏰ ${t} Tage bis Frist`}: ${displayTitle}`,
             notifBody:    `${dok.absender} — ${dok.betrag ? `${(dok.betrag as number).toFixed(2)} €` : dok.typ}`,
           });
         }
@@ -109,7 +111,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
         dringend:     false,
         icon:         '✍️',
         typ:          'einspruch',
-        notifTitle:   `⚠️ Einspruchsfrist endet bald: ${dok.titel}`,
+        notifTitle:   `⚠️ Einspruchsfrist endet bald: ${displayTitle}`,
         notifBody:    `Nur noch 3 Tage — jetzt Einspruch prüfen`,
       });
     }
@@ -132,7 +134,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
         dringend:     true,
         icon:         '🚨',
         typ:          'deadline',
-        notifTitle:   `🚨 Dringendes Dokument: ${dok.titel}`,
+        notifTitle:   `🚨 Dringendes Dokument: ${displayTitle}`,
         notifBody:    `Risiko: Hoch — bitte sofort handeln`,
       });
     }
@@ -179,12 +181,13 @@ export async function scheduleTemplateReminder(
   datum.setMonth(datum.getMonth() + sablon.aySayisi);
   datum.setHours(9, 0, 0, 0);
   if (datum <= new Date()) return null;
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   try {
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
         title: `${sablon.icon} ${sablon.label} — Erinnerung`,
-        body:  `${dok.titel}: ${sablon.hinweis}`,
+        body:  `${displayTitle}: ${sablon.hinweis}`,
         data:  { dokId: dok.id, sablonId: sablon.id, type: 'template_reminder' },
       }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: datum },

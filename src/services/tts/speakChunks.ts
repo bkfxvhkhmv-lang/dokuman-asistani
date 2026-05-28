@@ -58,16 +58,19 @@ export interface SpeakChunksOptions {
   language: string;
   rate?: number;
   cancelledRef?: { current: boolean };
+  /** Dışarıdan mevcut chunk promise'ini anında resolve etmek için kullanılır. */
+  interruptRef?: { current: (() => void) | null };
 }
 
 /**
  * Blok sırayla okunur; `cancelledRef.current === true` veya `Speech.stop()` sonra döngü biter.
+ * `interruptRef` ile mevcut chunk anında durdurulabilir (race condition olmadan).
  */
 export async function speakChunksSequentially(
   chunks: string[],
   opts: SpeakChunksOptions,
 ): Promise<void> {
-  const { language, rate = 0.9, cancelledRef } = opts;
+  const { language, rate = 0.9, cancelledRef, interruptRef } = opts;
 
   await Speech.stop();
 
@@ -77,17 +80,25 @@ export async function speakChunksSequentially(
     if (!c) continue;
 
     await new Promise<void>(resolve => {
+      const finish = () => {
+        if (interruptRef) interruptRef.current = null;
+        resolve();
+      };
+      if (interruptRef) interruptRef.current = finish;
+
       Speech.speak(c, {
         language,
         rate,
-        onDone: () => resolve(),
-        onStopped: () => resolve(),
-        onError: () => resolve(),
+        onDone: finish,
+        onStopped: finish,
+        onError: finish,
       });
     });
 
     if (cancelledRef?.current) break;
   }
+
+  if (interruptRef) interruptRef.current = null;
 }
 
 export async function stopAllSpeech(): Promise<void> {

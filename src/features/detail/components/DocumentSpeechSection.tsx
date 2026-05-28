@@ -28,6 +28,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
   const [playingKind, setPlayingKind] = useState<Kind | null>(null);
 
   const cancelledRef = useRef(false);
+  const interruptRef = useRef<(() => void) | null>(null);
 
   const fullText = getDocumentSpeechPlainText(dok);
   const hasFull = fullText.length > 0;
@@ -40,8 +41,9 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
 
   const killPlayback = useCallback(async () => {
     cancelledRef.current = true;
+    interruptRef.current?.();   // mevcut chunk promise'ini anında resolve et
+    interruptRef.current = null;
     await stopAllSpeech();
-    cancelledRef.current = false;
     setPlayingKind(null);
     setBusyKind(null);
   }, []);
@@ -77,6 +79,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
           language: kind === 'critical' ? criticalLocale : fullTextLocale,
           rate: kind === 'critical' ? 0.95 : 0.9,
           cancelledRef,
+          interruptRef,
         });
       } finally {
         setPlayingKind(null);

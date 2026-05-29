@@ -29,7 +29,7 @@ export function UILanguageCard({ bare }: UILangProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}
+      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}
     >
       {LANGUAGES.map(l => (
         <TouchableOpacity
@@ -65,6 +65,7 @@ export function UILanguageCard({ bare }: UILangProps) {
         fontSize: 11,
         color: C.textTertiary,
         marginTop: bare ? 8 : 12,
+        marginHorizontal: 16,
         letterSpacing: 0.1,
       }}
     >
@@ -73,7 +74,7 @@ export function UILanguageCard({ bare }: UILangProps) {
   );
   if (bare) {
     return (
-      <View style={{ paddingVertical: 10, paddingHorizontal: 14 }}>
+      <View style={{ paddingVertical: 10 }}>
         {scroll}
         {hint}
       </View>
@@ -109,7 +110,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}
+      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}
     >
       {AI_LANGUAGES.filter(l => l.priority).map(l => (
         <TouchableOpacity
@@ -143,7 +144,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   );
   if (bare) {
     return (
-      <View style={{ paddingVertical: 10, paddingHorizontal: 14 }}>
+      <View style={{ paddingVertical: 10 }}>
         {scroll}
         {hint}
       </View>

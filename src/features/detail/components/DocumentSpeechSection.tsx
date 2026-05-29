@@ -6,7 +6,7 @@ import { HIT_SLOP_LG } from '@/theme';
 import type { Dokument } from '@/store';
 import { getDocumentSpeechPlainText } from '@/services/tts/documentPlainText';
 import { buildCriticalActionsSpeakText } from '@/services/tts/criticalActionsSpeakText';
-import { inferSpeechLocaleFromText, ttsLocaleForAppLang } from '@/services/tts/locales';
+import { inferSpeechLocaleFromText, ttsLocaleForAppLang, ttsLocaleForDetectedLanguage } from '@/services/tts/locales';
 import { splitTextIntoSpeechChunks, speakChunksSequentially, stopAllSpeech } from '@/services/tts/speakChunks';
 import { useLangPreference } from '@/hooks/useLangPreference';
 import { speechUi, speechA11yLabel } from '@/i18n/speechUiStrings';
@@ -36,7 +36,8 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
   const hasCritical = criticalText.trim().length > 0;
   const appLocale = ttsLocaleForAppLang(lang);
   const deviceAwareFallback = ttsLocaleForAppLang(lang, 'en-US');
-  const fullTextLocale = inferSpeechLocaleFromText(fullText, deviceAwareFallback);
+  const detectedLocale = ttsLocaleForDetectedLanguage(dok.detectedLanguage, '');
+  const fullTextLocale = detectedLocale || inferSpeechLocaleFromText(fullText, deviceAwareFallback);
   const criticalLocale = inferSpeechLocaleFromText(criticalText, appLocale);
 
   const killPlayback = useCallback(async () => {

@@ -80,6 +80,8 @@ export interface Dokument {
   erledigt: boolean;
   uri: string | null;
   rohText: string | null;
+  /** OCR/backend tarafından tespit edilen belge dili, örn. "de", "fr", "tr". */
+  detectedLanguage?: string | null;
   versionen?: DokumentVersion[];
   aufgaben?: Aufgabe[];
   etiketten?: string[];

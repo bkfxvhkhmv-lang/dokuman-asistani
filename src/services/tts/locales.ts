@@ -23,6 +23,16 @@ export function ttsLocaleForAppLang(lang: string | undefined, fallback = 'de-DE'
   return TTS_LANG_TO_LOCALE[lang] ?? fallback;
 }
 
+export function ttsLocaleForDetectedLanguage(
+  lang: string | null | undefined,
+  fallbackLocale: string,
+): string {
+  const normalized = lang?.trim().toLowerCase();
+  if (!normalized) return fallbackLocale;
+  const base = normalized.split(/[-_]/)[0];
+  return TTS_LANG_TO_LOCALE[base] ?? fallbackLocale;
+}
+
 function countMatches(text: string, patterns: RegExp[]): number {
   return patterns.reduce((sum, pattern) => sum + (pattern.test(text) ? 1 : 0), 0);
 }

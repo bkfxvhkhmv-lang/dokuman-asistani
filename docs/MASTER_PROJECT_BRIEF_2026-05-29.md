@@ -88,7 +88,7 @@ Kullanıcı → Scan butonu (Kamera/Dosya/Galeri)
 ## 5. iOS App Durumu — Son Hali (2026-05-29)
 
 ### Tamamlanan P0/P1'ler
-- ✅ Vorlesen (TTS): render placement fix, locale inference, Anhalten race condition fix, silent mode fix, voice fallback
+- ✅ Vorlesen (TTS): render placement fix, locale inference, detected-language preference, Anhalten race condition fix, silent mode fix, voice fallback
 - ✅ Scan tab → OCR MVP backend bağlandı (e0d50efb0)
 - ✅ Raw title / %20 sızıntısı ana yüzeylerde temizlendi
 - ✅ Search sadeleşti: Alle/Rechnungen/Behörden/Nachweise

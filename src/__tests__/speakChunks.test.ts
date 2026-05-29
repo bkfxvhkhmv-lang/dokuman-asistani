@@ -4,11 +4,18 @@ import type { Dokument } from '@/store';
 import { getDocumentSpeechPlainText } from '@/services/tts/documentPlainText';
 import { buildCriticalActionsSpeakText } from '@/services/tts/criticalActionsSpeakText';
 import { speechUi } from '@/i18n/speechUiStrings';
-import { inferSpeechLocaleFromText } from '@/services/tts/locales';
+import { inferSpeechLocaleFromText, ttsLocaleForDetectedLanguage } from '@/services/tts/locales';
 
 jest.mock('expo-speech', () => ({
   stop: jest.fn(async () => undefined),
   speak: jest.fn(),
+  getAvailableVoicesAsync: jest.fn(async () => [{ language: 'de-DE' }, { language: 'fr-FR' }, { language: 'tr-TR' }]),
+}));
+
+jest.mock('expo-av', () => ({
+  Audio: {
+    setAudioModeAsync: jest.fn(async () => undefined),
+  },
 }));
 
 describe('splitTextIntoSpeechChunks', () => {
@@ -113,5 +120,19 @@ describe('inferSpeechLocaleFromText', () => {
 
   it('falls back when no signal is found', () => {
     expect(inferSpeechLocaleFromText('12345 ###', 'en-US')).toBe('en-US');
+  });
+});
+
+describe('ttsLocaleForDetectedLanguage', () => {
+  it('maps German detected language to de-DE', () => {
+    expect(ttsLocaleForDetectedLanguage('de', 'en-US')).toBe('de-DE');
+  });
+
+  it('maps French detected language to fr-FR', () => {
+    expect(ttsLocaleForDetectedLanguage('fr', 'de-DE')).toBe('fr-FR');
+  });
+
+  it('falls back when detected language is missing', () => {
+    expect(ttsLocaleForDetectedLanguage(undefined, 'en-US')).toBe('en-US');
   });
 });

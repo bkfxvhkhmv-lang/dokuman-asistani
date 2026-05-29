@@ -57,6 +57,7 @@ export interface OcrMvpJobStatus {
   job_id: string;
   status: 'processing' | 'done' | 'error';
   document_type?: string;
+  language?: string;
   confidence?: number;
   provider?: string;
   needs_review?: boolean;

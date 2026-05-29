@@ -87,16 +87,23 @@ function isLikelyGarbled(s: string): boolean {
   return false;
 }
 
+const ABSENDER_PLACEHOLDERS = new Set([
+  'unbekannt', 'unbekannter absender', 'unknown', 'unknown sender',
+  'absender unbekannt', 'kein absender', 'n/a', '-', '—',
+]);
+
 /**
  * Returns a safe display value for `absender`.
- * Falls back to "Unbekannter Absender" for empty, garbled, or very low-confidence values.
+ * Returns '' for empty, garbled, or known placeholder values so callers
+ * can omit the sender label entirely rather than showing "Unbekannt".
  */
 export function safeDisplayAbsender(
   absender: string | null | undefined,
   confidence?: number | null,
 ): string {
-  if (!absender || absender.trim().length === 0) return 'Unbekannter Absender';
-  if (isLikelyGarbled(absender)) return 'Unbekannter Absender';
+  if (!absender || absender.trim().length === 0) return '';
+  if (isLikelyGarbled(absender)) return '';
+  if (ABSENDER_PLACEHOLDERS.has(absender.trim().toLowerCase())) return '';
   return absender.trim();
 }
 

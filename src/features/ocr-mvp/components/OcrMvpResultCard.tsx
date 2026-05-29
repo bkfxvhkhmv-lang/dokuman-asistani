@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, ScrollView, Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import StickyBottomCTA from '@/design/components/StickyBottomCTA';
 import HeaderIconButton from '@/design/components/HeaderIconButton';
 import * as Sharing from 'expo-sharing';
@@ -74,6 +74,7 @@ interface Props {
 
 export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments, onOpenDocument }: Props) {
   const { Colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [previewText, setPreviewText] = useState<string | null>(null);
@@ -231,14 +232,15 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
       {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
-        <SafeAreaView style={st.modalRoot} edges={['top', 'bottom']}>
-          <View style={st.modalHeader}>
+        <SafeAreaView style={st.modalRoot} edges={['bottom']}>
+          <View style={[st.modalHeader, { paddingTop: Math.max(insets.top + 12, 28) }]}>
             <Text style={st.modalTitle}>{isXlsx ? 'Datenvorschau' : 'Ergebnisvorschau'}</Text>
             <HeaderIconButton
               name="close"
               onPress={() => setPreviewVisible(false)}
               accessibilityLabel="Schließen"
               color={Colors.text}
+              style={{ marginRight: -4 }}
             />
           </View>
           <ScrollView style={st.modalScroll} contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
@@ -418,7 +420,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   modalRoot:     { flex: 1, backgroundColor: C.bg },
   modalHeader:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16,
+    paddingHorizontal: 20, paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
   modalDownloadBtn: {

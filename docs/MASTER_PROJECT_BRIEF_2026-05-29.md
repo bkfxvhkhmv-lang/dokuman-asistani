@@ -113,6 +113,63 @@ Kullanıcı → Scan butonu (Kamera/Dosya/Galeri)
 
 ---
 
+## 5b. OCR V10 Dataset Pipeline — Aktif Çalışma
+
+**Kritik bilgi:** V10, distribution shift problemini çözmek için gerçek DACH dokümanlarıyla hazırlanan yeni dataset.
+
+**Konum:** `~/Desktop/OCR_Egitim/briefpilot_ocr_v10_2_TRUE_HARDENED_HARMONIZED_54TESTS/`
+
+**V10 DACH Night Run sonuçları (18 Mayıs 2026):**
+- Toplanan doküman: 2,402 (54 farklı domain)
+- Güvenli sayfalar (eğitilebilir): 2,927
+- Crop sayısı: 82,564
+- Kaynaklar: vwgh.gv.at, ogh.gv.at, justiz.hamburg.de, bundesarbeitsgericht.de, bundesfinanzhof.de, finanzamt.nrw.de vb. — gerçek Almanya/Avusturya/İsviçre resmi dokümanları
+
+**V10 pipeline özellikleri:**
+- Gerçek kamu dokümanları (synthetic değil) → distribution shift çözümü
+- PII gating (kişisel veri koruması)
+- Rights/license classifier (GDPR uyumlu)
+- Provenance chain tracking
+- 54 test geçiyor
+
+**Bu neden önemli:** V8B'nin %63 accuracy'si büyük ölçüde synthetic→real distribution shift'ten kaynaklanıyor. V10 gerçek dokümanlarla eğitilince bu gap kapanacak.
+
+---
+
+## 5c. Rakip Analizi — Accountable (Masterroadplan.docx)
+
+**Accountable'dan öğrenilenler:**
+1. **AI sparkle (✦) pattern** — AI'ın otomatik doldurduğu alanlara küçük ✦ ikonu. Kullanıcı neye güveneceğini anlıyor. BriefPilot'ta **yok, eklenmeli.**
+2. **"Daten werden erkannt..." loading** — tek ikon, animasyonlu tarama çizgisi, merkezi. Çok etkili.
+3. **Onboarding** — ülke → vergi durumu → uygulama değeri anlatılıyor. BriefPilot'ta henüz yok.
+4. **Sayfa sayısı gösterimi** — "Sichern (2)" kamera sırasında anlık sayfa sayısı. Basit ama değerli.
+5. **Alt sheet aksiyon menüsü** — destructive action kırmızı, diğerleri normal.
+
+**BriefPilot'un Accountable'a karşı avantajları:**
+- Risk skoru (hoch/mittel/niedrig) — Accountable'da **yok**
+- Çok daha derin aksiyon sistemi (Zahlen + Einspruch + Kalender + AI chat + yanıt taslağı)
+- Belge çeşitliliği: Mahnung, Gerichtsbescheid, Steuerbescheid, Versicherung, Vertrag — Accountable sadece Ausgaben
+- Accountable dar kitle (Gewerbetreibende), BriefPilot tüm Almanya'daki Türkler
+
+**Accountable'ın zayıflığı = BriefPilot'un fırsatı:** Birisi avukat mektubu yüklerse Accountable ne yapacağını bilmiyor.
+
+---
+
+## 5d. Android vs iOS UI Gerçekleri (premium dokunma.docx)
+
+Şu an iOS odaklı geliştirme yapılıyor, ama Android'e çıkılacaksa bilinmesi gerekenler:
+
+| Efekt | iOS | Android |
+|-------|-----|---------|
+| Blur (cam efekti) | ✅ UIBlurEffect | ❌ Yok (fake screenshot blur) |
+| Renkli glow | ✅ | ❌ Sadece gri elevation |
+| Gradient | ✅ | ⚠️ GPU flatten ediyor |
+| Shadow | ✅ | ⚠️ Sadece elevation |
+
+**Çözüm (Revolut/Spotify yöntemi):** Blur yok ama yarı şeffaf solid + gradient overlay + border + elevation kombinasyonu "cam hissi" veriyor. Bu şu an iOS'ta premium görünen UI'ın Android portu için hazır plan.
+
+---
+
 ## 6. Repo Yapısı — Önemli Dosyalar
 
 ```

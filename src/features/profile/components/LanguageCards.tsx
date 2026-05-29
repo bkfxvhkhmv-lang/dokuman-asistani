@@ -26,12 +26,12 @@ export function UILanguageCard({ bare }: UILangProps) {
   const { lang, changeLang } = useLangPreference();
   const { Colors: C, Shadow } = useTheme();
   const pills = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 4, paddingVertical: 2 }}>
       {LANGUAGES.map(l => (
         <TouchableOpacity
           key={l.code}
           style={{
-            paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
+            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
             borderWidth: 1.5,
             borderColor:     lang === l.code ? C.primary : C.border,
             backgroundColor: lang === l.code ? C.primaryLight : C.bgInput,
@@ -103,12 +103,12 @@ interface AILangProps {
 export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   const { Colors: C, Shadow } = useTheme();
   const pills = (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 4, paddingVertical: 2 }}>
       {AI_LANGUAGES.filter(l => l.priority).map(l => (
         <TouchableOpacity
           key={l.code}
           style={{
-            paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999,
+            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
             borderWidth: 1.5,
             borderColor:     aiLang === l.code ? C.primary : C.border,
             backgroundColor: aiLang === l.code ? C.primaryLight : C.bgInput,

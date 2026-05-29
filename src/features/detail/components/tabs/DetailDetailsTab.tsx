@@ -40,7 +40,6 @@ export default function DetailDetailsTab({
       onLayout={onScrollLayout}
     >
       {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
-      {detail.dok && <DocumentSpeechSection dok={detail.dok} prominent />}
       <DetailsPanel
         dok={detail.dok}
         mevcutEtiketten={detail.mevcutEtiketten}
@@ -53,6 +52,7 @@ export default function DetailDetailsTab({
         onExport={onExport}
         onLoeschen={onLoeschen}
       />
+      {detail.dok && <DocumentSpeechSection dok={detail.dok} prominent />}
     </ScrollView>
   );
 }

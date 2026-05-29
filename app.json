@@ -30,7 +30,7 @@
     "scheme": "briefpilot",
     "ios": {
       "bundleIdentifier": "com.briefpilot.app",
-      "buildNumber": "3",
+      "buildNumber": "4",
       "infoPlist": {
         "NSCameraUsageDescription": "Erlaube die Kamera, um Briefe direkt zu scannen.",
         "NSPhotoLibraryUsageDescription": "Wähle vorhandene Fotos oder Dokumente aus deiner Galerie.",

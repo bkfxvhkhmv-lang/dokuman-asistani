@@ -1,4 +1,5 @@
 import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
 
 const DEFAULT_CHUNK = 520;
 
@@ -71,6 +72,10 @@ export async function speakChunksSequentially(
   opts: SpeakChunksOptions,
 ): Promise<void> {
   const { language, rate = 0.9, cancelledRef, interruptRef } = opts;
+
+  try {
+    await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false });
+  } catch {}
 
   await Speech.stop();
 

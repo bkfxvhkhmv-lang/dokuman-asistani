@@ -79,16 +79,11 @@ export async function speakChunksSequentially(
 
   await Speech.stop();
 
-  // DEBUG — remove before release
+  // Fall back to system default voice if the inferred locale has no installed voice on device.
+  // expo-speech silently produces no audio when language is set to an uninstalled locale.
   const voices = await Speech.getAvailableVoicesAsync().catch(() => []);
-  const voiceMatch = voices.filter(v => v.language?.startsWith(language?.slice(0, 2) ?? ''));
-  console.log('[TTS]', { language, rate, chunks: chunks.length, availableVoicesTotal: voices.length, voiceMatchCount: voiceMatch.length, voiceMatchIds: voiceMatch.slice(0, 3).map(v => v.identifier) });
-
-  // Use undefined language as fallback if no voice matches for the inferred locale
-  const resolvedLanguage = voiceMatch.length > 0 ? language : undefined;
-  if (resolvedLanguage !== language) {
-    console.log('[TTS] no voice for', language, '→ falling back to system default');
-  }
+  const hasVoice = voices.some(v => v.language?.startsWith(language?.slice(0, 2) ?? ''));
+  const resolvedLanguage = hasVoice ? language : undefined;
 
   for (const chunk of chunks) {
     if (cancelledRef?.current) break;
@@ -107,7 +102,7 @@ export async function speakChunksSequentially(
         rate,
         onDone: finish,
         onStopped: finish,
-        onError: (e) => { console.log('[TTS] onError', e); finish(); },
+        onError: finish,
       });
     });
 

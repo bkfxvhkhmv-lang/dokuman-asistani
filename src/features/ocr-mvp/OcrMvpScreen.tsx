@@ -190,7 +190,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
       <View style={st.header}>
-        <Text style={st.title}>Neue Analyse</Text>
+        <Text style={st.title}>Analysieren</Text>
         {onClose && (
           <IconButton onPress={onClose} accessibilityLabel="Schließen">
             <Icon name="close" size={22} color={Colors.textSecondary} />

@@ -1,3 +1,5 @@
-import { ScanScreen } from '@features/scan';
+import OcrMvpScreen from '@/features/ocr-mvp/OcrMvpScreen';
 
-export default ScanScreen;
+export default function ScanTab() {
+  return <OcrMvpScreen />;
+}

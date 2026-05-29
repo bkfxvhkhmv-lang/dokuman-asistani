@@ -23,7 +23,7 @@ State:     useReducer + Context (store.tsx)
 Backend:   FastAPI + PostgreSQL + Celery (api.briefpilot.app)
 OCR:       Google Vision API (mevcut production) + BriefPilot kendi modeli (eğitimde)
 AI/LLM:    BriefPilot backend /documents/analyze endpoint (OCR + field extraction + summary + risk)
-Build:     EAS Build, iOS buildNumber şu an 3, version 4.0.0
+Build:     EAS Build, iOS buildNumber şu an 4, version 4.0.0
 Branch:    feature/ocr-api-integration
 ```
 
@@ -101,7 +101,7 @@ Kullanıcı → Scan butonu (Kamera/Dosya/Galeri)
 ### Açık Sorular / Kararlar Bekleniyor
 - **Option A vs B:** Scan tab şu an direkt OcrMvpScreen'e gidiyor (Option A). Custom scanner UX (perspektif düzeltme, çok sayfa) kaybedildi. Kullanıcı onayı bekleniyor.
 - **30 saniye background processing:** Kullanıcıyı beklemeye sokmamak için backend'e job async yapısı veya optimizasyon gerekiyor.
-- **TestFlight:** Scan fix onaylanınca build 3 hazır.
+- **TestFlight:** Scan Option A kararı verildi (build 4). EAS build alınabilir.
 
 ### Bilinen Sınırlamalar (TestFlight'a gidebilir ama not alınmalı)
 - PDF upload → Vorlesen çalışmaz (text extraction yok)

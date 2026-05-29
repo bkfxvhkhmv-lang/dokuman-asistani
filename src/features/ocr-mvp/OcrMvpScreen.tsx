@@ -198,13 +198,20 @@ export default function OcrMvpScreen({ onClose }: Props) {
         )}
       </View>
 
+      {/* Analiz sırasında tam ekran ortalı state — ScrollView değil */}
+      {(status === 'uploading' || status === 'processing') && (
+        <View style={st.centeredState}>
+          <OcrMvpStatusCard status={status} previewUri={selectedPreviewUri ?? undefined} />
+        </View>
+      )}
+
       <ScrollView
-        style={st.scroll}
+        style={[st.scroll, (status === 'uploading' || status === 'processing') && { display: 'none' }]}
         contentContainerStyle={st.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Yükleme ve işleme */}
-        {(status === 'uploading' || status === 'processing') && (
+        {/* Yükleme ve işleme — ScrollView içinde artık gösterilmiyor */}
+        {false && (
           <OcrMvpStatusCard status={status} previewUri={selectedPreviewUri ?? undefined} />
         )}
 
@@ -280,6 +287,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
+  centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },

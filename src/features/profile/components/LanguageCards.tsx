@@ -6,7 +6,7 @@
  * benzer oldugu icin tek dosyada paylasiyorlar.
  */
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
 import { useLangPreference } from '@/hooks/useLangPreference';
@@ -25,12 +25,8 @@ interface UILangProps {
 export function UILanguageCard({ bare }: UILangProps) {
   const { lang, changeLang } = useLangPreference();
   const { Colors: C, Shadow } = useTheme();
-  const scroll = (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}
-    >
+  const pills = (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}>
       {LANGUAGES.map(l => (
         <TouchableOpacity
           key={l.code}
@@ -57,7 +53,7 @@ export function UILanguageCard({ bare }: UILangProps) {
           </Text>
         </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
   const hint = (
     <Text
@@ -75,7 +71,7 @@ export function UILanguageCard({ bare }: UILangProps) {
   if (bare) {
     return (
       <View style={{ paddingVertical: 10 }}>
-        {scroll}
+        {pills}
         {hint}
       </View>
     );
@@ -90,7 +86,7 @@ export function UILanguageCard({ bare }: UILangProps) {
       <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, marginBottom: 14, letterSpacing: 0.8 }}>
         APP‑SPRACHE
       </Text>
-      {scroll}
+      {pills}
       {hint}
     </View>
   );
@@ -106,12 +102,8 @@ interface AILangProps {
 
 export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   const { Colors: C, Shadow } = useTheme();
-  const scroll = (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}
-    >
+  const pills = (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 16, paddingVertical: 2 }}>
       {AI_LANGUAGES.filter(l => l.priority).map(l => (
         <TouchableOpacity
           key={l.code}
@@ -135,7 +127,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
           </Text>
         </TouchableOpacity>
       ))}
-    </ScrollView>
+    </View>
   );
   const hint = (
     <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: bare ? 8 : 12, letterSpacing: 0.1 }}>
@@ -145,7 +137,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   if (bare) {
     return (
       <View style={{ paddingVertical: 10 }}>
-        {scroll}
+        {pills}
         {hint}
       </View>
     );
@@ -160,7 +152,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
       <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, marginBottom: 14, letterSpacing: 0.8 }}>
         KI-ANTWORT‑SPRACHE
       </Text>
-      {scroll}
+      {pills}
       {hint}
     </View>
   );

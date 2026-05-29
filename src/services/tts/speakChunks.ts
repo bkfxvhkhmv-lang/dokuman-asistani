@@ -79,6 +79,17 @@ export async function speakChunksSequentially(
 
   await Speech.stop();
 
+  // DEBUG — remove before release
+  const voices = await Speech.getAvailableVoicesAsync().catch(() => []);
+  const voiceMatch = voices.filter(v => v.language?.startsWith(language?.slice(0, 2) ?? ''));
+  console.log('[TTS]', { language, rate, chunks: chunks.length, availableVoicesTotal: voices.length, voiceMatchCount: voiceMatch.length, voiceMatchIds: voiceMatch.slice(0, 3).map(v => v.identifier) });
+
+  // Use undefined language as fallback if no voice matches for the inferred locale
+  const resolvedLanguage = voiceMatch.length > 0 ? language : undefined;
+  if (resolvedLanguage !== language) {
+    console.log('[TTS] no voice for', language, '→ falling back to system default');
+  }
+
   for (const chunk of chunks) {
     if (cancelledRef?.current) break;
     const c = chunk.trim();
@@ -92,11 +103,11 @@ export async function speakChunksSequentially(
       if (interruptRef) interruptRef.current = finish;
 
       Speech.speak(c, {
-        language,
+        language: resolvedLanguage,
         rate,
         onDone: finish,
         onStopped: finish,
-        onError: finish,
+        onError: (e) => { console.log('[TTS] onError', e); finish(); },
       });
     });
 

@@ -55,13 +55,15 @@ function buildUrgencyBadge(
 
 function quickIntent(dok: Dokument, C: ThemeColors) {
   const t = [dok.rohText, dok.zusammenfassung, dok.titel].filter(Boolean).join(' ').toLowerCase();
-  if (/mahnung|inkasso|pfändung/.test(t) || dok.typ === 'Mahnung') return { PhIcon: WarningCircle, color: C.danger };
-  if (/rechnung|zahlung|forderung/.test(t) || (dok.betrag && dok.betrag > 0)) return { PhIcon: Money, color: C.primary };
-  if (/widerspruch|einspruch/.test(t)) return { PhIcon: PencilSimple, color: C.primaryDark };
-  if (/termin|um\s+\d+:\d+/.test(t) || dok.typ === 'Termin') return { PhIcon: CalendarBlank, color: C.success };
-  if (/bescheid|entscheidung/.test(t) || dok.typ === 'Behörde') return { PhIcon: FileText, color: C.primary };
+  // Explicit type wins before amount — prevents betrag > 0 from overriding category icons
+  if (dok.typ === 'Mahnung' || /mahnung|inkasso|pfändung/.test(t)) return { PhIcon: WarningCircle, color: C.danger };
   if (dok.typ === 'Versicherung') return { PhIcon: ShieldCheck, color: C.success };
+  if (dok.typ === 'Behörde' || /bescheid|entscheidung/.test(t)) return { PhIcon: FileText, color: C.primary };
   if (dok.typ === 'Vertrag') return { PhIcon: FileText, color: C.primaryDark };
+  if (dok.typ === 'Termin' || /termin|um\s+\d+:\d+/.test(t)) return { PhIcon: CalendarBlank, color: C.success };
+  if (/widerspruch|einspruch/.test(t)) return { PhIcon: PencilSimple, color: C.primaryDark };
+  // Amount-based: only reached when no stronger document type is set
+  if (/rechnung|zahlung|forderung/.test(t) || (dok.betrag && dok.betrag > 0)) return { PhIcon: Money, color: C.primary };
   return { PhIcon: File, color: C.textSecondary };
 }
 

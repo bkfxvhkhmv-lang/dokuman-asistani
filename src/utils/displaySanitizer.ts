@@ -12,10 +12,11 @@ function safeDecode(text: string): string {
 const FILE_EXT_RE = /\.(pdf|jpg|jpeg|png|xlsx|csv|docx|doc|txt)$/i;
 
 const TECH_FILENAME_MAP: { re: RegExp; label: string }[] = [
-  { re: /^image_\d+$/i,   label: 'Dokument aus Fotos' },
-  { re: /^photo_\d+$/i,   label: 'Foto aufgenommen' },
-  { re: /^IMG[_-]?\d+$/i, label: 'Bild ausgewählt' },
-  { re: /^input(_full)?$/i, label: 'Analysiertes Dokument' },
+  { re: /^image_\d+$/i,       label: 'Dokument aus Fotos' },
+  { re: /^photo_\d+$/i,       label: 'Foto aufgenommen' },
+  { re: /^IMG[_-]?\d+$/i,     label: 'Bild ausgewählt' },
+  { re: /^input(_full)?$/i,   label: 'Analysiertes Dokument' },
+  { re: /^Scan\s+\d{6,}$/i,   label: 'Analysiertes Dokument' },
 ];
 
 const TECH_SUFFIX_RE = /_[a-z]{2}[0-9a-f]{4,}$/i;

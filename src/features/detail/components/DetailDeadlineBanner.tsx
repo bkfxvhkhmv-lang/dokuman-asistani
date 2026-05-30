@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store';
-import { getTageVerbleibend } from '@/utils/formatters';
+import { getTageVerbleibend, formatFrist } from '@/utils/formatters';
 
 /** Frist in der Zukunft, noch nicht im Kalender; bei Überfälligkeit kein Kalender-Hinweis. */
 export function shouldShowDetailDeadlineBanner(dok: Dokument): boolean {
@@ -26,11 +26,7 @@ export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
 
   if (!shouldShowDetailDeadlineBanner(dok) || !dok.frist) return null;
 
-  const fristStr = new Date(dok.frist).toLocaleDateString('de-DE', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  const fristStr = formatFrist(dok.frist);
 
   return (
     <View

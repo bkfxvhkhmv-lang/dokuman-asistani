@@ -10,6 +10,39 @@ function displayTitleFor(dok: DokumentErweitert): string {
   return safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
 }
 
+function hasKnownSender(dok: DokumentErweitert): boolean {
+  return !!(dok.absender && !/^unbekannt/i.test(dok.absender.trim()));
+}
+
+function buildFallbackSubject(dok: DokumentErweitert): string {
+  const title = displayTitleFor(dok);
+  const genericTitle = /^unbekannt/i.test(title) ? 'Dokument' : title;
+  if (hasKnownSender(dok)) return `${dok.absender!.trim()} — ${genericTitle}`;
+  return `${genericTitle} zur Prüfung`;
+}
+
+function buildFallbackBody(dok: DokumentErweitert): string {
+  const label =
+    dok.typ && dok.typ !== 'Sonstiges'
+      ? `die ${dok.typ.toLowerCase()}`
+      : 'das Dokument';
+
+  const hintParts = [
+    dok.frist ? `Frist bis ${formatFrist(dok.frist)}` : null,
+    dok.betrag ? `Betrag ${formatBetrag(dok.betrag)}` : null,
+    dok.aktenzeichen ? `Aktenzeichen ${dok.aktenzeichen}` : null,
+  ].filter(Boolean);
+
+  return [
+    'Hallo,',
+    '',
+    `im Anhang findest du ${label} zur Prüfung.`,
+    ...(hintParts.length ? ['', `Hinweis: ${hintParts.join(' · ')}.`] : []),
+    '',
+    'Viele Grüße',
+  ].join('\n');
+}
+
 export interface SendProfile {
   match?: RegExp;
   preferredChannel: string;
@@ -63,14 +96,8 @@ export function getInstitutionSendProfile(dok: DokumentErweitert): SendProfile {
   return {
     preferredChannel: 'email',
     requiresAttachment: true,
-    subjectTemplate: ({ dok: d }) => {
-      const sender = d.absender && !/^unbekannt/i.test(d.absender.trim()) ? `${d.absender} — ` : '';
-      return `${sender}${displayTitleFor(d)}${d.aktenzeichen ? ` — AZ ${d.aktenzeichen}` : ''}`;
-    },
-    bodyTemplate: ({ dok: d }) =>
-      `${d.zusammenfassung || ''}${d.betrag ? `\nBetrag: ${formatBetrag(d.betrag)}` : ''}${
-        d.frist ? `\nFrist: ${formatFrist(d.frist)}` : ''
-      }${d.aktenzeichen ? `\nAktenzeichen: ${d.aktenzeichen}` : ''}\n\nAnhang: beigefügt\n\n---\nErstellt mit BriefPilot`,
+    subjectTemplate: ({ dok: d }) => buildFallbackSubject(d),
+    bodyTemplate: ({ dok: d }) => buildFallbackBody(d),
   };
 }
 

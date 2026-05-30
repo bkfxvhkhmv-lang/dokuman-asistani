@@ -23,11 +23,28 @@ function getTageText(frist: string | null | undefined, T: (key: string, vars?: R
 
 function getAccentColor(dok: Dokument, C: ThemeColors, Risk: RiskPalette): string {
   if (dok.erledigt) return C.textTertiary;
+  if (dok.typ === 'Gutschrift') return C.success;
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
-  if (tage !== null && tage <= 0) return Risk.hoch.color;   // overdue → urgency red (not UI danger)
-  if (tage !== null && tage <= 3) return Risk.mittel.color; // soon → urgency amber
-  if (dok.risiko === 'hoch') return Risk.mittel.color;
+  const hasBetrag = typeof dok.betrag === 'number' && dok.betrag > 0;
+  if (tage !== null && tage <= 0) return Risk.hoch.color;                    // overdue → red
+  if (dok.typ === 'Mahnung' && hasBetrag) return Risk.hoch.color;            // confirmed debt escalation → red
+  if (tage !== null && tage <= 7) return Risk.mittel.color;                  // within a week → amber
+  if (dok.typ === 'Mahnung') return Risk.mittel.color;                       // Mahnung, betrag unclear → amber
+  if (dok.risiko === 'mittel') return Risk.mittel.color;
+  if (dok.risiko === 'hoch' && hasBetrag) return Risk.mittel.color;          // high risk only if amount confirmed
   return C.border;
+}
+
+type UrgencyBadgeInfo = { label: string; bg: string; textColor: string };
+
+function buildUrgencyBadge(dok: Dokument, tage: number | null, C: ThemeColors): UrgencyBadgeInfo | null {
+  if (dok.erledigt) return null;
+  if (tage !== null && tage < 0)   return { label: 'Überfällig',   bg: C.dangerLight,  textColor: C.dangerText };
+  if (tage !== null && tage === 0) return { label: 'Heute',        bg: C.dangerLight,  textColor: C.dangerText };
+  if (tage !== null && tage <= 7)  return { label: 'Diese Woche',  bg: C.warningLight, textColor: C.warningText };
+  if (tage === null && dok.confidence != null && dok.confidence < 70)
+    return { label: 'Angaben prüfen', bg: C.warningLight, textColor: C.warningText };
+  return null;
 }
 
 function quickIntent(dok: Dokument, C: ThemeColors) {
@@ -62,7 +79,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const displayAbsender = safeDisplayAbsender(dok.absender, dok.confidence);
   const displayTitel    = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
-  const isUrgent    = !dok.erledigt && (tage !== null && tage <= 3 || dok.risiko === 'hoch');
+  const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || dok.typ === 'Mahnung');
   const isDone      = dok.erledigt;
   const a11yLabel = [
     dok.typ, dok.titel, dok.absender,
@@ -82,6 +99,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const cardInsight    = buildCardInsight(dok);
   const secondaryLine  = cardInsight ?? listSnippet ?? null;
   const nextStep       = deriveNextStep(dok);
+  const urgencyBadge   = buildUrgencyBadge(dok, tage, Colors);
 
   const nextStepColors = (urgency: NextStepUrgency) => {
     if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };
@@ -168,6 +186,12 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
               {dok.workflowStamp}
             </Text>
           </View>
+        ) : urgencyBadge ? (
+          <View style={[styles.urgencyBox, { backgroundColor: urgencyBadge.bg }]}>
+            <Text style={[styles.urgencyText, { color: urgencyBadge.textColor }]}>
+              {urgencyBadge.label}
+            </Text>
+          </View>
         ) : nextStep && nextStep.key !== 'overdue' && nextStep.key !== 'review' ? (
           <View style={[styles.nextStepBox, { backgroundColor: nextStepColors(nextStep.urgency).bg }]}>
             <Text style={[styles.nextStepText, { color: nextStepColors(nextStep.urgency).text }]}>
@@ -202,4 +226,6 @@ const styles = StyleSheet.create({
   demoBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8 },
   nextStepBox:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   nextStepText:  { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
+  urgencyBox:    { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+  urgencyText:   { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
 });

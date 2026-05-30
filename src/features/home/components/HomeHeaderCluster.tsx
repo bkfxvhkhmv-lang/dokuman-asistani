@@ -69,6 +69,9 @@ export default function HomeHeaderCluster({
             </View>
           )}
         </View>
+        <Text style={{ fontSize: fs(13), color: colors.textSecondary, marginTop: -6, marginBottom: 4 }}>
+          {totalOpen === 1 ? T('home.doc_singular') : T('home.doc_plural')}
+        </Text>
 
         {/* Scope filter */}
         <View style={st.scopeRow}>

@@ -93,6 +93,7 @@ export default function DetailsPanel({
             status={f.status}
             aiSparkle={f.aiSparkle}
             showEditAffordance
+            onPress={f.status && onEdit ? onEdit : undefined}
           />
         ))}
       </SectionCard>

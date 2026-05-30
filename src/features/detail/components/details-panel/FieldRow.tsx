@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import AiSparkle from '@/components/AiSparkle';
 import Icon from '@/components/Icon';
@@ -8,7 +8,7 @@ export type FieldStatus = 'pruefen' | 'fehlt' | undefined;
 
 export function FieldRow({
   icon, label, value, isLast = false, aiSparkle = false,
-  status, showEditAffordance = false,
+  status, showEditAffordance = false, onPress,
 }: {
   icon: string;
   label: string;
@@ -17,12 +17,14 @@ export function FieldRow({
   aiSparkle?: boolean;
   status?: FieldStatus;
   showEditAffordance?: boolean;
+  onPress?: () => void;
 }) {
   const { Colors: C } = useTheme();
 
   const displayValue = status === 'fehlt' ? null : (value || null);
+  const isActionable = !!onPress && !!status;
 
-  return (
+  const rowContent = (
     <View style={{
       flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
       borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: C.border,
@@ -78,10 +80,22 @@ export function FieldRow({
         </View>
       )}
 
-      {/* Edit affordance — static pencil, no press handler */}
-      {showEditAffordance && !status && (
+      {/* Edit affordance — pencil when actionable with status, faint when no status */}
+      {isActionable && (
+        <Icon name="pencil-simple" size={14} color={C.textTertiary} />
+      )}
+      {showEditAffordance && !status && !isActionable && (
         <Icon name="pencil-simple" size={14} color={C.borderLight} />
       )}
     </View>
   );
+
+  if (isActionable) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityRole="button">
+        {rowContent}
+      </TouchableOpacity>
+    );
+  }
+  return rowContent;
 }

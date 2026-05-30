@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useEffect, useContext } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { Animated } from 'react-native';
+import { Animated, View, Text } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Speech from 'expo-speech';
 
@@ -213,6 +213,24 @@ export default function Detailbildschirm() {
         primary={C.primary}
         headerShadowOpacity={headerShadowOpacity}
       />
+
+      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && (
+        <View style={{
+          backgroundColor: C.primaryLight,
+          paddingHorizontal: 16,
+          paddingVertical: 7,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          borderBottomWidth: 0.5,
+          borderBottomColor: C.borderLight,
+        }}>
+          <View style={{ width: 3, height: 14, borderRadius: 2, backgroundColor: C.primary }} />
+          <Text style={{ fontSize: 12, fontWeight: '600', color: C.primaryDark, flex: 1 }} numberOfLines={1}>
+            {naechsterSchrittZeile}
+          </Text>
+        </View>
+      )}
 
       {!isSimpleMode && (
       <>

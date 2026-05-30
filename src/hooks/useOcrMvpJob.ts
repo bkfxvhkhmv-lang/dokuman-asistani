@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { analyzeDocument, getOcrResult } from '@/services/ocrMvpApi';
 import type { OcrMvpFile, OcrMvpForceType, OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
-const POLL_INTERVAL_MS  = 2000;
+const POLL_INTERVAL_MS  = 1000;
 const POLL_TIMEOUT_MS   = 30_000;
 const UPLOAD_TIMEOUT_MS = 20_000;
 
@@ -52,20 +52,22 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
 
   const poll = useCallback((id: string, timing?: Partial<OcrMvpTimingCallbacks>) => {
     timing?.onPollingStarted?.(id);
-    timerRef.current = setInterval(async () => {
+    const inFlight = { current: false };
+
+    const doPoll = async () => {
+      if (inFlight.current) return;
       if (Date.now() - startedRef.current >= POLL_TIMEOUT_MS) {
         clearTimer();
         setStatus('timeout');
         setError('İşlem uzun sürdü. Lütfen tekrar deneyin.');
         return;
       }
-
+      inFlight.current = true;
       try {
         const data = await getOcrResult(id);
         if (data.status === 'done' || data.status === 'error') {
           timing?.onPollingResult?.(id, data.status);
         }
-
         if (data.status === 'done') {
           clearTimer();
           setResult(data);
@@ -76,14 +78,18 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
           setErrorKind('server');
           setStatus('error');
         }
-        // status === 'processing' → interval devam eder
       } catch (e) {
         clearTimer();
         setError(e instanceof Error ? e.message : null);
         setErrorKind('network');
         setStatus('error');
+      } finally {
+        inFlight.current = false;
       }
-    }, POLL_INTERVAL_MS);
+    };
+
+    doPoll();
+    timerRef.current = setInterval(doPoll, POLL_INTERVAL_MS);
   }, []);
 
   const startJob = useCallback(async (

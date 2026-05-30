@@ -221,21 +221,23 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
               />
             }
           />
-          <FlatRow
-            icon="shield-checkmark-outline"
-            label={T('settings.privacy_mode')}
-            sub={T('settings.privacy_mode_sub')}
-            right={
-              <Switch
-                value={datenschutz}
-                onValueChange={(v: boolean) =>
-                  dispatch({ type: 'UPDATE_EINSTELLUNGEN', payload: { datenschutzModus: v } })
-                }
-                trackColor={{ false: C.border, true: C.primary }}
-                thumbColor={datenschutz ? '#fff' : C.bgCard}
-              />
-            }
-          />
+          {__DEV__ && (
+            <FlatRow
+              icon="shield-checkmark-outline"
+              label={T('settings.privacy_mode')}
+              sub={T('settings.privacy_mode_sub')}
+              right={
+                <Switch
+                  value={datenschutz}
+                  onValueChange={(v: boolean) =>
+                    dispatch({ type: 'UPDATE_EINSTELLUNGEN', payload: { datenschutzModus: v } })
+                  }
+                  trackColor={{ false: C.border, true: C.primary }}
+                  thumbColor={datenschutz ? '#fff' : C.bgCard}
+                />
+              }
+            />
+          )}
         </FlatGroup>
 
         <SettingsSectionTitle label={T('settings.data')} />
@@ -333,42 +335,46 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setExperteEin(v => !v)}
-          activeOpacity={0.75}
-          accessibilityRole="button"
-          accessibilityState={{ expanded: experteEin }}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingVertical: 12,
-            paddingHorizontal: 4,
-            marginTop: 12,
-          }}
-        >
-          <Text style={{ fontSize: fs(15), fontWeight: '700', color: C.text }}>
-            {T('settings.advanced')}
-          </Text>
-          <Icon name={experteEin ? 'chevron-up' : 'chevron-down'} size={22} color={C.textTertiary} />
-        </TouchableOpacity>
-
-        {experteEin ? (
+        {__DEV__ && (
           <>
-            {showAutomationMarketplace ? (
+            <TouchableOpacity
+              onPress={() => setExperteEin(v => !v)}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: experteEin }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingVertical: 12,
+                paddingHorizontal: 4,
+                marginTop: 12,
+              }}
+            >
+              <Text style={{ fontSize: fs(15), fontWeight: '700', color: C.text }}>
+                {T('settings.advanced')}
+              </Text>
+              <Icon name={experteEin ? 'chevron-up' : 'chevron-down'} size={22} color={C.textTertiary} />
+            </TouchableOpacity>
+
+            {experteEin ? (
               <>
-                <SettingsSectionTitle label="Automatisierung" />
+                {showAutomationMarketplace ? (
+                  <>
+                    <SettingsSectionTitle label="Automatisierung" />
+                    <FlatGroup>
+                      <AutomationCard flat onOpenRegelmarkt={() => router.push('/(tabs)/Marktplatz')} />
+                    </FlatGroup>
+                  </>
+                ) : null}
+                <SettingsSectionTitle label="Recht & Daten" />
                 <FlatGroup>
-                  <AutomationCard flat onOpenRegelmarkt={() => router.push('/(tabs)/Marktplatz')} />
+                  <PrivacyLegalExtras />
                 </FlatGroup>
               </>
             ) : null}
-            <SettingsSectionTitle label="Recht & Daten" />
-            <FlatGroup>
-              <PrivacyLegalExtras />
-            </FlatGroup>
           </>
-        ) : null}
+        )}
 
         <View style={{ alignItems: 'center', paddingTop: 16 }}>
           <Text style={{ fontSize: fs(11), color: C.textTertiary }}>

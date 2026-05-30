@@ -47,7 +47,7 @@ export default function NotificationsCard({
           right={<Icon name="chevron-forward" size={16} color={C.textTertiary} />}
           onPress={onOpenPartnerEmail}
         />
-        <FlatRow icon="calendar-outline" label={T('settings.notif_weekly')} right={weeklySW} />
+        {__DEV__ && <FlatRow icon="calendar-outline" label={T('settings.notif_weekly')} right={weeklySW} />}
       </Fragment>
     );
   }
@@ -60,7 +60,7 @@ export default function NotificationsCard({
           sub={partnerEmail ? partnerEmail : `${T('settings.notif_not_set')} · ${T('settings.notif_partner_email_sub')}`}
           right={<Icon name="chevron-forward" size={16} color={C.textTertiary} />} />
       </TouchableOpacity>
-      <Row icon="calendar-outline" label={T('settings.notif_weekly')} right={weeklySW} />
+      {__DEV__ && <Row icon="calendar-outline" label={T('settings.notif_weekly')} right={weeklySW} />}
     </SectionCard>
   );
 }

@@ -34,6 +34,10 @@ const RESERVED_DISPLAY_TITLES = new Set([
   'bis',
 ]);
 
+// "{KindLabel} vom DD.MM.YYYY" or "Formular · DD.MM.YYYY" — no meaningful identity.
+const GENERIC_DATE_ONLY_RE =
+  /^(?:Dokument|Rechnung|Nebenkostenabrechnung|Behördenbrief|Versicherung|Formular|Angebot)(?: vom | · )\d{1,2}\.\d{1,2}(?:\.\d{4})?$/;
+
 const LOWERCASE_WORDS = new Set(['vom', 'von', 'am', 'im', 'an', 'auf', 'bei', 'zu', 'mit', 'und', 'der', 'die', 'das', 'den', 'dem', 'oder', 'für']);
 
 function toTitleCase(text: string): string {
@@ -130,6 +134,13 @@ export function safeDisplayTitel(
   const candidate = (humanized ?? titel.trim()).trim();
   if (RESERVED_DISPLAY_TITLES.has(candidate.toLowerCase())) {
     return typ || 'Unbekanntes Dokument';
+  }
+  if (GENERIC_DATE_ONLY_RE.test(candidate)) {
+    const fallbackTyp = typ?.trim();
+    if (fallbackTyp && fallbackTyp.length > 0 && !/^unbekannt$/i.test(fallbackTyp)) {
+      return fallbackTyp;
+    }
+    return 'Neues Dokument';
   }
   return candidate;
 }

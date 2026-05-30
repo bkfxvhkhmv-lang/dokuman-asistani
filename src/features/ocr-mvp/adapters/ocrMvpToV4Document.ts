@@ -61,37 +61,48 @@ const _FRIST_MONTH_MAP: Record<string, number> = {
   sep:9, okt:10, oct:10, nov:11, dez:12, dec:12,
 };
 
+const _FRIST_PHRASE_RE =
+  /(?:zahlung\s+bis|zahlbar\s+bis|bis\s+zum|f[aä]llig\s+am|f[aä]lligkeit\s*:?)\s+(\d{1,2}\.\d{1,2}\.\d{4})/i;
+
+function extractFristCandidate(raw: string): string {
+  const phraseMatch = raw.match(_FRIST_PHRASE_RE);
+  if (phraseMatch?.[1]) return phraseMatch[1];
+  return raw.trim();
+}
+
+function toIsoUtc(year: number, month1: number, day: number): string {
+  return new Date(Date.UTC(year, month1 - 1, day, 12, 0, 0)).toISOString();
+}
+
 // Returns ISO string if parseable, null otherwise — unsafe formats are silently dropped.
 function parseFrist(raw: string | null | undefined): string | null {
   if (!raw) return null;
-
-  const iso = new Date(raw);
-  if (!isNaN(iso.getTime())) return iso.toISOString();
+  const candidate = extractFristCandidate(raw);
 
   // DD.MM.YYYY fallback (common in German documents)
-  const match = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  const match = candidate.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
   if (match) {
-    const d = new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]));
-    if (!isNaN(d.getTime())) return d.toISOString();
+    return toIsoUtc(Number(match[3]), Number(match[2]), Number(match[1]));
   }
 
   // "24. März 2017" / "März 2017"
-  const withDay = raw.trim().match(/^(\d{1,2})\.?\s+(\w+)\s+(\d{4})$/i);
+  const withDay = candidate.match(/^(\d{1,2})\.?\s+(\w+)\s+(\d{4})$/i);
   if (withDay) {
     const mo = _FRIST_MONTH_MAP[withDay[2].toLowerCase()];
     if (mo) {
-      const d = new Date(Number(withDay[3]), mo - 1, Number(withDay[1]));
-      if (!isNaN(d.getTime())) return d.toISOString();
+      return toIsoUtc(Number(withDay[3]), mo, Number(withDay[1]));
     }
   }
-  const monthYear = raw.trim().match(/^(\w+)\s+(\d{4})$/i);
+  const monthYear = candidate.match(/^(\w+)\s+(\d{4})$/i);
   if (monthYear) {
     const mo = _FRIST_MONTH_MAP[monthYear[1].toLowerCase()];
     if (mo) {
-      const d = new Date(Number(monthYear[2]), mo - 1, 1);
-      if (!isNaN(d.getTime())) return d.toISOString();
+      return toIsoUtc(Number(monthYear[2]), mo, 1);
     }
   }
+
+  const iso = new Date(candidate);
+  if (!isNaN(iso.getTime())) return iso.toISOString();
 
   return null;
 }
@@ -109,6 +120,17 @@ function buildRohText(s: OcrMvpJobStatus['action_summary']): string | null {
   if ((s.lines_count  ?? 0) > 0) lines.push(`Zeilen: ${s.lines_count}`);
   if (s.raw_text?.trim()) lines.push(s.raw_text.trim());
   return lines.length > 0 ? lines.join('\n') : null;
+}
+
+function extractFristSource(s: OcrMvpJobStatus['action_summary']): string | null | undefined {
+  if (!s) return null;
+  const structured = s.deadline ?? s.due_date;
+  if (structured?.trim()) return structured.trim();
+
+  const rawText = s.raw_text?.trim();
+  if (!rawText) return null;
+  const phraseMatch = rawText.match(_FRIST_PHRASE_RE);
+  return phraseMatch?.[0] ?? null;
 }
 
 function buildZusammenfassung(kind: string, s: OcrMvpJobStatus['action_summary']): string | null {
@@ -157,7 +179,7 @@ export function ocrMvpToV4Document(
     warnung:         s?.warnings?.[0] ?? null,
     betrag:          s?.total_brutto ?? s?.amount ?? null,
     waehrung:        s?.currency ?? '€',
-    frist:           parseFrist(s?.deadline ?? s?.due_date),
+    frist:           parseFrist(extractFristSource(s)),
     risiko:          mapRisiko(s?.risk_level),
     aktionen:        KIND_TO_AKTIONEN[kind] ?? ['ai', 'review'],
     datum:           parseFrist(dokumentDatum) ?? new Date().toISOString(),

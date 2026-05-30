@@ -89,17 +89,10 @@ export const ExpoScannerProvider: ScannerProvider = {
       result.imageUris.map(uri => ({ uri })),
     );
     if (!pdf) {
-      // PDF generation failed — fall back to first page only
-      const uri = result.imageUris[0];
-      return {
-        uri,
-        name: `scan_${Date.now()}.jpg`,
-        mimeType: 'image/jpeg',
-        source: 'camera',
-        displayName: 'Scan aufgenommen',
-        previewUri: uri,
-        pageCount: 1,
-      };
+      throw new Error(
+        'Mehrseitiger Scan konnte nicht vorbereitet werden. ' +
+        'Bitte erneut versuchen oder als PDF hochladen.',
+      );
     }
 
     return {

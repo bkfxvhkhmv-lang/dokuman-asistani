@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -34,6 +34,8 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
       const asset = await fn();
       if (!asset) return;
       setSelectedAsset(asset);
+    } catch (e: any) {
+      Alert.alert('Scan fehlgeschlagen', e?.message ?? 'Unbekannter Fehler beim Scannen.', [{ text: 'OK' }]);
     } finally {
       setPicking(false);
     }

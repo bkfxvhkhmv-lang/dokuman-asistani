@@ -177,6 +177,13 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `6cd0d3da7` | feat(scan-ux): route camera button to native document scanner + multi-page guard — VisionKit açılıyor; >1 sayfa → alert (sessiz veri kaybı yok); tek sayfa → backend analysis zinciri PASS |
+| `54e001eab` | feat(scan): add takePhotoWithScanner via VisionKit — ScannedAsset.pageCount; ScannerProvider.takePhotoWithScanner(); iOS=VisionKit, Android/sim=takePhoto() fallback |
+| `601d39bc3` | feat(scanner): activate VisionKit native document scanner — Platform.OS==='ios'&&!!RN; BriefPilotVisionScannerModule.swift zaten tam yazılmış |
+| `58c4830e8` | fix(ios): declare app localizations so VisionKit uses device language — CFBundleDevelopmentRegion=de; CFBundleLocalizations 7 dil; Almanca cihazda VisionKit Almanca açılıyor |
+| `0d2e7e64f` | fix(scan): restore close button on Scan tab screen — onClose→router.replace index; tabBarStyle:none olunca X olmadan kullanıcı sıkışıyordu |
+| `bcf13aa9f` | fix(settings): equal-width language pills via onLayout grid calculation — 4 sütun eşit genişlik; alignItems:center |
+| `686000efa` | fix(display): hide unknown sender from primary document titles — safeDisplayAbsender placeholder listesi; BEHÖRDEN/AMT·Unbekannt→BEHÖRDEN/AMT |
 | `32c12055` | fix(copy): normalize search wording — V4/Semantik/semantic kaldırıldı; Text/Mix/Semantik→Text/Kombiniert/Intelligent; error message Almanca |
 | `18a8d1e0` | refactor(search): 3 main groups — Alle/Rechnungen/Behörden/Nachweise; SCHNELLSUCHE 10→4; V4→Intelligente Suche; filter modal Zurücksetzen/Anwenden |
 | `495c55a1` | fix(search): show results when alle chip explicitly tapped — chipTapped flag |
@@ -240,7 +247,9 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - Search Alle (9 sonuç) ✅ — Rechnungen/Behörden/Nachweise chip grupları ✅
 - Encoded title (%20) yok ✅ — Bis ana başlık değil ✅ — Angaben prüfen sadece action chip ✅
 - **Vorlesen: PASS** (2026-05-29) — Volltext anhören + Anhalten ✅, Kritische Punkte ✅, locale inference ✅
+- **VisionKit scan flow: PASS** (2026-05-30) — Kamera butonu native document scanner açıyor ✅, Almanca UI ✅, yeşil/mavi polygon ✅, tek sayfa → backend → Ergebnis → speichern → öffnen ✅, multi-page guard alert ✅
 - Kalan: Preview persistence + Fristen yeni build test edilmedi
+- Multi-page PDF: backend Codex audit sonrası P1
 
 ### P1 — Açık
 - [x] **Überblick footer tekrarı** — `AnalyseHeaderCard` footer kaldırıldı (`a7c50f8f5`). NaechsterSchrittCard tek yönlendirme yüzeyi.
@@ -292,6 +301,8 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 | PDF yükle → önizleme | Küçük önizleme görünür, tap açılır | ✅ |
 | PDF fullscreen | In-app render, X/Share safe area'da | ✅ |
 | Scan et → kaydet | Dokument sekmesi açılır (Analyse değil) | ✅ |
+| VisionKit kamera → backend → kaydet → aç | Tek sayfa: zincir PASS (2026-05-30) | ✅ |
+| VisionKit çok sayfa | Guard alert gösterilir, sessiz veri kaybı yok | ✅ |
 | OCR kaydet → aç | Dokument sekmesi açılır | ✅ |
 | Negatif tutar belgesi | Zahlung butonu yok, Gutschrift gösterir | ✅ |
 | OCR result CTA sırası | In Dokumente speichern primary, Excel secondary | ✅ |

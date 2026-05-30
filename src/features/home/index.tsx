@@ -31,6 +31,7 @@ import SmartTimelinePanel from '@/components/SmartTimelinePanel';
 import { useTimelineView } from '@/hooks/useSmartTimeline';
 import { useTheme } from '@/ThemeContext';
 import HomeTriage from '@/features/home/components/HomeTriage';
+import { isLowConfidence } from '@/utils/documentGuards';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -66,6 +67,10 @@ export default function Home() {
     () => hotDocs.slice(1).find(h => !dismissedHotIds.has(h.dok.id)) ?? null,
     [hotDocs, dismissedHotIds],
   );
+  const reviewDocs = useMemo(
+    () => (data.aufgaben ?? []).filter((d: any) => isLowConfidence(d)),
+    [data.aufgaben],
+  );
 
   const targets = useMemo(
     () => analyzeAllTargets(data.state.einstellungen.budgetTargets ?? [], data.sichtbareDocs),
@@ -88,6 +93,14 @@ export default function Home() {
     data.secimiIptal();
     router.push({ pathname: '/(tabs)/Export', params: { selectedIds: ids } });
   }, [data.secilenIds, data.secimiIptal, router]);
+
+  const handleTriagePress = useCallback((scope: 'dringend' | 'dieseWoche' | 'pruefen' | 'ueberfaellig') => {
+    if (scope === 'pruefen' && reviewDocs.length > 0) {
+      router.push({ pathname: '/detail', params: { dokId: reviewDocs[0].id, tab: 'eylem' } });
+      return;
+    }
+    data.handleTabPress('Dokumente');
+  }, [data, reviewDocs, router]);
 
   useEffect(() => {
     setTabBarCollapsed(false);
@@ -188,7 +201,7 @@ export default function Home() {
 
       <HomeTriage
         docs={data.sichtbareDocs}
-        onPress={() => data.handleTabPress('Dokumente')}
+        onPress={handleTriagePress}
         onScanPress={() => router.push('/(tabs)/Kamera')}
       />
 

@@ -1,5 +1,6 @@
 import { LightColors, LightRisk, Shadow, S, R } from '@/theme';
 import type { SpacingTokens, RadiusTokens } from '@/theme';
+import type { TextStyle } from 'react-native';
 
 export const DesignColors = LightColors;
 export const DesignRiskColors = LightRisk;
@@ -9,7 +10,7 @@ export const DesignRadius: RadiusTokens = R;
 
 export interface TypographyStyle {
   fontSize: number;
-  fontWeight: string;
+  fontWeight: TextStyle['fontWeight'];
   letterSpacing?: number;
   lineHeight?: number;
 }

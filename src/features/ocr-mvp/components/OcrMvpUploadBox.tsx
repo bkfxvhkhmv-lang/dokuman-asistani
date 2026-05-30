@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -32,7 +32,16 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
     setPicking(true);
     try {
       const asset = await fn();
-      if (asset) setSelectedAsset(asset);
+      if (!asset) return;
+      if (asset.pageCount && asset.pageCount > 1) {
+        Alert.alert(
+          'Mehrseitiger Scan',
+          'Mehrseitige Scans werden aktuell noch vorbereitet. Bitte scanne vorerst eine Seite oder lade ein PDF hoch.',
+          [{ text: 'OK' }],
+        );
+        return;
+      }
+      setSelectedAsset(asset);
     } finally {
       setPicking(false);
     }
@@ -126,7 +135,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
 
       <TouchableOpacity
         style={[st.primaryCard, { backgroundColor: C.bgCard, borderColor: C.primary + '30' }]}
-        onPress={() => withPicking(() => ExpoScannerProvider.takePhoto())}
+        onPress={() => withPicking(() => ExpoScannerProvider.takePhotoWithScanner())}
         activeOpacity={0.8}
         disabled={picking}
       >
@@ -138,7 +147,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
               <Icon name="camera" size={32} color={C.primary} />
             </View>
             <Text style={[st.cardTitle, { color: C.text }]}>Dokument scannen</Text>
-            <Text style={[st.cardSub, { color: C.textSecondary }]}>Foto aufnehmen und analysieren</Text>
+            <Text style={[st.cardSub, { color: C.textSecondary }]}>Automatisch erkennen und ausrichten</Text>
           </>
         )}
       </TouchableOpacity>

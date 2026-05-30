@@ -28,7 +28,7 @@ export const HOME_QUICK_FILTER_META =
 export const SEARCH_MISSION_HINT =
   'Suche nach Absender, Betrag, Datum, Dokumenttyp oder Stichwort — dieselben Felder nutzt du später beim Export.';
 
-export const DOCUMENTS_SECTION_EYEBROW = 'BELEGE';
+export const DOCUMENTS_SECTION_EYEBROW = 'DOKUMENTE';
 export const DOCUMENTS_SECTION_TITLE = 'Zuletzt erfasst';
 
 export const DOCUMENTS_SECTION_SUBLINE =
@@ -36,7 +36,7 @@ export const DOCUMENTS_SECTION_SUBLINE =
 
 /** HomeDashboardCards (QuickActions) — hero */
 export const DASHBOARD_EYEBROW_ALL_CLEAR = 'ÜBERSICHT';
-export const DASHBOARD_EYEBROW_BUSY = 'BELEGE · FRISTEN';
+export const DASHBOARD_EYEBROW_BUSY = 'DOKUMENTE · FRISTEN';
 export const DASHBOARD_ALL_CLEAR_MARK = '✓';
 export const DASHBOARD_ALL_CLEAR_TEXT =
   'Klassiert — nichts Überfälliges. Export für Steuer & Buchhaltung jederzeit im Dokument.';

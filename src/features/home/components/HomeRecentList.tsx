@@ -117,9 +117,13 @@ function HomeRecentListInner({ data }: { data: any }) {
 
   const section     = (sectionMap as any)[data.aktiv] || sectionMap.Dokumente;
   const useStacking = STACK_TABS.has(data.aktiv);
-  // Exclude optimistic docs from regular list to avoid duplicates
-  const allDocs     = section.docs.filter((d: any) => !d.isOptimistic);
-  const docs        = allDocs.slice(0, useStacking ? 20 : 6);
+  // Exclude optimistic and flagged duplicates; deduplicate by typ+betrag+absender fingerprint
+  const allDocs = section.docs.filter((d: any) => !d.isOptimistic && !d._duplikat);
+  const deduped = allDocs.filter((d: any, i: number) => {
+    const fp = `${d.typ}|${d.betrag}|${d.absender}`;
+    return allDocs.findIndex((x: any) => `${x.typ}|${x.betrag}|${x.absender}` === fp) === i;
+  });
+  const docs = deduped.slice(0, useStacking ? 20 : 6);
 
   // Build stacks only for tabs that benefit from grouping
   const stacks = useMemo(

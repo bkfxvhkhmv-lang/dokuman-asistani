@@ -53,19 +53,20 @@ export default function DashboardSummary({
         </TouchableOpacity>
       )}
 
-      {/* Action row */}
-      <View style={st.row}>
-        {/* Frist */}
-        <TouchableOpacity onPress={onFrist} activeOpacity={0.7} style={[st.card, { backgroundColor: C.bgCard, borderColor: C.borderLight }]}>
-          <Icon name="calendar" size={20} color={fristColor} />
-          <Text style={[st.cardValue, { color: fristColor, fontSize: fs(15) }]} numberOfLines={1}>
-            {fristLabel}
-          </Text>
-          <Text style={[st.cardSub, { color: C.textSecondary, fontSize: fs(11) }]} numberOfLines={1}>
-            {nextDeadlineTitle ?? T('dash.next_due')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Action row — only show Frist card when real deadline data exists */}
+      {(nextDeadlineDays != null || nextDeadlineTitle) && (
+        <View style={st.row}>
+          <TouchableOpacity onPress={onFrist} activeOpacity={0.7} style={[st.card, { backgroundColor: C.bgCard, borderColor: C.borderLight }]}>
+            <Icon name="calendar" size={20} color={fristColor} />
+            <Text style={[st.cardValue, { color: fristColor, fontSize: fs(15) }]} numberOfLines={1}>
+              {fristLabel}
+            </Text>
+            <Text style={[st.cardSub, { color: C.textSecondary, fontSize: fs(11) }]} numberOfLines={1}>
+              {nextDeadlineTitle}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

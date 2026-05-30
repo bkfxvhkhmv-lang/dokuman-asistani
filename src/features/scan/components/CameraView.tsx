@@ -193,7 +193,7 @@ export default function CameraView(props: CameraViewProps) {
   return (
     <View style={[styles.fill, { backgroundColor: '#000' }]}>
       <LiveScannerView
-        style={StyleSheet.absoluteFill}
+        style={StyleSheet.absoluteFillObject}
         flash={flash === 'on' ? 'on' : 'off'}
         zoom={0}
         active={cameraActive}

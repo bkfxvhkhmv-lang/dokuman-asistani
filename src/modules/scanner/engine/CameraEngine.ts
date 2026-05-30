@@ -7,12 +7,13 @@ import { PerspectiveCorrector } from '@/modules/scanner/engine/PerspectiveCorrec
 import { Enhancer } from '@/modules/image-processing/core/Enhancer';
 import { QualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
 import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
-import { decideCapture, isMeaningfullyWorseCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
+import { decideCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
 import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryMapper';
-import { checkLiveScanGate, checkCommitGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
+import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
 import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
 import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
 import { CornerCache } from '@/modules/scanner/engine/CornerCache';
+import { CAPTURE_GATE, LIVE_GATE } from '@/modules/scanner/engine/scanner-thresholds';
 
 const aspectForAutoCapture = (aspect?: number | null) => {
   if (typeof aspect !== 'number' || !Number.isFinite(aspect) || aspect <= 0.05) return 1;
@@ -23,6 +24,38 @@ const clamp01 = (value?: number | null, fallback = 0) => {
   if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
   return Math.max(0, Math.min(value, 1));
 };
+
+function captureQualityScore(corners: DocumentCorners | null | undefined): number {
+  if (!corners) return 0;
+  return (
+    clamp01(corners.confidence) * 0.45
+    + clamp01(corners.areaScore) * 0.15
+    + clamp01(corners.angleScore) * 0.15
+    + clamp01(corners.aspectScore) * 0.1
+    + clamp01(corners.centerScore) * 0.15
+  );
+}
+
+function isMeaningfullyWorseCapture(
+  candidate: DocumentCorners | null | undefined,
+  baseline: DocumentCorners | null | undefined,
+): boolean {
+  if (!candidate || !baseline) return false;
+  const candidateScore = captureQualityScore(candidate);
+  const baselineScore = captureQualityScore(baseline);
+  const confidenceDrop = clamp01(baseline.confidence) - clamp01(candidate.confidence);
+  return baselineScore - candidateScore > 0.12 || confidenceDrop > 0.15;
+}
+
+function checkCommitGate(corners: DocumentCorners, motionStability: number): { pass: true } | { pass: false; reason: string } {
+  if (corners.confidence < CAPTURE_GATE.CONFIDENCE_MIN) return { pass: false, reason: 'confidence too low' };
+  if ((corners.areaScore ?? 0) < LIVE_GATE.AREA_MIN) return { pass: false, reason: 'area too small' };
+  if ((corners.angleScore ?? 0) < LIVE_GATE.ANGLE_MIN) return { pass: false, reason: 'angle too low' };
+  if ((corners.aspectScore ?? 0) < LIVE_GATE.ASPECT_MIN) return { pass: false, reason: 'aspect too low' };
+  if ((corners.centerScore ?? 0) < LIVE_GATE.CENTER_MIN) return { pass: false, reason: 'center too low' };
+  if (motionStability < 0.72) return { pass: false, reason: 'device moving' };
+  return { pass: true };
+}
 
 export class CameraEngine {
 
@@ -238,7 +271,7 @@ export class CameraEngine {
           const VIDEO_FRAME_H = 1920;
           if (__DEV__) console.log(`[ScannerCapture] warp=video photoSize=${photo.width}×${photo.height} videoFrame=${VIDEO_FRAME_W}×${VIDEO_FRAME_H}`);
           correctedUri = await this.perspectiveCorrector.correct(
-            originalUri, captureCorners, photo.width, photo.height, VIDEO_FRAME_W, VIDEO_FRAME_H,
+            originalUri, captureCorners, photo.width, photo.height,
           );
         } else {
           // Still-photo detection already runs on the captured image itself.
@@ -268,8 +301,6 @@ export class CameraEngine {
         blurNorm,
         brightnessNorm,
         1.0,                                   // distortion — no real metric available
-        captureCorners.centerScore ?? 1,
-        aspectForAutoCapture(captureCorners.aspectScore),
       );
 
       const result: CaptureResult = {
@@ -424,8 +455,6 @@ export class CameraEngine {
           1.0,
           1.0,
           1.0,
-          corners.centerScore ?? 1,
-          aspectForAutoCapture(corners.aspectScore),
         );
       } else {
         this.autoCapture.updateEdgeConfidence(0);

@@ -30,7 +30,7 @@ function getAccentColor(dok: Dokument, C: ThemeColors, Risk: RiskPalette): strin
   if (dok.typ === 'Mahnung' && hasBetrag) return Risk.hoch.color;            // confirmed debt escalation → red
   if (tage !== null && tage <= 7) return Risk.mittel.color;                  // within a week → amber
   if (dok.typ === 'Mahnung') return Risk.mittel.color;                       // Mahnung, betrag unclear → amber
-  if (dok.risiko === 'mittel') return Risk.mittel.color;
+  if (dok.risiko === 'mittel' && dok.confidence != null && dok.confidence >= 55) return Risk.mittel.color;
   if (dok.risiko === 'hoch' && hasBetrag) return Risk.mittel.color;          // high risk only if amount confirmed
   return C.border;
 }

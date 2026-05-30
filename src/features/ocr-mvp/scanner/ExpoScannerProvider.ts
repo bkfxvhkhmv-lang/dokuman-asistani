@@ -1,5 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { scanWithVisionKit, visionKitAvailable } from '@/modules/scanner/engine/VisionKitScanner';
 import type { ScannedAsset, ScannerProvider } from './types';
 
 export const ExpoScannerProvider: ScannerProvider = {
@@ -57,6 +58,25 @@ export const ExpoScannerProvider: ScannerProvider = {
       source: 'photo-library',
       displayName: 'Bild ausgewählt',
       previewUri: asset.uri,
+    };
+  },
+
+  async takePhotoWithScanner(): Promise<ScannedAsset | null> {
+    if (!visionKitAvailable) {
+      // Android, Expo Go, simulator — plain camera fallback
+      return this.takePhoto();
+    }
+    const result = await scanWithVisionKit();
+    if (result.cancelled || result.imageUris.length === 0) return null;
+    const uri = result.imageUris[0];
+    return {
+      uri,
+      name: `scan_${Date.now()}.jpg`,
+      mimeType: 'image/jpeg',
+      source: 'camera',
+      displayName: 'Scan aufgenommen',
+      previewUri: uri,
+      pageCount: result.pageCount,
     };
   },
 

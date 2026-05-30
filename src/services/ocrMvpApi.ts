@@ -129,6 +129,28 @@ export async function postAcceptedSnapshot(
   }
 }
 
+// POST /documents/{job_id}/corrections — learning loop: user edit correction
+export async function postCorrectionEvent(
+  jobId: string,
+  body: {
+    field_key: string;
+    old_value?: unknown;
+    new_value: unknown;
+    source: string;
+    screen: string;
+  },
+): Promise<void> {
+  try {
+    await fetch(`${OCR_MVP_BASE}/documents/${jobId}/corrections`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // fire-and-forget — must never affect the edit/save flow
+  }
+}
+
 // GET /documents/{job_id}/result
 export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
   const res = await fetch(`${OCR_MVP_BASE}/documents/${jobId}/result`);

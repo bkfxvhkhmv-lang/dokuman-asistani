@@ -82,6 +82,8 @@ export interface Dokument {
   rohText: string | null;
   /** OCR/backend tarafından tespit edilen belge dili, örn. "de", "fr", "tr". */
   detectedLanguage?: string | null;
+  /** Backend OCR job ID — learning loop correction events için. */
+  ocrJobId?: string | null;
   versionen?: DokumentVersion[];
   aufgaben?: Aufgabe[];
   etiketten?: string[];

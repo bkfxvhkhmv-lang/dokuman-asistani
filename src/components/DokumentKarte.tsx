@@ -80,7 +80,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
 
   const listSnippet    = excerptForDocumentListCard(dok);
   const cardInsight    = buildCardInsight(dok);
-  const secondaryLine  = cardInsight ?? listSnippet ?? (dok.erledigt ? null : 'Angaben prüfen');
+  const secondaryLine  = cardInsight ?? listSnippet ?? null;
   const nextStep       = deriveNextStep(dok);
 
   const nextStepColors = (urgency: NextStepUrgency) => {

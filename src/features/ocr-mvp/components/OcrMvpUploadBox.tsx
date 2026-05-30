@@ -114,19 +114,31 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
         <TouchableOpacity
           style={[st.changeBtn, { borderColor: C.border }]}
           onPress={() => {
-            if (selectedAsset.source === 'scanner' || selectedAsset.source === 'camera') {
-              const n = selectedAsset.pageCount ?? 1;
-              const seitenLabel = n > 1 ? `${n} Seiten` : '1 Seite';
+            const src = selectedAsset.source;
+            const n = selectedAsset.pageCount ?? 1;
+            const needsConfirm = (src === 'scanner' || src === 'camera') && n > 1;
+
+            const reopen = () => {
+              if (src === 'scanner' || src === 'camera') {
+                withPicking(() => ExpoScannerProvider.takePhotoWithScanner());
+              } else if (src === 'photo-library') {
+                withPicking(() => ExpoScannerProvider.pickFromLibrary());
+              } else {
+                withPicking(() => ExpoScannerProvider.pickFile());
+              }
+            };
+
+            if (needsConfirm) {
               Alert.alert(
                 'Scan ersetzen?',
-                `Der aktuelle Scan mit ${seitenLabel} wird entfernt.`,
+                `Der aktuelle Scan mit ${n} Seiten wird entfernt.`,
                 [
                   { text: 'Abbrechen', style: 'cancel' },
-                  { text: 'Verwerfen', style: 'destructive', onPress: () => setSelectedAsset(null) },
+                  { text: 'Neu scannen', style: 'destructive', onPress: reopen },
                 ],
               );
             } else {
-              setSelectedAsset(null);
+              reopen();
             }
           }}
           activeOpacity={0.75}

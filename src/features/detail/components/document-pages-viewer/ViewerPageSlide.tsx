@@ -10,11 +10,12 @@ interface Props {
   uri: string;
   isMissing: boolean;
   availableHeight?: number;
+  onPdfPageCount?: (count: number) => void;
 }
 
 const WINDOW = Dimensions.get('window');
 
-export default function ViewerPageSlide({ uri, isMissing, availableHeight }: Props) {
+export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdfPageCount }: Props) {
   const [pdfError, setPdfError] = useState(false);
 
   const W = WINDOW.width;
@@ -66,6 +67,7 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight }: Pro
             horizontal={false}
             renderActivityIndicator={() => <ActivityIndicator color="rgba(255,255,255,0.6)" size="large" />}
             onError={() => setPdfError(true)}
+            onLoadComplete={(numberOfPages) => onPdfPageCount?.(numberOfPages)}
           />
         )}
       </View>

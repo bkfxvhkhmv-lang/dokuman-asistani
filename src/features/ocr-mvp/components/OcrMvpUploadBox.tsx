@@ -46,7 +46,7 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
   if (selectedAsset) {
     const isCamera = selectedAsset.source === 'camera';
     const isPdf = selectedAsset.mimeType === 'application/pdf';
-    const displayTitle = isPdf ? selectedAsset.name : selectedAsset.displayName;
+    const displayTitle = selectedAsset.displayName || (isPdf ? selectedAsset.name : selectedAsset.displayName);
 
     return (
       <View style={st.container}>

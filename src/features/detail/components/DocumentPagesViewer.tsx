@@ -99,6 +99,8 @@ export default function DocumentPagesViewer({
 
   const [contentHeight, setContentHeight] = useState(Dimensions.get('window').height);
   const thumbBottomPad = Math.max(12, insets.bottom + 8);
+  const [pdfPageCounts, setPdfPageCounts] = useState<Record<number, number>>({});
+  const effectivePageCount = pdfPageCounts[active] ?? sortedPages.length;
 
   if (sortedPages.length === 0) {
     return <EmptyPagesModal visible={visible} onClose={onClose} />;
@@ -109,7 +111,7 @@ export default function DocumentPagesViewer({
       <View style={st.root}>
         <ViewerTopBar
           activeIndex={active}
-          pageCount={sortedPages.length}
+          pageCount={effectivePageCount}
           onClose={onClose}
           onShare={handleShare}
         />
@@ -133,12 +135,13 @@ export default function DocumentPagesViewer({
             style={st.swiper}
             contentContainerStyle={{ alignItems: 'center' }}
           >
-            {sortedPages.map(page => (
+            {sortedPages.map((page, idx) => (
               <ViewerPageSlide
                 key={page.id}
                 uri={page.uri}
                 isMissing={missingPages.has(page.id)}
                 availableHeight={contentHeight}
+                onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
               />
             ))}
           </ScrollView>

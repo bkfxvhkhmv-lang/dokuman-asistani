@@ -11,6 +11,7 @@ import Icon from '@/components/Icon';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
 import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
+import { buildHumanExportBasename } from '@/utils/exportFilename';
 import OcrMvpActionSummary from './OcrMvpActionSummary';
 
 const DOC_TYPE_LABEL: Record<string, string> = {
@@ -23,43 +24,20 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   unknown:    'Unbekanntes Dokument',
 };
 
-const UMLAUT_MAP: Record<string, string> = {
-  ä: 'ae', ö: 'oe', ü: 'ue', Ä: 'Ae', Ö: 'Oe', Ü: 'Ue', ß: 'ss',
-};
-
-function sanitizeFilePart(s: string): string {
-  return s
-    .replace(/[äöüÄÖÜß]/g, m => UMLAUT_MAP[m] ?? m)
-    .replace(/[^a-zA-Z0-9\-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 50);
-}
-
 function buildExportFilename(
   summary: import('@/services/ocrMvpApi').OcrMvpActionSummary | undefined,
   docType: string | undefined,
   ext: string,
 ): string {
-  const kind  = summary?.kind ?? docType ?? 'unknown';
+  const kind = summary?.kind ?? docType ?? 'unknown';
   const label = DOC_TYPE_LABEL[kind] ?? 'Dokument';
-
-  const vendor = summary?.vendor_name || summary?.sender;
-  const rawDate = summary?.invoice_date || summary?.document_date;
-  const today = new Date();
-  const dateStr = rawDate
-    ? rawDate.slice(0, 10)
-    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-  const timeStr = `${String(today.getHours()).padStart(2, '0')}${String(today.getMinutes()).padStart(2, '0')}${String(today.getSeconds()).padStart(2, '0')}`;
-  const uid = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
-
-  const parts: string[] = [label];
-  if (vendor) parts.push(sanitizeFilePart(vendor));
-  parts.push(dateStr);
-  parts.push(`${timeStr}_${uid}`);
-
-  return parts.join('_') + '.' + ext;
+  const base = buildHumanExportBasename({
+    sender: summary?.vendor_name || summary?.sender,
+    title: summary?.vendor_name || summary?.sender || label,
+    type: label,
+    date: summary?.invoice_date || summary?.document_date,
+  });
+  return `${base}.${ext}`;
 }
 
 const HIGH_RISK_TYPES = new Set(['letter', 'insurance']);

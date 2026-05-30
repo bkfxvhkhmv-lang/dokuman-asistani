@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
 import type { Dokument } from '@/store';
 import { pdfRenderService } from '@/pdf';
-import { buildPdfExportBasename } from '@/utils/exportFilename';
+import { buildHumanExportBasename, buildPdfExportBasename } from '@/utils/exportFilename';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
 import { safeDisplayDocumentTitleForExport, safeDisplayTitel } from '@/utils/displaySanitizer';
 
@@ -51,7 +51,14 @@ export async function exportiereEinspruchPDF(dok: Dokument, einspruchText: strin
   const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
   const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>body{font-family:Georgia,serif;max-width:680px;margin:60px auto;color:#222;font-size:14px;line-height:1.8}.header{border-bottom:2px solid #534AB7;padding-bottom:18px;margin-bottom:28px}.label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px}.betreff{font-size:16px;font-weight:bold;color:#534AB7;margin-bottom:24px}.body{white-space:pre-wrap}.footer{margin-top:40px;border-top:1px solid #eee;padding-top:16px;font-size:11px;color:#aaa;text-align:center}</style></head><body><div class="header"><div class="label">BriefPilot — Einspruch-Vorlage</div><h1 style="font-size:22px;margin:6px 0;color:#222;">${displayTitle}</h1><div style="color:#888;font-size:12px;">${dok.absender} &nbsp;·&nbsp; ${heute}</div></div><div class="betreff">Einspruch / Widerspruch</div><div class="body">${einspruchText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>')}</div><div class="footer">Erstellt mit BriefPilot · Unverbindliche Vorlage — kein Rechtsrat</div></body></html>`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
-  const dest = uri.replace(/\.pdf$/, '') + `_Einspruch_${dok.id}.pdf`;
+  const appealBase = buildHumanExportBasename({
+    sender: dok.absender,
+    title: dok.titel,
+    type: `${dok.typ || 'Dokument'} Einspruch`,
+    date: dok.datum,
+    dueDate: dok.frist,
+  });
+  const dest = uri.replace(/\.pdf$/, '') + `_${appealBase}.pdf`;
   await FileSystem.moveAsync({ from: uri, to: dest });
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(dest, { mimeType: 'application/pdf' });
 }
@@ -207,7 +214,18 @@ export async function exportiereDatavCSV(dokumente: Dokument[]): Promise<void> {
   const inhalt = [header, ...rows].join('\r\n');
   const dir = FileSystem.documentDirectory;
   if (!dir) throw new Error('Kein Speicherzugriff auf diesem Gerät.');
-  const datei = `${dir}DATEV_BriefPilot_${Date.now()}.csv`;
+  const datePart = new Date().toISOString().slice(0, 10);
+  const base =
+    dokumente.length === 1
+      ? buildHumanExportBasename({
+          sender: dokumente[0].absender,
+          title: dokumente[0].titel,
+          type: 'Buchungen',
+          date: dokumente[0].datum,
+          dueDate: dokumente[0].frist,
+        })
+      : `BriefPilot_Buchungen_${datePart}`;
+  const datei = `${dir}${base}.csv`;
   await FileSystem.writeAsStringAsync(datei, '﻿' + inhalt, { encoding: 'utf8' } as any);
   const canShare = await Sharing.isAvailableAsync();
   if (canShare) {
@@ -215,6 +233,6 @@ export async function exportiereDatavCSV(dokumente: Dokument[]): Promise<void> {
   } else {
     // Android fallback: MediaLibrary veya native share sheet
     const { Share } = await import('react-native');
-    await Share.share({ message: inhalt, title: 'DATEV_BriefPilot.csv' });
+    await Share.share({ message: inhalt, title: `${base}.csv` });
   }
 }

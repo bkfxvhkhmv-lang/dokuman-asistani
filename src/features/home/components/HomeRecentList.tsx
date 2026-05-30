@@ -156,9 +156,6 @@ function HomeRecentListInner({ data }: { data: any }) {
     <View style={st.wrap}>
       <View style={st.header}>
         <Text style={[st.title, { color: data.Colors.text, fontSize: fs(17) }]}>{section.title}</Text>
-        <View style={[st.countPill, { backgroundColor: data.Colors.bgCard, borderColor: data.Colors.borderLight }]}>
-          <Text style={[st.countText, { color: data.Colors.textSecondary, fontSize: fs(12) }]}>{docs.length}</Text>
-        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -215,17 +212,5 @@ const st = StyleSheet.create({
   title: {
     fontWeight: '800',
     letterSpacing: -0.3,
-  },
-  countPill: {
-    minWidth: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-  },
-  countText: {
-    fontWeight: '800',
   },
 });

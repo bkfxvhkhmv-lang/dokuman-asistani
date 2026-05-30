@@ -3,6 +3,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import type { Dokument } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
+import { buildPdfExportBasename } from '@/utils/exportFilename';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
   anonymisiereText,
@@ -33,8 +34,8 @@ export async function runHandleOriginalTeilen(params: {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   try {
     const { shareOriginalFile } = await import('@/services/v4Api');
-    const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
-    await shareOriginalFile(dok.v4DocId, dok.dateiName || `${displayTitle}.pdf`);
+    const shareFilename = `${buildPdfExportBasename(dok)}.pdf`;
+    await shareOriginalFile(dok.v4DocId, shareFilename);
   } catch (e: unknown) {
     openNotice('Fehler', (e as Error).message || 'Datei konnte nicht geteilt werden.');
   }

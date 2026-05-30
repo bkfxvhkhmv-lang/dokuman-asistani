@@ -5,7 +5,7 @@ const de: Dict = {
   'tab.export': 'Export', 'tab.settings': 'Einstellungen',
 
   'home.title': 'Meine Dokumente', 'home.filter.open': 'Offen', 'home.filter.all': 'Alle',
-  'home.urgent': 'dringend', 'home.doc_singular': 'Beleg', 'home.doc_plural': 'Belege',
+  'home.urgent': 'dringend', 'home.doc_singular': 'Dokument', 'home.doc_plural': 'Dokumente',
   'home.all_good_title': 'Alles erledigt', 'home.all_good_body': 'Keine offenen Fristen oder dringenden Dokumente.',
   'home.sync.running': 'Synchronisierung läuft…', 'home.sync.ok': 'Synchronisiert',
   'home.sync.error': 'Sync fehlgeschlagen', 'home.sync.retry': '· Erneut versuchen',

@@ -133,7 +133,7 @@ export default function Profilbildschirm() {
             <Text style={st.headerName} numberOfLines={1}>
               {userEmail || 'Mein Profil'}
             </Text>
-            <Text style={st.headerSub}>{state.dokumente.length} Belege gespeichert</Text>
+            <Text style={st.headerSub}>{state.dokumente.length} Dokumente gespeichert</Text>
             {/* upgrade pill hidden until Plus is available */}
           </View>
           <TouchableOpacity

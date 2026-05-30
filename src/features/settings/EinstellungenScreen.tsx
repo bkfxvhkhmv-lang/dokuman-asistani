@@ -171,39 +171,6 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           />
         </FlatGroup>
 
-        <SettingsSectionTitle label={T('settings.documents')} />
-        <FlatGroup>
-          <FlatRow
-            icon="sparkles-outline"
-            label={T('settings.auto_analyse')}
-            sub={T('settings.auto_analyse_sub')}
-            right={
-              <Switch
-                value={prefs.autoAnalyse}
-                onValueChange={prefs.setAutoAnalyse}
-                trackColor={{ false: C.border, true: C.primary }}
-                thumbColor={prefs.autoAnalyse ? '#fff' : C.bgCard}
-              />
-            }
-          />
-        </FlatGroup>
-
-        <SettingsSectionTitle label={T('settings.ai')} />
-        <Text
-          style={{
-            fontSize: fs(13),
-            color: C.textSecondary,
-            lineHeight: fs(13) * 1.42,
-            marginBottom: 4,
-          }}
-        >
-          Vorlesen nutzt dieselbe Spracheinstellung wie die KI unten — Tempo weiterhin in den
-          Geräte‑Barriereeinstellungen.
-        </Text>
-        <FlatGroup>
-          <AILanguageCard bare aiLang={aiLang} changeAiLang={changeAiLang} />
-        </FlatGroup>
-
         <SettingsSectionTitle label={T('settings.security')} />
         <FlatGroup>
           <FlatRow
@@ -238,6 +205,39 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
               }
             />
           )}
+        </FlatGroup>
+
+        <SettingsSectionTitle label={T('settings.ai')} />
+        <Text
+          style={{
+            fontSize: fs(13),
+            color: C.textSecondary,
+            lineHeight: fs(13) * 1.42,
+            marginBottom: 4,
+          }}
+        >
+          Vorlesen nutzt dieselbe Spracheinstellung wie die KI unten — Tempo weiterhin in den
+          Geräte‑Barriereeinstellungen.
+        </Text>
+        <FlatGroup>
+          <AILanguageCard bare aiLang={aiLang} changeAiLang={changeAiLang} />
+        </FlatGroup>
+
+        <SettingsSectionTitle label={T('settings.documents')} />
+        <FlatGroup>
+          <FlatRow
+            icon="sparkles-outline"
+            label={T('settings.auto_analyse')}
+            sub={T('settings.auto_analyse_sub')}
+            right={
+              <Switch
+                value={prefs.autoAnalyse}
+                onValueChange={prefs.setAutoAnalyse}
+                trackColor={{ false: C.border, true: C.primary }}
+                thumbColor={prefs.autoAnalyse ? '#fff' : C.bgCard}
+              />
+            }
+          />
         </FlatGroup>
 
         <SettingsSectionTitle label={T('settings.data')} />

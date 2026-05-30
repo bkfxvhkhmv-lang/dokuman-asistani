@@ -37,12 +37,18 @@ function getAccentColor(dok: Dokument, C: ThemeColors, Risk: RiskPalette): strin
 
 type UrgencyBadgeInfo = { label: string; bg: string; textColor: string };
 
-function buildUrgencyBadge(dok: Dokument, tage: number | null, C: ThemeColors): UrgencyBadgeInfo | null {
+function buildUrgencyBadge(
+  dok: Dokument,
+  tage: number | null,
+  cardInsight: string | null,
+  C: ThemeColors,
+): UrgencyBadgeInfo | null {
   if (dok.erledigt) return null;
   if (tage !== null && tage < 0)   return { label: 'Überfällig',   bg: C.dangerLight,  textColor: C.dangerText };
   if (tage !== null && tage === 0) return { label: 'Heute',        bg: C.dangerLight,  textColor: C.dangerText };
   if (tage !== null && tage <= 7)  return { label: 'Diese Woche',  bg: C.warningLight, textColor: C.warningText };
-  if (tage === null && dok.confidence != null && dok.confidence < 70)
+  // "Angaben prüfen" only when low confidence AND no structured insight already tells the story
+  if (tage === null && !cardInsight && dok.confidence != null && dok.confidence < 70)
     return { label: 'Angaben prüfen', bg: C.warningLight, textColor: C.warningText };
   return null;
 }
@@ -99,7 +105,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const cardInsight    = buildCardInsight(dok);
   const secondaryLine  = cardInsight ?? listSnippet ?? null;
   const nextStep       = deriveNextStep(dok);
-  const urgencyBadge   = buildUrgencyBadge(dok, tage, Colors);
+  const urgencyBadge   = buildUrgencyBadge(dok, tage, cardInsight, Colors);
 
   const nextStepColors = (urgency: NextStepUrgency) => {
     if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };

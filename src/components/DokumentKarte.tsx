@@ -5,7 +5,7 @@ import { useTheme, type ThemeColors } from '@/ThemeContext';
 import type { RiskPalette } from '@/theme';
 import DocumentSurface from '@/components/document-surface/DocumentSurface';
 import type { Dokument } from '@/store';
-import { excerptForDocumentListCard } from '@/utils/listCardSummary';
+import { excerptForDocumentListCard, buildCardInsight } from '@/utils/listCardSummary';
 import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
 import { useT } from '@/hooks/useT';
@@ -78,8 +78,10 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     ? { bg: Colors.primaryLight, text: Colors.primaryDark }
     : null;
 
-  const listSnippet = excerptForDocumentListCard(dok);
-  const nextStep    = deriveNextStep(dok);
+  const listSnippet    = excerptForDocumentListCard(dok);
+  const cardInsight    = buildCardInsight(dok);
+  const secondaryLine  = cardInsight ?? listSnippet ?? (dok.erledigt ? null : 'Angaben prüfen');
+  const nextStep       = deriveNextStep(dok);
 
   const nextStepColors = (urgency: NextStepUrgency) => {
     if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };
@@ -134,13 +136,13 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         ) : null}
       </View>
 
-      {!!listSnippet && (
+      {!!secondaryLine && (
         <Text
-          style={[styles.summary, { color: Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]}
+          style={[styles.summary, { color: cardInsight ? Colors.text : Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]}
           numberOfLines={1}
           maxFontSizeMultiplier={1.3}
         >
-          {listSnippet}
+          {secondaryLine}
         </Text>
       )}
 

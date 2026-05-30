@@ -1,6 +1,37 @@
 import type { Dokument } from '@/store';
 
 /**
+ * Returns a compact, actionable one-liner for the document list card.
+ * Priority: betrag+frist → betrag only → frist only → missing absender → null.
+ * Returns null when all data is present; caller falls back to listSnippet or generic copy.
+ */
+export function buildCardInsight(
+  dok: Pick<Dokument, 'betrag' | 'frist' | 'absender' | 'erledigt'>,
+): string | null {
+  if (dok.erledigt) return null;
+
+  const hasBetrag = typeof dok.betrag === 'number' && dok.betrag > 0;
+  const betragStr = hasBetrag
+    ? new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(dok.betrag!) + ' €'
+    : null;
+
+  const fristDate = dok.frist ? new Date(dok.frist) : null;
+  const hasFrist = fristDate !== null && !Number.isNaN(fristDate.getTime());
+  const fristStr = hasFrist
+    ? fristDate!.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : null;
+
+  if (betragStr && fristStr) return `${betragStr} · Zahlung bis ${fristStr}`;
+  if (betragStr) return `${betragStr} · Frist prüfen`;
+  if (fristStr) return `Frist bis ${fristStr}`;
+
+  const absender = dok.absender?.trim() ?? '';
+  if (!absender || /^unbekannt$/i.test(absender)) return 'Absender fehlt · Angaben prüfen';
+
+  return null;
+}
+
+/**
  * Liste kartında uzun yapılandırılmış özet yerine okunaklı bir metin.
  * Yerel `erstelleZusammenfassung` ve KI özetleri “Dokumenttyp / Absender …” ile başlayabiliyor;
  * iki satırda sadece başlık + "…" görünmesini önler.

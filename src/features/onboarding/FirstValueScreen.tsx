@@ -48,7 +48,7 @@ export default function FirstValueScreen() {
       const b = formatBetrag(dok.betrag, dok.waehrung || '€');
       return b ? `${b} bezahlen` : 'Betrag prüfen';
     }
-    return 'Beleg gesichert — weiter im Detail möglich.';
+    return 'Dokument gesichert — weiter im Detail möglich.';
   }, [lines, dok?.betrag, dok?.waehrung]);
 
   const fristZeile = dok?.frist
@@ -71,7 +71,7 @@ export default function FirstValueScreen() {
     if (!first) {
       Alert.alert(
         'Keine passende Erinnerung',
-        'Für diesen Beleg konnte kein konkreter Zeitpunkt abgeleitet werden — im Detail kannst du Frist und Betrag ergänzen.',
+        'Für dieses Dokument konnte kein konkreter Zeitpunkt abgeleitet werden — im Detail kannst du Frist und Betrag ergänzen.',
       );
     } else {
       await scheduleReminder(dok, first);

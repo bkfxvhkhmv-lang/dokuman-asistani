@@ -5,10 +5,10 @@
 
 /** Ölçüm / iletişim: müşteriye verilen net vaat (Retention + Onboarding). */
 export const TEAM_CUSTOMER_PROMISE_DE =
-  'Der Nutzer lädt einen Beleg hoch und weiß in Sekunden, was als Nächstes zu tun ist.';
+  'Der Nutzer lädt ein Dokument hoch und weiß in Sekunden, was als Nächstes zu tun ist.';
 
 export const PRODUCT_TAGLINE_SHORT =
-  'Belege sicher sortieren — suchen, fristig handeln, exportieren.';
+  'Dokumente sicher sortieren — suchen, fristig handeln, exportieren.';
 
 export function homeHeaderSubtitle(hasUnread: boolean, unreadCount: number): string {
   if (hasUnread && unreadCount > 0) {
@@ -20,10 +20,10 @@ export function homeHeaderSubtitle(hasUnread: boolean, unreadCount: number): str
 
 export const HOME_ALL_GOOD_TITLE = 'Heute alles im Griff.';
 export const HOME_ALL_GOOD_BODY =
-  'Keine kritischen Fristen — deine klassierten Belege sind durchsuchbar und exportbereit.';
+  'Keine kritischen Fristen — deine Dokumente sind durchsuchbar und exportbereit.';
 
 export const HOME_QUICK_FILTER_META =
-  'Belege · Schnellfilter (offen / überfällig / alle)';
+  'Dokumente · Schnellfilter (offen / überfällig / alle)';
 
 export const SEARCH_MISSION_HINT =
   'Suche nach Absender, Betrag, Datum, Dokumenttyp oder Stichwort — dieselben Felder nutzt du später beim Export.';
@@ -43,7 +43,7 @@ export const DASHBOARD_ALL_CLEAR_TEXT =
 export const DASHBOARD_ATTENTION_PRIMARY = (wichtig: number, mitDeadline: number) => {
   const head =
     wichtig === 1
-      ? 'Ein Beleg erfordert Aufmerksamkeit'
-      : `${wichtig} Belege erfordern Aufmerksamkeit`;
+      ? 'Ein Dokument erfordert Aufmerksamkeit'
+      : `${wichtig} Dokumente erfordern Aufmerksamkeit`;
   return `${head}${mitDeadline > 0 ? ` · ${mitDeadline} mit Frist` : ''}.`;
 };

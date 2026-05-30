@@ -110,8 +110,8 @@ const de: Dict = {
   'export.year': 'Jahr', 'export.cta': 'Exportieren',
   'export.cta_selected': '{n} Option{s} ausgewählt · Zeitraum: {year}',
   'export.nothing': 'Nichts ausgewählt', 'export.nothing_body': 'Wähle mindestens eine Exportoption aus.',
-  'export.failed': 'Export fehlgeschlagen', 'export.no_docs': 'Keine Belege',
-  'export.no_docs_body': 'Für {year} keine Belege gefunden.',
+  'export.failed': 'Export fehlgeschlagen', 'export.no_docs': 'Keine Dokumente',
+  'export.no_docs_body': 'Für {year} keine Dokumente gefunden.',
   'export.no_steuer': 'Keine Steuerbelege', 'export.no_steuer_body': 'Für {year} keine Steuerbelege gefunden.',
 
   'settings.title': 'Einstellungen', 'settings.app': 'App',

@@ -11,7 +11,7 @@ import { usePremium } from '@/hooks/usePremium';
 const FEATURES = [
   { icon: '✦', label: 'KI-Zusammenfassung',          sub: 'Jeder Brief auf den Punkt gebracht' },
   { icon: '⚖️', label: 'Einspruch prüfen & starten',  sub: 'Widerspruchs-Assistent mit Vorlagen' },
-  { icon: '📤', label: 'PDF-Export & Teilen',          sub: 'Belege professionell weitergeben' },
+  { icon: '📤', label: 'PDF-Export & Teilen',          sub: 'Dokumente professionell weitergeben' },
   { icon: '🔔', label: 'Frist-Erinnerungen',           sub: 'Keine Deadline mehr verpassen' },
   { icon: '🔗', label: 'Dokument-Verknüpfungen',       sub: 'Zusammenhänge automatisch erkennen' },
 ];

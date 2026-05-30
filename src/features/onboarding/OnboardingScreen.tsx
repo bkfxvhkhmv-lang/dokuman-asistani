@@ -181,7 +181,7 @@ export default function OnboardingScreen() {
       </LinearGradient>
 
       <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 26, gap: 14 }}>
-        <Text style={[st.actLead, { color: C.text }]}>Deinen ersten Beleg scannen</Text>
+        <Text style={[st.actLead, { color: C.text }]}>Dein erstes Dokument scannen</Text>
         <Text style={[st.actSub, { color: C.textSecondary }]}>
           Scanne einen Brief oder importiere ein PDF — BriefPilot zeigt dir sofort, was zu tun ist.
         </Text>
@@ -292,7 +292,7 @@ function SplashStep({ colors: C, insets }: { colors: any; insets: any }) {
         </View>
         <Text style={[st.pulseBrand, { color: C.text }]}>BriefPilot</Text>
         <Text style={[st.pulseLine, { color: C.textSecondary }]}>
-          Sagt dir, was du mit deinem Beleg tun sollst — in wenigen Sekunden.
+          Sagt dir, was du mit deinem Dokument tun sollst — in wenigen Sekunden.
         </Text>
       </Animated.View>
 

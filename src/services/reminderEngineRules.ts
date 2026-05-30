@@ -27,7 +27,7 @@ export function reminderTitleDe(rule: ReminderRuleId): string {
 }
 
 export function reminderBodyDe(rule: ReminderRuleId, docTitle: string): string {
-  const t = docTitle.trim() || 'Dieser Beleg';
+  const t = docTitle.trim() || 'Dieses Dokument';
   switch (rule) {
     case 'idle_1d':
       return `${t}: Du hast noch keine Aktion ausgeführt.`;

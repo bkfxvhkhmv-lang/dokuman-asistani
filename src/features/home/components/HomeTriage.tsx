@@ -15,6 +15,7 @@ interface Props {
 interface TriageItem {
   key: 'dringend' | 'dieseWoche' | 'pruefen' | 'ueberfaellig';
   label: string;
+  subtitle?: string;
   icon: string;
   count: number;
   tone: 'danger' | 'warning' | 'neutral';
@@ -39,7 +40,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
       { key: 'dringend',     label: 'Dringend',       icon: 'warning-circle', count: dringend,     tone: dringend > 0     ? 'danger'  : 'neutral' },
       { key: 'ueberfaellig', label: 'Überfällig',     icon: 'clock',          count: ueberfaellig, tone: ueberfaellig > 0 ? 'danger'  : 'neutral' },
       { key: 'dieseWoche',   label: 'Diese Woche',    icon: 'calendar-blank', count: dieseWoche,   tone: dieseWoche > 0   ? 'warning' : 'neutral' },
-      { key: 'pruefen',      label: 'Angaben prüfen', icon: 'magnifying-glass',count: pruefen,     tone: pruefen > 0      ? 'warning' : 'neutral' },
+      { key: 'pruefen',      label: 'Dokumente prüfen', subtitle: 'Beträge, Absender oder Fristen ergänzen', icon: 'magnifying-glass', count: pruefen, tone: pruefen > 0 ? 'warning' : 'neutral' },
     ];
   }, [docs]);
 
@@ -101,6 +102,9 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
               <Icon name={item.icon} size={18} color={ts.count} style={{ marginBottom: 6 }} />
               <Text style={[st.count, { color: ts.count }]}>{item.count}</Text>
               <Text style={[st.label, { color: ts.label }]}>{item.label}</Text>
+              {item.subtitle ? (
+                <Text style={[st.subtitle, { color: ts.label }]}>{item.subtitle}</Text>
+              ) : null}
             </TouchableOpacity>
           );
         })}
@@ -119,5 +123,6 @@ const st = StyleSheet.create({
     alignItems: 'center',
   },
   count:  { fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
-  label:  { fontSize: 11, fontWeight: '600', marginTop: 2, textAlign: 'center' },
+  label:    { fontSize: 11, fontWeight: '600', marginTop: 2, textAlign: 'center' },
+  subtitle: { fontSize: 10, fontWeight: '400', marginTop: 3, textAlign: 'center', opacity: 0.75 },
 });

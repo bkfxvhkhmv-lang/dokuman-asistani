@@ -33,12 +33,15 @@ const RESERVED_DISPLAY_TITLES = new Set([
   'bis',
 ]);
 
+const LOWERCASE_WORDS = new Set(['vom', 'von', 'am', 'im', 'an', 'auf', 'bei', 'zu', 'mit', 'und', 'der', 'die', 'das', 'den', 'dem', 'oder', 'für']);
+
 function toTitleCase(text: string): string {
   return text
     .split(' ')
-    .map(word => {
+    .map((word, i) => {
       if (!word) return '';
       if (word === word.toUpperCase() && word.length > 1) return word;
+      if (i > 0 && LOWERCASE_WORDS.has(word.toLowerCase())) return word.toLowerCase();
       return word[0].toUpperCase() + word.slice(1);
     })
     .join(' ');

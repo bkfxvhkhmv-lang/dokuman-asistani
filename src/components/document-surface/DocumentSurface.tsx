@@ -98,11 +98,11 @@ export default function DocumentSurface({
 const st = StyleSheet.create({
   card: {
     borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    paddingLeft: 20,        // extra left padding for stripe
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingLeft: 18,        // extra left padding for stripe
     marginHorizontal: 16,
-    marginVertical: 6,
+    marginVertical: 4,
     borderWidth: 1,
     overflow: 'hidden',
   },

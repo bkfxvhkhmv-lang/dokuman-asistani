@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
+import Pdf from 'react-native-pdf';
 import { useTheme } from '@/ThemeContext';
 import DocumentEntityOverlay from '@/components/DocumentEntityOverlay';
 import DocumentSpotlight from '@/components/DocumentSpotlight';
@@ -15,8 +16,11 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
   const [spotlightBox, setSpotlightBox] = useState<EntityBox | null>(null);
+  const [pdfPageCount, setPdfPageCount] = useState<number>(0);
 
   if (!dok.uri) return null;
+
+  const isPdfDoc = dok.uri.toLowerCase().endsWith('.pdf');
 
   const inner = (
     <View
@@ -61,6 +65,14 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
         ...Shadow.sm,
       }}
     >
+      {/* Hidden PDF probe — fires onLoadComplete to capture real page count */}
+      {isPdfDoc && (
+        <Pdf
+          source={{ uri: dok.uri, cache: true }}
+          style={{ width: 0, height: 0 }}
+          onLoadComplete={(n) => setPdfPageCount(n)}
+        />
+      )}
       <View
         style={{
           flexDirection: 'row',
@@ -82,12 +94,14 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           >
             DOKUMENT VORSCHAU
           </Text>
-          {dok.uri?.toLowerCase().endsWith('.pdf') && (
+          {isPdfDoc && (
             <View style={{ backgroundColor: C.primary + '18', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
               <Text style={{ fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 0.4 }}>
-                {dok.pages && dok.pages.length > 1
-                  ? `PDF · ${dok.pages.length} Seiten`
-                  : 'PDF'}
+                {pdfPageCount > 1
+                  ? `PDF · ${pdfPageCount} Seiten`
+                  : pdfPageCount === 1
+                    ? 'PDF · 1 Seite'
+                    : 'PDF'}
               </Text>
             </View>
           )}

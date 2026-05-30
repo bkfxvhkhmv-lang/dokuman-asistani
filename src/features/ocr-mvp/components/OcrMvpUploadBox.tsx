@@ -115,9 +115,11 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
           style={[st.changeBtn, { borderColor: C.border }]}
           onPress={() => {
             if (selectedAsset.source === 'scanner' || selectedAsset.source === 'camera') {
+              const n = selectedAsset.pageCount ?? 1;
+              const seitenLabel = n > 1 ? `${n} Seiten` : '1 Seite';
               Alert.alert(
-                'Scan verwerfen?',
-                'Der aktuelle Scan wird gelöscht. Du musst erneut scannen.',
+                'Scan ersetzen?',
+                `Der aktuelle Scan mit ${seitenLabel} wird entfernt.`,
                 [
                   { text: 'Abbrechen', style: 'cancel' },
                   { text: 'Verwerfen', style: 'destructive', onPress: () => setSelectedAsset(null) },

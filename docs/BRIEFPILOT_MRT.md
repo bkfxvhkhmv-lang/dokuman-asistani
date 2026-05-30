@@ -177,6 +177,16 @@ Detail `ExportierenSheet` seçenekleri kalıcı olarak: PDF / Originaldatei / Te
 
 | Hash | Konu |
 |------|------|
+| `2e44cfff9` | fix(copy): use Dokumente consistently — home.doc_singular/plural + Profilbildschirm; "Belege" çok dar, resmi mektup/Versicherung için "Dokumente" |
+| `971b7b357` | fix(home): improve dashboard hierarchy and recent card density — "Dokumente prüfen" + subtitle; kart padding azaltıldı; "Dokument vom" küçük harf |
+| `a39f87670` | fix(home): add context label below hero document count — "11" altına "Dokumente" label |
+| `62088bd32` | fix(home): clean deadline card, duplicates and review badges — Nächste Frist bug gizlendi; fingerprint dedup; kart "Angaben prüfen" badge kaldırıldı |
+| `e53e8ee3a` | chore(ui): remove DEV reset and OCR MVP shortcut from settings — debug build'de bile görünmemeli |
+| `2d55970e1` | chore(ui): remove developer type override from main analysis flow — FORCE_TYPE_OPTIONS tamamen kaldırıldı |
+| `7c9b6991f` | fix(scan): reopen original source when replacing selected scan — Ändern kaynağa döner; çok sayfa için confirmation |
+| `38d3a4f9c` | fix(scan): show real PDF page count in preview + dynamic Ändern copy — hidden Pdf probe; pageCount ile dinamik copy |
+| `70e0b441d` | fix(scan): preserve and display page count for multi-page scans — onLoadComplete → ViewerTopBar "1/2"; OcrMvpUploadBox displayName fix |
+| `9b3e89fe7` | feat(scan): upload multi-page VisionKit scans as PDF bundle — pdf-lib bundle; silent fallback yok; source_type+pageCount backend'e |
 | `6cd0d3da7` | feat(scan-ux): route camera button to native document scanner + multi-page guard — VisionKit açılıyor; >1 sayfa → alert (sessiz veri kaybı yok); tek sayfa → backend analysis zinciri PASS |
 | `54e001eab` | feat(scan): add takePhotoWithScanner via VisionKit — ScannedAsset.pageCount; ScannerProvider.takePhotoWithScanner(); iOS=VisionKit, Android/sim=takePhoto() fallback |
 | `601d39bc3` | feat(scanner): activate VisionKit native document scanner — Platform.OS==='ios'&&!!RN; BriefPilotVisionScannerModule.swift zaten tam yazılmış |
@@ -247,9 +257,10 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 - Search Alle (9 sonuç) ✅ — Rechnungen/Behörden/Nachweise chip grupları ✅
 - Encoded title (%20) yok ✅ — Bis ana başlık değil ✅ — Angaben prüfen sadece action chip ✅
 - **Vorlesen: PASS** (2026-05-29) — Volltext anhören + Anhalten ✅, Kritische Punkte ✅, locale inference ✅
-- **VisionKit scan flow: PASS** (2026-05-30) — Kamera butonu native document scanner açıyor ✅, Almanca UI ✅, yeşil/mavi polygon ✅, tek sayfa → backend → Ergebnis → speichern → öffnen ✅, multi-page guard alert ✅
+- **VisionKit scan flow: PASS** (2026-05-30) — Kamera butonu native document scanner açıyor ✅, Almanca UI ✅, yeşil/mavi polygon ✅, tek sayfa → backend → Ergebnis → speichern → öffnen ✅, çok sayfa PDF bundle ✅
+- **Home premium pass: PASS** (2026-05-30) — "Nächste Frist" bug gizlendi ✅, duplicate kaldırıldı ✅, "Angaben prüfen" badge sessizleşti ✅, "11 Dokumente" label ✅, "Dokumente prüfen + subtitle" ✅
+- Dev items temizlendi: OCR MVP shortcut, DEV löschen, force_type override ✅
 - Kalan: Preview persistence + Fristen yeni build test edilmedi
-- Multi-page PDF: backend Codex audit sonrası P1
 
 ### P1 — Açık
 - [x] **Überblick footer tekrarı** — `AnalyseHeaderCard` footer kaldırıldı (`a7c50f8f5`). NaechsterSchrittCard tek yönlendirme yüzeyi.
@@ -301,8 +312,13 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 | PDF yükle → önizleme | Küçük önizleme görünür, tap açılır | ✅ |
 | PDF fullscreen | In-app render, X/Share safe area'da | ✅ |
 | Scan et → kaydet | Dokument sekmesi açılır (Analyse değil) | ✅ |
-| VisionKit kamera → backend → kaydet → aç | Tek sayfa: zincir PASS (2026-05-30) | ✅ |
-| VisionKit çok sayfa | Guard alert gösterilir, sessiz veri kaybı yok | ✅ |
+| VisionKit kamera → backend → kaydet → aç | Tek + çok sayfa PDF bundle PASS (2026-05-30) | ✅ |
+| VisionKit Ändern | Aynı kaynağa döner; çok sayfa confirmation alert | ✅ |
+| Home "Nächste Frist" bug | Veri yoksa kart gizleniyor | ✅ |
+| Home duplicate belgeler | Fingerprint dedup aktif | ✅ |
+| Home "Angaben prüfen" | Kartta yok, sadece summary'de | ✅ |
+| Home sayaç label | "11 Dokumente" — net context | ✅ |
+| Dev items | Scan/Einstellungen'da görünmüyor | ✅ |
 | OCR kaydet → aç | Dokument sekmesi açılır | ✅ |
 | Negatif tutar belgesi | Zahlung butonu yok, Gutschrift gösterir | ✅ |
 | OCR result CTA sırası | In Dokumente speichern primary, Excel secondary | ✅ |

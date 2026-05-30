@@ -63,8 +63,10 @@ export function getInstitutionSendProfile(dok: DokumentErweitert): SendProfile {
   return {
     preferredChannel: 'email',
     requiresAttachment: true,
-    subjectTemplate: ({ dok: d }) =>
-      `${d.absender || 'Dokument'} — ${displayTitleFor(d)}${d.aktenzeichen ? ` — AZ ${d.aktenzeichen}` : ''}`,
+    subjectTemplate: ({ dok: d }) => {
+      const sender = d.absender && !/^unbekannt/i.test(d.absender.trim()) ? `${d.absender} — ` : '';
+      return `${sender}${displayTitleFor(d)}${d.aktenzeichen ? ` — AZ ${d.aktenzeichen}` : ''}`;
+    },
     bodyTemplate: ({ dok: d }) =>
       `${d.zusammenfassung || ''}${d.betrag ? `\nBetrag: ${formatBetrag(d.betrag)}` : ''}${
         d.frist ? `\nFrist: ${formatFrist(d.frist)}` : ''

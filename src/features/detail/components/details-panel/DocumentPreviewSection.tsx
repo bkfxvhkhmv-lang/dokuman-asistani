@@ -71,16 +71,27 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           paddingBottom: S.sm,
         }}
       >
-        <Text
-          style={{
-            fontSize: 10,
-            fontWeight: '700',
-            color: C.textTertiary,
-            letterSpacing: 0.8,
-          }}
-        >
-          DOKUMENT VORSCHAU
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text
+            style={{
+              fontSize: 10,
+              fontWeight: '700',
+              color: C.textTertiary,
+              letterSpacing: 0.8,
+            }}
+          >
+            DOKUMENT VORSCHAU
+          </Text>
+          {dok.uri?.toLowerCase().endsWith('.pdf') && (
+            <View style={{ backgroundColor: C.primary + '18', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
+              <Text style={{ fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 0.4 }}>
+                {dok.pages && dok.pages.length > 1
+                  ? `PDF · ${dok.pages.length} Seiten`
+                  : 'PDF'}
+              </Text>
+            </View>
+          )}
+        </View>
         {onOpenFullscreen ? (
           <TouchableOpacity
             onPress={onOpenFullscreen}

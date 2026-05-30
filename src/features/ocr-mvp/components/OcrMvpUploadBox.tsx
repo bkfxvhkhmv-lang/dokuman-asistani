@@ -113,7 +113,20 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
 
         <TouchableOpacity
           style={[st.changeBtn, { borderColor: C.border }]}
-          onPress={() => setSelectedAsset(null)}
+          onPress={() => {
+            if (selectedAsset.source === 'scanner' || selectedAsset.source === 'camera') {
+              Alert.alert(
+                'Scan verwerfen?',
+                'Der aktuelle Scan wird gelöscht. Du musst erneut scannen.',
+                [
+                  { text: 'Abbrechen', style: 'cancel' },
+                  { text: 'Verwerfen', style: 'destructive', onPress: () => setSelectedAsset(null) },
+                ],
+              );
+            } else {
+              setSelectedAsset(null);
+            }
+          }}
           activeOpacity={0.75}
         >
           <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>Ändern</Text>

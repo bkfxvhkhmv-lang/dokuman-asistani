@@ -58,7 +58,8 @@ export default function OcrMvpActionSummary({
 
   const kind      = summary.kind ?? 'unknown';
   const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
-  const rawTitle  = summary.title;
+  // Backend echoes the upload filename as title (e.g. "Scan 1780169901922") — treat as no-title.
+  const rawTitle  = /^Scan[\s_]+\d/i.test(summary.title ?? '') ? null : summary.title;
   const humanized = humanizeTitle(rawTitle);
   const title = (() => {
     if (!humanized || GENERIC_TITLE_FALLBACKS.has(humanized)) {

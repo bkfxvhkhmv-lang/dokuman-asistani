@@ -130,6 +130,11 @@ export function safeDisplayTitel(
   if (confidence !== null && confidence !== undefined && confidence < 45) {
     return typ || 'Unbekanntes Dokument';
   }
+  // Stored scan IDs (e.g. "Scan 1780169901922") — use document type as title instead.
+  if (/^Scan[\s_]+\d{6,}$/i.test(titel.trim())) {
+    const t = typ?.trim();
+    return (t && !/^unbekannt$/i.test(t)) ? t : 'Neues Dokument';
+  }
   const humanized = humanizeTitle(titel);
   const candidate = (humanized ?? titel.trim()).trim();
   if (RESERVED_DISPLAY_TITLES.has(candidate.toLowerCase())) {

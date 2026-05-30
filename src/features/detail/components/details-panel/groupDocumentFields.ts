@@ -119,10 +119,14 @@ export function groupDocumentFields(
   if (dok.laufzeitende)      push(vertrag,  { key: 'laufzeit',   icon: 'calendar-check',  label: 'Laufzeitende',       value: formatDatum(dok.laufzeitende) ?? dok.laufzeitende,          aiSparkle: true });
   if (dok.kuendigungsfrist)  push(vertrag,  { key: 'kuendigung', icon: 'bell-ringing',    label: 'Kündigungsfrist',    value: formatDatum(dok.kuendigungsfrist) ?? dok.kuendigungsfrist,  aiSparkle: true });
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   // ── extrahierteFelder from rohText regex ────────────────────────
   for (const f of extrahierteFelder) {
     const cat = classify(f.label);
     if (cat === 'hidden') continue;
+    const n = norm(f.label);
+    if ((n === 'email' || n === 'emai') && !EMAIL_RE.test(f.wert?.trim() ?? '')) continue;
     const row: DocFieldRow = { key: f.key, icon: f.icon || iconForLabel(f.label), label: f.label, value: f.wert, aiSparkle: true };
     if (cat === 'zahlung') push(zahlung, row);
     else if (cat === 'kontakt') push(kontakt, row);
@@ -135,7 +139,9 @@ export function groupDocumentFields(
     const cat = classify(label);
     if (cat === 'hidden' || cat === 'weitere') continue;
     if (seen.has(norm(label))) continue;
-    const row: DocFieldRow = { key: norm(label), icon: iconForLabel(label), label, value };
+    const n = norm(label);
+    if ((n === 'email' || n === 'emai') && !EMAIL_RE.test(value?.trim() ?? '')) continue;
+    const row: DocFieldRow = { key: n, icon: iconForLabel(label), label, value };
     if (cat === 'zahlung') push(zahlung, row);
     else push(kontakt, row);
   }

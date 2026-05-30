@@ -213,7 +213,7 @@ export default function OnboardingScreen() {
         </TouchableOpacity>
 
         <Text style={[st.miniTrust, { color: C.textTertiary }]}>
-          Lokal verarbeitet · Du behältst die Kontrolle über deine Dokumente.
+          Sicher verarbeitet · Du behältst die Kontrolle über deine Dokumente.
         </Text>
       </View>
 

@@ -127,7 +127,7 @@ export default function LoginScreen() {
           />
 
           <Text style={[st.hint, { color: C.textTertiary }]}>
-            Lokal verarbeitet · Du behältst die Kontrolle über deine Dokumente.
+            Sicher verarbeitet · Du behältst die Kontrolle über deine Dokumente.
           </Text>
         </ScrollView>
 

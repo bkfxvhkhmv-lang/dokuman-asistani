@@ -15,8 +15,8 @@ export const authStyles = StyleSheet.create({
   scrollContentKeyboard:  { justifyContent: 'flex-start', paddingTop: 20 },
 
   /* --- Brand header --- */
-  header:        { alignItems: 'center', marginBottom: 28 },
-  headerCompact: { marginBottom: 18 },
+  header:        { alignItems: 'center', marginBottom: 24 },
+  headerCompact: { marginBottom: 14 },
   logoBadge: {
     width: 74, height: 74, borderRadius: 24,
     alignItems: 'center', justifyContent: 'center',
@@ -36,23 +36,23 @@ export const authStyles = StyleSheet.create({
   subtitle: { fontSize: 14, marginTop: 6, lineHeight: 20, textAlign: 'center' },
 
   /* --- Tabs --- */
-  tabs:    { flexDirection: 'row', borderRadius: 14, padding: 4, borderWidth: 1, marginBottom: 18 },
-  tab:     { flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  tabs:    { flexDirection: 'row', borderRadius: 14, padding: 4, borderWidth: 1, marginBottom: 16 },
+  tab:     { flex: 1, paddingVertical: 11, borderRadius: 10, alignItems: 'center' },
   tabText: { fontSize: 14, fontWeight: '700' },
 
   /* --- Form --- */
-  form:    { borderWidth: 1, borderRadius: 20, padding: 18 },
-  btn:     { marginTop: 18, borderRadius: 16, paddingVertical: 15, alignItems: 'center' },
+  form:    { borderWidth: 1, borderRadius: 20, padding: 16 },
+  btn:     { marginTop: 16, borderRadius: 16, paddingVertical: 14, alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: -0.1 },
 
   googleBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, minHeight: 48,
-    paddingVertical: 12, marginTop: 12, gap: 10,
+    borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, minHeight: 44,
+    paddingVertical: 10, marginTop: 10, gap: 10,
   },
 
-  secondaryActions: { marginTop: 20, paddingTop: 2, alignItems: 'center' },
-  guestLinkWrap:    { paddingVertical: 6, paddingHorizontal: 8, alignItems: 'center' },
+  secondaryActions: { marginTop: 16, paddingTop: 2, alignItems: 'center' },
+  guestLinkWrap:    { paddingVertical: 4, paddingHorizontal: 8, alignItems: 'center' },
 
-  hint: { marginTop: 16, textAlign: 'center', fontSize: 12 },
+  hint: { marginTop: 14, textAlign: 'center', fontSize: 12 },
 });

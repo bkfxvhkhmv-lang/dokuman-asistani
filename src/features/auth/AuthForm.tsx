@@ -84,7 +84,7 @@ export default function AuthForm({
 
       <View style={st.secondaryActions}>
         <TouchableOpacity onPress={onGuest} activeOpacity={0.75} style={st.guestLinkWrap}>
-          <Text style={{ fontSize: 13, color: C.textTertiary }}>
+          <Text style={{ fontSize: 13, color: C.textSecondary }}>
             Ohne Anmeldung fortfahren →
           </Text>
         </TouchableOpacity>
@@ -94,7 +94,7 @@ export default function AuthForm({
         <TouchableOpacity
           onPress={onForgotPassword}
           activeOpacity={0.75}
-          style={{ marginTop: 14, alignItems: 'center' }}
+          style={{ marginTop: 10, alignItems: 'center' }}
         >
           <Text style={{ fontSize: 13, color: C.primary }}>Passwort vergessen?</Text>
         </TouchableOpacity>

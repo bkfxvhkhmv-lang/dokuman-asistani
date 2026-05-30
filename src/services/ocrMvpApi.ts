@@ -108,6 +108,27 @@ export async function analyzeDocument(
   return res.json();
 }
 
+// POST /documents/{job_id}/accepted — learning loop: final accepted snapshot
+export async function postAcceptedSnapshot(
+  jobId: string | null | undefined,
+  body: {
+    final_kind?: string | null;
+    final_fields: Record<string, unknown>;
+    final_language?: string | null;
+  },
+): Promise<void> {
+  const id = jobId ?? 'unknown';
+  try {
+    await fetch(`${OCR_MVP_BASE}/documents/${id}/accepted`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    // fire-and-forget — network errors must never affect the save flow
+  }
+}
+
 // GET /documents/{job_id}/result
 export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
   const res = await fetch(`${OCR_MVP_BASE}/documents/${jobId}/result`);

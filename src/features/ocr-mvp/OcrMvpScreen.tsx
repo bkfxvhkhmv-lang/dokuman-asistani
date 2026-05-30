@@ -19,6 +19,7 @@ import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
+import { postAcceptedSnapshot } from '@/services/ocrMvpApi';
 import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
@@ -66,7 +67,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
   const router = useRouter();
   const { state, dispatch } = useStore();
-  const { status, result, error, errorKind, startJob, reset } = useOcrMvpJob();
+  const { status, jobId, result, error, errorKind, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
@@ -167,10 +168,25 @@ export default function OcrMvpScreen({ onClose }: Props) {
       });
       dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
       setSavedDocId(draft.document.id);
+
+      // Learning loop — fire-and-forget, never blocks save flow
+      const doc = draft.document;
+      void postAcceptedSnapshot(jobId, {
+        final_kind:     doc.typ ?? null,
+        final_language: doc.detectedLanguage ?? result.language ?? null,
+        final_fields: {
+          titel:    doc.titel   ?? null,
+          absender: doc.absender ?? null,
+          betrag:   doc.betrag  ?? null,
+          frist:    doc.frist   ?? null,
+          iban:     doc.iban    ?? null,
+          risiko:   doc.risiko  ?? null,
+        },
+      }).catch((e) => console.warn('[learning] accepted snapshot failed', e));
     } catch (e: any) {
       Alert.alert('Speichern fehlgeschlagen', e?.message ?? 'Dokument konnte nicht gespeichert werden.');
     }
-  }, [result, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
+  }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;

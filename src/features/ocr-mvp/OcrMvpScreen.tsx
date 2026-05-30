@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
@@ -63,6 +63,21 @@ interface Props {
   onClose?: () => void;
 }
 
+type TimingMarks = Partial<Record<
+  | 'scanReceived'
+  | 'mounted'
+  | 'uploadStart'
+  | 'uploadEnd'
+  | 'jobCreated'
+  | 'pollStart'
+  | 'pollResult'
+  | 'resultVisible'
+  | 'parseDone'
+  | 'saveDone'
+  | 'navDone',
+  number
+>>;
+
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
   const router = useRouter();
@@ -75,11 +90,49 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [earlyPersistedDocId, setEarlyPersistedDocId] = useState<string | null>(null);
   const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
   const { setSuppressBanner } = useOfflineBannerSuppression();
+  const timingRef = useRef<TimingMarks>({});
+
+  const setTiming = useCallback((key: keyof TimingMarks, value = Date.now()) => {
+    timingRef.current[key] = value;
+  }, []);
+
+  const secondsBetween = useCallback((from?: number, to?: number) => {
+    if (!from || !to || to < from) return null;
+    return ((to - from) / 1000).toFixed(1);
+  }, []);
+
+  const emitTimingSummary = useCallback((finalLabel?: string) => {
+    if (!__DEV__) return;
+    const t = timingRef.current;
+    const scanStart = t.scanReceived ?? t.mounted;
+    const total = secondsBetween(scanStart, finalLabel === 'navDone' ? t.navDone : t.resultVisible ?? t.saveDone ?? t.pollResult);
+    const upload = secondsBetween(t.uploadStart, t.uploadEnd);
+    const job = secondsBetween(t.uploadEnd, t.jobCreated);
+    const polling = secondsBetween(t.pollStart, t.pollResult);
+    const parse = secondsBetween(t.pollResult, t.parseDone);
+    const save = secondsBetween(t.parseDone ?? t.pollResult, t.saveDone);
+    const nav = secondsBetween(t.saveDone ?? t.resultVisible, t.navDone);
+    const parts = [
+      total ? `total=${total}s` : null,
+      upload ? `upload=${upload}s` : null,
+      job ? `job=${job}s` : null,
+      polling ? `polling=${polling}s` : null,
+      parse ? `parse=${parse}s` : null,
+      save ? `save=${save}s` : null,
+      nav ? `nav=${nav}s` : null,
+      finalLabel ? `final=${finalLabel}` : null,
+    ].filter(Boolean);
+    console.log(`[OCR_TIMING] ${parts.join(' ')}`);
+  }, [secondsBetween]);
 
   useEffect(() => {
     setSuppressBanner(true);
     return () => setSuppressBanner(false);
   }, [setSuppressBanner]);
+
+  useEffect(() => {
+    setTiming('mounted');
+  }, [setTiming]);
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');
@@ -113,6 +166,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     sourceType?: string,
     pageCount?: number,
   ) => {
+    setTiming('scanReceived');
     setSelectedUri(fileUri);
     setSelectedPreviewUri(previewUri ?? null);
     setEarlyPersistedDocId(null);
@@ -130,7 +184,18 @@ export default function OcrMvpScreen({ onClose }: Props) {
       console.error('[OcrMvpScreen] early persist failed', e);
     }
 
-    startJob({ uri: fileUri, name: fileName, mimeType }, forceType, { sourceType, pageCount });
+    startJob(
+      { uri: fileUri, name: fileName, mimeType },
+      forceType,
+      { sourceType, pageCount },
+      {
+        onUploadStart:   () => setTiming('uploadStart'),
+        onUploadFinished: () => setTiming('uploadEnd'),
+        onJobCreated:    () => setTiming('jobCreated'),
+        onPollingStarted: () => setTiming('pollStart'),
+        onPollingResult: () => setTiming('pollResult'),
+      },
+    );
   };
 
   const handleSaveToDocuments = useCallback(async () => {
@@ -166,8 +231,11 @@ export default function OcrMvpScreen({ onClose }: Props) {
         fileRelativePath: persistedPages[0]?.relativePath ?? null,
         pages:            persistedPages,
       });
+      setTiming('parseDone');
       dispatch({ type: 'ADD_DOKUMENT', payload: draft.document });
       setSavedDocId(draft.document.id);
+      setTiming('saveDone');
+      emitTimingSummary('saveDone');
 
       // Learning loop — fire-and-forget, never blocks save flow
       const doc = draft.document;
@@ -190,8 +258,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;
+    setTiming('navDone');
+    emitTimingSummary('navDone');
     router.push({ pathname: '/detail', params: { dokId: savedDocId, tab: 'ozet' } });
-  }, [savedDocId, router]);
+  }, [savedDocId, router, emitTimingSummary, setTiming]);
 
   const handleReset = useCallback(() => {
     setSavedDocId(null);
@@ -199,8 +269,16 @@ export default function OcrMvpScreen({ onClose }: Props) {
     setSelectedPreviewUri(null);
     setEarlyPersistedDocId(null);
     setEarlyPersistedPages(null);
+    timingRef.current = {};
     reset();
   }, [reset]);
+
+  useEffect(() => {
+    if (status === 'done' && result) {
+      setTiming('resultVisible');
+      emitTimingSummary('resultVisible');
+    }
+  }, [status, result, emitTimingSummary, setTiming]);
 
   const st = styles(Colors);
   const isActive = status !== 'idle';

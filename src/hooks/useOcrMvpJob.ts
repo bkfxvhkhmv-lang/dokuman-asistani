@@ -16,8 +16,21 @@ export interface UseOcrMvpJobReturn {
   result:    OcrMvpJobStatus | null;
   error:     string | null;
   errorKind: OcrMvpErrorKind;
-  startJob:  (file: OcrMvpFile, forceType?: OcrMvpForceType, meta?: { sourceType?: string; pageCount?: number }) => Promise<void>;
+  startJob:  (
+    file: OcrMvpFile,
+    forceType?: OcrMvpForceType,
+    meta?: { sourceType?: string; pageCount?: number },
+    timing?: Partial<OcrMvpTimingCallbacks>,
+  ) => Promise<void>;
   reset:     () => void;
+}
+
+export interface OcrMvpTimingCallbacks {
+  onUploadStart: () => void;
+  onUploadFinished: () => void;
+  onJobCreated: (jobId: string) => void;
+  onPollingStarted: (jobId: string) => void;
+  onPollingResult: (jobId: string, status: OcrMvpJobStatus['status']) => void;
 }
 
 export function useOcrMvpJob(): UseOcrMvpJobReturn {
@@ -37,7 +50,8 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     }
   };
 
-  const poll = useCallback((id: string) => {
+  const poll = useCallback((id: string, timing?: Partial<OcrMvpTimingCallbacks>) => {
+    timing?.onPollingStarted?.(id);
     timerRef.current = setInterval(async () => {
       if (Date.now() - startedRef.current >= POLL_TIMEOUT_MS) {
         clearTimer();
@@ -48,6 +62,9 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
 
       try {
         const data = await getOcrResult(id);
+        if (data.status === 'done' || data.status === 'error') {
+          timing?.onPollingResult?.(id, data.status);
+        }
 
         if (data.status === 'done') {
           clearTimer();
@@ -73,6 +90,7 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     file: OcrMvpFile,
     forceType?: OcrMvpForceType,
     meta?: { sourceType?: string; pageCount?: number },
+    timing?: Partial<OcrMvpTimingCallbacks>,
   ) => {
     clearTimer();
     setStatus('uploading');
@@ -83,12 +101,15 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     const abortCtrl = new AbortController();
     const uploadTimer = setTimeout(() => abortCtrl.abort(), UPLOAD_TIMEOUT_MS);
     try {
+      timing?.onUploadStart?.();
       const { job_id } = await analyzeDocument(file, forceType, abortCtrl.signal, meta);
       clearTimeout(uploadTimer);
+      timing?.onUploadFinished?.();
       setJobId(job_id);
+      timing?.onJobCreated?.(job_id);
       setStatus('processing');
       startedRef.current = Date.now();
-      poll(job_id);
+      poll(job_id, timing);
     } catch (e) {
       clearTimeout(uploadTimer);
       const isAbort = e instanceof Error && e.name === 'AbortError';

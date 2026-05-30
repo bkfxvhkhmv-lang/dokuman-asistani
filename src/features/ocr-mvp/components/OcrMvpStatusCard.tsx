@@ -1,22 +1,40 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpStatus } from '@/hooks/useOcrMvpJob';
 
-const THUMB_W = 88;
-const THUMB_H = 108;
+const THUMB_W = 124;
+const THUMB_H = 152;
 
 interface Props {
   status: OcrMvpStatus;
   previewUri?: string;
 }
 
+function getStagedCopy(elapsed: number): string {
+  if (elapsed >= 8) return 'Fast fertig…';
+  if (elapsed >= 5) return 'Beträge und Fristen werden geprüft';
+  if (elapsed >= 2) return 'Text wird erkannt';
+  return 'Dokument wird vorbereitet';
+}
+
 export default function OcrMvpStatusCard({ status, previewUri }: Props) {
   const { Colors } = useTheme();
   const pulse = useRef(new Animated.Value(0.5)).current;
   const scanY = useRef(new Animated.Value(0)).current;
+  const startedAtRef = useRef<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const st = styles(Colors);
+
+  useEffect(() => {
+    if (status !== 'uploading' && status !== 'processing') return;
+    if (!startedAtRef.current) startedAtRef.current = Date.now();
+    const iv = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAtRef.current!) / 1000));
+    }, 500);
+    return () => clearInterval(iv);
+  }, [status]);
 
   useEffect(() => {
     if (status !== 'uploading' && status !== 'processing') { pulse.setValue(1); return; }
@@ -42,8 +60,6 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
     return () => anim.stop();
   }, [status, scanY]);
 
-  const isUploading = status === 'uploading';
-
   return (
     <View style={st.container}>
       {/* Belge thumbnail */}
@@ -52,7 +68,7 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
           <Image source={{ uri: previewUri }} style={st.thumbImage} resizeMode="cover" />
         ) : (
           <View style={st.thumbFallback}>
-            <Icon name="document-text-outline" size={32} color={Colors.textTertiary} />
+            <Icon name="document-text-outline" size={36} color={Colors.textTertiary} />
           </View>
         )}
         {status === 'processing' && (
@@ -63,16 +79,8 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
       {/* Status */}
       <View style={st.textBlock}>
         <Animated.Text style={[st.title, { opacity: pulse, color: Colors.text }]}>
-          {isUploading ? 'Dokument wird gesendet' : 'Dokument wird analysiert'}
+          {getStagedCopy(elapsed)}
         </Animated.Text>
-        {!isUploading && (
-          <Text style={[st.sub, { color: Colors.textSecondary }]}>
-            Text, Beträge und Fristen werden erkannt.
-          </Text>
-        )}
-        <Text style={[st.note, { color: Colors.textTertiary }]}>
-          Das kann einen Moment dauern.
-        </Text>
       </View>
     </View>
   );
@@ -102,8 +110,6 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     backgroundColor: '#22C55E',
     opacity: 0.6,
   },
-  textBlock: { alignItems: 'center', gap: 8 },
+  textBlock: { alignItems: 'center' },
   title:  { fontSize: 17, fontWeight: '700', textAlign: 'center' },
-  sub:    { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  note:   { fontSize: 12, textAlign: 'center', marginTop: 4 },
 });

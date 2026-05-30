@@ -16,7 +16,7 @@ export interface UseOcrMvpJobReturn {
   result:    OcrMvpJobStatus | null;
   error:     string | null;
   errorKind: OcrMvpErrorKind;
-  startJob:  (file: OcrMvpFile, forceType?: OcrMvpForceType) => Promise<void>;
+  startJob:  (file: OcrMvpFile, forceType?: OcrMvpForceType, meta?: { sourceType?: string; pageCount?: number }) => Promise<void>;
   reset:     () => void;
 }
 
@@ -72,6 +72,7 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
   const startJob = useCallback(async (
     file: OcrMvpFile,
     forceType?: OcrMvpForceType,
+    meta?: { sourceType?: string; pageCount?: number },
   ) => {
     clearTimer();
     setStatus('uploading');
@@ -82,7 +83,7 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
     const abortCtrl = new AbortController();
     const uploadTimer = setTimeout(() => abortCtrl.abort(), UPLOAD_TIMEOUT_MS);
     try {
-      const { job_id } = await analyzeDocument(file, forceType, abortCtrl.signal);
+      const { job_id } = await analyzeDocument(file, forceType, abortCtrl.signal, meta);
       clearTimeout(uploadTimer);
       setJobId(job_id);
       setStatus('processing');

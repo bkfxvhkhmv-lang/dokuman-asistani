@@ -74,6 +74,7 @@ export async function analyzeDocument(
   file: OcrMvpFile,
   forceType?: OcrMvpForceType,
   signal?: AbortSignal,
+  meta?: { sourceType?: string; pageCount?: number },
 ): Promise<{ job_id: string; status: string }> {
   const form = new FormData();
   form.append('file', {
@@ -84,6 +85,12 @@ export async function analyzeDocument(
 
   if (forceType) {
     form.append('force_type', forceType);
+  }
+  if (meta?.sourceType) {
+    form.append('source_type', meta.sourceType);
+  }
+  if (meta?.pageCount != null) {
+    form.append('page_count', String(meta.pageCount));
   }
 
   const res = await fetch(`${OCR_MVP_BASE}/documents/analyze`, {

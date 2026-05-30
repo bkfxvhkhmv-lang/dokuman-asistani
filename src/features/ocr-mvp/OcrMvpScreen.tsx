@@ -109,6 +109,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
     mimeType: string,
     forceType?: OcrMvpForceType,
     previewUri?: string,
+    sourceType?: string,
+    pageCount?: number,
   ) => {
     setSelectedUri(fileUri);
     setSelectedPreviewUri(previewUri ?? null);
@@ -127,7 +129,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       console.error('[OcrMvpScreen] early persist failed', e);
     }
 
-    startJob({ uri: fileUri, name: fileName, mimeType }, forceType);
+    startJob({ uri: fileUri, name: fileName, mimeType }, forceType, { sourceType, pageCount });
   };
 
   const handleSaveToDocuments = useCallback(async () => {

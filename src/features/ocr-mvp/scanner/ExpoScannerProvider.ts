@@ -1,6 +1,7 @@
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { scanWithVisionKit, visionKitAvailable } from '@/modules/scanner/engine/VisionKitScanner';
+import { generatePdfFromImages } from '@/core/pdf/js-pdf-generate/generatePdfFromImages';
 import type { ScannedAsset, ScannerProvider } from './types';
 
 export const ExpoScannerProvider: ScannerProvider = {
@@ -68,14 +69,46 @@ export const ExpoScannerProvider: ScannerProvider = {
     }
     const result = await scanWithVisionKit();
     if (result.cancelled || result.imageUris.length === 0) return null;
-    const uri = result.imageUris[0];
+
+    // Single page: send as JPEG (fast, no PDF overhead)
+    if (result.imageUris.length === 1) {
+      const uri = result.imageUris[0];
+      return {
+        uri,
+        name: `scan_${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+        source: 'camera',
+        displayName: 'Scan aufgenommen',
+        previewUri: uri,
+        pageCount: 1,
+      };
+    }
+
+    // Multi-page: bundle into PDF via pdf-lib
+    const pdf = await generatePdfFromImages(
+      result.imageUris.map(uri => ({ uri })),
+    );
+    if (!pdf) {
+      // PDF generation failed — fall back to first page only
+      const uri = result.imageUris[0];
+      return {
+        uri,
+        name: `scan_${Date.now()}.jpg`,
+        mimeType: 'image/jpeg',
+        source: 'camera',
+        displayName: 'Scan aufgenommen',
+        previewUri: uri,
+        pageCount: 1,
+      };
+    }
+
     return {
-      uri,
-      name: `scan_${Date.now()}.jpg`,
-      mimeType: 'image/jpeg',
-      source: 'camera',
-      displayName: 'Scan aufgenommen',
-      previewUri: uri,
+      uri: pdf.uri,
+      name: `scan_${Date.now()}.pdf`,
+      mimeType: 'application/pdf',
+      source: 'scanner',
+      displayName: `Scan (${result.pageCount} Seiten)`,
+      previewUri: result.imageUris[0],
       pageCount: result.pageCount,
     };
   },

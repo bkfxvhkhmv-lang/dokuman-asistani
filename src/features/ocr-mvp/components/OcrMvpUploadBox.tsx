@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -19,7 +19,7 @@ const FORCE_TYPE_OPTIONS: { value: OcrMvpForceType | null; label: string }[] = [
 ];
 
 interface Props {
-  onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string) => void;
+  onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
 }
 
 export default function OcrMvpUploadBox({ onSubmit }: Props) {
@@ -33,14 +33,6 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
     try {
       const asset = await fn();
       if (!asset) return;
-      if (asset.pageCount && asset.pageCount > 1) {
-        Alert.alert(
-          'Mehrseitiger Scan',
-          'Mehrseitige Scans werden aktuell noch vorbereitet. Bitte scanne vorerst eine Seite oder lade ein PDF hoch.',
-          [{ text: 'OK' }],
-        );
-        return;
-      }
       setSelectedAsset(asset);
     } finally {
       setPicking(false);
@@ -102,6 +94,8 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
             selectedAsset.mimeType,
             __DEV__ ? (forceType ?? undefined) : undefined,
             selectedAsset.previewUri,
+            selectedAsset.source,
+            selectedAsset.pageCount,
           )}
           activeOpacity={0.85}
         >

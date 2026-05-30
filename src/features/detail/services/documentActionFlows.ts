@@ -21,11 +21,13 @@ function buildFallbackSubject(dok: DokumentErweitert): string {
   return `${genericTitle} zur Prüfung`;
 }
 
+// Only feminine nouns that are grammatically safe with "die" — everything else uses "das Dokument".
+const DIE_TYPEN = new Set(['Rechnung', 'Mahnung', 'Versicherung', 'Abrechnung', 'Nebenkostenabrechnung']);
+
 function buildFallbackBody(dok: DokumentErweitert): string {
-  const label =
-    dok.typ && dok.typ !== 'Sonstiges'
-      ? `die ${dok.typ.toLowerCase()}`
-      : 'das Dokument';
+  const label = DIE_TYPEN.has(dok.typ ?? '')
+    ? `die ${dok.typ}`
+    : 'das Dokument';
 
   const hintParts = [
     dok.frist ? `Frist bis ${formatFrist(dok.frist)}` : null,

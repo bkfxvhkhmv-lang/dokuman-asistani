@@ -33,7 +33,7 @@ describe('buildInstitutionMailDraft', () => {
   it('uses a professional fallback body instead of attachment-only boilerplate', () => {
     const draft = buildInstitutionMailDraft(makeDok());
     expect(draft.body).toContain('Hallo,');
-    expect(draft.body).toContain('im Anhang findest du die rechnung zur Prüfung.');
+    expect(draft.body).toContain('im Anhang findest du die Rechnung zur Prüfung.');
     expect(draft.body).toContain('Viele Grüße');
     expect(draft.body).not.toContain('Anhang: beigefügt');
   });

@@ -2,8 +2,9 @@ import type { OcrMvpActionSummary } from '@/services/ocrMvpApi';
 export { humanizeTitle } from '@/utils/displaySanitizer';
 
 // Filename-like patterns that are never meaningful document titles.
+// scan[\s_]+\d covers "Scan 1780169901922" and "Scan_178..." (backend echoes file name as title).
 const REJECT_TITLE_RE =
-  /^(scan[\s_]?vom|camscanner|scanbot|img_|dsc_|photo_|input|document|upload|belge|unknown|unbekannt)/i;
+  /^(scan[\s_]?vom|scan[\s_]+\d|camscanner|scanbot|img_|dsc_|photo_|input|document|upload|belge|unknown|unbekannt)/i;
 
 export function isMeaningfulTitle(title: string | null | undefined): boolean {
   if (!title) return false;

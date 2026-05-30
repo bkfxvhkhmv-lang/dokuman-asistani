@@ -5,6 +5,14 @@ import { buildKernPunkte } from './kernPunkte';
 import { buildKurzSatz } from './kurzSatz';
 import type { SummaryMode, SummaryResult } from './types';
 
+function getSummaryHeading(dok: Dokument): string {
+  const absender = dok.absender?.trim();
+  if (!absender || ['unbekannt', 'unbekannter absender', 'unknown', 'unknown sender'].includes(absender.toLowerCase())) {
+    return `**${dok.typ}**`;
+  }
+  return `**${dok.typ} von ${absender}**`;
+}
+
 export function buildLocalSummary(dok: Dokument, mode: SummaryMode): SummaryResult {
   const start = Date.now();
   const kurzSatz = buildKurzSatz(dok);
@@ -15,7 +23,7 @@ export function buildLocalSummary(dok: Dokument, mode: SummaryMode): SummaryResu
   let detailText: string | null = null;
   if (mode === 'detailliert') {
     detailText = [
-      `**${dok.typ} von ${dok.absender}**`,
+      getSummaryHeading(dok),
       '',
       kurzSatz,
       '',

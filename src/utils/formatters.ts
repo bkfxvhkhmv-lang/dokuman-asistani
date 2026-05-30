@@ -28,12 +28,16 @@ export function formatBetrag(betrag: number | string | null | undefined, waehrun
 
 export function formatDatum(iso: string | null | undefined): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'Nicht erkannt';
+  return date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function formatFrist(iso: string | null | undefined): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'Nicht erkannt';
+  return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export interface RisikoInfo {

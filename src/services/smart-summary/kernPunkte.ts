@@ -2,6 +2,13 @@ import type { Dokument } from '@/store';
 import { formatBetrag, getTageVerbleibend, analysiereAllgemeinRisiken } from '@/utils';
 import { canOfferPaymentAction } from '@/utils/documentGuards';
 
+function getSender(dok: Dokument): string | null {
+  const value = dok.absender?.trim();
+  if (!value) return null;
+  if (['unbekannt', 'unbekannter absender', 'unknown', 'unknown sender'].includes(value.toLowerCase())) return null;
+  return value;
+}
+
 export function buildKernPunkte(dok: Dokument): string[] {
   const tage = getTageVerbleibend(dok.frist);
   const betragStr = dok.betrag ? formatBetrag(dok.betrag as number) : null;
@@ -10,8 +17,9 @@ export function buildKernPunkte(dok: Dokument): string[] {
     : null;
 
   const punkte: string[] = [];
+  const absender = getSender(dok);
 
-  punkte.push(`📄 ${dok.typ} von ${dok.absender || 'Unbekannt'}`);
+  punkte.push(absender ? `📄 ${dok.typ} von ${absender}` : `📄 ${dok.typ}`);
 
   const zahlen: string[] = [];
   if (betragStr)              zahlen.push(`Betrag: ${betragStr}`);

@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AiSparkle from '@/components/AiSparkle';
 import { useTheme } from '@/ThemeContext';
-import { T } from '@/design/tokens';
 import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
 import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
 
@@ -28,34 +27,6 @@ function MarkdownText({ text, style }: { text: string; style?: object }) {
   );
 }
 
-// ── TypewriterText ────────────────────────────────────────────────────────────
-
-function TypewriterText({ text, speed = 18, style }: { text: string; speed?: number; style?: any }) {
-  const [displayed, setDisplayed] = useState('');
-  const indexRef  = useRef(0);
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setDisplayed('');
-    indexRef.current = 0;
-
-    const tick = () => {
-      if (indexRef.current < text.length) {
-        indexRef.current += 1;
-        setDisplayed(text.slice(0, indexRef.current));
-        timerRef.current = setTimeout(tick, speed);
-      }
-    };
-
-    timerRef.current = setTimeout(tick, speed);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [text, speed]);
-
-  return <Text style={style}>{displayed}</Text>;
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
-
 interface SmartSummaryCardProps {
   result: SummaryResult | null;
   loading?: boolean;
@@ -65,9 +36,9 @@ interface SmartSummaryCardProps {
 }
 
 const MODE_LABEL: Record<SummaryMode, string> = {
-  kurz:        '1 Satz',
-  mittel:      '3 Punkte',
-  detailliert: 'Ausführlich',
+  kurz:        'Kurz',
+  mittel:      'Kurz',
+  detailliert: 'Detailliert',
 };
 
 
@@ -97,7 +68,7 @@ export default function SmartSummaryCard({
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ ...T.title, color: C.text }}>Zusammenfassung</Text>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>Zusammenfassung</Text>
           <AiSparkle size={10} />
         </View>
         {result && (
@@ -115,7 +86,7 @@ export default function SmartSummaryCard({
 
       {/* Mode selector */}
       <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12 }}>
-        {(['kurz', 'mittel', 'detailliert'] as SummaryMode[]).map(m => (
+        {(['mittel', 'detailliert'] as SummaryMode[]).map(m => (
           <TouchableOpacity
             key={m}
             onPress={() => {
@@ -143,18 +114,10 @@ export default function SmartSummaryCard({
         </View>
       ) : result ? (
         <>
-          {currentMode === 'kurz' && (
-            <TypewriterText
-              text={result.kurzSatz}
-              speed={14}
-              style={{ ...T.body, color: C.text }}
-            />
-          )}
-
-          {currentMode === 'mittel' && (
+          {(currentMode === 'mittel' || currentMode === 'kurz') && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ ...T.body, color: C.text }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                <Text key={i} style={{ fontSize: 14, lineHeight: 21, color: C.text }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
               ))}
             </View>
           )}
@@ -163,15 +126,15 @@ export default function SmartSummaryCard({
             <>
               <MarkdownText
                 text={stripLlmLanguageMetaLines(result.detailText)}
-                style={{ ...T.meta, color: C.text }}
+                style={{ fontSize: 13, lineHeight: 20, color: C.text }}
               />
               {result.handlungsempfehlungen.length > 0 && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 6 }}>
                     EMPFEHLUNGEN
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ ...T.meta, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                    <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
                   ))}
                 </View>
               )}

@@ -289,55 +289,6 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </TouchableOpacity>
         )}
 
-        {__DEV__ && (
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert(
-                'Alle Dokumente löschen?',
-                `${state.dokumente.length} Dokumente werden unwiderruflich gelöscht.`,
-                [
-                  { text: 'Abbrechen', style: 'cancel' },
-                  { text: 'Alles löschen', style: 'destructive', onPress: () => {
-                    dispatch({ type: 'LOAD', payload: { dokumente: [] } });
-                  }},
-                ],
-              );
-            }}
-            activeOpacity={0.75}
-            style={{
-              flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-              paddingVertical: 12, borderRadius: 12, marginTop: 4,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: '#E2534820',
-              backgroundColor: '#E2534808',
-            }}
-          >
-            <Icon name="trash" size={16} color="#E25348" />
-            <Text style={{ color: '#E25348', fontSize: fs(13), fontWeight: '600' }}>
-              DEV: Alle Dokumente löschen
-            </Text>
-          </TouchableOpacity>
-        )}
-
-        {__DEV__ && (
-          <TouchableOpacity
-            onPress={() => router.push('/ocr-mvp')}
-            activeOpacity={0.75}
-            style={{
-              alignItems: 'center',
-              paddingVertical: 12,
-              borderRadius: 12,
-              marginTop: 4,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: C.border,
-              backgroundColor: C.bgInput,
-            }}
-          >
-            <Text style={{ color: C.textSecondary, fontSize: fs(13), fontWeight: '600' }}>
-              OCR MVP öffnen
-            </Text>
-          </TouchableOpacity>
-        )}
 
         <TouchableOpacity
           onPress={() => setFeedbackVisible(true)}

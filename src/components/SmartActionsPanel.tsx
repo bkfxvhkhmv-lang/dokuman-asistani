@@ -92,6 +92,10 @@ export default function SmartActionsPanel({
     [result.gruppen, primary, omitKeys],
   );
 
+  if (!primary && toolActions.length > 0) {
+    return null;
+  }
+
   return (
     <View>
       {/* Primary CTA */}

@@ -95,3 +95,49 @@ export function canOfferPaymentAction(amount: number | null | undefined): boolea
 export function isLowConfidence(dok: { confidence?: number | null }): boolean {
   return (dok.confidence ?? 100) < 55;
 }
+
+function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
+  return pattern.test((dok.typ ?? '').toLowerCase());
+}
+
+export function getReviewIssues(dok: {
+  typ?: string | null;
+  absender?: string | null;
+  betrag?: number | null;
+  frist?: string | null;
+}): Array<'sender' | 'amount' | 'deadline'> {
+  const issues: Array<'sender' | 'amount' | 'deadline'> = [];
+  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag|bescheid/);
+  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|versicherung|kündigung|kuendigung|bescheid/);
+
+  if (!dok.absender) issues.push('sender');
+  if (invoiceLike && dok.betrag == null) issues.push('amount');
+  if (deadlineSensitive && !dok.frist) issues.push('deadline');
+
+  return issues;
+}
+
+export function needsManualReview(dok: {
+  typ?: string | null;
+  absender?: string | null;
+  betrag?: number | null;
+  frist?: string | null;
+  confidence?: number | null;
+}): boolean {
+  const issues = getReviewIssues(dok);
+  if (issues.length > 0) return true;
+  return (dok.confidence ?? 100) < 40;
+}
+
+export function getReviewLabel(dok: {
+  typ?: string | null;
+  absender?: string | null;
+  betrag?: number | null;
+  frist?: string | null;
+  confidence?: number | null;
+}): string | null {
+  const issues = getReviewIssues(dok);
+  if (issues.length === 0 && (dok.confidence ?? 100) >= 40) return null;
+  if (issues.length > 1 || (dok.confidence ?? 100) < 40) return 'Einige Angaben prüfen';
+  return 'Angaben prüfen';
+}

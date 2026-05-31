@@ -66,9 +66,11 @@ def _pil_rgb_from_blob(blob: bytes):
             png_bytes = pix.tobytes("png")
         finally:
             doc.close()
-        return Image.open(io.BytesIO(png_bytes)).convert("RGB")
+        with Image.open(io.BytesIO(png_bytes)) as img:
+            return img.convert("RGB")
 
-    return Image.open(io.BytesIO(blob)).convert("RGB")
+    with Image.open(io.BytesIO(blob)) as img:
+        return img.convert("RGB")
 
 
 def _limit_max_side(rgb, max_side: int):
@@ -92,16 +94,23 @@ def _limit_max_side(rgb, max_side: int):
 def run_ocr(image_bytes: bytes) -> OcrResult:
     import numpy as np
 
+    img = None
     try:
         img = _pil_rgb_from_blob(image_bytes)
     except Exception as e:
         log.warning("ocr.decode_failed", error=str(e))
         raise ValueError(f"Cannot decode image/PDF pixels for OCR: {e}") from e
 
-    img = _limit_max_side(img, settings.ocr_max_image_side)
+    limited_img = _limit_max_side(img, settings.ocr_max_image_side)
+    if limited_img is not img and img is not None:
+        img.close()
+    img = limited_img
     if max(img.size) < 8:
         log.warning("ocr.image_tiny", size=img.size)
-    img_array = np.array(img)
+    try:
+        img_array = np.array(img)
+    finally:
+        img.close()
 
     engine = _get_engine()
     # PaddleOCR 3.x predict() rejects cls=; 2.x accepted ocr(ndarray, cls=True).

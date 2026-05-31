@@ -87,7 +87,7 @@ export default function SmartLinksPanel({ result, allDoksMap }: SmartLinksPanelP
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: C.textTertiary,
           letterSpacing: 0.6, flex: 1, minWidth: 0 }}>
-          🔗 VERKNÜPFTE DOKUMENTE ({result.topLinks.length})
+          🔗 Verknüpfte Dokumente ({result.topLinks.length})
         </Text>
         {result.topLinks.length > 3 && (
           <TouchableOpacity onPress={() => setExpanded(v => !v)} style={{ flexShrink: 0, marginLeft: 8 }}>
@@ -108,7 +108,7 @@ export default function SmartLinksPanel({ result, allDoksMap }: SmartLinksPanelP
 
       {result.clusterGruppen.length > 0 && (
         <View style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderColor: C.border }}>
-          <Text style={{ fontSize: 11, color: C.textTertiary, marginBottom: 6 }}>DOKUMENTENGRUPPEN</Text>
+          <Text style={{ fontSize: 11, color: C.textTertiary, marginBottom: 6 }}>Dokumentgruppen</Text>
           {result.clusterGruppen.map(cluster => (
             <View key={cluster.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8,
               paddingVertical: 4 }}>

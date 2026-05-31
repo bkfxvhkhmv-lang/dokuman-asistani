@@ -8,6 +8,7 @@ import { useT } from '@/hooks/useT';
 import { HIT_SLOP_LG } from '@/theme';
 import type { Dokument } from '@/store';
 import type { OzetQuelle } from '@/utils/types';
+import { getReviewLabel } from '@/utils/documentGuards';
 
 interface AIBoxProps {
   dok: Dokument | undefined;
@@ -35,6 +36,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
   }));
 
   if (!dok) return null;
+  const reviewLabel = getReviewLabel(dok);
 
   return (
     <Animated.View style={[
@@ -57,12 +59,12 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
           <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{T('detail.section.summary')}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {dok.confidence != null && (
+          {dok.confidence != null && (reviewLabel || dok.confidence >= 80) && (
             <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999,
               backgroundColor: dok.confidence >= 80 ? C.successLight : dok.confidence >= 55 ? C.warningLight : C.dangerLight }}>
               <Text style={{ fontSize: 11, fontWeight: '700',
                 color: dok.confidence >= 80 ? C.success : dok.confidence >= 55 ? C.warning : C.danger }}>
-                {dok.confidence >= 80 ? 'KI-geprüft' : 'Angaben prüfen'}
+                {dok.confidence >= 80 ? 'KI-geprüft' : reviewLabel ?? 'Automatisch erkannt'}
               </Text>
             </View>
           )}

@@ -31,7 +31,7 @@ import SmartTimelinePanel from '@/components/SmartTimelinePanel';
 import { useTimelineView } from '@/hooks/useSmartTimeline';
 import { useTheme } from '@/ThemeContext';
 import HomeTriage from '@/features/home/components/HomeTriage';
-import { isLowConfidence } from '@/utils/documentGuards';
+import { needsManualReview } from '@/utils/documentGuards';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -68,7 +68,7 @@ export default function Home() {
     [hotDocs, dismissedHotIds],
   );
   const reviewDocs = useMemo(
-    () => (data.aufgaben ?? []).filter((d: any) => isLowConfidence(d)),
+    () => (data.aufgaben ?? []).filter((d: any) => needsManualReview(d)),
     [data.aufgaben],
   );
 

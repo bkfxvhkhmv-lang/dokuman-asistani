@@ -69,6 +69,36 @@ export interface OcrMvpJobStatus {
   finished_at?: string;
 }
 
+async function parseJsonResponse<T>(res: Response, context: string): Promise<T> {
+  const text = await res.text().catch(() => '');
+  const trimmed = text.trim();
+  if (!trimmed) {
+    throw new Error(`${context}: leere Antwort (${res.status})`);
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(trimmed);
+  } catch {
+    const preview = trimmed.slice(0, 200);
+    throw new Error(
+      res.ok
+        ? `${context}: ungültige JSON-Antwort`
+        : `${context} ${res.status}: ${preview}`,
+    );
+  }
+
+  if (!res.ok) {
+    const detail =
+      typeof data === 'object' && data !== null && 'detail' in data
+        ? (data as { detail?: unknown }).detail
+        : null;
+    throw new Error(`${context} ${res.status}: ${String(detail ?? trimmed).slice(0, 200)}`);
+  }
+
+  return data as T;
+}
+
 // POST /documents/analyze
 export async function analyzeDocument(
   file: OcrMvpFile,
@@ -99,13 +129,7 @@ export async function analyzeDocument(
     signal,
     // Content-Type header verilmiyor — RN FormData boundary'yi otomatik ekler
   });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => String(res.status));
-    throw new Error(`OCR upload hatası ${res.status}: ${text}`);
-  }
-
-  return res.json();
+  return parseJsonResponse<{ job_id: string; status: string }>(res, 'OCR upload hatası');
 }
 
 // POST /documents/{job_id}/accepted — learning loop: final accepted snapshot
@@ -155,7 +179,7 @@ export async function postCorrectionEvent(
 export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
   const res = await fetch(`${OCR_MVP_BASE}/documents/${jobId}/result`);
   if (res.status === 404) throw new Error('Job bulunamadı');
-  return res.json();
+  return parseJsonResponse<OcrMvpJobStatus>(res, 'OCR Ergebnisfehler');
 }
 
 // GET /documents/{job_id}/download → local file URI

@@ -11,6 +11,7 @@ import type { RiskEntry } from '@/utils/types';
 import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
 import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
 import { safeDisplayTitel, safeDisplayAbsender } from '@/utils/displaySanitizer';
+import { getReviewLabel } from '@/utils/documentGuards';
 
 const TYP_ICON: Record<string, string> = {
   Mahnung:     'warning-circle',
@@ -53,6 +54,7 @@ export default function HeroCard({
     amber: { bg: C.warningLight, text: C.warningText },
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
+  const reviewLabel = getReviewLabel(dok);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -120,9 +122,7 @@ export default function HeroCard({
               ? 'Automatisch erkannt · Angaben bitte kurz prüfen'
               : dok.confidence >= 75
                 ? 'Automatisch erkannt'
-                : dok.confidence >= 55
-                  ? 'Angaben prüfen'
-                  : 'Einige Angaben prüfen'}
+                : reviewLabel ?? 'Automatisch erkannt'}
           </Text>
         </View>
       </View>

@@ -5,6 +5,7 @@
  * Call `computeDocumentStatus()` at render time from the Dokument fields.
  */
 import type { Dokument } from '@/store';
+import { needsManualReview } from '@/utils/documentGuards';
 
 export type DocumentStatus = 'urgent' | 'open' | 'needs_review' | 'done';
 
@@ -41,10 +42,7 @@ export function computeDocumentStatus(dok: Dokument): DocumentStatus {
   if (daysUntilDue !== null && daysUntilDue <= 2) return 'urgent';
   if (isUrgentType && (daysUntilDue === null || daysUntilDue <= 7)) return 'urgent';
 
-  const hasLowConfidence = (dok.confidence ?? 1) < 0.5;
-  const missingCritical  = !dok.absender || (!dok.betrag && /rechnung|mahnung|bußgeld|steuer/i.test(dok.typ ?? ''));
-
-  if (hasLowConfidence || missingCritical) return 'needs_review';
+  if (needsManualReview(dok)) return 'needs_review';
 
   return 'open';
 }

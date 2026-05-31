@@ -5,7 +5,7 @@ import { formatBetrag, formatFrist, getTageText, getTageVerbleibend } from '@/ut
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
-import { canOfferPaymentAction } from '@/utils/documentGuards';
+import { canOfferPaymentAction, getReviewLabel } from '@/utils/documentGuards';
 
 type Props = {
   dok: Dokument;
@@ -52,14 +52,9 @@ export default function SimpleDocumentOverview({
     !dok.fristImKalender;
 
   const conf = dok.confidence;
-  const vertrauen =
-    conf == null
-      ? 'Automatisch erkannt'
-      : conf >= 75
-        ? 'KI-geprüft'
-        : conf >= 55
-          ? 'Angaben prüfen'
-          : 'Einige Angaben prüfen';
+  const vertrauen = conf == null
+    ? 'Automatisch erkannt'
+    : getReviewLabel(dok) ?? (conf >= 75 ? 'KI-geprüft' : 'Automatisch erkannt');
 
   return (
     <View style={{ marginHorizontal: S.md, marginBottom: S.md, gap: S.md }}>

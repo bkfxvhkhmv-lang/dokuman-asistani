@@ -9,6 +9,8 @@ import { excerptForDocumentListCard, buildCardInsight } from '@/utils/listCardSu
 import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
 import { useT } from '@/hooks/useT';
+import { needsManualReview } from '@/utils/documentGuards';
+import { getDocTypeConfig } from '@/constants/docTypeConfig';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -48,21 +50,21 @@ function buildUrgencyBadge(
   if (tage !== null && tage === 0) return { label: 'Heute',        bg: C.dangerLight,  textColor: C.dangerText };
   if (tage !== null && tage <= 7)  return { label: 'Diese Woche',  bg: C.warningLight, textColor: C.warningText };
   // "Angaben prüfen" only when low confidence AND no structured insight already tells the story
-  if (tage === null && !cardInsight && dok.confidence != null && dok.confidence < 70)
+  if (tage === null && !cardInsight && needsManualReview(dok))
     return { label: 'Angaben prüfen', bg: C.warningLight, textColor: C.warningText };
   return null;
 }
 
 function quickIntent(dok: Dokument, C: ThemeColors) {
+  const cfg = getDocTypeConfig(dok.typ);
+  if (cfg.shortLabel === 'Rechnung') return { PhIcon: Money, color: C.primary };
+  if (cfg.shortLabel === 'Versicherung') return { PhIcon: ShieldCheck, color: C.success };
+  if (cfg.shortLabel === 'Behörde') return { PhIcon: FileText, color: C.primary };
+  if (cfg.shortLabel === 'Vertrag') return { PhIcon: FileText, color: C.primaryDark };
   const t = [dok.rohText, dok.zusammenfassung, dok.titel].filter(Boolean).join(' ').toLowerCase();
-  // Explicit type wins before amount — prevents betrag > 0 from overriding category icons
   if (dok.typ === 'Mahnung' || /mahnung|inkasso|pfändung/.test(t)) return { PhIcon: WarningCircle, color: C.danger };
-  if (dok.typ === 'Versicherung') return { PhIcon: ShieldCheck, color: C.success };
-  if (dok.typ === 'Behörde' || /bescheid|entscheidung/.test(t)) return { PhIcon: FileText, color: C.primary };
-  if (dok.typ === 'Vertrag') return { PhIcon: FileText, color: C.primaryDark };
   if (dok.typ === 'Termin' || /termin|um\s+\d+:\d+/.test(t)) return { PhIcon: CalendarBlank, color: C.success };
   if (/widerspruch|einspruch/.test(t)) return { PhIcon: PencilSimple, color: C.primaryDark };
-  // Amount-based: only reached when no stronger document type is set
   if (/rechnung|zahlung|forderung/.test(t) || (dok.betrag && dok.betrag > 0)) return { PhIcon: Money, color: C.primary };
   return { PhIcon: File, color: C.textSecondary };
 }

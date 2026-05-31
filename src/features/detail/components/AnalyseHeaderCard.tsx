@@ -17,6 +17,7 @@ import {
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
 import { safeDisplayAbsender } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
+import { getReviewLabel } from '@/utils/documentGuards';
 
 interface Props {
   dok: Dokument;
@@ -48,6 +49,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
   const sc       = statusColors(statusUi.colorKey, C);
 
   const conf     = dok.confidence;
+  const reviewLabel = getReviewLabel(dok);
   const tage     = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const fristStr = dok.frist ? formatFrist(dok.frist) : null;
   const fristCol = tage === null ? C.text
@@ -76,11 +78,11 @@ export default function AnalyseHeaderCard({ dok }: Props) {
         <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: sc.bg }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
         </View>
-        {conf != null && (
+        {conf != null && (reviewLabel || conf >= 75) && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <AiSparkle />
             <Text style={{ fontSize: 10, fontWeight: '600', color: confidenceColor(conf, C) }}>
-              {confidenceLabel(conf)}
+              {reviewLabel ?? confidenceLabel(conf)}
             </Text>
           </View>
         )}

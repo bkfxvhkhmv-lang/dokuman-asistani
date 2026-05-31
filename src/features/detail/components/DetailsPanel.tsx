@@ -82,7 +82,7 @@ export default function DetailsPanel({
       <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
 
       {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
-      <SectionCard title="DOKUMENTDATEN">
+      <SectionCard title="Dokumentdaten">
         {wichtigsteRows.map((f, i) => (
           <FieldRow
             key={f.label}
@@ -100,7 +100,7 @@ export default function DetailsPanel({
 
       {/* ── 3. Zahlungsinformationen ──────────────────────────────────────── */}
       {groups.zahlung.length > 0 && (
-        <SectionCard title="ZAHLUNGSINFORMATIONEN">
+        <SectionCard title="Zahlungsinformationen">
           {groups.zahlung.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -117,7 +117,7 @@ export default function DetailsPanel({
 
       {/* ── 4. Kontakt ───────────────────────────────────────────────────── */}
       {groups.kontakt.length > 0 && (
-        <SectionCard title="KONTAKT">
+        <SectionCard title="Kontakt">
           {groups.kontakt.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -133,7 +133,7 @@ export default function DetailsPanel({
 
       {/* ── 4b. Vertragsdetails ───────────────────────────────────────────── */}
       {groups.vertrag.length > 0 && (
-        <SectionCard title="VERTRAGSDETAILS">
+        <SectionCard title="Vertragsdetails">
           {groups.vertrag.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -158,7 +158,7 @@ export default function DetailsPanel({
               padding: S.lg, paddingBottom: weitereSichtbar ? S.sm : S.lg }}
           >
             <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>
-              WEITERE ANGABEN
+              Weitere Angaben
             </Text>
             <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
           </TouchableOpacity>
@@ -180,7 +180,7 @@ export default function DetailsPanel({
       )}
 
       {/* ── 6. OCR-Qualitätshinweis ──────────────────────────────────────── */}
-      <OcrConfidenceSection confidencePct={confidencePct} ocrRisiken={ocrRisiken} />
+      <OcrConfidenceSection dok={dok} confidencePct={confidencePct} ocrRisiken={ocrRisiken} />
 
       {/* ── 7. Etiketten ─────────────────────────────────────────────────── */}
       <EtikettenSection mevcutEtiketten={mevcutEtiketten} />

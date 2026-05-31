@@ -47,8 +47,8 @@ function buildExportOptions(T: (k: string) => string): ExportOption[] {
   return [
     {
       id: 'steuerpaket',
-      label: 'Steuerpaket',
-      description: T('export.no_steuer_body').replace('{year}', String(new Date().getFullYear())),
+      label: 'Steuerberater-Paket',
+      description: 'Alle steuerrelevanten Belege als PDF',
       icon: 'calculator',
       premium: true,
     },
@@ -322,7 +322,7 @@ export default function ExportBildschirm() {
           <Icon name="information-circle" size={16} color={C.textTertiary} />
           <Text style={{ flex: 1, fontSize: 12, color: C.textTertiary, lineHeight: 18 }}>
             Nicht sicher, was du brauchst? Für die Steuer empfehlen wir das{' '}
-            <Text style={{ fontWeight: '700' }}>Steuerpaket</Text> — es enthält alle relevanten Belege des Jahres.
+            <Text style={{ fontWeight: '700' }}>Steuerberater-Paket</Text> — es enthält alle steuerrelevanten Belege des Jahres als PDF.
           </Text>
         </View>
       </ScrollView>

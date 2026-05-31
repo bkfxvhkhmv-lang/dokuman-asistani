@@ -136,6 +136,7 @@ export default function DetailModalsContainer({
       <ExportierenSheet
         visible={modal.isOpen('exportieren')}
         onClose={modal.close}
+        onMail={() => void actions.handleMailTaslak()}
         onPDF={() => void actions.handlePDF()}
         onOriginal={dok.uri ? () => void actions.handleOriginalTeilen() : undefined}
         onText={() => actions.handleTeilen(modal.anonModus)}

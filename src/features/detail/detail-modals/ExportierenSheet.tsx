@@ -10,9 +10,15 @@ interface Props {
   onOriginal?: () => void | Promise<void>;
   onText: () => void;
   onSicherLink: () => void;
+  onMail?: () => void | Promise<void>;
 }
 
 const OPTIONS = [
+  {
+    key: 'mail',
+    label: 'Per E-Mail senden',
+    sublabel: 'Mit Betreff und Anhang als E-Mail-Entwurf öffnen.',
+  },
   {
     key: 'pdf',
     label: 'PDF exportieren',
@@ -36,18 +42,22 @@ const OPTIONS = [
 ] as const;
 
 export default function ExportierenSheet({
-  visible, onClose, onPDF, onOriginal, onText, onSicherLink,
+  visible, onClose, onPDF, onOriginal, onText, onSicherLink, onMail,
 }: Props) {
   const { Colors: C } = useTheme();
 
   const handlers: Record<string, (() => void | Promise<void>) | undefined> = {
+    mail: onMail,
     pdf: onPDF,
     original: onOriginal,
     text: onText,
     sicher: onSicherLink,
   };
 
-  const visible_options = OPTIONS.filter(o => o.key !== 'original' || !!onOriginal);
+  const visible_options = OPTIONS.filter(o =>
+    (o.key !== 'original' || !!onOriginal) &&
+    (o.key !== 'mail'     || !!onMail),
+  );
 
   return (
     <AppSheet

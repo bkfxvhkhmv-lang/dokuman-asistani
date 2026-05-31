@@ -505,11 +505,12 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                       borderColor: C.primary,
                       borderStyle: 'dashed',
                       backgroundColor: 'rgba(255,255,255,0.06)',
+                      transform: [{ rotate: `${rotation}deg` }],
                     }}
                   >
                     <Image
                       source={{ uri: signatureUri }}
-                      style={{ width: '100%', height: '100%', transform: [{ rotate: `${rotation}deg` }] }}
+                      style={{ width: '100%', height: '100%' }}
                       resizeMode="contain"
                     />
                     {/* Corner handles for visual feedback */}

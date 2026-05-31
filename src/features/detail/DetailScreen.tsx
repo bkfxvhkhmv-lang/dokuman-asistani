@@ -290,7 +290,7 @@ export default function Detailbildschirm() {
             onOpenPages={openPagesViewer}
             scrollBottomPadding={footerPad}
             onEdit={actions.handleEdit}
-            onExport={actions.handlePDF}
+            onExport={() => modal.open('exportieren')}
             onLoeschen={actions.handleLoeschen}
           />
         )}

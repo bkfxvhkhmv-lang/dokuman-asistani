@@ -71,7 +71,8 @@ export default function ExportierenSheet({
           key={opt.key}
           onPress={() => {
             onClose();
-            void Promise.resolve(handlers[opt.key]?.());
+            // Wait for sheet dismiss animation before presenting next view controller
+            setTimeout(() => { void Promise.resolve(handlers[opt.key]?.()); }, 350);
           }}
           style={{
             paddingVertical: 14,

@@ -96,8 +96,8 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
     <View style={{ marginBottom: prominent ? S.md : 0 }}>
       {prominent ? (
         <View style={{ marginHorizontal: S.md, marginBottom: 10 }}>
-          <Text style={{ fontSize: 12, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.5 }}>
-            VORLESEN
+          <Text style={{ fontSize: 12, fontWeight: '600', color: C.textTertiary }}>
+            Vorlesen
           </Text>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginTop: 4, lineHeight: 18 }}>
             Den kompletten Brief anhören — ein Tipp genügt.
@@ -169,6 +169,7 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
                 : speechA11yLabel(lang, 'critical')
             }
           >
+            <Icon name={playingKind === 'critical' ? 'stop-circle' : 'microphone'} size={16} color={C.primary} />
             {busyKind === 'critical' ? <ActivityIndicator size="small" color={C.primary} /> : null}
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.primary }}>
               {playingKind === 'critical'

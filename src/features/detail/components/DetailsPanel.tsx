@@ -54,7 +54,7 @@ export default function DetailsPanel({
     ...(showBeideDaten
       ? [
           { icon: 'calendar-blank', label: 'Belegdatum',  value: belegDatum! },
-          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–', status: 'pruefen' as FieldStatus },
+          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–' },
         ]
       : [{
           icon: 'calendar-blank', label: T('field.date'),

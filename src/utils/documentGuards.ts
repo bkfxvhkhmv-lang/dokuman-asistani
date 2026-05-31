@@ -163,7 +163,7 @@ export function getReviewIssues(dok: {
   frist?: string | null;
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
-  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/);
+  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld/);
   const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|kündigung|kuendigung/);
 
   if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
@@ -187,7 +187,7 @@ export function getManualReviewReasons(dok: {
 
   const reasons: ManualReviewReason[] = [];
   const confidence = dok.confidence ?? 100;
-  if (confidence < 30) reasons.push('low_confidence');
+  if (confidence < 15) reasons.push('low_confidence');
 
   const issues = getReviewIssues(dok);
   if (issues.includes('amount')) reasons.push('missing_amount_for_payment_doc');

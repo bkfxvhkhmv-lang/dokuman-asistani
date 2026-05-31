@@ -88,7 +88,7 @@ export function extrahereFelderErweitert(rohText = '', _typ = ''): ErweitertesFe
   const endeMatch = rohText.match(/[Vv]ertragsende:?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{2,4})/);
   if (endeMatch) felder.push({ key: 'vertragsende', label: 'Vertragsende', wert: endeMatch[1].trim(), icon: '⏳', isDate: true });
   const kuendMatch = rohText.match(/[Kk]ündigungs(?:frist|termin):?\s*([^\n,]{4,40})/);
-  if (kuendMatch) felder.push({ key: 'kuendigung', label: 'Kündigungsfrist', wert: kuendMatch[1].trim(), icon: '✂️' });
+  if (kuendMatch) felder.push({ key: 'kuendigung', label: 'Kündigungsfrist', wert: kuendMatch[1].trim().replace(/^(\d+):\s*/, '$1 '), icon: '✂️' });
   const steuerMatch = rohText.match(/(?:Steuer-ID|Steuernummer):?\s*([0-9/]{8,20})/);
   if (steuerMatch) felder.push({ key: 'steuerid', label: 'Steuernummer', wert: steuerMatch[1].trim(), icon: '📊' });
   const mwstMatch = rohText.match(/(?:MwSt|Mehrwertsteuer|USt)\.?:?\s*([\d.,]+)\s*€/);

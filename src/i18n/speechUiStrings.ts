@@ -12,16 +12,16 @@ export type SpeechUiKey =
 type Row = Record<SpeechUiKey, string>;
 
 const de: Row = {
-  full_listen:     '🔊 Volltext anhören',
-  stop:            '⏹ Anhalten',
-  critical_listen: '🔊 Kritische Punkte anhören',
+  full_listen:     'Volltext anhören',
+  stop:            'Anhalten',
+  critical_listen: 'Kritische Punkte anhören',
   busy:            '…',
 };
 
 const tr: Row = {
-  full_listen:     '🔊 Belgeyi dinle',
-  stop:            '⏹ Durdur',
-  critical_listen: '🔊 Kritik aksiyonları dinle',
+  full_listen:     'Belgeyi dinle',
+  stop:            'Durdur',
+  critical_listen: 'Kritik aksiyonları dinle',
   busy:            '…',
 };
 

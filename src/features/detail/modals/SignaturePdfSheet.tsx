@@ -112,6 +112,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const [previewSize, setPreviewSize] = useState({ width: 0, height: 0 });
   const [signatureBox, setSignatureBox] = useState<SignatureBox | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
 
   const previewWidth = Math.min(screenW - 48, 420);
   const previewHeight = Math.min(Math.round(previewWidth * 1.38), 560);
@@ -139,6 +140,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
     setPreviewSize({ width: 0, height: 0 });
     setSignatureBox(null);
     setPdfError(null);
+    setRotation(0);
   }, []);
 
   useEffect(() => {
@@ -271,6 +273,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       const stamped = await stampRasterOnPdfPage(pdfUri, signatureUri, {
         pageIndex,
         ...pdfBox,
+        rotateDeg: rotation || undefined,
       });
 
       if (!stamped?.uri) {
@@ -346,6 +349,13 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy || !signatureBox ? 0.5 : 1 }]}
         >
           <Text style={{ fontSize: 18, fontWeight: '700', color: C.text }}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setRotation(r => ((r + 90) % 360) as 0 | 90 | 180 | 270)}
+          disabled={busy}
+          style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
+        >
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>↻ Drehen</Text>
         </TouchableOpacity>
       </View>
       <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -497,7 +507,11 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                       backgroundColor: 'rgba(255,255,255,0.06)',
                     }}
                   >
-                    <Image source={{ uri: signatureUri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                    <Image
+                      source={{ uri: signatureUri }}
+                      style={{ width: '100%', height: '100%', transform: [{ rotate: `${rotation}deg` }] }}
+                      resizeMode="contain"
+                    />
                     {/* Corner handles for visual feedback */}
                     {[
                       { top: -4, left: -4 },

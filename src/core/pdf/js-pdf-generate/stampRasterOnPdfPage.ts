@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, degrees } from 'pdf-lib';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { embedRaster } from './embedRaster';
@@ -11,7 +11,7 @@ import { readUriBytes, writePdfBytes } from './bytes';
 export async function stampRasterOnPdfPage(
   pdfUri: string,
   imageUri: string,
-  box: { pageIndex?: number; x: number; y: number; width: number; height: number },
+  box: { pageIndex?: number; x: number; y: number; width: number; height: number; rotateDeg?: number },
 ): Promise<{ uri: string; fileSize: number } | null> {
   try {
     const rawPdf = await readUriBytes(pdfUri);
@@ -32,6 +32,7 @@ export async function stampRasterOnPdfPage(
       y: box.y,
       width: box.width,
       height: box.height,
+      ...(box.rotateDeg ? { rotate: degrees(box.rotateDeg) } : {}),
     });
 
     const outBytes = await doc.save();

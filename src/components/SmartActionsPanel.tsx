@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { RadiusTokens } from '@/theme';
-import type { SmartAction, ActionGruppe, ActionKey, ActionsResult } from '@/services/SmartActionsService';
+import type { SmartAction, ActionKey, ActionsResult } from '@/services/SmartActionsService';
 
 interface SmartActionsPanelProps {
   result: ActionsResult;
@@ -13,15 +13,6 @@ interface SmartActionsPanelProps {
   /** Aktions-Schlüssel ausblenden (z. B. wenn ActionsPanel gleiche Aktion führt) */
   omitKeys?: readonly ActionKey[];
 }
-
-const GRUPPE_LABEL: Record<ActionGruppe, string> = {
-  nächster_schritt: 'NÄCHSTER SCHRITT',
-  zahlung:          'ZAHLUNG',
-  rechtlich:        'RECHTLICH',
-  ki_assistent:     'KI-ASSISTENT',
-  organisation:     'ORGANISATION',
-  export:           'EXPORT',
-};
 
 function ActionButton({ action, onPress, C, R, large }: {
   action: SmartAction; onPress: () => void; C: ThemeColors; R: RadiusTokens; large?: boolean;
@@ -83,7 +74,7 @@ export default function SmartActionsPanel({
   omitKeys,
 }: SmartActionsPanelProps) {
   const { Colors: C, R } = useTheme();
-  const [expandedGruppe, setExpandedGruppe] = useState<ActionGruppe | null>(null);
+  const [expandedTools, setExpandedTools] = useState(false);
 
   const omit = omitKeys?.length ? new Set(omitKeys) : OMITTABLE;
 
@@ -94,10 +85,12 @@ export default function SmartActionsPanel({
       ? null
       : result.nächsterSchritt;
 
-  const nichtLeereGruppen = (Object.entries(result.gruppen) as [ActionGruppe, SmartAction[]][])
-    .filter(([g, actions]) => g !== 'nächster_schritt' && actions.length > 0)
-    .map(([g, actions]) => [g, filterList(actions)] as [ActionGruppe, SmartAction[]])
-    .filter(([, actions]) => actions.length > 0);
+  const toolActions = useMemo(
+    () => Object.values(result.gruppen)
+      .flatMap(actions => filterList(actions))
+      .filter((action, index, arr) => action.key !== primary?.key && arr.findIndex(a => a.key === action.key) === index),
+    [result.gruppen, primary, omitKeys],
+  );
 
   return (
     <View>
@@ -116,22 +109,21 @@ export default function SmartActionsPanel({
         </View>
       )}
 
-      {/* Grouped actions */}
-      {nichtLeereGruppen.map(([gruppe, actions]) => (
-        <View key={gruppe} style={{ marginBottom: 8 }}>
+      {toolActions.length > 0 && (
+        <View style={{ marginBottom: 8 }}>
           <TouchableOpacity
-            onPress={() => setExpandedGruppe(v => v === gruppe ? null : gruppe)}
-            style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary,
-              letterSpacing: 0.6, flex: 1 }}>
-              {GRUPPE_LABEL[gruppe]}
+            onPress={() => setExpandedTools(v => !v)}
+            style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8 }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.6, flex: 1 }}>
+              WEITERE WERKZEUGE
             </Text>
             <Text style={{ fontSize: 11, color: C.textTertiary }}>
-              {expandedGruppe === gruppe ? '▴' : '▾'}
+              {expandedTools ? '▴' : '▾'}
             </Text>
           </TouchableOpacity>
 
-          {expandedGruppe === gruppe && actions.map(action => (
+          {expandedTools && toolActions.map(action => (
             <ActionButton
               key={action.key}
               action={action}
@@ -140,7 +132,7 @@ export default function SmartActionsPanel({
             />
           ))}
         </View>
-      ))}
+      )}
     </View>
   );
 }

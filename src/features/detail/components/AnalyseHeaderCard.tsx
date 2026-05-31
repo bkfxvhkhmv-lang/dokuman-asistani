@@ -80,7 +80,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
         <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: sc.bg }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
         </View>
-        {conf != null && (reviewLabel || conf >= 75) && (
+        {status !== 'needs_review' && conf != null && (reviewLabel || conf >= 75) && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <AiSparkle />
             <Text style={{ fontSize: 10, fontWeight: '600', color: confidenceColor(conf, C) }}>

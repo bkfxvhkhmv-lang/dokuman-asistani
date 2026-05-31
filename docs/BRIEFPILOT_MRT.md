@@ -394,14 +394,19 @@ Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List
 - **App icon:** Final versiyon
 - **DATEV export:** `ENABLE_RELEASE_DATEV_EXPORT` flag açılınca aktif. Gerçek DATEV EXTF/Beleglink formatı ayrı araştırma gerektirir.
 - **Partner email:** Zahlen mit Partner akışı test edilmedi
-- **Steuerberater Export v2 ⭐ High-value next sprint — backend path preferred:**
+- **Steuerberater Export v2 ⭐ High-value next sprint:**
   Mevcut Steuerpaket sadece birleşik PDF çıkarıyor — tax advisor için ideal değil.
-  **Backend bulgusu (2026-06-01):** `briefpilot_ocr_mvp/` içinde v7 Excel pipeline zaten var:
-  `schema.py` InvoiceResult (vendor, IBAN, Netto/VAT/Brutto, Belegart, Zahlungsrichtung, Kundennummer, Aktenzeichen...),
-  `modules/invoice_to_excel.py` v7 deployed, `test_excel_v7.py` 31/31 PASS,
-  `GET /documents/{job_id}/download` single-doc xlsx çalışıyor.
-  **Tercih edilen v2 yolu:** client-side CSV değil, yeni backend endpoint:
-  `GET /steuerpaket?year=YYYY` → ZIP: `/Excel/*.xlsx` (mevcut v7 generator) + `summary.csv` + `README.txt`.
-  Backlog v2b: `/Belege_PDF/*.pdf` eklenir; v2c: DATEV araştırması.
+  **Hedef paket:**
+  ```
+  BriefPilot_Steuerberater_YYYY.zip
+    BriefPilot_Ausgaben_YYYY.xlsx   ← v7 backend generator (Netto/VAT/Brutto/Belegart/IBAN...)
+    /Belege/
+      YYYY-MM-DD_Sender_Amount.pdf
+    README.txt
+  ```
+  **CSV kesinlikle yok.** Kullanıcıya gösterilmez, planlanmaz, fallback değil.
+  **Backend bulgusu:** v7 Excel pipeline hazır (`schema.py` + `modules/invoice_to_excel.py` 31/31 PASS).
+  Eksik: yıllık ZIP endpoint `GET /steuerpaket?year=YYYY` — orchestration işi, sıfırdan schema değil.
   Mobile tarafında tek iş: yeni buton + ZIP indir + expo-sharing.
-  "DATEV-kompatibel" yazma henüz. Ürün copy: "Für Steuerberater vorbereiten".
+  Ürün copy: "Für Steuerberater exportieren — Excel-Übersicht und Belege vorbereiten".
+  DATEV: ayrı sprint, ayrı karar.

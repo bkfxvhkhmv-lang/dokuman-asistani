@@ -139,6 +139,8 @@ export interface Dokument {
   /** relativePath of the lead source file (first page), relative to documentDirectory.
    *  Used to rehydrate dok.uri when the sandbox container UUID changes. */
   fileRelativePath?: string | null;
+  /** Original unsigned PDF uri — set when user signs. Allows reverting to unsigned. */
+  unsignedUri?: string | null;
   /** Henuz OCR/analiz tamamlanmamis optimistic placeholder bayragi */
   isOptimistic?: boolean;
   /** Demo modu belgeleri — kullanici verisine karistirilmaz */

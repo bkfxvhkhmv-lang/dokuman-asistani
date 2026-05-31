@@ -278,12 +278,23 @@ export default function DetailModalsContainer({
         visible={modal.isOpen('signatur')}
         onClose={modal.close}
         dok={dok}
-        onDone={() =>
+        onDone={(signedUri) => {
+          dispatch({
+            type: 'UPDATE_DOKUMENT',
+            payload: {
+              id: dokId,
+              uri: signedUri,
+              fileRelativePath: null,
+              // keep original so user can revert
+              unsignedUri: dok.unsignedUri ?? dok.uri,
+            },
+          });
           showToast({
-            message: 'PDF unterschrieben',
+            message: 'PDF unterschrieben und gespeichert',
             tone: 'success',
             icon: 'checkmark-circle',
-          })}
+          });
+        }}
       />
     </>
   );

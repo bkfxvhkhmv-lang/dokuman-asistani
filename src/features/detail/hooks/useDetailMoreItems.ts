@@ -19,6 +19,7 @@ interface Params {
   partnerEmailEnabled: boolean;
   setMoreMenu: (v: boolean | ((p: boolean) => boolean)) => void;
   setBudgetModalVisible: (v: boolean) => void;
+  onRevertSignature?: () => void;
 }
 
 export function useDetailMoreItems({
@@ -28,6 +29,7 @@ export function useDetailMoreItems({
   partnerEmailEnabled,
   setMoreMenu: _setMoreMenu,
   setBudgetModalVisible,
+  onRevertSignature,
 }: Params) {
   return useMemo<MoreMenuItem[]>(() => {
     if (!dok) return [];
@@ -74,12 +76,19 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 5. PDF unterschreiben (conditional) ──────────────────────────────────
+    // ── 5. PDF unterschreiben / Unterschrift entfernen ────────────────────────
     const signbareTypen = new Set(['Formular', 'Vertrag', 'Antrag', 'Behörden / Amt']);
     if (aktiv.includes('form') || signbareTypen.has(dok.typ ?? '')) {
       rows.push({
         key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF unterschreiben', group: 'advanced',
         onPress: () => openModal('signatur'),
+      });
+    }
+    if (dok.unsignedUri && onRevertSignature) {
+      rows.push({
+        key: 'menu_revert_sig', icon: 'arrow-counter-clockwise',
+        label: 'Unterschrift entfernen', group: 'advanced',
+        onPress: onRevertSignature,
       });
     }
 
@@ -121,5 +130,5 @@ export function useDetailMoreItems({
     }
 
     return rows;
-  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible]);
+  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature]);
 }

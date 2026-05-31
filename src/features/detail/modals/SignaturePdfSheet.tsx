@@ -32,7 +32,7 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   dok: Dokument;
-  onDone?: () => void;
+  onDone?: (signedUri: string) => void;
 }
 
 type Step = 'draw' | 'place';
@@ -291,7 +291,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       }
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onDone?.();
+      onDone?.(savedUri);
       onClose();
 
       // Ask user: keep saved or also share

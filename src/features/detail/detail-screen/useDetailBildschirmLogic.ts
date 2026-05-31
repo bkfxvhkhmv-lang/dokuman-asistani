@@ -122,6 +122,16 @@ export function useDetailBildschirmLogic() {
   const partnerEmailEnabled =
     !!(detail.state?.einstellungen?.partnerEmail && String(detail.state.einstellungen.partnerEmail).trim());
 
+  const onRevertSignature = detail.dok?.unsignedUri
+    ? () => {
+        const orig = detail.dok!.unsignedUri!;
+        detail.dispatch?.({
+          type: 'UPDATE_DOKUMENT',
+          payload: { id: detail.dok!.id, uri: orig, fileRelativePath: null, unsignedUri: null },
+        });
+      }
+    : undefined;
+
   const moreItems = useDetailMoreItems({
     dok: detail.dok,
     actions,
@@ -129,6 +139,7 @@ export function useDetailBildschirmLogic() {
     partnerEmailEnabled,
     setMoreMenu,
     setBudgetModalVisible,
+    onRevertSignature,
   }) as MoreMenuItem[];
 
   const moreMenuCount = moreItems.length;

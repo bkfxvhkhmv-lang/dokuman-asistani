@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import type { Dokument, StoreAction } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
@@ -20,10 +21,7 @@ export function runHandleZahlen(params: {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   const hasRecipient = !!(dok.absender && !/^unbekannt/i.test(dok.absender.trim()));
   if (dok.betrag == null || !hasPaymentTarget(dok) || !hasRecipient) {
-    modal.open('notice', {
-      title: 'Zahlungsdaten fehlen',
-      message: 'Bitte Betrag, Empfänger und IBAN prüfen.',
-    });
+    Alert.alert('Zahlungsdaten fehlen', 'Bitte Betrag, Empfänger und IBAN prüfen.');
     return;
   }
 
@@ -84,10 +82,7 @@ export function runHandleZahlenMitPartner(params: {
   if (!dok) return;
   const hasRecipient = !!(dok.absender && !/^unbekannt/i.test(dok.absender.trim()));
   if (dok.betrag == null || !hasPaymentTarget(dok) || !hasRecipient) {
-    modal.open('notice', {
-      title: 'Zahlungsdaten fehlen',
-      message: 'Bitte Betrag, Empfänger und IBAN prüfen.',
-    });
+    Alert.alert('Zahlungsdaten fehlen', 'Bitte Betrag, Empfänger und IBAN prüfen.');
     return;
   }
 

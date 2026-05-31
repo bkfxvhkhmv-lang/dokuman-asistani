@@ -129,4 +129,39 @@ describe('ocrMvpToV4Document deadline normalization', () => {
     });
     expect(draft.document.absender).toBe('Shell');
   });
+
+  it('extracts amount from OCR field value when structured invoice amount is missing', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-6',
+      status: 'done',
+      document_type: 'invoice',
+      confidence: 0.86,
+      action_summary: {
+        kind: 'invoice',
+        vendor_name: 'BWW Energie GmbH',
+        fields: [
+          { name: 'Gesamtbetrag', value: '809,68 EUR' },
+        ],
+      },
+    });
+    expect(draft.document.betrag).toBe(809.68);
+  });
+
+  it('extracts amount from OCR raw text when structured amount is missing', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-7',
+      status: 'done',
+      document_type: 'invoice',
+      confidence: 0.83,
+      action_summary: {
+        kind: 'invoice',
+        raw_text: [
+          'BWW Energie GmbH',
+          'Gesamtbetrag 809,68 EUR',
+          'Rechnung Nr. 123',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.betrag).toBe(809.68);
+  });
 });

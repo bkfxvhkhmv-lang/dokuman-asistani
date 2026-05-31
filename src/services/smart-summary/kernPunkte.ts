@@ -26,7 +26,14 @@ export function buildKernPunkte(dok: Dokument): string[] {
   if (fristStr)               zahlen.push(`Frist: ${fristStr}`);
   if ((dok as any).aktenzeichen) zahlen.push(`AZ: ${(dok as any).aktenzeichen}`);
   if (zahlen.length > 0) punkte.push(`💡 ${zahlen.join(' · ')}`);
-  else punkte.push(`💡 Kein Betrag oder Frist erkannt`);
+  else if (dok.typ === 'Rechnung' || dok.typ === 'Mahnung' || dok.typ === 'Bußgeld') {
+    if (dok.frist) punkte.push(`💡 Betrag nicht erkannt · Frist: ${fristStr}`);
+    else punkte.push('💡 Betrag nicht erkannt');
+  } else if (dok.frist) {
+    punkte.push(`💡 Frist: ${fristStr}`);
+  } else {
+    punkte.push('💡 Wichtige Angaben nicht erkannt');
+  }
 
   const risiken = analysiereAllgemeinRisiken(dok);
   if (risiken.length > 0) {

@@ -195,7 +195,7 @@ interface ActionsPanelProps {
 function buildReviewContext(dok: Dokument): { title: string; body: string } | null {
   const issues = getReviewIssues(dok);
   const confidence = dok.confidence ?? 100;
-  if (issues.includes('amount'))   return { title: 'Betrag kurz prüfen',  body: 'Vor einer Überweisung Betrag und Empfänger prüfen.' };
+  if (issues.includes('amount'))   return { title: 'Betrag ergänzen',     body: 'Der Betrag wurde nicht erkannt und sollte ergänzt werden.' };
   if (issues.includes('deadline')) return { title: 'Frist beachten',       body: 'Datum und Frist kurz prüfen.' };
   if (issues.includes('sender'))   return { title: 'Absender prüfen',      body: 'Der Absender konnte nicht sicher erkannt werden.' };
   // Payment-type doc with betrag present but uncertain confidence → more specific than generic fallback

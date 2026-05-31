@@ -63,6 +63,10 @@ const _FRIST_MONTH_MAP: Record<string, number> = {
 
 const _FRIST_PHRASE_RE =
   /(?:zahlung\s+bis|zahlbar\s+bis|bis\s+zum|f[aä]llig\s+am|f[aä]lligkeit\s*:?)\s+(\d{1,2}\.\d{1,2}\.\d{4})/i;
+const _AMOUNT_FIELD_RE =
+  /^(gesamtbetrag|endbetrag|rechnungsbetrag|zahlbetrag|betrag|summe|gesamt|zu\s+zahlen|offener\s+betrag)$/i;
+const _AMOUNT_LINE_RE =
+  /(?:gesamtbetrag|endbetrag|rechnungsbetrag|zahlbetrag|betrag|summe|gesamt|zu\s+zahlen)[^\d]{0,12}(\d{1,3}(?:\.\d{3})*,\d{2}|\d{1,6}[.,]\d{2})\s*(?:€|eur)?/i;
 
 function extractFristCandidate(raw: string): string {
   const phraseMatch = raw.match(_FRIST_PHRASE_RE);
@@ -103,6 +107,47 @@ function parseFrist(raw: string | null | undefined): string | null {
 
   const iso = new Date(candidate);
   if (!isNaN(iso.getTime())) return iso.toISOString();
+
+  return null;
+}
+
+function parseAmountValue(raw: string | number | null | undefined): number | null {
+  if (raw == null) return null;
+  if (typeof raw === 'number') return Number.isFinite(raw) && raw > 0 ? raw : null;
+
+  const cleaned = raw
+    .replace(/EUR/gi, '')
+    .replace(/€/g, '')
+    .replace(/\s+/g, '')
+    .trim();
+  if (!cleaned) return null;
+
+  if (/^\d{1,3}(\.\d{3})*,\d{2}$/.test(cleaned)) {
+    const num = Number(cleaned.replace(/\./g, '').replace(',', '.'));
+    return Number.isFinite(num) && num > 0 ? num : null;
+  }
+  if (/^\d{1,6}[.,]\d{2}$/.test(cleaned)) {
+    const num = Number(cleaned.replace(',', '.'));
+    return Number.isFinite(num) && num > 0 ? num : null;
+  }
+
+  return null;
+}
+
+function extractAmountSource(s: OcrMvpJobStatus['action_summary']): number | null {
+  if (!s) return null;
+  const structured = parseAmountValue(s.total_brutto ?? s.amount ?? null);
+  if (structured != null) return structured;
+
+  const fieldCandidate = (s.fields ?? []).find(f => _AMOUNT_FIELD_RE.test(f.name.trim()) && parseAmountValue(f.value) != null);
+  if (fieldCandidate) {
+    return parseAmountValue(fieldCandidate.value);
+  }
+
+  const rawText = s.raw_text?.trim();
+  if (!rawText) return null;
+  const lineMatch = rawText.match(_AMOUNT_LINE_RE);
+  if (lineMatch?.[1]) return parseAmountValue(lineMatch[1]);
 
   return null;
 }
@@ -177,7 +222,7 @@ export function ocrMvpToV4Document(
     absender:        buildDocumentSender(kind, s),
     zusammenfassung: s?.summary?.trim() || buildZusammenfassung(kind, s) || null,
     warnung:         s?.warnings?.[0] ?? null,
-    betrag:          s?.total_brutto ?? s?.amount ?? null,
+    betrag:          extractAmountSource(s),
     waehrung:        s?.currency ?? '€',
     frist:           parseFrist(extractFristSource(s)),
     risiko:          mapRisiko(s?.risk_level),

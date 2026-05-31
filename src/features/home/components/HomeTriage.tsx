@@ -48,7 +48,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
       { key: 'dringend',     label: 'Dringend',       icon: 'warning-circle', count: dringend,     tone: dringend > 0     ? 'danger'  : 'neutral' },
       { key: 'ueberfaellig', label: 'Überfällig',     icon: 'clock',          count: ueberfaellig, tone: ueberfaellig > 0 ? 'danger'  : 'neutral' },
       { key: 'dieseWoche',   label: 'Diese Woche',    icon: 'calendar-blank', count: dieseWoche,   tone: dieseWoche > 0   ? 'warning' : 'neutral' },
-      { key: 'pruefen',      label: 'Dokumente prüfen', subtitle: 'Beträge, Absender oder Fristen ergänzen', icon: 'magnifying-glass', count: pruefen, tone: pruefen > 0 ? 'warning' : 'neutral' },
+      { key: 'pruefen',      label: 'Offene Hinweise', subtitle: 'Einige Angaben können ergänzt werden', icon: 'magnifying-glass', count: pruefen, tone: pruefen > 0 ? 'warning' : 'neutral' },
     ];
   }, [docs]);
 
@@ -93,6 +93,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
   }
 
   const visibleItems = items.filter(i => i.count > 0);
+  const reviewItem = items.find(i => i.key === 'pruefen');
 
   return (
     <View style={[st.wrap, { marginHorizontal: S.md, marginBottom: S.md }]}>
@@ -117,6 +118,22 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
           );
         })}
       </View>
+      {!!reviewItem?.count && (
+        <TouchableOpacity
+          onPress={() => onPress?.('pruefen')}
+          activeOpacity={0.75}
+          style={{
+            marginTop: 10,
+            alignSelf: 'flex-start',
+            paddingVertical: 6,
+            paddingHorizontal: 2,
+          }}
+        >
+          <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
+            {`Alle ${reviewItem.count} anzeigen →`}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

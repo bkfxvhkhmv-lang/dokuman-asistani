@@ -40,6 +40,7 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
   const reviewIssues = getReviewIssues(dok);
   const zweifel = confidencePct < 40 || ocrRisiken.length > 0 || reviewIssues.length > 0;
   if (!zweifel) return null;
+  const hasAmountIssue = reviewIssues.includes('amount');
 
   // Deduplicate by user-facing message — same issue flagged multiple times shows once.
   const issueRows = reviewIssues.map(issue => ({
@@ -47,7 +48,11 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
     risiko: issue === 'sender' ? 'mittel' : 'hoch',
   }));
   const riskRows = ocrRisiken.map(r => ({
-    message: toUserMessage(r.grund),
+    message: hasAmountIssue && (
+      r.grund === 'Ungewöhnliche Dezimalzahl' || r.grund === 'Betrag scheint zu klein (< 10)'
+    )
+      ? 'Betrag bitte prüfen oder ergänzen.'
+      : toUserMessage(r.grund),
     risiko: r.risiko,
   }));
   const unique = Array.from(

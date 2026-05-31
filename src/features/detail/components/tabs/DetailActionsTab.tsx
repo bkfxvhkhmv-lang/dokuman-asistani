@@ -1,19 +1,8 @@
-import React, { useMemo, Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { ScrollView } from 'react-native';
 import ActionsPanel from '@/features/detail/components/ActionsPanel';
-import SmartActionsPanel from '@/components/SmartActionsPanel';
 import SmartRemindersPanel from '@/components/SmartRemindersPanel';
 import PremiumToast from '@/design/components/PremiumToast';
-import type { ActionKey } from '@/services/SmartActionsService';
-
-/** SmartActionsPanel: keine doppelte Zeile zum großen „Nächster Schritt“-Karten-CTA darüber */
-const SMART_OMIT_FOR_PRIMARY: Partial<Record<string, ActionKey[]>> = {
-  ai: ['ai_erklären'],
-  zahlen: ['zahlen'],
-  einspruch: ['einspruch'],
-  kalender: ['kalender'],
-  review: ['bearbeiten'],
-};
 
 type Props = {
   smartActions: any;
@@ -30,9 +19,9 @@ type Props = {
 };
 
 export default function DetailActionsTab({
-  smartActions,
+  smartActions: _smartActions,
   smartReminders,
-  handleSmartAction,
+  handleSmartAction: _handleSmartAction,
   detail,
   actionPlan,
   moreMenuCount,
@@ -42,12 +31,6 @@ export default function DetailActionsTab({
   onScrollLayout,
   scrollBottomPadding = 132,
 }: Props) {
-  const smartOmitKeys = useMemo((): readonly ActionKey[] | undefined => {
-    const k = actionPlan?.primary?.key;
-    const list = k ? SMART_OMIT_FOR_PRIMARY[k] : undefined;
-    return list?.length ? list : undefined;
-  }, [actionPlan?.primary?.key]);
-
   return (
     <Fragment>
     <ScrollView
@@ -73,14 +56,6 @@ export default function DetailActionsTab({
         onCancel={smartReminders.cancel}
         isAlreadyScheduled={smartReminders.isAlreadyScheduled}
       />
-      {smartActions && (
-        <SmartActionsPanel
-          result={smartActions}
-          onAction={handleSmartAction}
-          omitPrimaryBanner
-          omitKeys={smartOmitKeys}
-        />
-      )}
     </ScrollView>
     <PremiumToast config={smartReminders.toastConfig ?? null} onHide={smartReminders.hideToast} />
     </Fragment>

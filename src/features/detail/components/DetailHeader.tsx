@@ -1,14 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { AppIconButton } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
 
 interface DetailHeaderProps {
   onBack: () => void;
   anonModus?: boolean;
-  moreMenuOpen?: boolean;
-  onOpenMore: () => void;
   /** Mindestens eine lokale Erinnerung für dieses Dokument aktiv (Session) */
   erinnerungAktiv?: boolean;
 }
@@ -16,8 +13,6 @@ interface DetailHeaderProps {
 export default function DetailHeader({
   onBack,
   anonModus,
-  moreMenuOpen = false,
-  onOpenMore,
   erinnerungAktiv = false,
 }: DetailHeaderProps) {
   const { Colors: C, S } = useTheme();
@@ -57,13 +52,6 @@ export default function DetailHeader({
           </View>
         ) : null}
         <View style={{ flex: 1 }} />
-        <AppIconButton
-          name="ellipsis-horizontal"
-          size={17}
-          active={moreMenuOpen}
-          onPress={onOpenMore}
-          accessibilityLabel={moreMenuOpen ? 'Menü schließen' : 'Weitere Optionen'}
-        />
       </View>
 
       {anonModus && (

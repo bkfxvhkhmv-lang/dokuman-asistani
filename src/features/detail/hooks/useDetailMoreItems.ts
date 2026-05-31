@@ -17,7 +17,6 @@ interface Params {
   actions: ReturnType<typeof useDocumentActions>;
   openModal: OpenModalFn;
   partnerEmailEnabled: boolean;
-  setMoreMenu: (v: boolean | ((p: boolean) => boolean)) => void;
   setBudgetModalVisible: (v: boolean) => void;
   onRevertSignature?: () => void;
 }
@@ -27,7 +26,6 @@ export function useDetailMoreItems({
   actions,
   openModal,
   partnerEmailEnabled,
-  setMoreMenu: _setMoreMenu,
   setBudgetModalVisible,
   onRevertSignature,
 }: Params) {

@@ -64,8 +64,6 @@ export default function Detailbildschirm() {
     smartRisk,
     handleSmartAction,
     handleBack,
-    moreMenu,
-    setMoreMenu,
     budgetModalVisible,
     setBudgetModalVisible,
     pagesViewer,
@@ -196,8 +194,6 @@ export default function Detailbildschirm() {
         <DetailHeader
           onBack={handleBack}
           anonModus={modal.anonModus}
-          moreMenuOpen={moreMenu}
-          onOpenMore={() => setMoreMenu(prev => !prev)}
           erinnerungAktiv={smartReminders.scheduled.length > 0}
         />
       </Animated.View>
@@ -357,9 +353,6 @@ export default function Detailbildschirm() {
         state={detail.state}
         dispatch={detail.dispatch}
         actions={actions}
-        moreMenu={moreMenu}
-        setMoreMenu={setMoreMenu}
-        moreItems={moreItems}
         beginActionSession={beginActionSession}
         router={router}
       />

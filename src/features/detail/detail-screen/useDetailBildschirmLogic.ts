@@ -29,7 +29,6 @@ export function useDetailBildschirmLogic() {
         : '';
 
   const modal = useModalController();
-  const [moreMenu, setMoreMenu] = useState(false);
   const [budgetModalVisible, setBudgetModalVisible] = useState(false);
   const [pagesViewer, setPagesViewer] = useState<{ visible: boolean; index: number }>({
     visible: false,
@@ -137,7 +136,6 @@ export function useDetailBildschirmLogic() {
     actions,
     openModal: modal.open,
     partnerEmailEnabled,
-    setMoreMenu,
     setBudgetModalVisible,
     onRevertSignature,
   }) as MoreMenuItem[];
@@ -164,8 +162,6 @@ export function useDetailBildschirmLogic() {
     allDoksMap,
     handleSmartAction,
     handleBack,
-    moreMenu,
-    setMoreMenu,
     budgetModalVisible,
     setBudgetModalVisible,
     pagesViewer,

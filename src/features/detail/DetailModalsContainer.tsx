@@ -23,14 +23,13 @@ import BelgeChatModal from '@/components/BelgeChatModal';
 import SignaturePdfSheet from '@/features/detail/modals/SignaturePdfSheet';
 
 import ExportierenSheet from '@/features/detail/detail-modals/ExportierenSheet';
-import MoreMenuSheet from '@/features/detail/detail-modals/MoreMenuSheet';
 import PaymentPrepareSheet from '@/features/detail/detail-modals/PaymentPrepareSheet';
 import ConfirmSheet from '@/features/detail/detail-modals/ConfirmSheet';
 import NoticeSheet from '@/features/detail/detail-modals/NoticeSheet';
 import OptionsSheet from '@/features/detail/detail-modals/OptionsSheet';
 import EinspruchSheet from '@/features/detail/detail-modals/EinspruchSheet';
 import LoeschenModal from '@/features/detail/modals/LoeschenModal';
-import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
+import type { MoreMenuItem } from '@/features/detail/detail-modals/types'; // re-exported for DetailActionsTab
 
 export type { MoreMenuItem };
 
@@ -41,16 +40,13 @@ interface Props {
   state: StoreState;
   dispatch: (action: StoreAction) => void;
   actions: ReturnType<typeof useDocumentActions>;
-  moreMenu: boolean;
-  setMoreMenu: (v: boolean) => void;
-  moreItems: MoreMenuItem[];
   beginActionSession: (data: ActionSession) => void;
   router: { back: () => void };
 }
 
 export default function DetailModalsContainer({
   modal, dok, dokId, state, dispatch, actions,
-  moreMenu, setMoreMenu, moreItems, beginActionSession, router,
+  beginActionSession, router,
 }: Props) {
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const pendingMarkRef   = useRef(false);
@@ -130,8 +126,6 @@ export default function DetailModalsContainer({
   return (
     <>
       <PremiumToast config={toastConfig} onHide={hideToast} />
-
-      <MoreMenuSheet visible={moreMenu} onClose={() => setMoreMenu(false)} items={moreItems} />
 
       <ExportierenSheet
         visible={modal.isOpen('exportieren')}

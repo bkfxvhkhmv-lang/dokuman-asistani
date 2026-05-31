@@ -52,7 +52,9 @@ export default function DetailDetailsTab({
         onExport={onExport}
         onLoeschen={onLoeschen}
       />
-      {detail.dok && <DocumentSpeechSection dok={detail.dok} prominent />}
+      {detail.dok ? (
+        <DocumentSpeechSection dok={detail.dok} prominent />
+      ) : null}
     </ScrollView>
   );
 }

@@ -157,7 +157,7 @@ export default function DetailsPanel({
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
               padding: S.lg, paddingBottom: weitereSichtbar ? S.sm : S.lg }}
           >
-            <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.8 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.textSecondary }}>
               Weitere Angaben
             </Text>
             <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
@@ -221,7 +221,7 @@ export default function DetailsPanel({
 
       {/* ── Aktionsleiste: Bearbeiten | Exportieren ───────────────────────── */}
       {(onEdit || onExport) && (
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: S.lg ?? S.md + 4 }}>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24 }}>
           {onEdit && (
             <TouchableOpacity
               onPress={onEdit}
@@ -247,7 +247,7 @@ export default function DetailsPanel({
       {onLoeschen && (
         <TouchableOpacity
           onPress={onLoeschen}
-          style={{ alignItems: 'center', marginTop: 22, paddingVertical: 6 }}
+          style={{ alignItems: 'center', marginTop: 18, paddingVertical: 8 }}
         >
           <Text style={{ fontSize: 13, color: C.danger }}>Dokument löschen</Text>
         </TouchableOpacity>

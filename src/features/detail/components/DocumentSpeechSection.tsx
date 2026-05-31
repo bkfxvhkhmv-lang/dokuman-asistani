@@ -95,8 +95,8 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
   return (
     <View style={{ marginBottom: prominent ? S.md : 0 }}>
       {prominent ? (
-        <View style={{ marginHorizontal: S.md, marginBottom: 10 }}>
-          <Text style={{ fontSize: 12, fontWeight: '600', color: C.textTertiary }}>
+        <View style={{ marginHorizontal: S.md, marginTop: 2, marginBottom: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary }}>
             Vorlesen
           </Text>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginTop: 4, lineHeight: 18 }}>

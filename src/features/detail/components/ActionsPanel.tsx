@@ -187,9 +187,6 @@ interface ActionsPanelProps {
   dok: Dokument;
   digitalTwin?: DocumentDigitalTwinModel | null;
   actionPlan: ActionPlan | null;
-  onOpenMore: () => void;
-  /** Anzahl zusätzlicher Aktionen seit „Mehr”-Überarbeitung (getrennt vom leeren legacy hidden[]) */
-  moreMenuCount?: number;
 }
 
 function buildReviewContext(dok: Dokument): { title: string; body: string } | null {
@@ -207,12 +204,11 @@ function buildReviewContext(dok: Dokument): { title: string; body: string } | nu
   return null;
 }
 
-export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore, moreMenuCount = 0 }: ActionsPanelProps) {
+export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPanelProps) {
   const { Colors: C, S, R } = useTheme();
   if (!dok || !actionPlan) return null;
 
-  const { primary, secondary, hidden } = actionPlan;
-  const extras = moreMenuCount > 0 ? moreMenuCount : hidden.length;
+  const { primary, secondary } = actionPlan;
 
   const processTone = primary.key === 'review'      ? 'warning'
     : primary.key === 'zahlendaten' ? 'warning'
@@ -227,7 +223,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
     <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
       {primary.onPress && (primary.key !== 'review' || reviewCtx) && (
         <>
-          <Text style={[T.label, { color: C.textTertiary, marginBottom: 10 }]}>NÄCHSTER SCHRITT</Text>
+          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>Nächster Schritt</Text>
           <TouchableOpacity onPress={primary.onPress} activeOpacity={0.8}>
             <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -256,7 +252,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
 
       {secondary.length > 0 && (
         <>
-          <Text style={[T.label, { color: C.textTertiary, marginBottom: 10 }]}>SCHNELLE AKTIONEN</Text>
+          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>Schnelle Aktionen</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
             {secondary.map(action => {
               const tone = toneColors(action.tone ?? 'neutral', C);

@@ -140,8 +140,6 @@ export function useDetailBildschirmLogic() {
     onRevertSignature,
   }) as MoreMenuItem[];
 
-  const moreMenuCount = moreItems.length;
-
   const handleOzetAktion = handleSmartAction;
 
   const handlePrimaryAction = () => {
@@ -186,7 +184,6 @@ export function useDetailBildschirmLogic() {
     actionPlan,
     pulseUrgency,
     moreItems,
-    moreMenuCount,
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,

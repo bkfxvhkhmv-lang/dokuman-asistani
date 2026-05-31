@@ -13,9 +13,7 @@ type Props = {
   handleSmartAction: (key: string) => void;
   detail: any;
   actionPlan: any;
-  moreMenuCount?: number;
   moreItems?: MoreMenuItem[];
-  onOpenMore: () => void;
   onTabScroll: (e: any) => void;
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
@@ -154,8 +152,6 @@ export default function DetailActionsTab({
           dok={detail.dok}
           digitalTwin={detail.digitalTwin}
           actionPlan={actionPlan}
-          moreMenuCount={0}
-          onOpenMore={() => {}}
         />
 
         {hasContent && (

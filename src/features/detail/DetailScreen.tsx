@@ -86,7 +86,6 @@ export default function Detailbildschirm() {
     actionPlan,
     pulseUrgency,
     moreItems,
-    moreMenuCount,
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,
@@ -317,9 +316,7 @@ export default function Detailbildschirm() {
             handleSmartAction={handleSmartAction}
             detail={detail}
             actionPlan={actionPlan}
-            moreMenuCount={moreMenuCount}
             moreItems={moreItems}
-            onOpenMore={() => {}}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
 import Pdf from 'react-native-pdf';
 import * as Sharing from 'expo-sharing';
 import Icon from '@/components/Icon';
@@ -75,13 +75,24 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdf
   }
 
   return (
-    <View style={[st.pageWrap, { width: W, height: H, overflow: 'hidden' }]}>
-      <Image
-        source={{ uri }}
+    <View style={[st.pageWrap, { width: W, height: H }]}>
+      <ScrollView
         style={{ width: W, height: H }}
-        resizeMode="contain"
-      />
-      <DocumentMagnifier uri={uri} containerWidth={W} containerHeight={H} />
+        contentContainerStyle={{ width: W, height: H }}
+        maximumZoomScale={4}
+        minimumZoomScale={1}
+        bouncesZoom
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        centerContent
+      >
+        <Image
+          source={{ uri }}
+          style={{ width: W, height: H }}
+          resizeMode="contain"
+        />
+        <DocumentMagnifier uri={uri} containerWidth={W} containerHeight={H} />
+      </ScrollView>
     </View>
   );
 }

@@ -51,8 +51,8 @@ export default function DocumentMagnifier({
   const opacity = useSharedValue(0);
 
   const panResponder = useRef(PanResponder.create({
-    onStartShouldSetPanResponder:  () => !!uri,
-    onMoveShouldSetPanResponder:   () => !!uri,
+    onStartShouldSetPanResponder:  (e) => !!uri && e.nativeEvent.touches.length === 1,
+    onMoveShouldSetPanResponder:   (e) => !!uri && e.nativeEvent.touches.length === 1,
     onPanResponderGrant: (e) => {
       const { locationX, locationY } = e.nativeEvent;
       setFingerPos({ x: locationX, y: locationY });

@@ -217,6 +217,19 @@ function HomeRecentListInner({ data }: { data: any }) {
             ))
         }
       </ScrollView>
+
+      {deduped.length > docs.length && !data.secilenModus && (
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/Suche')}
+          style={st.allLink}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+        >
+          <Text style={[st.allLinkLabel, { color: data.Colors.primary }]}>
+            Alle {deduped.length} Dokumente anzeigen
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -234,6 +247,17 @@ const st = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
+  },
+  allLink: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  allLinkLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   title: {
     fontWeight: '800',

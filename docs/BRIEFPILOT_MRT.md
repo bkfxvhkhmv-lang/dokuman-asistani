@@ -4,6 +4,59 @@
 
 ---
 
+## 0. BriefPilot Product Core
+
+BriefPilot is not a generic OCR app or PDF toolbox.
+The core product is a document assistant for German letters, invoices and everyday paperwork.
+
+### Core jobs
+
+| # | Job |
+|---|-----|
+| 1 | Understand German official/private letters |
+| 2 | Identify what the user needs to do next |
+| 3 | Draft German replies when a response is needed |
+| 4 | Classify invoices and payment-related documents |
+| 5 | Store documents so they can be found later |
+| 6 | Prepare expenses for tax/accountant workflows through summaries and export |
+| 7 | Help users with limited German understand letters without panic |
+
+### Primary audiences
+
+- Private individuals
+- Immigrants / users with limited German
+- Small businesses
+- Freelancers
+- People who want receipts/invoices ready for tax time
+
+### Product boundaries — what BriefPilot is NOT
+
+- Not a full accounting system
+- Not property management software
+- Not a generic chatbot
+- Not a generic PDF editor
+- Not an OCR benchmark/demo
+- PDF signing is useful only as part of document response/form workflows
+
+### Feature priority filter
+
+Keep or prioritize features that support: **understand · reply · classify · store · search · export for tax/accountant**
+
+Avoid features that create generic tool clutter without helping those jobs.
+
+### Decision impact
+
+| Feature | Status |
+|---------|--------|
+| Antwort schreiben | ✅ Core |
+| Ausgaben-Übersicht | ✅ Core |
+| Excel/PDF export for Steuerberater | ✅ Strategically important |
+| Angaben bearbeiten | ✅ Core — users correct important fields, not full OCR text |
+| Hilfe & Beratung / generic chat | ⚠️ Only if tied to the document |
+| More/overflow menus | ❌ Avoid — actions should be visible and clear |
+
+---
+
 ## 1. Amaç & Protokol
 
 Bu dosya BriefPilot iOS uygulamasının:

@@ -6,6 +6,28 @@ No new decisions, no new code — read-only state of the branch.
 
 ---
 
+## 0. BriefPilot Product Core
+
+BriefPilot is not a generic OCR app or PDF toolbox.
+The core product is a **document assistant for German letters, invoices and everyday paperwork**.
+
+**Core jobs:** understand letters · identify next action · draft replies · classify invoices · store and find documents · prepare expenses for tax/accountant · help users with limited German
+
+**Primary audiences:** private individuals · immigrants / limited German · small businesses · freelancers · people preparing for tax time
+
+**Not:** a full accounting system · property management · generic chatbot · generic PDF editor · OCR benchmark
+
+**Feature priority:** understand · reply · classify · store · search · export for Steuerberater
+
+**Key decisions for this build:**
+- Antwort schreiben = core feature
+- Ausgaben-Übersicht = core feature
+- Excel/PDF export for Steuerberater = strategically important
+- Angaben bearbeiten = core (field correction, not full OCR text editing)
+- Overflow menus removed in favour of visible, clear inline actions
+
+---
+
 ## 1. Branch / Status
 
 | Field | Value |

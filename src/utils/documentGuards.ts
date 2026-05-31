@@ -100,8 +100,30 @@ function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
   return pattern.test((dok.typ ?? '').toLowerCase());
 }
 
+function isUnknownLike(value: string | null | undefined): boolean {
+  const v = (value ?? '').trim().toLowerCase();
+  return !v || v === 'unbekannt' || v === 'unbekannter absender' || v === 'unknown';
+}
+
+function hasUsefulType(dok: { typ?: string | null }): boolean {
+  const typ = (dok.typ ?? '').trim().toLowerCase();
+  if (!typ) return false;
+  return !/^(dokument|sonstiges|unbekannt)$/i.test(typ);
+}
+
+function hasUsefulTitle(dok: { titel?: string | null }): boolean {
+  const titel = (dok.titel ?? '').trim();
+  if (!titel) return false;
+  return !/^(dokument|unbekanntes dokument|scan[_\s-]?\d+)/i.test(titel);
+}
+
+function hasUsefulIdentity(dok: { typ?: string | null; titel?: string | null; absender?: string | null }): boolean {
+  return hasUsefulType(dok) || hasUsefulTitle(dok) || !isUnknownLike(dok.absender);
+}
+
 export function getReviewIssues(dok: {
   typ?: string | null;
+  titel?: string | null;
   absender?: string | null;
   betrag?: number | null;
   frist?: string | null;
@@ -110,7 +132,7 @@ export function getReviewIssues(dok: {
   const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag|bescheid/);
   const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|versicherung|kündigung|kuendigung|bescheid/);
 
-  if (!dok.absender) issues.push('sender');
+  if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');
   if (deadlineSensitive && !dok.frist) issues.push('deadline');
 
@@ -119,25 +141,39 @@ export function getReviewIssues(dok: {
 
 export function needsManualReview(dok: {
   typ?: string | null;
+  titel?: string | null;
   absender?: string | null;
   betrag?: number | null;
   frist?: string | null;
   confidence?: number | null;
+  erledigt?: boolean;
 }): boolean {
+  if (dok.erledigt) return false;
+
+  const confidence = dok.confidence ?? 100;
+  if (confidence < 30) return true;
+
   const issues = getReviewIssues(dok);
-  if (issues.length > 0) return true;
-  return (dok.confidence ?? 100) < 40;
+  if (issues.includes('amount') || issues.includes('deadline')) return true;
+
+  const identityMissing = !hasUsefulIdentity(dok);
+  const hasAnyUsefulExtraction = !isUnknownLike(dok.absender) || dok.betrag != null || !!dok.frist;
+  if (identityMissing && !hasAnyUsefulExtraction) return true;
+
+  return false;
 }
 
 export function getReviewLabel(dok: {
   typ?: string | null;
+  titel?: string | null;
   absender?: string | null;
   betrag?: number | null;
   frist?: string | null;
   confidence?: number | null;
+  erledigt?: boolean;
 }): string | null {
+  if (!needsManualReview(dok)) return null;
   const issues = getReviewIssues(dok);
-  if (issues.length === 0 && (dok.confidence ?? 100) >= 40) return null;
-  if (issues.length > 1 || (dok.confidence ?? 100) < 40) return 'Einige Angaben prüfen';
+  if (issues.length > 1 || (dok.confidence ?? 100) < 30) return 'Einige Angaben prüfen';
   return 'Angaben prüfen';
 }

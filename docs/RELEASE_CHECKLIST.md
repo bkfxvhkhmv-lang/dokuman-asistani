@@ -18,7 +18,10 @@
 - [ ] Home loads with urgent banner (if urgent docs exist)
 - [ ] Urgent count correct (erledigt docs excluded)
 - [ ] Swipe-to-done on DokumentKarte works
-- [ ] Tab navigation: Aufgaben / Dokumente / Ordner / Kalender / Zahlungen
+- [ ] Long press document → selection mode activates
+- [ ] Selection mode: main tab bar disappears, selection action bar appears at bottom
+- [ ] Abbrechen → selection bar disappears, tab bar returns
+- [ ] "Offene Hinweise" count reasonable (< 50% of documents)
 
 ### Detail — Analyse Tab
 - [ ] AnalyseHeaderCard renders (status chip + confidence + Betrag/Frist)
@@ -26,11 +29,12 @@
 - [ ] Risk panel visible (if risk present)
 - [ ] Nächster Schritt shows correct primary action
 
-### Detail — Aktionen Tab
+### Detail — Erledigen Tab
 - [ ] Primary action card renders with correct tone (danger/success/primary/neutral)
 - [ ] SCHNELLE AKTIONEN shows max 2 pills
-- [ ] "Erledigt ✅" pill visible (if not already erledigt)
-- [ ] "Weitere Werkzeuge" row visible, opens More Menu
+- [ ] "Weitere Aktionen" section visible with inline rows (Exportieren / Angaben bearbeiten / Als erledigt markieren / Dokument löschen)
+- [ ] No top-right "..." button visible in header
+- [ ] No bottom sheet ("Mehr") opens from any source in Detail
 
 ### Detail — Dokument Tab
 - [ ] Document preview section renders (or empty state)
@@ -71,8 +75,20 @@
 - [ ] Simple Mode toggle works (Detail shows only Özet tab)
 - [ ] Language switch works (if exposed)
 
+### PDF Signature (v1)
+- [ ] Erledigen tab → PDF unterschreiben → signature pad opens
+- [ ] Draw signature, place on page
+- [ ] Save → signed PDF saved to document
+- [ ] Unterschrift entfernen restores original
+
+### Vorlesen
+- [ ] Document with text → Vorlesen section visible (not "VORLESEN" all-caps)
+- [ ] "Volltext anhören" plays audio
+- [ ] "Kritische Punkte anhören" plays audio
+- [ ] Tapping again stops playback
+
 ### Feedback
-- [ ] Feedback modal opens (from Settings or More Menu)
+- [ ] Feedback modal opens (from Settings)
 - [ ] Text input works
 - [ ] Submit does not crash
 

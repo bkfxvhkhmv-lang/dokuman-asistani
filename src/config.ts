@@ -5,14 +5,16 @@ interface EnvConfig {
   OCR_MVP_BASE: string;
 }
 
+const DEVICE_IP = process.env.EXPO_PUBLIC_DEVICE_IP ?? '192.168.0.33';
+
 const ENV: Record<string, EnvConfig> = {
   development: {
     API_BASE:     'http://10.0.2.2:8000/api/v4',
     OCR_MVP_BASE: 'http://127.0.0.1:8000',        // iOS Simulator
   },
   device: {
-    API_BASE:     'http://192.168.0.33:8000/api/v4',
-    OCR_MVP_BASE: 'http://192.168.0.33:8000',      // Fiziksel cihaz: Mac LAN IP
+    API_BASE:     `http://${DEVICE_IP}:8000/api/v4`,
+    OCR_MVP_BASE: `http://${DEVICE_IP}:8000`,
   },
   beta: {
     API_BASE:     'https://api.briefpilot.de/api/v4',

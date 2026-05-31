@@ -6,6 +6,7 @@ import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { canOfferPaymentAction, getReviewLabel, hasPaymentTarget } from '@/utils/documentGuards';
+import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 
 type Props = {
   dok: Dokument;
@@ -53,6 +54,7 @@ export default function SimpleDocumentOverview({
     !dok.fristImKalender;
 
   const conf = dok.confidence;
+  const typeLabel = getDetailTypeLabel(dok.typ);
   const vertrauen = conf == null
     ? 'Automatisch erkannt'
     : getReviewLabel(dok) ?? (conf >= 75 ? 'KI-geprüft' : 'Automatisch erkannt');
@@ -73,7 +75,7 @@ export default function SimpleDocumentOverview({
         <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
           WAS IST DAS?
         </Text>
-        <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{dok.typ}</Text>
+        <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{typeLabel}</Text>
         <Text style={{ fontSize: 13, color: C.textSecondary }} numberOfLines={3}>
           {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
         </Text>

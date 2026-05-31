@@ -112,3 +112,21 @@ export function getDocTypeConfig(typ: string | null | undefined): DocTypeConfig 
   const canonical = normalizeDocumentTyp(typ);
   return CONFIG[canonical as CanonicalDocumentType] ?? FALLBACK;
 }
+
+/** Singular, user-facing label for single-document detail surfaces. */
+export function getDetailTypeLabel(typ: string | null | undefined): string {
+  const raw = (typ ?? '').trim();
+  const lower = raw.toLowerCase();
+
+  if (/steuer/.test(lower)) return 'Steuerbescheid';
+  if (/bußgeld|bussgeld/.test(lower)) return 'Bußgeldbescheid';
+  if (/mahnung/.test(lower)) return 'Mahnung';
+  if (/rechnung|rechnungen|invoice/.test(lower)) return 'Rechnung';
+  if (/versicherung/.test(lower)) return 'Versicherungsdokument';
+  if (/vertrag|verträge/.test(lower)) return 'Vertrag';
+  if (/formular/.test(lower)) return 'Formular';
+  if (/termin/.test(lower)) return 'Terminbestätigung';
+  if (/behörde|behorden|amt|bescheid/.test(lower)) return 'Behördenbrief';
+
+  return getDocTypeConfig(typ).shortLabel;
+}

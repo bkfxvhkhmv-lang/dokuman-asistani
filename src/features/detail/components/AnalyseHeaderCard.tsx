@@ -18,6 +18,7 @@ import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatter
 import { safeDisplayAbsender } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import { getReviewLabel } from '@/utils/documentGuards';
+import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 
 interface Props {
   dok: Dokument;
@@ -50,6 +51,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
 
   const conf     = dok.confidence;
   const reviewLabel = getReviewLabel(dok);
+  const typeLabel = getDetailTypeLabel(dok.typ);
   const tage     = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const fristStr = dok.frist ? formatFrist(dok.frist) : null;
   const fristCol = tage === null ? C.text
@@ -91,7 +93,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}
       <View style={{ paddingHorizontal: S.lg, paddingBottom: hasFacts ? 10 : 16 }}>
         <Text style={{ ...T.label, color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
-          {dok.typ ? dok.typ.toUpperCase() : 'SONSTIGES'}
+          {typeLabel ? typeLabel.toUpperCase() : 'SONSTIGES'}
           {(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence); return s ? ` · ${s}` : ''; })()}
         </Text>
       </View>

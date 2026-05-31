@@ -12,6 +12,7 @@ import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
 import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
 import { safeDisplayTitel, safeDisplayAbsender } from '@/utils/displaySanitizer';
 import { getReviewLabel } from '@/utils/documentGuards';
+import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 
 const TYP_ICON: Record<string, string> = {
   Mahnung:     'warning-circle',
@@ -55,6 +56,7 @@ export default function HeroCard({
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
+  const typeLabel = getDetailTypeLabel(dok.typ);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -75,7 +77,7 @@ export default function HeroCard({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
-              {dok.typ?.toUpperCase()}{(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence); return s ? ` · ${s}` : ''; })()}
+              {typeLabel.toUpperCase()}{(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence); return s ? ` · ${s}` : ''; })()}
             </Text>
             <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}</Text>
           </View>

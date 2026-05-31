@@ -9,6 +9,7 @@ import { HIT_SLOP_LG } from '@/theme';
 import type { Dokument } from '@/store';
 import type { OzetQuelle } from '@/utils/types';
 import { getReviewLabel } from '@/utils/documentGuards';
+import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 
 interface AIBoxProps {
   dok: Dokument | undefined;
@@ -37,6 +38,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
 
   if (!dok) return null;
   const reviewLabel = getReviewLabel(dok);
+  const typeLabel = getDetailTypeLabel(dok.typ);
 
   return (
     <Animated.View style={[
@@ -77,7 +79,9 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
         </View>
       </View>
 
-      <Text style={{ fontSize: 14, color: C.textSecondary, lineHeight: 22 }}>{dok.zusammenfassung}</Text>
+      <Text style={{ fontSize: 14, color: C.textSecondary, lineHeight: 22 }}>
+        {dok.zusammenfassung?.replace(/\bRechnungen\b/g, typeLabel)}
+      </Text>
 
       {dok.rohText && dok.zusammenfassung && (
         <TouchableOpacity onPress={() => setOzetQuellenSichtbar(v => !v)}

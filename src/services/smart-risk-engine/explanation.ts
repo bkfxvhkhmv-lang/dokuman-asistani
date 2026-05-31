@@ -33,15 +33,18 @@ export function buildErklaerung(
   const hauptGrund = faktoren.sort((a, b) => (b.score * b.gewicht) - (a.score * a.gewicht))[0];
   const parts: string[] = [];
 
-  const typLabel = getDetailTypeLabel(dok.typ);
   if (level === 'niedrig' && dok.betrag != null) {
-    parts.push(`Der Betrag für diese ${typLabel.toLowerCase()} wurde erkannt. Bitte vor Zahlung kurz prüfen.`);
+    parts.push(
+      dok.betrag > 0
+        ? 'Betrag erkannt. Bitte vor Zahlung kurz prüfen.'
+        : 'Betrag erkannt. Bitte kurz prüfen.',
+    );
   } else {
     parts.push(baseRiskSentence(level));
   }
 
   const factorHint = describeTopFactor(hauptGrund);
-  if (factorHint && !parts.some(p => p === factorHint)) parts.push(factorHint);
+  if (factorHint && hauptGrund?.kategorie !== 'betrag' && !parts.some(p => p === factorHint)) parts.push(factorHint);
 
   if (tage !== null && tage < 0) parts.push('Die Frist ist bereits abgelaufen. Bitte jetzt handeln.');
   else if (tage !== null && tage <= 3) parts.push(`Nur noch ${tage} Tag${tage !== 1 ? 'e' : ''} bis zur Frist.`);

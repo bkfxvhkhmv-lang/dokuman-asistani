@@ -48,6 +48,10 @@ const QUELLE_LABEL: Record<string, string> = {
   ki_cache: 'Zwischengespeichert',
 };
 
+function normalizeDetailSingularCopy(text: string): string {
+  return text.replace(/\bRechnungen\b/g, 'Rechnung');
+}
+
 export default function SmartSummaryCard({
   result, loading = false, onLoadDetailed, currentMode, onModeChange,
 }: SmartSummaryCardProps) {
@@ -117,7 +121,9 @@ export default function SmartSummaryCard({
           {(currentMode === 'mittel' || currentMode === 'kurz') && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 14, lineHeight: 21, color: C.text }}>{p.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                <Text key={i} style={{ fontSize: 14, lineHeight: 21, color: C.text }}>
+                  {normalizeDetailSingularCopy(p.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
+                </Text>
               ))}
             </View>
           )}
@@ -125,7 +131,7 @@ export default function SmartSummaryCard({
           {currentMode === 'detailliert' && result.detailText && (
             <>
               <MarkdownText
-                text={stripLlmLanguageMetaLines(result.detailText)}
+                text={normalizeDetailSingularCopy(stripLlmLanguageMetaLines(result.detailText))}
                 style={{ fontSize: 13, lineHeight: 20, color: C.text }}
               />
               {result.handlungsempfehlungen.length > 0 && (
@@ -134,7 +140,9 @@ export default function SmartSummaryCard({
                     EMPFEHLUNGEN
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.text, marginBottom: 3 }}>{e.replace(/^[^\x00-\x7F]{1,2}\s+/, '')}</Text>
+                    <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.text, marginBottom: 3 }}>
+                      {normalizeDetailSingularCopy(e.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
+                    </Text>
                   ))}
                 </View>
               )}

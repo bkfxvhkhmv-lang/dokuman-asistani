@@ -15,6 +15,10 @@ export default function NaechsterSchrittCard({ dok, actionPlan }: Props) {
   const { Colors: C, S, R } = useTheme();
   const satz = deriveNaechsterSchrittSatz(dok, actionPlan);
   if (!satz) return null;
+  if (actionPlan?.primary?.key === 'review') return null;
+  if (satz === 'Einige Angaben kurz prüfen.' || satz === 'Angaben wurden nicht vollständig erkannt. Bitte prüfen.') {
+    return null;
+  }
 
   const isOverdue = !!(dok.frist && (() => {
     const t = Math.ceil((new Date(dok.frist!).getTime() - Date.now()) / 86_400_000);

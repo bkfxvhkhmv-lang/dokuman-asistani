@@ -381,10 +381,8 @@ export function buildDocumentSender(
     if (rawTextSender) return rawTextSender;
   }
 
-  if (kind === 'invoice' || kind === 'settlement') {
-    const rawTextSender = extractCompanySenderFromRawText(s.raw_text);
-    if (rawTextSender) return rawTextSender;
-  }
+  const rawTextCompanySender = extractCompanySenderFromRawText(s.raw_text);
+  if (rawTextCompanySender) return rawTextCompanySender;
 
   return 'Unbekannt';
 }

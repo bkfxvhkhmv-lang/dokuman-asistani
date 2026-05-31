@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
 import DetailsPanel from '@/features/detail/components/DetailsPanel';
-import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
+
 import DocumentSpeechSection from '@/features/detail/components/DocumentSpeechSection';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
@@ -39,7 +39,7 @@ export default function DetailDetailsTab({
       onContentSizeChange={onScrollContentSize}
       onLayout={onScrollLayout}
     >
-      {detail.dok && <NaechsterSchrittCard dok={detail.dok} actionPlan={actionPlan} />}
+
       <DetailsPanel
         dok={detail.dok}
         mevcutEtiketten={detail.mevcutEtiketten}

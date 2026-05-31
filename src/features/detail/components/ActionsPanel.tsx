@@ -8,6 +8,7 @@ import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
 import { getTageVerbleibend } from '@/utils/formatters';
+import { getReviewIssues } from '@/utils/documentGuards';
 import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 import { canOfferPaymentAction } from '@/utils/documentGuards';
@@ -184,6 +185,16 @@ interface ActionsPanelProps {
   moreMenuCount?: number;
 }
 
+function buildReviewContext(dok: Dokument): { title: string; body: string } | null {
+  const issues = getReviewIssues(dok);
+  const confidence = dok.confidence ?? 100;
+  if (issues.includes('amount'))   return { title: 'Betrag kurz prüfen',  body: 'Vor einer Überweisung Betrag und Empfänger prüfen.' };
+  if (issues.includes('deadline')) return { title: 'Frist beachten',       body: 'Datum und Frist kurz prüfen.' };
+  if (issues.includes('sender'))   return { title: 'Absender prüfen',      body: 'Der Absender konnte nicht sicher erkannt werden.' };
+  if (confidence < 55)             return { title: 'Kurz bestätigen',      body: 'Einige Angaben wurden nicht sicher erkannt.' };
+  return null;
+}
+
 export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore, moreMenuCount = 0 }: ActionsPanelProps) {
   const { Colors: C, S, R } = useTheme();
   if (!dok || !actionPlan) return null;
@@ -197,9 +208,11 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
     : primary.key === 'zahlen'    ? 'primary' : 'neutral';
   const processColors = toneColors(processTone, C);
 
+  const reviewCtx = primary.key === 'review' ? buildReviewContext(dok) : null;
+
   return (
     <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
-      {primary.onPress && (
+      {primary.onPress && (primary.key !== 'review' || reviewCtx) && (
         <>
           <Text style={[T.label, { color: C.textTertiary, marginBottom: 10 }]}>NÄCHSTER SCHRITT</Text>
           <TouchableOpacity onPress={primary.onPress} activeOpacity={0.8}>
@@ -207,10 +220,12 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Icon name={primary.icon} size={22} color={processColors.text} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[T.title, { color: processColors.text }]}>{primary.label}</Text>
+                  <Text style={[T.title, { color: processColors.text }]}>
+                    {primary.key === 'review' ? reviewCtx!.title : primary.label}
+                  </Text>
                   <Text style={[T.meta, { color: C.textSecondary, marginTop: 4 }]}>
                     {primary.key === 'review'
-                      ? 'Die wichtigsten Felder sollten zuerst kurz geprüft werden.'
+                      ? reviewCtx!.body
                       : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
                   </Text>
                   {(primary.key === 'einspruch') && (

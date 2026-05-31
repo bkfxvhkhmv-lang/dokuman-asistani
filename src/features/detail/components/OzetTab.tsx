@@ -61,7 +61,8 @@ export default function OzetTab({
   const showActionFirstCard =
     pipelinePhase === 'completed' &&
     !suppressNextStepBanner &&
-    !!naechsterSchrittZeile;
+    !!naechsterSchrittZeile &&
+    actionPlan?.primary?.key !== 'review';
 
   return (
     <Animated.ScrollView

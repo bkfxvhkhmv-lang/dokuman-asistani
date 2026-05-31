@@ -214,7 +214,7 @@ export default function Detailbildschirm() {
         headerShadowOpacity={headerShadowOpacity}
       />
 
-      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && (
+      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && actionPlan?.primary?.key !== 'review' && (
         <View style={{
           backgroundColor: C.primaryLight,
           paddingHorizontal: 16,

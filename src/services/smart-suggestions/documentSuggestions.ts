@@ -1,10 +1,12 @@
 import type { Dokument } from '@/store';
 import type { Suggestion, SuggestionPriority, SuggestionType, SuggestionsResult } from './types';
 import { makeSuggestion, tageVerbleibend } from './helpers';
+import { hasCompletePaymentTarget } from '@/utils/documentGuards';
 
 export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
   const suggestions: Suggestion[] = [];
   const tage = tageVerbleibend(dok.frist);
+  const canPreparePayment = hasCompletePaymentTarget(dok);
   const dok2 = dok as any;
 
   if (dok.betrag && (dok.betrag as number) > 0 && !dok.erledigt) {
@@ -12,15 +14,15 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Sofort zahlen',
         `Zahlung überfällig! ${(dok.betrag as number).toFixed(2)} € sofort überweisen.`,
-        '🚨', 'kritisch', 98, 'zahlen', 'Jetzt zahlen',
+        '🚨', 'kritisch', 98, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
         'Frist ist abgelaufen',
         { badge: 'Überfällig!' },
       ));
     } else if (tage !== null && tage <= 3) {
       suggestions.push(makeSuggestion(
-        'zahlen', 'Zahlung vorbereiten',
+        'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         `Frist in ${tage} Tag${tage !== 1 ? 'en' : ''} — ${(dok.betrag as number).toFixed(2)} € überweisen.`,
-        '€', 'kritisch', 95, 'zahlen', 'Jetzt zahlen',
+        '€', 'kritisch', 95, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
         `Nur noch ${tage} Tage`,
         { badge: `${tage} Tage`, verfallsdatum: dok.frist ?? undefined },
       ));
@@ -28,7 +30,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Diese Woche zahlen',
         `Frist in ${tage} Tagen — ${(dok.betrag as number).toFixed(2)} € überweisen.`,
-        '€', 'hoch', 80, 'zahlen', 'Zahlung vorbereiten',
+        '€', 'hoch', 80, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         `Frist in ${tage} Tagen`,
         { badge: `${tage} Tage` },
       ));
@@ -36,7 +38,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Zahlung planen',
         `Rechnung über ${(dok.betrag as number).toFixed(2)} € noch offen.`,
-        '€', 'mittel', 55, 'zahlen', 'Zahlung vorbereiten',
+        '€', 'mittel', 55, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         'Offene Zahlung',
       ));
     }

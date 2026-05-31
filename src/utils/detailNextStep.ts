@@ -1,6 +1,7 @@
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
+import { hasCompletePaymentTarget } from '@/utils/documentGuards';
 
 function overdueGuidance(dok: Dokument): string {
   const typ = dok.typ?.toLowerCase() ?? '';
@@ -54,6 +55,11 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
   const betragStr = dok.betrag != null ? formatBetrag(dok.betrag, dok.waehrung || '€') : null;
 
   if (key === 'zahlen') {
+    if (!hasCompletePaymentTarget(dok)) {
+      return dok.betrag != null
+        ? 'Betrag vor Zahlung prüfen.'
+        : 'Zahlungsdaten prüfen.';
+    }
     if (betragStr && fristStr) return `Diese Rechnung bis zum ${fristStr} bezahlen.`;
     if (betragStr) return `${betragStr} bezahlen.`;
     return 'Zahlung vorbereiten.';

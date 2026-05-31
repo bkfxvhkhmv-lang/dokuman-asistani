@@ -1,6 +1,6 @@
 import type { Dokument } from '@/store';
 import { formatBetrag, getTageVerbleibend, analysiereAllgemeinRisiken } from '@/utils';
-import { canOfferPaymentAction } from '@/utils/documentGuards';
+import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
 
 function getSender(dok: Dokument): string | null {
   const value = dok.absender?.trim();
@@ -41,7 +41,7 @@ export function buildKernPunkte(dok: Dokument): string[] {
   } else if (dok.erledigt) {
     punkte.push(`✅ Bereits erledigt`);
   } else if (dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag)) {
-    punkte.push(`💶 Zahlung vorbereiten`);
+    punkte.push(hasCompletePaymentTarget(dok) ? '💶 Zahlung vorbereiten' : '💶 Zahlungsdaten prüfen');
   } else if (dok.aktionen?.includes('einspruch')) {
     punkte.push(`✍️ Einspruchoption prüfen`);
   } else {

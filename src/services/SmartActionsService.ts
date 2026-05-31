@@ -7,6 +7,7 @@
 
 import type { Dokument } from '@/store';
 import { getTageVerbleibend } from '@/utils';
+import { hasCompletePaymentTarget } from '@/utils/documentGuards';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,13 +83,14 @@ export function buildSmartActions(dok: Dokument): ActionsResult {
   const tage = getTageVerbleibend(dok.frist);
   const dok2 = dok as any;
   const hatIBAN = !!(dok2.iban || dok.rohText && /iban/i.test(dok.rohText));
+  const canPreparePayment = hasCompletePaymentTarget(dok);
 
   // ── Zahlung ────────────────────────────────────────────────────────────────
   if (dok.betrag && (dok.betrag as number) > 0 && !dok.erledigt) {
     const urgent = tage !== null && tage <= 3;
     actions.push(makeAction(
-      'zahlen', 'Zahlung vorbereiten', 'currency-eur',
-      hatIBAN ? 'IBAN erkannt — Banking-App öffnen' : 'Zahlungsdaten vorbereiten',
+      'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen', 'currency-eur',
+      canPreparePayment ? 'Empfänger und IBAN prüfen, dann Banking-App öffnen' : (hatIBAN ? 'Empfänger ergänzen oder Zahlungsdaten prüfen' : 'Zahlungsdaten vorbereiten'),
       'zahlung', urgent ? 95 : 60, urgent,
       tage !== null && tage < 0 ? 'ÜBERFÄLLIG' : tage !== null && tage <= 3 ? `${tage}T` : undefined,
     ));

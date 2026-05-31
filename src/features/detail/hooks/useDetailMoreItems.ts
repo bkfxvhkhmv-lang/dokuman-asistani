@@ -7,7 +7,7 @@ import type { Dokument } from '@/store';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { ModalController, ModalData } from '@/features/detail/hooks/useModalController';
 import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
-import { canOfferPaymentAction } from '@/utils/documentGuards';
+import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
 
@@ -54,8 +54,10 @@ export function useDetailMoreItems({
 
     if (!dok.erledigt && aktiv.includes('zahlen') && canOfferPaymentAction(dok.betrag)) {
       rows.push({
-        key: 'menu_zahlen', icon: 'currency-eur', label: 'Zahlung vorbereiten', group: 'main',
-        onPress: tap(actions.handleZahlen),
+        key: 'menu_zahlen', icon: 'currency-eur',
+        label: hasCompletePaymentTarget(dok) ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
+        group: 'main',
+        onPress: hasCompletePaymentTarget(dok) ? tap(actions.handleZahlen) : tap(actions.handleEdit),
       });
     }
 

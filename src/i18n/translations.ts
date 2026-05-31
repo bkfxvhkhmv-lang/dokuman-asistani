@@ -35,7 +35,7 @@ const de: Dict = {
   'detail.section.summary': 'KI-ZUSAMMENFASSUNG', 'detail.section.quick_actions': 'SCHNELLE AKTIONEN',
   'detail.section.doc_data': 'Dokumentdaten', 'detail.section.fields': 'Erkannte Felder',
   'detail.section.original_text': 'Originaltext (OCR)',
-  'detail.action.pay': 'Zahlung vorbereiten', 'detail.action.calendar': 'Frist ins Kalender',
+  'detail.action.pay': 'Zahlungsdaten prüfen', 'detail.action.calendar': 'Frist ins Kalender',
   'detail.action.archive': 'Archivieren', 'detail.action.delete': 'Löschen',
   'detail.action.share': 'Teilen', 'detail.action.appeal': 'Einspruch',
   'detail.action.more': 'Mehr', 'detail.action.mark_done': 'Als erledigt markieren',

@@ -104,6 +104,26 @@ export function hasPaymentTarget(dok: { iban?: string | null }): boolean {
   return !!(dok.iban?.trim());
 }
 
+/**
+ * A payment recipient is only usable when we have a non-generic institution/company name.
+ * Unknown placeholders must never unlock "Zahlung vorbereiten".
+ */
+export function hasKnownPaymentRecipient(dok: { absender?: string | null }): boolean {
+  return !isUnknownLike(dok.absender);
+}
+
+/**
+ * Full safety guard for payment actions shown to the user.
+ * We only promise "Zahlung vorbereiten" when amount, recipient and IBAN are all present.
+ */
+export function hasCompletePaymentTarget(dok: {
+  betrag?: number | null;
+  iban?: string | null;
+  absender?: string | null;
+}): boolean {
+  return canOfferPaymentAction(dok.betrag) && hasPaymentTarget(dok) && hasKnownPaymentRecipient(dok);
+}
+
 function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
   return pattern.test((dok.typ ?? '').toLowerCase());
 }

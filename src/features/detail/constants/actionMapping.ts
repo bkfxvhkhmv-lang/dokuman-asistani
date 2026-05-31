@@ -30,8 +30,8 @@ export interface PrimaryAction {
 export const PRIMARY_ACTION_BY_TYPE: Record<DocumentType, PrimaryAction> = {
   mahnung: {
     id: 'prepare_payment',
-    label: 'Zahlung vorbereiten',
-    sublabel: 'IBAN und Betrag prüfen',
+    label: 'Zahlungsdaten prüfen',
+    sublabel: 'IBAN, Empfänger und Betrag prüfen',
     icon: 'bank',
   },
   bussgeldbescheid: {
@@ -48,8 +48,8 @@ export const PRIMARY_ACTION_BY_TYPE: Record<DocumentType, PrimaryAction> = {
   },
   rechnung: {
     id: 'prepare_payment',
-    label: 'Zahlung vorbereiten',
-    sublabel: 'Empfänger und IBAN prüfen',
+    label: 'Zahlungsdaten prüfen',
+    sublabel: 'Empfänger, IBAN und Betrag prüfen',
     icon: 'bank',
   },
   versicherung: {

@@ -5,7 +5,7 @@ import type {
   NormalizedNextStep,
   FieldConfidence,
 } from '@/types/normalizedDocument';
-import { inferAmountSemantics } from '@/utils/documentGuards';
+import { hasCompletePaymentTarget, inferAmountSemantics } from '@/utils/documentGuards';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 
 // Maps the app's internal DocumentType to NormalizedDocumentType.
@@ -30,7 +30,10 @@ function betragConfidence(dok: Dokument): FieldConfidence {
 function minimalNextStep(dok: Dokument): NormalizedNextStep | undefined {
   const semantics = inferAmountSemantics(dok.betrag);
   if (semantics === 'credit')  return { action: 'check_credit', label: 'Gutschrift prüfen' };
-  if (semantics === 'payable') return { action: 'pay',          label: 'Zahlung vorbereiten' };
+  if (semantics === 'payable') return {
+    action: 'pay',
+    label: hasCompletePaymentTarget(dok) ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
+  };
   return undefined;
 }
 

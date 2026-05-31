@@ -8,7 +8,7 @@ import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
 import { getTageVerbleibend } from '@/utils/formatters';
-import { getReviewIssues, hasPaymentTarget } from '@/utils/documentGuards';
+import { getReviewIssues, hasCompletePaymentTarget } from '@/utils/documentGuards';
 import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 import { canOfferPaymentAction } from '@/utils/documentGuards';
@@ -65,7 +65,7 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
   // zahlen nur bei positivem Betrag — negativer Betrag ist Gutschrift, kein Zahlungsausgang
   const hasBetragContext = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
   // Zahlung vorbereiten only safe when a payment target (IBAN) is known
-  const canZahlen = hasBetragContext && hasPaymentTarget(dok);
+  const canZahlen = hasBetragContext && hasCompletePaymentTarget(dok);
   // Amount context present but no IBAN → steer user to fill in payment data first
   if (hasBetragContext && !canZahlen) return 'zahlendaten';
 
@@ -157,7 +157,7 @@ export function getDetailActionPlan(
 
   const primary = { key: primaryKey, ...ACTION_META[primaryKey], onPress: onPress[primaryKey] };
 
-  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag) && hasPaymentTarget(dok);
+  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && hasCompletePaymentTarget(dok);
   const coreLimit = !dok.erledigt ? 1 : 2;
   const coreSecondaryKeys = ([
     canZahlenSecondary && 'zahlen',

@@ -5,6 +5,8 @@ import { AppSheet, AppButton } from '@/design/components';
 import Icon from '@/components/Icon';
 import type { MoreMenuGroup, MoreMenuItem } from '@/features/detail/detail-modals/types';
 
+const _t = (msg: string) => { if (__DEV__) console.log('[MORE_TRACE]', msg); };
+
 const GROUP_LABEL: Record<MoreMenuGroup, string> = {
   main:           'Hauptaktionen',
   communication:  'Chat & Antwort',
@@ -48,6 +50,10 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
   const { Colors: C } = useTheme();
   const pile = useMemo(() => pileByGroup(items), [items]);
 
+  useEffect(() => {
+    if (visible) _t(`sheet visible=true itemCount=${items.length}`);
+  }, [visible, items.length]);
+
   const [extraCommOpen, setExtraCommOpen] = useState(false);
   /** Ein Block: Teilen, PDF, Hilfe, Experte … — zugeklappt, damit die ersten Sekunden klar bleiben */
   const [weitereOpen, setWeitereOpen] = useState(false);
@@ -76,10 +82,15 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
     item: MoreMenuItem;
     isLastRow: boolean;
   }) => {
+    const handlePress = () => {
+      _t(`press label="${item.label}" key="${item.key}" hasHandler=${!!item.onPress}`);
+      item.onPress?.();
+    };
+
     if (item.destructive) {
       return (
         <TouchableOpacity
-          onPress={item.onPress}
+          onPress={handlePress}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -100,7 +111,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
     }
     return (
       <TouchableOpacity
-        onPress={item.onPress}
+        onPress={handlePress}
         style={{
           flexDirection: 'row',
           alignItems: 'center',

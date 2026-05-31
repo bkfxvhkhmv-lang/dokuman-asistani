@@ -105,6 +105,7 @@ export default function AppSheet({
   }));
 
   const interactive = visible && mounted;
+  if (__DEV__) console.log('[MORE_TRACE] AppSheet visible=' + visible + ' mounted=' + mounted + ' interactive=' + interactive);
 
   return (
     <Modal visible={mounted} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
@@ -133,6 +134,7 @@ export default function AppSheet({
               <BlurView
                 intensity={72}
                 tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
+                pointerEvents="none"
                 style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
               />
               <View

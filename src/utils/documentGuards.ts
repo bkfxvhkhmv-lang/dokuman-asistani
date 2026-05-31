@@ -130,7 +130,7 @@ export function getReviewIssues(dok: {
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
   const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag|bescheid/);
-  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|versicherung|kündigung|kuendigung|bescheid/);
+  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|kündigung|kuendigung|bescheid/);
 
   if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');

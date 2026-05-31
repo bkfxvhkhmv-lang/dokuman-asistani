@@ -40,7 +40,7 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdf
 
   if (isPdf) {
     return (
-      <View style={[st.pageWrap, { width: W, height: H, backgroundColor: '#1a1a1a' }]}>
+      <View style={[st.pageWrap, { width: W, flex: 1, backgroundColor: '#1a1a1a' }]}>
         {pdfError ? (
           <View style={{ alignItems: 'center', gap: 14, paddingHorizontal: 32 }}>
             <Icon name="alert-circle" size={36} color="rgba(255,255,255,0.5)" />
@@ -62,7 +62,7 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdf
         ) : (
           <Pdf
             source={{ uri, cache: true }}
-            style={{ width: W, height: H }}
+            style={{ width: W, flex: 1 }}
             enablePaging={false}
             horizontal={false}
             renderActivityIndicator={() => <ActivityIndicator color="rgba(255,255,255,0.6)" size="large" />}

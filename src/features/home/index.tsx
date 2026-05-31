@@ -155,7 +155,7 @@ export default function Home() {
     <View style={[styles.container, { backgroundColor: data.Colors.bg }]}>
     <ScrollView
       style={{ flex: 1 }}
-      contentContainerStyle={[styles.content, { paddingBottom: tabBarHeight + bottomInset + 24 }]}
+      contentContainerStyle={[styles.content, { paddingBottom: data.secilenModus ? bottomInset + 140 : tabBarHeight + bottomInset + 24 }]}
       showsVerticalScrollIndicator={false}
       onScroll={Animated.event(
         [{ nativeEvent: { contentOffset: { y: scrollY } } }],

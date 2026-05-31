@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
 
-const TAB_BAR_CLEARANCE = Platform.OS === 'ios' ? 78 : 72;
+const BOTTOM_CLEARANCE = 12; // tab bar is hidden while selection bar is visible
 
 type Props = {
   count: number;
@@ -28,7 +28,7 @@ export default function HomeSelectionBar({
       style={[
         st.bar,
         {
-          bottom: insets.bottom + TAB_BAR_CLEARANCE,
+          bottom: insets.bottom + BOTTOM_CLEARANCE,
           backgroundColor: C.bgCard,
           borderColor: C.border,
         },

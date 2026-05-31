@@ -156,16 +156,30 @@ function HomeRecentListInner({ data }: { data: any }) {
     <View style={st.wrap}>
       <View style={st.header}>
         <Text style={[st.title, { color: data.Colors.text, fontSize: fs(17) }]}>{section.title}</Text>
-        {!data.secilenModus && docs.length > 0 && (
+        {docs.length > 0 && (
           <TouchableOpacity
-            onPress={data.secimiBaslat}
+            onPress={data.secilenModus ? data.secimiIptal : data.secimiBaslat}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel="Auswählen"
+            accessibilityLabel={data.secilenModus ? 'Abbrechen' : 'Auswählen'}
+            accessibilityState={{ selected: data.secilenModus }}
           >
-            <Text style={{ color: data.Colors.primary, fontSize: 14, fontWeight: '600' }}>
-              Auswählen
-            </Text>
+            {data.secilenModus ? (
+              <View style={{
+                backgroundColor: data.Colors.primary,
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+              }}>
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>
+                  Abbrechen
+                </Text>
+              </View>
+            ) : (
+              <Text style={{ color: data.Colors.primary, fontSize: 14, fontWeight: '600' }}>
+                Auswählen
+              </Text>
+            )}
           </TouchableOpacity>
         )}
       </View>

@@ -99,6 +99,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const { width: screenW } = useWindowDimensions();
   const padRef = useRef<View>(null);
   const dragStartRef = useRef<SignatureBox | null>(null);
+  const signatureBoxRef = useRef<SignatureBox | null>(null);
+  const currentPageRectRef = useRef<Rect | null>(null);
 
   const [step, setStep] = useState<Step>('draw');
   const [busy, setBusy] = useState(false);
@@ -114,13 +116,17 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const previewWidth = Math.min(screenW - 48, 420);
   const previewHeight = Math.min(Math.round(previewWidth * 1.38), 560);
   const padWidth = previewWidth;
-  const padHeight = 180;
+  const padHeight = 220;
   const canContinue = paths.some(segment => segment.length >= 2);
   const activePage = pageSizes[pageIndex] ?? null;
-  const currentPageRect = useMemo(() => {
+  const currentPageRect = useMemo<Rect | null>(() => {
     if (!activePage || !previewSize.width || !previewSize.height) return null;
     return pageRectWithin(previewSize, activePage);
   }, [activePage, previewSize]);
+
+  // Keep refs current so PanResponder callbacks don't need to be recreated
+  signatureBoxRef.current = signatureBox;
+  currentPageRectRef.current = currentPageRect;
 
   const resetAll = useCallback(() => {
     setStep('draw');
@@ -187,28 +193,26 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const placementResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => step === 'place',
-        onMoveShouldSetPanResponder: () => step === 'place',
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
-          dragStartRef.current = signatureBox;
+          // Capture position at gesture start via ref — no re-creation needed
+          dragStartRef.current = signatureBoxRef.current;
         },
         onPanResponderMove: (_, gesture) => {
           const origin = dragStartRef.current;
-          if (step !== 'place' || !origin || !currentPageRect) return;
+          const rect = currentPageRectRef.current;
+          if (!origin || !rect) return;
           setSignatureBox({
             ...origin,
-            x: clamp(origin.x + gesture.dx, currentPageRect.x, currentPageRect.x + currentPageRect.width - origin.width),
-            y: clamp(origin.y + gesture.dy, currentPageRect.y, currentPageRect.y + currentPageRect.height - origin.height),
+            x: clamp(origin.x + gesture.dx, rect.x, rect.x + rect.width - origin.width),
+            y: clamp(origin.y + gesture.dy, rect.y, rect.y + rect.height - origin.height),
           });
         },
-        onPanResponderRelease: () => {
-          dragStartRef.current = null;
-        },
-        onPanResponderTerminate: () => {
-          dragStartRef.current = null;
-        },
+        onPanResponderRelease: () => { dragStartRef.current = null; },
+        onPanResponderTerminate: () => { dragStartRef.current = null; },
       }),
-    [step, signatureBox, currentPageRect],
+    [], // no deps — reads live values through refs
   );
 
   const handleClear = useCallback(() => setPaths([]), []);
@@ -396,40 +400,34 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
             Zeichne deine Unterschrift einmal sauber. Danach platzierst du sie im Dokument.
           </Text>
           <View
+            ref={padRef}
+            collapsable={false}
+            {...panResponder.panHandlers}
             style={{
+              width: padWidth,
+              maxWidth: '100%',
+              height: padHeight,
+              alignSelf: 'center',
               borderRadius: 16,
               borderWidth: 0.5,
               borderColor: C.border,
               backgroundColor: '#FFFFFF',
-              padding: 12,
+              overflow: 'hidden',
             }}
           >
-            <View
-              ref={padRef}
-              collapsable={false}
-              {...panResponder.panHandlers}
-              style={{
-                width: padWidth,
-                maxWidth: '100%',
-                height: padHeight,
-                alignSelf: 'center',
-                backgroundColor: 'transparent',
-              }}
-            >
-              <Svg width={padWidth} height={padHeight}>
-                {paths.map((pts, idx) => (
-                  <Polyline
-                    key={idx}
-                    points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
-                    fill="none"
-                    stroke="#111827"
-                    strokeWidth={2.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ))}
-              </Svg>
-            </View>
+            <Svg width={padWidth} height={padHeight}>
+              {paths.map((pts, idx) => (
+                <Polyline
+                  key={idx}
+                  points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
+                  fill="none"
+                  stroke="#111827"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+            </Svg>
           </View>
         </View>
       ) : (

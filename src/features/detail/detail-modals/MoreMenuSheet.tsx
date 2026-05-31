@@ -75,31 +75,48 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
   }: {
     item: MoreMenuItem;
     isLastRow: boolean;
-  }) => (
-    <TouchableOpacity
-      onPress={item.onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        paddingVertical: 13,
-        borderBottomWidth: isLastRow ? 0 : 0.45,
-        borderBottomColor: C.border,
-      }}
-    >
-      <Icon name={item.icon} size={20} color={item.destructive ? C.danger : C.text} />
-      <Text
+  }) => {
+    if (item.destructive) {
+      return (
+        <TouchableOpacity
+          onPress={item.onPress}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            paddingVertical: 13,
+            marginTop: 6,
+            paddingHorizontal: 12,
+            borderRadius: 10,
+            backgroundColor: `${C.danger}12`,
+          }}
+        >
+          <Icon name={item.icon} size={20} color={C.danger} />
+          <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: C.danger }}>
+            {item.label}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity
+        onPress={item.onPress}
         style={{
-          flex: 1,
-          fontSize: 14,
-          fontWeight: '600',
-          color: item.destructive ? C.danger : C.text,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          paddingVertical: 13,
+          borderBottomWidth: isLastRow ? 0 : 0.45,
+          borderBottomColor: C.border,
         }}
       >
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  );
+        <Icon name={item.icon} size={20} color={C.text} />
+        <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: C.text }}>
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <AppSheet

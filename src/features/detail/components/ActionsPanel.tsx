@@ -30,7 +30,7 @@ const ACTION_META: Record<string, { label: string; shortLabel: string; icon: str
 const ACTION_HINT: Partial<Record<string, string>> = {
   ai:          'Dokument erklären oder zusammenfassen.',
   zahlen:      'Überweisungsdaten oder Banking vorbereiten.',
-  zahlendaten: 'Vor einer Überweisung Empfänger und IBAN ergänzen.',
+  zahlendaten: 'Bitte Betrag, Empfänger und IBAN prüfen.',
   gutschrift:  'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
   kalender:    'Frist mit Erinnerung im Kalender sichern.',
   mail:        'Entwurf vorbereiten oder Antwort per E-Mail senden.',
@@ -198,10 +198,10 @@ function buildReviewContext(dok: Dokument): { title: string; body: string } | nu
   if (issues.includes('amount'))   return { title: 'Betrag ergänzen',     body: 'Der Betrag wurde nicht erkannt und sollte ergänzt werden.' };
   if (issues.includes('deadline')) return { title: 'Frist beachten',       body: 'Datum und Frist kurz prüfen.' };
   if (issues.includes('sender'))   return { title: 'Absender prüfen',      body: 'Der Absender konnte nicht sicher erkannt werden.' };
-  // Payment-type doc with betrag present but uncertain confidence → more specific than generic fallback
+  // Payment-type doc with betrag present but uncertain confidence → specific, supportive tone
   const isPaymentDoc = /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/i.test(dok.typ ?? '');
   if (confidence < 55 && isPaymentDoc && dok.betrag != null) {
-    return { title: 'Betrag kurz prüfen', body: 'Vor einer Überweisung Betrag und Empfänger prüfen.' };
+    return { title: 'Zahlung kurz prüfen', body: 'Bitte Betrag und Empfänger vor der Überweisung kurz bestätigen.' };
   }
   if (confidence < 55)             return { title: 'Kurz bestätigen',      body: 'Einige Angaben wurden nicht sicher erkannt.' };
   return null;

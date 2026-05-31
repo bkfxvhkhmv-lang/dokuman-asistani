@@ -127,13 +127,23 @@ export default function AppSheet({
             sheetStyle,
           ]}
         >
-          {/* Surface background */}
+          {/* Surface background — solid overlay over BlurView prevents gray bleed-through */}
           {Platform.OS === 'ios' ? (
-            <BlurView
-              intensity={88}
-              tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
-              style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
-            />
+            <>
+              <BlurView
+                intensity={72}
+                tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
+                style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
+              />
+              <View style={[
+                StyleSheet.absoluteFill,
+                {
+                  backgroundColor: Colors.bg === '#0F0F17' ? 'rgba(18,18,26,0.88)' : 'rgba(255,255,255,0.92)',
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                },
+              ]} />
+            </>
           ) : (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
           )}

@@ -17,8 +17,8 @@ interface Params {
   dok: Dokument | null | undefined;
   actions: ReturnType<typeof useDocumentActions>;
   openModal: OpenModalFn;
-  anonModus: boolean;
-  setAnonModus: ModalController['setAnonModus'];
+  anonModus?: boolean;
+  setAnonModus?: ModalController['setAnonModus'];
   partnerEmailEnabled: boolean;
   setMoreMenu: (v: boolean | ((p: boolean) => boolean)) => void;
   setBudgetModalVisible: (v: boolean) => void;
@@ -28,8 +28,6 @@ export function useDetailMoreItems({
   dok,
   actions,
   openModal,
-  anonModus,
-  setAnonModus,
   partnerEmailEnabled,
   setMoreMenu: _setMoreMenu,
   setBudgetModalVisible,
@@ -105,22 +103,7 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 9. Hilfe & Beratung ───────────────────────────────────────────────────
-    rows.push({
-      key: 'menu_h', icon: 'lifebuoy', label: 'Hilfe & Beratung', group: 'advanced',
-      onPress: () => openModal('hilfe'),
-    });
-
-    // ── 10. Anonymisierung ────────────────────────────────────────────────────
-    rows.push({
-      key:  'anon',
-      icon: anonModus ? 'eye-slash' : 'eye',
-      label: anonModus ? 'Anonymisierung ausschalten' : 'Anonymisierung einschalten',
-      group: 'advanced',
-      onPress: () => setAnonModus(v => !v),
-    });
-
-    // ── 11. Partner informieren (conditional) ─────────────────────────────────
+    // ── 9. Partner informieren (conditional) ─────────────────────────────────
     if (partnerEmailEnabled) {
       rows.push({
         key: 'menu_partner', icon: 'users', label: 'Partner informieren', group: 'secondary',
@@ -158,5 +141,5 @@ export function useDetailMoreItems({
     }
 
     return rows;
-  }, [dok, actions, openModal, anonModus, setAnonModus, partnerEmailEnabled, setBudgetModalVisible]);
+  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible]);
 }

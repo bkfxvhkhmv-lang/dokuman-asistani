@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Dimensions, Modal, TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
@@ -29,13 +29,20 @@ export default function AppSheet({
   const { t: T } = useT();
   const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(false);
+  const closeFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const translateY    = useSharedValue(SCREEN_H);
   const backdropAlpha = useSharedValue(0);
 
   // Step 1 — mount the Modal when becoming visible
   useEffect(() => {
-    if (visible) setMounted(true);
+    if (visible) {
+      if (closeFallbackRef.current) {
+        clearTimeout(closeFallbackRef.current);
+        closeFallbackRef.current = null;
+      }
+      setMounted(true);
+    }
   }, [visible]);
 
   // Step 2 — animate in/out whenever visible or mount state changes
@@ -46,10 +53,27 @@ export default function AppSheet({
       translateY.value    = withSpring(0, SPRING);
       backdropAlpha.value = withTiming(1, { duration: 240 });
     } else {
+      if (closeFallbackRef.current) clearTimeout(closeFallbackRef.current);
+      closeFallbackRef.current = setTimeout(() => {
+        if (__DEV__) {
+          console.warn('[APPSHEET_GUARD] forced unmount after close timeout');
+        }
+        setMounted(false);
+        closeFallbackRef.current = null;
+      }, 650);
       translateY.value    = withTiming(SCREEN_H, { duration: 260 }, () => runOnJS(setMounted)(false));
       backdropAlpha.value = withTiming(0, { duration: 220 });
     }
   }, [visible, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      if (closeFallbackRef.current) {
+        clearTimeout(closeFallbackRef.current);
+        closeFallbackRef.current = null;
+      }
+    };
+  }, []);
 
   // Swipe-to-close gesture — attached only to the handle area
   const pan = Gesture.Pan()
@@ -80,16 +104,22 @@ export default function AppSheet({
     opacity: backdropAlpha.value,
   }));
 
+  const interactive = visible && mounted;
+
   return (
-    <Modal visible={mounted} transparent animationType="none" statusBarTranslucent>
+    <Modal visible={mounted} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
       <View style={StyleSheet.absoluteFill}>
         {/* Backdrop */}
-        <Animated.View style={[StyleSheet.absoluteFill, st.backdrop, bgStyle]}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} />
+        <Animated.View
+          pointerEvents={interactive ? 'auto' : 'none'}
+          style={[StyleSheet.absoluteFill, st.backdrop, bgStyle]}
+        >
+          <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} disabled={!interactive} />
         </Animated.View>
 
         {/* Sheet */}
         <Animated.View
+          pointerEvents={interactive ? 'auto' : 'none'}
           style={[
             st.sheet,
             { borderTopColor: Colors.border, paddingBottom: Math.max(20, insets.bottom + 12) },

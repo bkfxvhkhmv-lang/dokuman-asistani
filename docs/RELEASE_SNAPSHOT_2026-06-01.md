@@ -167,7 +167,82 @@ The core product is a **document assistant for German letters, invoices and ever
 1. **MRT güncellemesi** — bu dosya ✅
 2. **`preflight_all` çalıştır** — OCR backend reachability son doğrulama
 3. **TestFlight build** — `eas build --platform ios --profile testflight`
-4. **Sprint 2 backlog** — HUK sender, PDF signing polish, health path
+4. **Sprint 2 backlog** — HUK sender, PDF signing polish, health path, Steuerberater Export v2
+
+---
+
+## 9. Steuerberater Export v2 — Backlog (High Value, Next Sprint)
+
+**Not a TestFlight blocker. Do not implement before current build.**
+
+### Why this matters
+
+Current `Steuerpaket` exports a single merged PDF. That is useful but not what a tax advisor actually needs: they receive one unstructured file and must split it manually. The real value — and the feature that will delight both users and their advisors — is a structured package with individual documents and a data manifest.
+
+### Current state (v1)
+
+| Component | Status |
+|-----------|--------|
+| `collectSteuerpaketDokumente` — filters tax-relevant docs | ✅ exists |
+| `exportiereTopluPDF` — merged PDF via share sheet | ✅ exists |
+| `steuerpaketExport.ts` — TODO note for manifest/CSV | ✅ noted in code |
+| Individual Belege PDFs | ❌ |
+| CSV / Excel manifest | ❌ |
+| ZIP package | ❌ |
+
+### Target output (v2)
+
+```
+BriefPilot_Steuer_2026.zip
+  /Belege/
+    2026-03-01_HUK24_246-18.pdf
+    2026-04-15_Finanzamt_340-00.pdf
+    2026-05-31_BWW_Energie_GmbH_680-40.pdf
+  BriefPilot_Ausgaben_2026.csv
+  README.txt
+```
+
+### CSV columns
+
+| Column | Source field |
+|--------|-------------|
+| Belegdatum | `dok.dokumentDatum` |
+| Erfasst am | `dok.datum` |
+| Absender | `dok.absender` |
+| Empfänger | `dok.empfaenger` (future) |
+| Dokumenttyp | `dok.typ` |
+| Kategorie | `dok.userOrdner` / `dok.profilId` |
+| Betrag | `dok.betrag` |
+| Währung | `dok.waehrung` |
+| IBAN | `dok.iban` |
+| Verwendungszweck | `dok.zahlungszweck` |
+| Aktenzeichen | `dok.aktenzeichen` |
+| Kundennummer | `dok.kundennr` |
+| Status | `dok.erledigt` |
+| Dateiname | derived from sender + date + amount |
+| Notiz | — |
+
+### Implementation path (client-side, no backend needed)
+
+1. CSV generation — plain JS string builder
+2. Individual PDF export — iterate docs, copy/share each `dok.uri`
+3. ZIP creation — `expo-file-system` + JS zip library
+4. Share — `expo-sharing`
+
+### Versioning plan
+
+| Version | Scope |
+|---------|-------|
+| v2a | CSV + individual Belege ZIP |
+| v2b | XLSX + column formatting |
+| v2c | DATEV / Beleglink research (separate decision) |
+
+### Product copy
+
+> **Für Steuerberater vorbereiten**
+> Excel-Übersicht und Belege als ZIP exportieren
+
+Do not use "DATEV-kompatibel" until a real DATEV format is implemented.
 
 ---
 

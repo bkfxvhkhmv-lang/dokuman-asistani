@@ -392,5 +392,13 @@ Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List
 - **Localization audit:** Türkçe/Almanca karışık string'ler
 - **Onboarding:** First-value akışı (`/first-value` route)
 - **App icon:** Final versiyon
-- **DATEV export:** `ENABLE_RELEASE_DATEV_EXPORT` flag açılınca aktif
+- **DATEV export:** `ENABLE_RELEASE_DATEV_EXPORT` flag açılınca aktif. Gerçek DATEV EXTF/Beleglink formatı ayrı araştırma gerektirir.
 - **Partner email:** Zahlen mit Partner akışı test edilmedi
+- **Steuerberater Export v2 ⭐ High-value next sprint:**
+  Mevcut Steuerpaket sadece birleşik PDF çıkarıyor — tax advisor için ideal değil.
+  Hedef: `BriefPilot_Steuer_YYYY.zip` → `/Belege/` (ayrı PDF'ler) + `BriefPilot_Ausgaben_YYYY.csv` + `README.txt`.
+  CSV kolonları: Belegdatum · Erfasst am · Absender · Dokumenttyp · Betrag · Währung · IBAN · Verwendungszweck · Aktenzeichen · Kundennummer · Status · Dateiname.
+  Uygulama: client-side (CSV string builder + expo-file-system ZIP + expo-sharing). Backend gerekmez.
+  Sıra: v2a CSV+ZIP → v2b XLSX → v2c DATEV araştırması.
+  Ürün copy: "Für Steuerberater vorbereiten — Excel-Übersicht und Belege als ZIP exportieren". "DATEV-kompatibel" deme henüz.
+  Altyapı hazır: `collectSteuerpaketDokumente` + `exportiereTopluPDF` + `steuerpaketExport.ts` TODO notu mevcut.

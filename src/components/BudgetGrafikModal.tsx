@@ -18,7 +18,7 @@
  * Eski monolithic versiyon 476 satir tek dosyaydi; modulerlestirme
  * sonrasi her bilesen ayri test edilebilir.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store';
@@ -39,17 +39,21 @@ interface Props {
   docs:    Dokument[];
 }
 
+type UebersichtModus = 'monat' | 'jahr';
+
 export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
   const { Colors: C } = useTheme();
   const mevcutYil = new Date().getFullYear();
 
   const [seciliYil, setSeciliYil]     = useState(mevcutYil);
   const [seciliMonat, setSeciliMonat] = useState(new Date().getMonth() + 1);
+  const [modus, setModus]             = useState<UebersichtModus>('monat');
 
   // Veri turetimi (gruplamalar + ozet) hook'tan
   const {
     yillar, monatsGruppen, typGruppen, absenderGruppen,
-    gesamtBetrag, seciliAyDocs, seciliAyBetrag, maxMonatsBetrag,
+    gesamtBetrag, jahresDokumentAnzahl, seciliAyDocs, seciliAyBetrag,
+    seciliAyDokumentAnzahl, maxMonatsBetrag, seciliAyTypGruppen, seciliAyAbsenderGruppen,
   } = useBudgetData(docs, seciliYil, seciliMonat);
 
   // Pan + spring tooltip + haptik etkilesim
@@ -59,6 +63,19 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
 
   const seciliAyName = new Date(seciliYil, seciliMonat - 1, 1)
     .toLocaleString('de-DE', { month: 'long' });
+  const jahresDurchschnitt = gesamtBetrag / 12;
+  const aktiverGesamtbetrag = modus === 'jahr' ? gesamtBetrag : seciliAyBetrag;
+  const leerZustandText = modus === 'jahr'
+    ? 'Keine Ausgaben mit Betrag gefunden.'
+    : 'Keine Ausgaben für diesen Monat.';
+  const aktiverTypGruppen = modus === 'jahr' ? typGruppen : seciliAyTypGruppen;
+  const verteilungsTitel = modus === 'jahr' ? 'Jahresübersicht nach Dokumenttyp' : `Monatsübersicht nach Dokumenttyp`;
+  const absenderTitel = modus === 'jahr' ? 'Höchste Ausgaben nach Absender' : `Absender im ${seciliAyName}`;
+  const aktiveAbsenderGruppen = modus === 'jahr' ? absenderGruppen : seciliAyAbsenderGruppen;
+  const modusBeschreibung = useMemo(
+    () => (modus === 'jahr' ? `${seciliYil} im Überblick` : `${seciliAyName} ${seciliYil} im Überblick`),
+    [modus, seciliAyName, seciliYil],
+  );
 
   return (
     <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
@@ -86,15 +103,64 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
 
         <BudgetYearStrip yillar={yillar} seciliYil={seciliYil} onSelectYil={setSeciliYil} C={C} />
 
+        <View style={{ paddingHorizontal: 16, marginBottom: 14 }}>
+          <View style={{
+            flexDirection: 'row',
+            alignSelf: 'flex-start',
+            gap: 6,
+            padding: 4,
+            borderRadius: 12,
+            backgroundColor: C.bgInput,
+            borderWidth: 0.5,
+            borderColor: C.border,
+          }}>
+            {([
+              ['monat', 'Monat'],
+              ['jahr', 'Jahr'],
+            ] as const).map(([key, label]) => {
+              const active = modus === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => setModus(key)}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 10,
+                    backgroundColor: active ? C.primary : 'transparent',
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: active ? '#fff' : C.textSecondary }}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text style={{ fontSize: 12, color: C.textTertiary, marginTop: 8 }}>
+            {modusBeschreibung}
+          </Text>
+        </View>
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
         >
-          {gesamtBetrag === 0 ? (
-            <BudgetChartEmpty seciliYil={seciliYil} secondaryColor={C.textSecondary} />
+          {aktiverGesamtbetrag === 0 ? (
+            <BudgetChartEmpty seciliYil={seciliYil} secondaryColor={C.textSecondary} title={leerZustandText} />
           ) : (
             <>
-              <SummaryHeader seciliYil={seciliYil} gesamtBetrag={gesamtBetrag} C={C} />
+              <SummaryHeader
+                modus={modus}
+                seciliYil={seciliYil}
+                seciliAyName={seciliAyName}
+                gesamtBetrag={gesamtBetrag}
+                jahresDurchschnitt={jahresDurchschnitt}
+                jahresDokumentAnzahl={jahresDokumentAnzahl}
+                seciliAyBetrag={seciliAyBetrag}
+                seciliAyDokumentAnzahl={seciliAyDokumentAnzahl}
+                C={C}
+              />
 
               <MonatsChart
                 monatsGruppen={monatsGruppen}
@@ -108,16 +174,20 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
                 crosshairStyle={chart.crosshairStyle}
                 isPanning={chart.isPanning}
                 C={C}
+                title={modus === 'jahr' ? 'Jahresübersicht' : 'Monatsübersicht'}
               />
 
               <SeciliAyDetay
+                modus={modus}
+                seciliYil={seciliYil}
                 ayName={seciliAyName}
                 ayBetrag={seciliAyBetrag}
                 seciliAyDocs={seciliAyDocs}
+                dokumentAnzahl={seciliAyDokumentAnzahl}
                 C={C}
               />
 
-              {typGruppen.length > 0 && (
+              {aktiverTypGruppen.length > 0 && (
                 <View
                   style={{
                     backgroundColor: C.bgInput, borderRadius: 14, padding: 14,
@@ -125,20 +195,20 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
                   }}
                 >
                   <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, marginBottom: 14 }}>
-                    Nach Dokumenttyp
+                    {verteilungsTitel}
                   </Text>
-                  {typGruppen.map(({ typ, betrag, anzahl }) => (
+                  {aktiverTypGruppen.map(({ typ, betrag, anzahl }) => (
                     <TypBalken
                       key={typ}
                       typ={typ} betrag={betrag} anzahl={anzahl}
-                      gesamtBetrag={gesamtBetrag}
+                      gesamtBetrag={aktiverGesamtbetrag}
                       C={C}
                     />
                   ))}
                 </View>
               )}
 
-              <TopAbsender absenderListe={absenderGruppen} C={C} />
+              <TopAbsender absenderListe={aktiveAbsenderGruppen} C={C} title={absenderTitel} />
             </>
           )}
         </ScrollView>

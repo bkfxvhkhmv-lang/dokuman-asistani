@@ -126,8 +126,6 @@ export function useDetailBildschirmLogic() {
     dok: detail.dok,
     actions,
     openModal: modal.open,
-    anonModus: modal.anonModus,
-    setAnonModus: modal.setAnonModus,
     partnerEmailEnabled,
     setMoreMenu,
     setBudgetModalVisible,

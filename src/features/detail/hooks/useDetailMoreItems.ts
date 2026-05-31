@@ -1,13 +1,12 @@
 /**
  * Inline tool order (Erledigen tab):
- * Exportieren → PDF unterschreiben → Bearbeiten → Ausgaben →
- * Fragen → Antwort → Formular → Behörden → Hilfe →
- * Erledigt → Löschen
+ * Exportieren → Angaben bearbeiten → Ausgaben →
+ * Antwort → PDF unterschreiben → Erledigt → Löschen
  */
 import { useMemo } from 'react';
 import type { Dokument } from '@/store';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
-import type { ModalController, ModalData } from '@/features/detail/hooks/useModalController';
+import type { ModalData } from '@/features/detail/hooks/useModalController';
 import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
 import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
 
@@ -17,8 +16,6 @@ interface Params {
   dok: Dokument | null | undefined;
   actions: ReturnType<typeof useDocumentActions>;
   openModal: OpenModalFn;
-  anonModus?: boolean;
-  setAnonModus?: ModalController['setAnonModus'];
   partnerEmailEnabled: boolean;
   setMoreMenu: (v: boolean | ((p: boolean) => boolean)) => void;
   setBudgetModalVisible: (v: boolean) => void;
@@ -50,19 +47,17 @@ export function useDetailMoreItems({
       onPress: () => openModal('exportieren'),
     });
 
-    // ── 2. PDF mit Unterschrift ───────────────────────────────────────────────
+    // ── 2. Angaben bearbeiten ─────────────────────────────────────────────────
     rows.push({
-      key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF mit Unterschrift', group: 'advanced',
-      onPress: () => openModal('signatur'),
-    });
-
-    // ── 3. Dokument bearbeiten ────────────────────────────────────────────────
-    rows.push({
-      key: 'menu_edit', icon: 'pencil-simple', label: 'Dokument bearbeiten', group: 'secondary',
+      key: 'menu_edit',
+      icon: 'pencil-simple',
+      label: 'Angaben bearbeiten',
+      subtitle: 'Typ, Betrag, Datum oder Absender anpassen',
+      group: 'secondary',
       onPress: tap(actions.handleEdit),
     });
 
-    // ── 4. Ausgaben-Übersicht (conditional) ──────────────────────────────────
+    // ── 3. Ausgaben-Übersicht (conditional) ──────────────────────────────────
     if (aktiv.includes('zahlen') || dok.typ === 'Rechnungen') {
       rows.push({
         key: 'menu_budget', icon: 'chart-bar', label: 'Ausgaben-Übersicht', group: 'advanced',
@@ -70,15 +65,7 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 5. Fragen zum Dokument (conditional) ─────────────────────────────────
-    if (dok.rohText || dok.zusammenfassung) {
-      rows.push({
-        key: 'menu_chat', icon: 'chat-circle', label: 'Fragen zum Dokument', group: 'communication',
-        onPress: () => openModal('chat'),
-      });
-    }
-
-    // ── 6. Antwort schreiben (conditional) ───────────────────────────────────
+    // ── 4. Antwort schreiben (conditional) ───────────────────────────────────
     const antwortTypen: string[] = ['Behörden / Amt', 'Versicherung'];
     if (aktiv.includes('mail') || aktiv.includes('einspruch') || antwortTypen.includes(dok.typ ?? '')) {
       rows.push({
@@ -87,23 +74,16 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 7. Formular ausfüllen (conditional) ──────────────────────────────────
-    if (aktiv.includes('form')) {
+    // ── 5. PDF mit Unterschrift (conditional) ────────────────────────────────
+    const signbareTypen = new Set(['Formular', 'Vertrag', 'Antrag', 'Behörden / Amt']);
+    if (aktiv.includes('form') || signbareTypen.has(dok.typ ?? '')) {
       rows.push({
-        key: 'menu_formular', icon: 'clipboard-text', label: 'Formular ausfüllen', group: 'communication',
-        onPress: () => openModal('formular'),
+        key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF mit Unterschrift', group: 'advanced',
+        onPress: () => openModal('signatur'),
       });
     }
 
-    // ── 8. Behörden & Institutionen (conditional) ─────────────────────────────
-    if (dok.typ === 'Behörden / Amt') {
-      rows.push({
-        key: 'menu_kur', icon: 'buildings', label: 'Behörden & Institutionen', group: 'advanced',
-        onPress: () => openModal('kurumlar'),
-      });
-    }
-
-    // ── 9. Partner informieren (conditional) ─────────────────────────────────
+    // ── 6. Partner informieren (conditional) ─────────────────────────────────
     if (partnerEmailEnabled) {
       rows.push({
         key: 'menu_partner', icon: 'users', label: 'Partner informieren', group: 'secondary',
@@ -111,14 +91,14 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 12. Als erledigt / Als offen ──────────────────────────────────────────
+    // ── 7. Als erledigt / Als offen ──────────────────────────────────────────
     rows.push(
       dok.erledigt
         ? { key: 'menu_erl', icon: 'arrow-counter-clockwise', label: 'Als offen markieren',    group: 'secondary', onPress: tap(actions.handleErledigt) }
         : { key: 'menu_erl', icon: 'check-circle',             label: 'Als erledigt markieren', group: 'secondary', onPress: tap(actions.handleErledigt) },
     );
 
-    // ── 13. Dokument löschen (destructive) ────────────────────────────────────
+    // ── 8. Dokument löschen (destructive) ────────────────────────────────────
     rows.push({
       key: 'del', icon: 'trash', label: 'Dokument löschen',
       group: 'advanced', destructive: true,

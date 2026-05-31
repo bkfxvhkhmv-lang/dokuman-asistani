@@ -15,6 +15,7 @@ import AnimatedCounter from '@/components/budget-grafik/AnimatedCounter';
 import type { MonatsGruppe } from '@/components/budget-grafik/types';
 
 interface Props {
+  title?: string;
   monatsGruppen:   MonatsGruppe[];
   maxMonatsBetrag: number;
   seciliMonat:     number;
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function MonatsChart({
+  title = 'Jahresübersicht',
   monatsGruppen, maxMonatsBetrag, seciliMonat, seciliAyBetrag, setSeciliMonat,
   panHandlers, onChartLayout, tooltipStyle, crosshairStyle, isPanning,
   C,
@@ -44,7 +46,7 @@ export default function MonatsChart({
       }}
     >
       <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, marginBottom: 12 }}>
-        Monatlicher Verlauf — Tippen für Details
+        {title}
       </Text>
 
       <View

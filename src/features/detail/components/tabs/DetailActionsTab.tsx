@@ -90,14 +90,24 @@ export default function DetailActionsTab({
                     size={18}
                     color={isDestructive ? C.danger : C.textSecondary}
                   />
-                  <Text style={{
-                    flex: 1,
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: isDestructive ? C.danger : C.text,
-                  }}>
-                    {item.label}
-                  </Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{
+                      fontSize: 14,
+                      fontWeight: '600',
+                      color: isDestructive ? C.danger : C.text,
+                    }}>
+                      {item.label}
+                    </Text>
+                    {!!item.subtitle && !isDestructive && (
+                      <Text style={{
+                        marginTop: 2,
+                        fontSize: 11,
+                        color: C.textTertiary,
+                      }}>
+                        {item.subtitle}
+                      </Text>
+                    )}
+                  </View>
                   {!isDestructive && (
                     <Icon name="caret-right" size={14} color={C.border} />
                   )}

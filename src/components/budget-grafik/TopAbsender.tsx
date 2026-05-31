@@ -10,9 +10,10 @@ import { TYP_FARBEN, type AbsenderGruppe } from '@/components/budget-grafik/type
 interface Props {
   absenderListe: AbsenderGruppe[];
   C: ThemeColors;
+  title?: string;
 }
 
-export default function TopAbsender({ absenderListe, C }: Props) {
+export default function TopAbsender({ absenderListe, C, title = 'Höchste Ausgaben nach Absender' }: Props) {
   if (absenderListe.length === 0) return null;
   const palette = Object.values(TYP_FARBEN);
 
@@ -24,7 +25,7 @@ export default function TopAbsender({ absenderListe, C }: Props) {
       }}
     >
       <Text style={{ fontSize: 12, fontWeight: '700', color: C.text, marginBottom: 12 }}>
-        🏢 Höchste Ausgaben nach Absender
+        🏢 {title}
       </Text>
       {absenderListe.slice(0, 5).map(({ ad, betrag, anzahl }, i) => (
         <View

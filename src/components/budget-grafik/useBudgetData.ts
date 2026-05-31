@@ -20,8 +20,12 @@ export interface BudgetData {
   typGruppen:      TypGruppe[];
   absenderGruppen: AbsenderGruppe[];
   gesamtBetrag:    number;
+  jahresDokumentAnzahl: number;
   seciliAyDocs:    Dokument[];
   seciliAyBetrag:  number;
+  seciliAyDokumentAnzahl: number;
+  seciliAyTypGruppen: TypGruppe[];
+  seciliAyAbsenderGruppen: AbsenderGruppe[];
   maxMonatsBetrag: number;
 }
 
@@ -53,12 +57,14 @@ export function useBudgetData(
     const typMap:      Record<string, { betrag: number; anzahl: number }> = {};
     const absenderMap: Record<string, { betrag: number; anzahl: number }> = {};
     let total = 0;
+    let anzahl = 0;
 
     yilDocs.forEach(d => {
       const betrag = d.betrag ?? 0;
       const monat  = new Date(d.datum).getMonth() + 1;
       monatsMap[monat] = (monatsMap[monat] || 0) + betrag;
       total += betrag;
+      anzahl += 1;
 
       const typ = d.typ || 'Sonstiges';
       typMap[typ] = typMap[typ] || { betrag: 0, anzahl: 0 };
@@ -82,7 +88,7 @@ export function useBudgetData(
       .sort((a, b) => b[1].betrag - a[1].betrag)
       .map(([ad, v]) => ({ ad, ...v }));
 
-    return { monatsGruppen, typGruppen, absenderGruppen, gesamtBetrag: total };
+    return { monatsGruppen, typGruppen, absenderGruppen, gesamtBetrag: total, jahresDokumentAnzahl: anzahl };
   }, [docs, seciliYil]);
 
   const seciliAyDocs = useMemo(() => {
@@ -95,6 +101,32 @@ export function useBudgetData(
     }).sort((a, b) => (b.betrag ?? 0) - (a.betrag ?? 0));
   }, [docs, seciliYil, seciliMonat]);
 
+  const seciliAyTypGruppen = useMemo(() => {
+    const typMap: Record<string, { betrag: number; anzahl: number }> = {};
+    seciliAyDocs.forEach(d => {
+      const typ = d.typ || 'Sonstiges';
+      typMap[typ] = typMap[typ] || { betrag: 0, anzahl: 0 };
+      typMap[typ].betrag += d.betrag ?? 0;
+      typMap[typ].anzahl += 1;
+    });
+    return Object.entries(typMap)
+      .sort((a, b) => b[1].betrag - a[1].betrag)
+      .map(([typ, v]) => ({ typ, ...v }));
+  }, [seciliAyDocs]);
+
+  const seciliAyAbsenderGruppen = useMemo(() => {
+    const absenderMap: Record<string, { betrag: number; anzahl: number }> = {};
+    seciliAyDocs.forEach(d => {
+      const key = d.absender || 'Unbekannt';
+      absenderMap[key] = absenderMap[key] || { betrag: 0, anzahl: 0 };
+      absenderMap[key].betrag += d.betrag ?? 0;
+      absenderMap[key].anzahl += 1;
+    });
+    return Object.entries(absenderMap)
+      .sort((a, b) => b[1].betrag - a[1].betrag)
+      .map(([ad, v]) => ({ ad, ...v }));
+  }, [seciliAyDocs]);
+
   const maxMonatsBetrag = Math.max(...grouped.monatsGruppen.map(m => m.betrag), 1);
   const seciliAyBetrag  = grouped.monatsGruppen.find(m => m.monat === seciliMonat)?.betrag || 0;
 
@@ -104,8 +136,12 @@ export function useBudgetData(
     typGruppen:      grouped.typGruppen,
     absenderGruppen: grouped.absenderGruppen,
     gesamtBetrag:    grouped.gesamtBetrag,
+    jahresDokumentAnzahl: grouped.jahresDokumentAnzahl,
     seciliAyDocs,
     seciliAyBetrag,
+    seciliAyDokumentAnzahl: seciliAyDocs.length,
+    seciliAyTypGruppen,
+    seciliAyAbsenderGruppen,
     maxMonatsBetrag,
   };
 }

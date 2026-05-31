@@ -11,14 +11,41 @@ import { TYP_IKON } from '@/components/budget-grafik/types';
 import type { Dokument } from '@/store';
 
 interface Props {
+  modus:        'monat' | 'jahr';
+  seciliYil:    number;
   ayName:       string;
   ayBetrag:     number;
   seciliAyDocs: Dokument[];
+  dokumentAnzahl: number;
   C:            ThemeColors;
 }
 
-export default function SeciliAyDetay({ ayName, ayBetrag, seciliAyDocs, C }: Props) {
-  if (ayBetrag <= 0) return null;
+export default function SeciliAyDetay({
+  modus,
+  seciliYil,
+  ayName,
+  ayBetrag,
+  seciliAyDocs,
+  dokumentAnzahl,
+  C,
+}: Props) {
+  if (modus === 'jahr') return null;
+
+  if (ayBetrag <= 0) {
+    return (
+      <View
+        style={{
+          backgroundColor: C.bgInput, borderRadius: 14, padding: 14,
+          marginBottom: 16, borderWidth: 0.5, borderColor: C.border,
+        }}
+      >
+        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Monatsübersicht</Text>
+        <Text style={{ fontSize: 12, color: C.textTertiary, marginTop: 6 }}>
+          Keine Ausgaben für diesen Monat.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -28,10 +55,18 @@ export default function SeciliAyDetay({ ayName, ayBetrag, seciliAyDocs, C }: Pro
       }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{ayName}</Text>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>
-          {formatBetrag(ayBetrag)}
-        </Text>
+        <View>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{ayName} {seciliYil}</Text>
+          <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 2 }}>
+            {dokumentAnzahl} Dokumente mit Betrag
+          </Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 11, color: C.textTertiary }}>Gesamt</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>
+            {formatBetrag(ayBetrag)}
+          </Text>
+        </View>
       </View>
       {seciliAyDocs.slice(0, 6).map((d, i) => (
         <View

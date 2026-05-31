@@ -195,7 +195,11 @@ export function useHomeState() {
     });
   }, [secilenModus]);
 
-  const secimiIptal = useCallback(() => { setSecilenModus(false); setSecilenIds(new Set()); }, []);
+  const secimiIptal  = useCallback(() => { setSecilenModus(false); setSecilenIds(new Set()); }, []);
+  const secimiBaslat = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSecilenModus(true);
+  }, []);
 
   const handleBatchExport = useCallback(async () => {
     const secilen = state.dokumente.filter(d => secilenIds.has(d.id));
@@ -332,7 +336,7 @@ export function useHomeState() {
     aktiv, setAktiv, handleTabPress,
     filter, setFilter, filterAktiv,
     initialLaden, aktifOrdner, setAktifOrdner,
-    secilenModus, secilenIds, secimiIptal, handleSecim, handleLongPress,
+    secilenModus, secilenIds, secimiIptal, secimiBaslat, handleSecim, handleLongPress,
     handleBatchExport, handleSteuerpaketAuswahl, handleBatchLoeschen,
     umbenennenModal, setUmbenennenModal, umbenennenTyp, setUmbenennenTyp,
     umbenennenText, setUmbenennenText, kombiName, setKombiName,

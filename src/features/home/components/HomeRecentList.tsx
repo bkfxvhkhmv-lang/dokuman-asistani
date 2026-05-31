@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import type { Dokument } from '@/store';
@@ -156,6 +156,18 @@ function HomeRecentListInner({ data }: { data: any }) {
     <View style={st.wrap}>
       <View style={st.header}>
         <Text style={[st.title, { color: data.Colors.text, fontSize: fs(17) }]}>{section.title}</Text>
+        {!data.secilenModus && docs.length > 0 && (
+          <TouchableOpacity
+            onPress={data.secimiBaslat}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Auswählen"
+          >
+            <Text style={{ color: data.Colors.primary, fontSize: 14, fontWeight: '600' }}>
+              Auswählen
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>

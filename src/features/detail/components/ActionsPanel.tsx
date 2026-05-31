@@ -134,7 +134,7 @@ function buildPressMap(handlers: Record<string, (() => void) | undefined>) {
     vorlage: handlers.onYanitSablon, institutionen: handlers.onKurumlar,
     hilfe: handlers.onHilfe, partner: handlers.onZahlenMitPartner,
     gutschrift: handlers.onEdit,
-    zahlendaten: handlers.onEdit,
+    zahlendaten: handlers.onZahlen,
   };
 }
 

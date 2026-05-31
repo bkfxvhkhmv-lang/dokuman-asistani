@@ -57,7 +57,7 @@ export function useDetailMoreItems({
         key: 'menu_zahlen', icon: 'currency-eur',
         label: hasCompletePaymentTarget(dok) ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         group: 'main',
-        onPress: hasCompletePaymentTarget(dok) ? tap(actions.handleZahlen) : tap(actions.handleEdit),
+        onPress: tap(actions.handleZahlen),
       });
     }
 

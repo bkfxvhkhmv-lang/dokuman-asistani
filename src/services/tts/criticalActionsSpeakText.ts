@@ -1,77 +1,96 @@
 import type { Dokument } from '@/store';
 
-/** LLM aksiyon anahtarları → insan okumasina uygun kısa etiketler */
-const AKTION_DE: Record<string, string> = {
-  zahlen:           'Bezahlen',
-  einspruch:        'Widerspruch',
-  kalender:         'Kalendereintrag',
-  antworten:        'Antwort verfassen',
-  dokument:         'Dokument bereitstellen',
-  unterschreiben:   'Unterschrift',
-};
-const AKTION_TR: Record<string, string> = {
-  zahlen:           'Ödeme',
-  einspruch:        'İtiraz',
-  kalender:         'Takvim',
-  antworten:        'Yanıt yazma',
-  dokument:         'Belge yükleme',
-  unterschreiben:   'İmza',
-};
-
-const RISK_DE = (v: Dokument['risiko']): string => {
-  const m = {
-    hoch:    'hohes Risiko',
-    mittel:  'mittleres Risiko',
-    niedrig: 'geringes Risiko',
-  } as const;
-  return v ? (m[v] ?? '') : '';
-};
-
-function riskTr(v: Dokument['risiko']): string {
-  const m = { hoch: 'yüksek risk', mittel: 'orta risk', niedrig: 'düşük risk' } as const;
-  return v ? (m[v] ?? '') : '';
-}
-
-function aktionEtiketi(k: string, tr: boolean): string {
-  const raw = k.trim().toLowerCase();
-  const d = AKTION_DE[raw] ?? k;
-  const t = AKTION_TR[raw] ?? d;
-  return tr ? t : d;
-}
-
 function fmtFrist(iso: string, tr: boolean): string {
   return new Date(iso).toLocaleDateString(tr ? 'tr-TR' : 'de-DE', {
-    weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
 }
 
+function isUnknownLike(v: string | null | undefined): boolean {
+  const s = (v ?? '').trim().toLowerCase();
+  return !s || s === 'unbekannt' || s === 'unknown' || s === 'unbekannter absender';
+}
+
+function isPaymentType(typ: string | null | undefined): boolean {
+  return /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/i.test(typ ?? '');
+}
+
+function isInsurance(typ: string | null | undefined): boolean {
+  return /versicherung/i.test(typ ?? '');
+}
+
 /**
- * Öncelik / son tarih / aksiyon listesi için kısa vorlese-Metni.
+ * Builds a short, natural German (or Turkish) spoken summary for "Kritische Punkte anhören".
+ * Never reads UI section headers like "Risiko", "Empfohlene Aktionen", "Kalendereintrag".
+ * Returns 1–3 conversational sentences focused on what the user should check or do next.
  */
 export function buildCriticalActionsSpeakText(d: Dokument, lang: string): string | null {
   const tr = lang === 'tr';
-  const teile: string[] = [];
+  const sentences: string[] = [];
 
-  const riskStr = tr ? riskTr(d.risiko) : RISK_DE(d.risiko);
-  if (riskStr) teile.push(tr ? `Risk: ${riskStr}` : `Risiko: ${riskStr}`);
+  const betragFehlt = d.betrag == null;
+  const ibanFehlt   = !d.iban;
+  const senderFehlt = isUnknownLike(d.absender);
+  const hatFrist    = !!d.frist;
+  const istZahlung  = isPaymentType(d.typ);
+  const istVersicherung = isInsurance(d.typ);
+  const istHoch     = d.risiko === 'hoch';
 
-  if (d.frist) {
-    const f = fmtFrist(d.frist, tr);
-    teile.push(tr ? `Son tarih: ${f}` : `Frist: ${f}`);
+  if (tr) {
+    // Turkish summary
+    if (betragFehlt && istZahlung) {
+      sentences.push('Tutar güvenli bir şekilde tanınamadı. Ödeme yapmadan önce lütfen tutarı kontrol et veya tamamla.');
+    } else if (betragFehlt && istVersicherung) {
+      sentences.push('Sigorta tutarı tanınamadı. Lütfen tutarı kontrol et.');
+    } else if (istZahlung && ibanFehlt) {
+      sentences.push('Havale için bazı bilgiler eksik. Lütfen tutar, alacaklı ve IBAN\'ı kontrol et.');
+    }
+
+    if (senderFehlt) {
+      sentences.push('Gönderen güvenli bir şekilde tanınamadı. Lütfen gönderenin doğru olup olmadığını kontrol et.');
+    }
+
+    if (hatFrist) {
+      const f = fmtFrist(d.frist!, tr);
+      sentences.push(`${f} tarihli olası bir son tarih var. Gerekirse bir takvim hatırlatıcısı oluştur.`);
+    }
+
+    if (istHoch && sentences.length === 0) {
+      sentences.push('Bu belgede yüksek risk işareti var. Lütfen dikkatlice incele.');
+    }
+
+    if (sentences.length === 0) {
+      sentences.push('Lütfen başlıca bilgileri kısaca kontrol et: gönderen, tutar ve tarih.');
+    }
+  } else {
+    // German summary — conversational, user-first
+    if (betragFehlt && istZahlung) {
+      sentences.push('Der Betrag wurde nicht sicher erkannt. Bitte prüfe oder ergänze den Betrag, bevor du eine Zahlung vorbereitest.');
+    } else if (betragFehlt && istVersicherung) {
+      sentences.push('Der Versicherungsbeitrag wurde nicht erkannt. Bitte prüfe den Betrag im Dokument.');
+    } else if (istZahlung && ibanFehlt) {
+      sentences.push('Für eine Überweisung fehlen noch Angaben. Bitte prüfe Betrag, Empfänger und IBAN.');
+    }
+
+    if (senderFehlt) {
+      sentences.push('Der Absender wurde nicht sicher erkannt. Bitte prüfe, ob der Absender zum Dokument passt.');
+    }
+
+    if (hatFrist) {
+      const f = fmtFrist(d.frist!, tr);
+      sentences.push(`Es gibt eine mögliche Frist bis ${f}. Lege bei Bedarf einen Kalendereintrag an.`);
+    }
+
+    if (istHoch && sentences.length === 0) {
+      sentences.push('Dieses Dokument hat ein erhöhtes Risiko. Bitte prüfe die wichtigsten Angaben sorgfältig.');
+    }
+
+    if (sentences.length === 0) {
+      sentences.push('Bitte prüfe die wichtigsten Angaben kurz: Absender, Betrag und Datum.');
+    }
   }
 
-  const akts = [...(d.aktionen ?? [])].filter(Boolean);
-  if (akts.length) {
-    const labels = akts.map(a => aktionEtiketi(a, tr));
-    teile.push(
-      tr ? `Önerilen aksiyonlar: ${labels.join(', ')}.` : `Empfohlene Aktionen: ${labels.join(', ')}.`,
-    );
-  }
-
-  if (teile.length === 0) return null;
-  const body = teile.join(tr ? '. ' : '. ');
-  return `${body}`;
+  return sentences.join(' ');
 }

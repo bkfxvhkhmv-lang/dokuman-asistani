@@ -93,4 +93,40 @@ describe('ocrMvpToV4Document deadline normalization', () => {
     });
     expect(draft.document.absender).toBe('Kreis Saarlouis');
   });
+
+  it('extracts invoice sender from company footer line', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-4',
+      status: 'done',
+      document_type: 'invoice',
+      confidence: 0.84,
+      action_summary: {
+        kind: 'invoice',
+        raw_text: [
+          'Shell Deutschland GmbH',
+          'Kundenservice',
+          'Rechnung Nr. 123',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.absender).toBe('Shell Deutschland GmbH');
+  });
+
+  it('falls back to invoice email domain when sender fields are missing', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-5',
+      status: 'done',
+      document_type: 'invoice',
+      confidence: 0.8,
+      action_summary: {
+        kind: 'invoice',
+        raw_text: [
+          'Kundenservice',
+          'kontakt@shell.de',
+          'Rechnung Nr. 123',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.absender).toBe('Shell');
+  });
 });

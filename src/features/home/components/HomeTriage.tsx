@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { getTageVerbleibend } from '@/utils/formatters';
-import { needsManualReview } from '@/utils/documentGuards';
+import { getManualReviewReasons, needsManualReview } from '@/utils/documentGuards';
 import type { Dokument } from '@/store';
 
 interface Props {
@@ -33,7 +33,15 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
       if (tage !== null && tage < 0)          ueberfaellig++;
       if (tage !== null && tage >= 0 && tage <= 7) dieseWoche++;
       if (d.risiko === 'hoch')                dringend++;
-      if (needsManualReview(d))               pruefen++;
+      if (needsManualReview(d)) {
+        pruefen++;
+        if (__DEV__) {
+          const reasons = getManualReviewReasons(d);
+          console.log(
+            `[HOME_REVIEW_REASON] id=${d.id} title=${JSON.stringify(d.titel ?? '')} type=${JSON.stringify(d.typ ?? '')} amountPresent=${d.betrag != null} senderPresent=${!!(d.absender && d.absender.trim() && !/^unbekannt/i.test(d.absender.trim()))} deadlinePresent=${!!d.frist} confidence=${d.confidence ?? 'null'} reasons=${reasons.join(',')}`,
+          );
+        }
+      }
     }
 
     return [

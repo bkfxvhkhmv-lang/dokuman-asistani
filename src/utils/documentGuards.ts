@@ -121,6 +121,12 @@ function hasUsefulIdentity(dok: { typ?: string | null; titel?: string | null; ab
   return hasUsefulType(dok) || hasUsefulTitle(dok) || !isUnknownLike(dok.absender);
 }
 
+export type ManualReviewReason =
+  | 'low_confidence'
+  | 'missing_amount_for_payment_doc'
+  | 'missing_deadline_for_urgent_doc'
+  | 'empty_identity_and_no_useful_fields';
+
 export function getReviewIssues(dok: {
   typ?: string | null;
   titel?: string | null;
@@ -129,14 +135,41 @@ export function getReviewIssues(dok: {
   frist?: string | null;
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
-  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag|bescheid/);
-  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|kündigung|kuendigung|bescheid/);
+  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/);
+  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|kündigung|kuendigung/);
 
   if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');
   if (deadlineSensitive && !dok.frist) issues.push('deadline');
 
   return issues;
+}
+
+export function getManualReviewReasons(dok: {
+  id?: string | null;
+  typ?: string | null;
+  titel?: string | null;
+  absender?: string | null;
+  betrag?: number | null;
+  frist?: string | null;
+  confidence?: number | null;
+  erledigt?: boolean;
+}): ManualReviewReason[] {
+  if (dok.erledigt) return [];
+
+  const reasons: ManualReviewReason[] = [];
+  const confidence = dok.confidence ?? 100;
+  if (confidence < 30) reasons.push('low_confidence');
+
+  const issues = getReviewIssues(dok);
+  if (issues.includes('amount')) reasons.push('missing_amount_for_payment_doc');
+  if (issues.includes('deadline')) reasons.push('missing_deadline_for_urgent_doc');
+
+  const identityMissing = !hasUsefulIdentity(dok);
+  const hasAnyUsefulExtraction = !isUnknownLike(dok.absender) || dok.betrag != null || !!dok.frist;
+  if (identityMissing && !hasAnyUsefulExtraction) reasons.push('empty_identity_and_no_useful_fields');
+
+  return reasons;
 }
 
 export function needsManualReview(dok: {
@@ -148,19 +181,7 @@ export function needsManualReview(dok: {
   confidence?: number | null;
   erledigt?: boolean;
 }): boolean {
-  if (dok.erledigt) return false;
-
-  const confidence = dok.confidence ?? 100;
-  if (confidence < 30) return true;
-
-  const issues = getReviewIssues(dok);
-  if (issues.includes('amount') || issues.includes('deadline')) return true;
-
-  const identityMissing = !hasUsefulIdentity(dok);
-  const hasAnyUsefulExtraction = !isUnknownLike(dok.absender) || dok.betrag != null || !!dok.frist;
-  if (identityMissing && !hasAnyUsefulExtraction) return true;
-
-  return false;
+  return getManualReviewReasons(dok).length > 0;
 }
 
 export function getReviewLabel(dok: {

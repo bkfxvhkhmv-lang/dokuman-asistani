@@ -262,6 +262,9 @@ const _EMPFAENGER_KINDS = new Set(['form', 'letter', 'settlement']);
 const _AUTHORITY_LINE_RE =
   /^(kreisjugendamt\s+[^\n,;]+|kreissozialamt\s+[^\n,;]+|kreisverwaltung\s+[^\n,;]+|landkreis\s+[^\n,;]+|kreis(?:verwaltung)?\s+[^\n,;]+|[^\n,;]*\b(?:gemeinde|verbandsgemeinde|stadt(?:verwaltung)?|landkreis|kreis(?:verwaltung)?|landratsamt|finanzamt|zollamt|jobcenter|arbeitsamt|ordnungsamt|standesamt|rathaus|beh[oö]rde|polizei|bundesagentur|staatsanwaltschaft|amtsgericht)\b[^\n,;]*)$/i;
 const _AUTHORITY_DOMAIN_RE = /@([a-z0-9-]+)\.de\b/i;
+const _COMPANY_LINE_RE =
+  /^(?!.*\b(?:sachbearbeiter|telefon|tel\.?|fax|e-?mail|mail)\b)([^\n,;]*\b(?:gmbh|mbh|ag|kg|ug|e\.?\s?k\.?|ohg|gbr|gmbh\s*&\s*co\.?\s*kg|holding|group|versicherung)\b[^\n,;]*)$/i;
+const _EMAIL_DOMAIN_RE = /@([a-z0-9-]+\.(?:de|com|net|org|eu))\b/i;
 
 const MAX_SENDER_LENGTH = 80;
 
@@ -299,6 +302,41 @@ function extractAuthoritySenderFromRawText(rawText: string | null | undefined): 
   }
 
   return null;
+}
+
+function companyFromDomain(host: string): string | null {
+  const root = host
+    .replace(/^(www|mail|service|info|kontakt|support|noreply)\./i, '')
+    .split('.')[0]
+    ?.trim();
+  if (!root || root.length < 3) return null;
+  if (/^(gmail|icloud|web|gmx|outlook|hotmail|yahoo|t-online)$/i.test(root)) return null;
+  const name = root
+    .split('-')
+    .filter(Boolean)
+    .map(part => part[0].toUpperCase() + part.slice(1))
+    .join(' ');
+  return name || null;
+}
+
+function extractCompanySenderFromRawText(rawText: string | null | undefined): string | null {
+  if (!rawText?.trim()) return null;
+  const lines = rawText
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    const match = line.match(_COMPANY_LINE_RE);
+    if (match) {
+      const cleaned = cleanSenderCandidate(match[1] ?? match[0]);
+      if (cleaned) return cleaned;
+    }
+  }
+
+  const domainHost = rawText.match(_EMAIL_DOMAIN_RE)?.[1];
+  if (!domainHost) return null;
+  return companyFromDomain(domainHost);
 }
 
 export function buildDocumentSender(
@@ -340,6 +378,11 @@ export function buildDocumentSender(
 
   if (_EMPFAENGER_KINDS.has(kind)) {
     const rawTextSender = extractAuthoritySenderFromRawText(s.raw_text);
+    if (rawTextSender) return rawTextSender;
+  }
+
+  if (kind === 'invoice' || kind === 'settlement') {
+    const rawTextSender = extractCompanySenderFromRawText(s.raw_text);
     if (rawTextSender) return rawTextSender;
   }
 

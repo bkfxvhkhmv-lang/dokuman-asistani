@@ -158,7 +158,11 @@ export async function composeInstitutionMailWithAttachment(dok: DokumentErweiter
   const attachments = await resolveMailAttachmentUris(dok);
   const draft = buildInstitutionMailDraft(dok);
 
-  await MailComposer.composeAsync({ ...draft, attachments });
+  await MailComposer.composeAsync({
+    subject:     draft.subject,
+    body:        draft.body,
+    attachments,
+  });
 }
 
 export async function composePartnerPaymentNotice(dok: DokumentErweitert, partnerEmail?: string): Promise<void> {

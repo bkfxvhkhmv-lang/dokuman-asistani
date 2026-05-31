@@ -174,73 +174,82 @@ The core product is a **document assistant for German letters, invoices and ever
 ## 9. Steuerberater Export v2 — Backlog (High Value, Next Sprint)
 
 **Not a TestFlight blocker. Do not implement before current build.**
+**Updated 2026-06-01: backend v7 pipeline found — preferred path is backend-side, not client-side.**
 
 ### Why this matters
 
-Current `Steuerpaket` exports a single merged PDF. That is useful but not what a tax advisor actually needs: they receive one unstructured file and must split it manually. The real value — and the feature that will delight both users and their advisors — is a structured package with individual documents and a data manifest.
+Current `Steuerpaket` exports a single merged PDF. That is useful but not what a tax advisor actually needs: they receive one unstructured file and must split it manually. The real value is a structured package with individual per-document Excel files and a summary manifest.
 
-### Current state (v1)
+### Backend infrastructure — more than expected
 
-| Component | Status |
-|-----------|--------|
-| `collectSteuerpaketDokumente` — filters tax-relevant docs | ✅ exists |
-| `exportiereTopluPDF` — merged PDF via share sheet | ✅ exists |
-| `steuerpaketExport.ts` — TODO note for manifest/CSV | ✅ noted in code |
-| Individual Belege PDFs | ❌ |
-| CSV / Excel manifest | ❌ |
-| ZIP package | ❌ |
+Inspected `briefpilot_ocr_mvp/` and found the following already exists:
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| `InvoiceResult` schema v7 | ✅ deployed | `schema.py` |
+| `invoice_to_excel.py` v7 | ✅ deployed | `modules/invoice_to_excel.py` |
+| `test_excel_v7.py` | ✅ 31/31 PASS | root |
+| `GET /documents/{job_id}/download` | ✅ works | `api/main.py:513` |
+| Yearly ZIP endpoint | ❌ missing | — |
+| Cross-document summary CSV | ❌ missing | — |
+
+**v7 Excel Sheet 1 already produces 20 fields:**
+Quelldatei · Lieferant · Rechnungsnummer · Belegdatum · Fälligkeit · Kundenname · Kundennummer · Vertragsnummer · Aktenzeichen · Nettobetrag · Umsatzsteuer · Steuersatz · Bruttobetrag · Zahlungsrichtung · Belegart · Währung · IBAN · Kategorie · Dokument-ID · Hinweise
+
+These include calculated fields (Netto/VAT/Brutto, Zahlungsrichtung, Belegart) that mobile-side CSV cannot produce. **Backend path is clearly stronger.**
+
+### Decision: prefer backend-side v2, not client-side CSV
+
+~~Mobile-side CSV (expo-file-system + JS zip)~~ — possible but inferior.
+**Preferred path: backend yearly ZIP endpoint reusing existing v7 generator.**
 
 ### Target output (v2)
 
 ```
 BriefPilot_Steuer_2026.zip
-  /Belege/
-    2026-03-01_HUK24_246-18.pdf
-    2026-04-15_Finanzamt_340-00.pdf
-    2026-05-31_BWW_Energie_GmbH_680-40.pdf
-  BriefPilot_Ausgaben_2026.csv
+  /Excel/
+    2026-03-01_HUK24_246-18.xlsx      ← v7 generator, already works per-doc
+    2026-04-15_Finanzamt_340-00.xlsx
+  summary.csv                          ← one row per document, cross-doc aggregate
   README.txt
 ```
 
-### CSV columns
+Optional v2b (if source PDFs available on backend):
+```
+  /Belege_PDF/
+    2026-03-01_HUK24_246-18.pdf
+```
 
-| Column | Source field |
-|--------|-------------|
-| Belegdatum | `dok.dokumentDatum` |
-| Erfasst am | `dok.datum` |
-| Absender | `dok.absender` |
-| Empfänger | `dok.empfaenger` (future) |
-| Dokumenttyp | `dok.typ` |
-| Kategorie | `dok.userOrdner` / `dok.profilId` |
-| Betrag | `dok.betrag` |
-| Währung | `dok.waehrung` |
-| IBAN | `dok.iban` |
-| Verwendungszweck | `dok.zahlungszweck` |
-| Aktenzeichen | `dok.aktenzeichen` |
-| Kundennummer | `dok.kundennr` |
-| Status | `dok.erledigt` |
-| Dateiname | derived from sender + date + amount |
-| Notiz | — |
+### New backend endpoint needed
 
-### Implementation path (client-side, no backend needed)
+```
+GET /steuerpaket?year=2026
+→ 200 application/zip
+   Content-Disposition: attachment; filename="BriefPilot_Steuer_2026.zip"
+```
 
-1. CSV generation — plain JS string builder
-2. Individual PDF export — iterate docs, copy/share each `dok.uri`
-3. ZIP creation — `expo-file-system` + JS zip library
-4. Share — `expo-sharing`
+Work involved: orchestration only — iterate job_ids for year → call existing v7 generator per doc → bundle ZIP + summary CSV. No new schema work needed.
 
 ### Versioning plan
 
-| Version | Scope |
-|---------|-------|
-| v2a | CSV + individual Belege ZIP |
-| v2b | XLSX + column formatting |
-| v2c | DATEV / Beleglink research (separate decision) |
+| Version | Scope | Notes |
+|---------|-------|-------|
+| v2a | Backend ZIP: `/Excel/*.xlsx` + `summary.csv` + `README` | Reuses v7, orchestration only |
+| v2b | Add `/Belege_PDF/*.pdf` if source files accessible on backend | |
+| v2c | DATEV / Beleglink research | Separate decision, separate sprint |
 
 ### Product copy
 
 > **Für Steuerberater vorbereiten**
 > Excel-Übersicht und Belege als ZIP exportieren
+
+Do not use "DATEV-kompatibel" until DATEV format is built.
+
+### What mobile side needs to do for v2a
+
+1. New "Steuerberater-Paket herunterladen" button in `ExportBildschirm`
+2. Call `GET /steuerpaket?year=YYYY` → download ZIP → `expo-sharing`
+3. Mobile does NOT need to generate CSV or ZIP — backend handles it
 
 Do not use "DATEV-kompatibel" until a real DATEV format is implemented.
 

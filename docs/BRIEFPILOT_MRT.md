@@ -394,11 +394,14 @@ Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List
 - **App icon:** Final versiyon
 - **DATEV export:** `ENABLE_RELEASE_DATEV_EXPORT` flag açılınca aktif. Gerçek DATEV EXTF/Beleglink formatı ayrı araştırma gerektirir.
 - **Partner email:** Zahlen mit Partner akışı test edilmedi
-- **Steuerberater Export v2 ⭐ High-value next sprint:**
+- **Steuerberater Export v2 ⭐ High-value next sprint — backend path preferred:**
   Mevcut Steuerpaket sadece birleşik PDF çıkarıyor — tax advisor için ideal değil.
-  Hedef: `BriefPilot_Steuer_YYYY.zip` → `/Belege/` (ayrı PDF'ler) + `BriefPilot_Ausgaben_YYYY.csv` + `README.txt`.
-  CSV kolonları: Belegdatum · Erfasst am · Absender · Dokumenttyp · Betrag · Währung · IBAN · Verwendungszweck · Aktenzeichen · Kundennummer · Status · Dateiname.
-  Uygulama: client-side (CSV string builder + expo-file-system ZIP + expo-sharing). Backend gerekmez.
-  Sıra: v2a CSV+ZIP → v2b XLSX → v2c DATEV araştırması.
-  Ürün copy: "Für Steuerberater vorbereiten — Excel-Übersicht und Belege als ZIP exportieren". "DATEV-kompatibel" deme henüz.
-  Altyapı hazır: `collectSteuerpaketDokumente` + `exportiereTopluPDF` + `steuerpaketExport.ts` TODO notu mevcut.
+  **Backend bulgusu (2026-06-01):** `briefpilot_ocr_mvp/` içinde v7 Excel pipeline zaten var:
+  `schema.py` InvoiceResult (vendor, IBAN, Netto/VAT/Brutto, Belegart, Zahlungsrichtung, Kundennummer, Aktenzeichen...),
+  `modules/invoice_to_excel.py` v7 deployed, `test_excel_v7.py` 31/31 PASS,
+  `GET /documents/{job_id}/download` single-doc xlsx çalışıyor.
+  **Tercih edilen v2 yolu:** client-side CSV değil, yeni backend endpoint:
+  `GET /steuerpaket?year=YYYY` → ZIP: `/Excel/*.xlsx` (mevcut v7 generator) + `summary.csv` + `README.txt`.
+  Backlog v2b: `/Belege_PDF/*.pdf` eklenir; v2c: DATEV araştırması.
+  Mobile tarafında tek iş: yeni buton + ZIP indir + expo-sharing.
+  "DATEV-kompatibel" yazma henüz. Ürün copy: "Für Steuerberater vorbereiten".

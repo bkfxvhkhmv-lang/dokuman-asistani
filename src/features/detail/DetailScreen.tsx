@@ -322,7 +322,8 @@ export default function Detailbildschirm() {
             detail={detail}
             actionPlan={actionPlan}
             moreMenuCount={moreMenuCount}
-            onOpenMore={() => setMoreMenu(prev => !prev)}
+            moreItems={moreItems}
+            onOpenMore={() => {}}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

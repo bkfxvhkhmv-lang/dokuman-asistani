@@ -35,21 +35,11 @@ export function useDetailMoreItems({
   return useMemo<MoreMenuItem[]>(() => {
     if (!dok) return [];
 
-    const close = () => setMoreMenu(false);
-
-    // Delay opening the next modal until MoreMenu's close animation starts (300ms).
-    // Without this delay, two AppSheet Modals overlap causing a transition race.
     const tap = (fn: (() => void) | undefined) =>
-      (): void => {
-        close();
-        if (fn) setTimeout(fn, 300);
-      };
+      (): void => { fn?.(); };
 
     const tapAsync = (fn?: () => void | Promise<void>) =>
-      (): void => {
-        close();
-        if (fn) setTimeout(() => void Promise.resolve(fn()).catch(() => {}), 300);
-      };
+      (): void => { if (fn) void Promise.resolve(fn()).catch(() => {}); };
 
     const aktiv = dok.aktionen ?? [];
     const rows: MoreMenuItem[] = [];
@@ -83,7 +73,7 @@ export function useDetailMoreItems({
         icon:    'chat-circle',
         label:   'Fragen zum Dokument',
         group:   'communication',
-        onPress: () => { close(); setTimeout(() => openModal('chat'), 300); },
+        onPress: () => { openModal('chat'); },
       });
     }
 
@@ -98,7 +88,7 @@ export function useDetailMoreItems({
         icon:    'envelope-simple',
         label:   'Antwort schreiben',
         group:   'communication',
-        onPress: () => { close(); setTimeout(() => openModal('yanitSablon'), 300); },
+        onPress: () => { openModal('yanitSablon'); },
       });
     }
 
@@ -108,7 +98,7 @@ export function useDetailMoreItems({
         icon:    'clipboard-text',
         label:   'Formular ausfüllen',
         group:   'communication',
-        onPress: () => { close(); setTimeout(() => openModal('formular'), 300); },
+        onPress: () => { openModal('formular'); },
       });
     }
 
@@ -117,7 +107,7 @@ export function useDetailMoreItems({
       icon: 'upload',
       label: 'Exportieren',
       group: 'secondary',
-      onPress: () => { close(); setTimeout(() => openModal('exportieren'), 300); },
+      onPress: () => { openModal('exportieren'); },
     });
 
     rows.push({
@@ -158,31 +148,31 @@ export function useDetailMoreItems({
       icon:      anonModus ? 'eye-slash' : 'eye',
       label:     anonModus ? 'Anonymisierung ausschalten' : 'Anonymisierung einschalten',
       group:     'advanced',
-      onPress: () => { close(); setTimeout(() => setAnonModus(v => !v), 300); },
+      onPress: () => { setAnonModus(v => !v); },
     });
 
     rows.push({
       key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF mit Unterschrift', group: 'advanced',
-      onPress: () => { close(); setTimeout(() => openModal('signatur'), 300); },
+      onPress: () => { openModal('signatur'); },
     });
 
     if (aktiv.includes('zahlen') || dok.typ === 'Rechnungen') {
       rows.push({
         key: 'menu_budget', icon: 'chart-bar', label: 'Ausgaben-Übersicht', group: 'advanced',
-        onPress: () => { close(); setTimeout(() => setBudgetModalVisible(true), 300); },
+        onPress: () => { setBudgetModalVisible(true); },
       });
     }
 
     if (dok.typ === 'Behörden / Amt') {
       rows.push({
         key: 'menu_kur', icon: 'buildings', label: 'Behörden & Institutionen', group: 'advanced',
-        onPress: () => { close(); setTimeout(() => openModal('kurumlar'), 300); },
+        onPress: () => { openModal('kurumlar'); },
       });
     }
 
     rows.push({
       key: 'menu_h', icon: 'lifebuoy', label: 'Hilfe & Beratung', group: 'advanced',
-      onPress: () => { close(); setTimeout(() => openModal('hilfe'), 300); },
+      onPress: () => { openModal('hilfe'); },
     });
 
     rows.push({

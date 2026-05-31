@@ -275,20 +275,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
         </>
       )}
 
-      {extras > 0 && (
-        <TouchableOpacity onPress={onOpenMore}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-            borderRadius: R.lg, paddingHorizontal: S.lg, paddingVertical: 14,
-            borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bgCard }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Icon name="dots-three" size={18} color={C.textSecondary} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
-              Weitere Werkzeuge
-            </Text>
-          </View>
-          <Icon name="caret-right" size={18} color={C.textTertiary} />
-        </TouchableOpacity>
-      )}
+      {/* Weitere Werkzeuge items are rendered inline in DetailActionsTab */}
     </View>
   );
 }

@@ -6,7 +6,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 
@@ -128,30 +127,11 @@ export default function AppSheet({
             sheetStyle,
           ]}
         >
-          {/* Surface background — solid overlay over BlurView prevents gray bleed-through */}
-          {Platform.OS === 'ios' ? (
-            <>
-              <BlurView
-                intensity={72}
-                tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
-                pointerEvents="none"
-                style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
-              />
-              <View
-                pointerEvents="none"
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    backgroundColor: Colors.bg === '#0F0F17' ? 'rgba(18,18,26,0.88)' : 'rgba(255,255,255,0.92)',
-                    borderTopLeftRadius: 24,
-                    borderTopRightRadius: 24,
-                  },
-                ]}
-              />
-            </>
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />
-          )}
+          {/* Surface background — solid, no BlurView to avoid native touch interception */}
+          <View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
+          />
 
           {/* Handle — gesture target */}
           <GestureDetector gesture={pan}>

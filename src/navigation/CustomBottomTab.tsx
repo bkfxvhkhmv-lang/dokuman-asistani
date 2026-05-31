@@ -17,7 +17,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 import { useTheme } from '@/ThemeContext';
-import { getTabBarCollapsed, subscribeTabBarCollapsed } from '@/navigation/tabBarVisibility';
+import {
+  getTabBarCollapsed,
+  getTabBarHidden,
+  subscribeTabBarCollapsed,
+  subscribeTabBarHidden,
+} from '@/navigation/tabBarVisibility';
 
 import GlassLayer from '@/navigation/tab-bar/GlassLayer';
 import TabItem    from '@/navigation/tab-bar/TabItem';
@@ -30,6 +35,7 @@ export default function CustomBottomTab({ state, descriptors, navigation }: TabB
   const { Colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [collapsed, setCollapsed] = useState(getTabBarCollapsed());
+  const [hidden, setHidden] = useState(getTabBarHidden());
 
   const onTabLayout = useCallback((_e: any) => {}, []);
 
@@ -50,7 +56,12 @@ export default function CustomBottomTab({ state, descriptors, navigation }: TabB
     return () => { sub(); };
   }, []);
 
-  if (hideBar) return null;
+  useEffect(() => {
+    const sub = subscribeTabBarHidden(setHidden);
+    return () => { sub(); };
+  }, []);
+
+  if (hideBar || hidden) return null;
 
   return (
     <View pointerEvents="box-none" style={st.portal}>

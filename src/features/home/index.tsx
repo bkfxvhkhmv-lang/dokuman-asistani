@@ -32,6 +32,7 @@ import { useTimelineView } from '@/hooks/useSmartTimeline';
 import { useTheme } from '@/ThemeContext';
 import HomeTriage from '@/features/home/components/HomeTriage';
 import { needsManualReview } from '@/utils/documentGuards';
+import { setTabBarHidden } from '@/navigation/tabBarVisibility';
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -104,12 +105,27 @@ export default function Home() {
 
   useEffect(() => {
     setTabBarCollapsed(false);
+    setTabBarHidden(false);
     collapsedRef.current = false;
 
     return () => {
       setTabBarCollapsed(false);
+      setTabBarHidden(false);
     };
   }, []);
+
+  useEffect(() => {
+    setTabBarHidden(data.secilenModus);
+
+    if (data.secilenModus) {
+      setTabBarCollapsed(false);
+      collapsedRef.current = false;
+    }
+
+    return () => {
+      setTabBarHidden(false);
+    };
+  }, [data.secilenModus]);
 
   const handleScroll = (event: { nativeEvent: { contentOffset: { y: number } } }) => {
     const offsetY = event.nativeEvent.contentOffset.y;

@@ -22,6 +22,93 @@ type Props = {
   scrollBottomPadding?: number;
 };
 
+// Section definition — order and key membership decide display
+const SECTIONS: { label: string; keys: string[]; primaryKeys?: string[] }[] = [
+  {
+    label: 'Teilen & Exportieren',
+    keys: ['menu_exportieren', 'menu_vorlage', 'menu_signpdf', 'menu_revert_sig', 'menu_partner'],
+    primaryKeys: ['menu_exportieren'],
+  },
+  {
+    label: 'Bearbeiten',
+    keys: ['menu_edit', 'menu_budget', 'menu_chat', 'menu_formular', 'menu_kur'],
+    primaryKeys: ['menu_budget'],
+  },
+  {
+    label: 'Abschließen',
+    keys: ['menu_erl', 'anon', 'menu_h', 'del'],
+    primaryKeys: [],
+  },
+];
+
+function SectionLabel({ label }: { label: string }) {
+  const { Colors: C } = useTheme();
+  return (
+    <Text style={{
+      fontSize: 11, fontWeight: '700',
+      color: C.textTertiary,
+      marginTop: 20, marginBottom: 6, marginLeft: 2,
+    }}>
+      {label}
+    </Text>
+  );
+}
+
+interface RowProps {
+  item: MoreMenuItem;
+  isLast: boolean;
+  isPrimary: boolean;
+}
+
+function ToolRow({ item, isLast, isPrimary }: RowProps) {
+  const { Colors: C, S } = useTheme();
+  const isDestructive = !!item.destructive;
+
+  const iconColor = isDestructive
+    ? C.danger
+    : isPrimary
+      ? C.primary
+      : C.textSecondary;
+
+  const textColor = isDestructive ? C.danger : C.text;
+
+  return (
+    <TouchableOpacity
+      onPress={item.onPress}
+      activeOpacity={0.7}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        paddingVertical: isPrimary ? 15 : 13,
+        paddingHorizontal: S.lg,
+        borderBottomWidth: isLast ? 0 : 0.45,
+        borderBottomColor: C.border,
+        backgroundColor: isDestructive ? `${C.danger}0D` : undefined,
+      }}
+    >
+      <Icon name={item.icon} size={isPrimary ? 20 : 18} color={iconColor} />
+      <View style={{ flex: 1 }}>
+        <Text style={{
+          fontSize: isPrimary ? 15 : 14,
+          fontWeight: isPrimary ? '700' : '600',
+          color: textColor,
+        }}>
+          {item.label}
+        </Text>
+        {!!item.subtitle && !isDestructive && (
+          <Text style={{ marginTop: 2, fontSize: 11, color: C.textTertiary }}>
+            {item.subtitle}
+          </Text>
+        )}
+      </View>
+      {!isDestructive && (
+        <Icon name="caret-right" size={14} color={C.border} />
+      )}
+    </TouchableOpacity>
+  );
+}
+
 export default function DetailActionsTab({
   smartActions: _smartActions,
   smartReminders,
@@ -34,100 +121,105 @@ export default function DetailActionsTab({
   onScrollLayout,
   scrollBottomPadding = 132,
 }: Props) {
-  const { Colors: C, S, R } = useTheme();
+  const { Colors: C, R } = useTheme();
+
+  // Filter out main-group items (shown in ActionsPanel above)
+  const visibleItems = moreItems.filter(i => i.group !== 'main');
+
+  // Assign each item to its section; uncategorised items go to a fallback bucket
+  const byKey = Object.fromEntries(visibleItems.map(i => [i.key, i]));
+  const assignedKeys = new Set(SECTIONS.flatMap(s => s.keys));
+  const fallback = visibleItems.filter(i => !assignedKeys.has(i.key));
+
+  const renderedSections = SECTIONS
+    .map(sec => ({
+      ...sec,
+      items: sec.keys.map(k => byKey[k]).filter(Boolean) as MoreMenuItem[],
+    }))
+    .filter(sec => sec.items.length > 0);
+
+  const hasContent = renderedSections.length > 0 || fallback.length > 0;
 
   return (
     <Fragment>
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: scrollBottomPadding }}
-      scrollEventThrottle={16}
-      onScroll={onTabScroll}
-      onContentSizeChange={onScrollContentSize}
-      onLayout={onScrollLayout}
-    >
-      <ActionsPanel
-        dok={detail.dok}
-        digitalTwin={detail.digitalTwin}
-        actionPlan={actionPlan}
-        moreMenuCount={0}
-        onOpenMore={() => {}}
-      />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 12, paddingHorizontal: 16, paddingBottom: scrollBottomPadding }}
+        scrollEventThrottle={16}
+        onScroll={onTabScroll}
+        onContentSizeChange={onScrollContentSize}
+        onLayout={onScrollLayout}
+      >
+        <ActionsPanel
+          dok={detail.dok}
+          digitalTwin={detail.digitalTwin}
+          actionPlan={actionPlan}
+          moreMenuCount={0}
+          onOpenMore={() => {}}
+        />
 
-      {moreItems.filter(i => i.group !== 'main').length > 0 && (
-        <View style={{ marginTop: S.md }}>
-          <Text style={{
-            fontSize: 10, fontWeight: '800', letterSpacing: 0.75,
-            color: C.textTertiary, marginBottom: 8,
-          }}>
-            WEITERE WERKZEUGE
-          </Text>
-          <View style={{
-            borderRadius: R.lg, borderWidth: 0.5, borderColor: C.border,
-            backgroundColor: C.bgCard, overflow: 'hidden',
-          }}>
-            {moreItems.filter(i => i.group !== 'main').map((item, i, arr) => {
-              const isLast = i === arr.length - 1;
-              const isDestructive = item.destructive;
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  onPress={item.onPress}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12,
-                    paddingVertical: 13,
-                    paddingHorizontal: S.lg,
-                    borderBottomWidth: isLast ? 0 : 0.45,
-                    borderBottomColor: C.border,
-                    backgroundColor: isDestructive ? `${C.danger}0D` : undefined,
-                  }}
-                >
-                  <Icon
-                    name={item.icon}
-                    size={18}
-                    color={isDestructive ? C.danger : C.textSecondary}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={{
-                      fontSize: 14,
-                      fontWeight: '600',
-                      color: isDestructive ? C.danger : C.text,
-                    }}>
-                      {item.label}
-                    </Text>
-                    {!!item.subtitle && !isDestructive && (
-                      <Text style={{
-                        marginTop: 2,
-                        fontSize: 11,
-                        color: C.textTertiary,
-                      }}>
-                        {item.subtitle}
-                      </Text>
-                    )}
-                  </View>
-                  {!isDestructive && (
-                    <Icon name="caret-right" size={14} color={C.border} />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+        {hasContent && (
+          <View style={{ marginTop: 4 }}>
+            <Text style={{
+              fontSize: 12, fontWeight: '700',
+              color: C.textSecondary,
+              marginTop: 16, marginBottom: 2, marginLeft: 2,
+            }}>
+              Weitere Aktionen
+            </Text>
+
+            {renderedSections.map(sec => (
+              <View key={sec.label}>
+                <SectionLabel label={sec.label} />
+                <View style={{
+                  borderRadius: R.lg, borderWidth: 0.5,
+                  borderColor: C.border, backgroundColor: C.bgCard,
+                  overflow: 'hidden',
+                }}>
+                  {sec.items.map((item, i) => (
+                    <ToolRow
+                      key={item.key}
+                      item={item}
+                      isLast={i === sec.items.length - 1}
+                      isPrimary={!!(sec.primaryKeys?.includes(item.key))}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
+
+            {fallback.length > 0 && (
+              <View>
+                <SectionLabel label="Weitere" />
+                <View style={{
+                  borderRadius: R.lg, borderWidth: 0.5,
+                  borderColor: C.border, backgroundColor: C.bgCard,
+                  overflow: 'hidden',
+                }}>
+                  {fallback.map((item, i) => (
+                    <ToolRow
+                      key={item.key}
+                      item={item}
+                      isLast={i === fallback.length - 1}
+                      isPrimary={false}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
-        </View>
-      )}
+        )}
 
-      <SmartRemindersPanel
-        suggestions={smartReminders.suggestions}
-        scheduled={smartReminders.scheduled}
-        isScheduling={smartReminders.isScheduling}
-        onSchedule={smartReminders.schedule}
-        onCancel={smartReminders.cancel}
-        isAlreadyScheduled={smartReminders.isAlreadyScheduled}
-      />
-    </ScrollView>
-    <PremiumToast config={smartReminders.toastConfig ?? null} onHide={smartReminders.hideToast} />
+        <SmartRemindersPanel
+          suggestions={smartReminders.suggestions}
+          scheduled={smartReminders.scheduled}
+          isScheduling={smartReminders.isScheduling}
+          onSchedule={smartReminders.schedule}
+          onCancel={smartReminders.cancel}
+          isAlreadyScheduled={smartReminders.isAlreadyScheduled}
+        />
+      </ScrollView>
+      <PremiumToast config={smartReminders.toastConfig ?? null} onHide={smartReminders.hideToast} />
     </Fragment>
   );
 }

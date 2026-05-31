@@ -24,7 +24,8 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
   const { Colors: C, S, R } = useTheme();
 
   const initialRef = useRef({
-    titel: '', absender: '', betrag: '', frist: '',
+    titel: '', absender: '', betrag: '', frist: '', dokumentDatum: '',
+    iban: '', zahlungszweck: '', aktenzeichen: '', kundennr: '',
     typ: '', risiko: '', profilId: null as string | null, userOrdner: '',
   });
 
@@ -35,6 +36,11 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
         absender: modal.editAbsender,
         betrag: modal.editBetrag,
         frist: modal.editFrist,
+        dokumentDatum: modal.editDokumentDatum,
+        iban: modal.editIban,
+        zahlungszweck: modal.editZahlungszweck,
+        aktenzeichen: modal.editAktenzeichen,
+        kundennr: modal.editKundennr,
         typ: modal.editTyp,
         risiko: modal.editRisiko,
         profilId: modal.editProfilId,
@@ -48,6 +54,11 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
     modal.editAbsender !== initialRef.current.absender ||
     modal.editBetrag !== initialRef.current.betrag ||
     modal.editFrist !== initialRef.current.frist ||
+    modal.editDokumentDatum !== initialRef.current.dokumentDatum ||
+    modal.editIban !== initialRef.current.iban ||
+    modal.editZahlungszweck !== initialRef.current.zahlungszweck ||
+    modal.editAktenzeichen !== initialRef.current.aktenzeichen ||
+    modal.editKundennr !== initialRef.current.kundennr ||
     modal.editTyp !== initialRef.current.typ ||
     modal.editRisiko !== initialRef.current.risiko ||
     modal.editProfilId !== initialRef.current.profilId ||
@@ -88,14 +99,36 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ marginBottom: 16 }}>
           {modal.editTab === 'info' ? (
             <>
+              {/* Dokument */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>DOKUMENT</Text>
               <AppInput label="Titel" icon="file-text" placeholder="Dokumenttitel"
-                value={modal.editTitel} onChangeText={modal.setEditTitel} style={{ marginBottom: 14 }} />
+                value={modal.editTitel} onChangeText={modal.setEditTitel} style={{ marginBottom: 10 }} />
+              <AppInput label="Belegdatum (JJJJ-MM-TT)" icon="calendar-blank" placeholder="z.B. 2026-04-30"
+                value={modal.editDokumentDatum} onChangeText={modal.setEditDokumentDatum} style={{ marginBottom: 10 }} />
+              <AppInput label="Frist (JJJJ-MM-TT)" icon="clock" placeholder="z.B. 2026-05-01"
+                value={modal.editFrist} onChangeText={modal.setEditFrist} style={{ marginBottom: 18 }} />
+
+              {/* Beteiligte */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>BETEILIGTE</Text>
               <AppInput label="Absender" icon="buildings" placeholder="Behörde / Unternehmen"
-                value={modal.editAbsender} onChangeText={modal.setEditAbsender} style={{ marginBottom: 14 }} />
-              <AppInput label="Betrag (€)" icon="receipt" placeholder="0.00"
-                value={modal.editBetrag} onChangeText={modal.setEditBetrag} keyboardType="decimal-pad" style={{ marginBottom: 14 }} />
-              <AppInput label="Frist (JJJJ-MM-TT)" icon="calendar" placeholder="z.B. 2026-05-01"
-                value={modal.editFrist} onChangeText={modal.setEditFrist} style={{ marginBottom: 14 }} />
+                value={modal.editAbsender} onChangeText={modal.setEditAbsender} style={{ marginBottom: 18 }} />
+
+              {/* Zahlung */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>ZAHLUNG</Text>
+              <AppInput label="Betrag (€)" icon="currency-eur" placeholder="0.00"
+                value={modal.editBetrag} onChangeText={modal.setEditBetrag} keyboardType="decimal-pad" style={{ marginBottom: 10 }} />
+              <AppInput label="IBAN" icon="bank" placeholder="DE00 0000 0000 0000 0000 00"
+                value={modal.editIban} onChangeText={modal.setEditIban}
+                autoCapitalize="characters" style={{ marginBottom: 10 }} />
+              <AppInput label="Verwendungszweck" icon="chat-circle" placeholder="Referenz / Betreff"
+                value={modal.editZahlungszweck} onChangeText={modal.setEditZahlungszweck} style={{ marginBottom: 18 }} />
+
+              {/* Referenz */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>REFERENZ</Text>
+              <AppInput label="Aktenzeichen" icon="clipboard-text" placeholder="Az. oder Ref.-Nr."
+                value={modal.editAktenzeichen} onChangeText={modal.setEditAktenzeichen} style={{ marginBottom: 10 }} />
+              <AppInput label="Kundennummer" icon="identification-badge" placeholder="Kunden-Nr."
+                value={modal.editKundennr} onChangeText={modal.setEditKundennr} style={{ marginBottom: 14 }} />
 
               {(state.einstellungen?.profile || []).length > 0 && (
                 <View style={{ marginBottom: 14 }}>

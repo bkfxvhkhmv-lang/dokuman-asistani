@@ -33,6 +33,11 @@ export function useModalController() {
   const [editAbsender, setEditAbsender] = useState('');
   const [editBetrag, setEditBetrag]     = useState('');
   const [editFrist, setEditFrist]       = useState('');
+  const [editDokumentDatum, setEditDokumentDatum] = useState('');
+  const [editIban, setEditIban]         = useState('');
+  const [editZahlungszweck, setEditZahlungszweck] = useState('');
+  const [editAktenzeichen, setEditAktenzeichen]   = useState('');
+  const [editKundennr, setEditKundennr]           = useState('');
   const [editTab, setEditTab]           = useState('info');
   const [editProfilId, setEditProfilId] = useState<string | null>(null);
   const [editUserOrdner, setEditUserOrdner] = useState('');
@@ -75,6 +80,11 @@ export function useModalController() {
     editAbsender, setEditAbsender,
     editBetrag, setEditBetrag,
     editFrist, setEditFrist,
+    editDokumentDatum, setEditDokumentDatum,
+    editIban, setEditIban,
+    editZahlungszweck, setEditZahlungszweck,
+    editAktenzeichen, setEditAktenzeichen,
+    editKundennr, setEditKundennr,
     editTab, setEditTab,
     editProfilId, setEditProfilId,
     editUserOrdner, setEditUserOrdner,

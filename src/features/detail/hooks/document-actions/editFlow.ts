@@ -23,6 +23,11 @@ export function runHandleEdit(
   modal.setEditAbsender(dok.absender || '');
   modal.setEditBetrag(dok.betrag ? String(dok.betrag) : '');
   modal.setEditFrist(dok.frist ? dok.frist.slice(0, 10) : '');
+  modal.setEditDokumentDatum(dok.dokumentDatum ? dok.dokumentDatum.slice(0, 10) : '');
+  modal.setEditIban(dok.iban || '');
+  modal.setEditZahlungszweck(dok.zahlungszweck || '');
+  modal.setEditAktenzeichen(dok.aktenzeichen || '');
+  modal.setEditKundennr(dok.kundennr || '');
   modal.setEditTab(opts?.tab ?? 'info');
   modal.setEditProfilId(dok.profilId || null);
   modal.setEditUserOrdner(dok.userOrdner ?? '');
@@ -45,6 +50,10 @@ export function runHandleEditSpeichern(params: {
   const fristGeaendert =
     String(fristVal ?? '') !== String(dok.frist ?? '');
 
+  const dokumentDatumVal = modal.editDokumentDatum
+    ? new Date(modal.editDokumentDatum).toISOString()
+    : dok.dokumentDatum ?? null;
+
   const neueFelder: Partial<Dokument> & { id: string } = {
     id: dokId,
     typ: normalizeDocumentTyp(modal.editTyp),
@@ -53,6 +62,11 @@ export function runHandleEditSpeichern(params: {
     absender: modal.editAbsender.trim() || dok.absender,
     betrag: betragNum !== null && !isNaN(betragNum) ? betragNum : dok.betrag,
     frist: fristVal,
+    dokumentDatum: dokumentDatumVal,
+    iban: modal.editIban.trim() || dok.iban || null,
+    zahlungszweck: modal.editZahlungszweck.trim() || dok.zahlungszweck || null,
+    aktenzeichen: modal.editAktenzeichen.trim() || dok.aktenzeichen || null,
+    kundennr: modal.editKundennr.trim() || dok.kundennr || null,
     profilId: modal.editProfilId,
     userOrdner: modal.editUserOrdner.trim() ? modal.editUserOrdner.trim() : null,
     ...(fristGeaendert ? { fristImKalender: false } : {}),

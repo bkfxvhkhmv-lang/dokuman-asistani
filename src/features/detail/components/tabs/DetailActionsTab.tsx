@@ -54,7 +54,7 @@ export default function DetailActionsTab({
         onOpenMore={() => {}}
       />
 
-      {moreItems.length > 0 && (
+      {moreItems.filter(i => i.group !== 'main').length > 0 && (
         <View style={{ marginTop: S.md }}>
           <Text style={{
             fontSize: 10, fontWeight: '800', letterSpacing: 0.75,
@@ -66,8 +66,8 @@ export default function DetailActionsTab({
             borderRadius: R.lg, borderWidth: 0.5, borderColor: C.border,
             backgroundColor: C.bgCard, overflow: 'hidden',
           }}>
-            {moreItems.map((item, i) => {
-              const isLast = i === moreItems.length - 1;
+            {moreItems.filter(i => i.group !== 'main').map((item, i, arr) => {
+              const isLast = i === arr.length - 1;
               const isDestructive = item.destructive;
               return (
                 <TouchableOpacity

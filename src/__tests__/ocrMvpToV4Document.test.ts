@@ -58,4 +58,39 @@ describe('ocrMvpToV4Document deadline normalization', () => {
     }));
     expect(draft.document.frist).toContain('2026-02-12');
   });
+
+  it('extracts Behörden sender from raw OCR text instead of staff name', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-2',
+      status: 'done',
+      document_type: 'letter',
+      confidence: 0.88,
+      action_summary: {
+        kind: 'letter',
+        raw_text: [
+          'Kreisjugendamt Saarlouis',
+          'Sachbearbeiter/in Herr Alsaleh',
+          'E-Mail: hussein-alsaleh@kreis-saarlouis.de',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.absender).toBe('Kreisjugendamt Saarlouis');
+  });
+
+  it('falls back to Kreis domain when only authority email domain is visible', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-3',
+      status: 'done',
+      document_type: 'letter',
+      confidence: 0.82,
+      action_summary: {
+        kind: 'letter',
+        raw_text: [
+          'Sachbearbeiter/in Herr Alsaleh',
+          'E-Mail: hussein-alsaleh@kreis-saarlouis.de',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.absender).toBe('Kreis Saarlouis');
+  });
 });

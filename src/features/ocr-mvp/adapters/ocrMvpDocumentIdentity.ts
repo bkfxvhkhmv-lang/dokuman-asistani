@@ -259,8 +259,47 @@ const _EMPFAENGER_FIELD_RE = /^empf[äa]nger$/i;
 const _INSTITUTION_VALUE_RE =
   /\b(gemeinde|verbandsgemeinde|stadt(?:verwaltung)?|landkreis|kreis(?:verwaltung)?|landratsamt|finanzamt|zollamt|jobcenter|arbeitsamt|ordnungsamt|standesamt|rathaus|beh[oö]rde|polizei|bundesagentur|staatsanwaltschaft|amtsgericht)\b/i;
 const _EMPFAENGER_KINDS = new Set(['form', 'letter', 'settlement']);
+const _AUTHORITY_LINE_RE =
+  /^(kreisjugendamt\s+[^\n,;]+|kreissozialamt\s+[^\n,;]+|kreisverwaltung\s+[^\n,;]+|landkreis\s+[^\n,;]+|kreis(?:verwaltung)?\s+[^\n,;]+|[^\n,;]*\b(?:gemeinde|verbandsgemeinde|stadt(?:verwaltung)?|landkreis|kreis(?:verwaltung)?|landratsamt|finanzamt|zollamt|jobcenter|arbeitsamt|ordnungsamt|standesamt|rathaus|beh[oö]rde|polizei|bundesagentur|staatsanwaltschaft|amtsgericht)\b[^\n,;]*)$/i;
+const _AUTHORITY_DOMAIN_RE = /@([a-z0-9-]+)\.de\b/i;
 
 const MAX_SENDER_LENGTH = 80;
+
+function cleanSenderCandidate(value: string): string | null {
+  const v = value.trim().replace(/\s{2,}/g, ' ');
+  if (!v || v.length > MAX_SENDER_LENGTH) return null;
+  if (/^(herr|frau)\b/i.test(v)) return null;
+  return v;
+}
+
+function extractAuthoritySenderFromRawText(rawText: string | null | undefined): string | null {
+  if (!rawText?.trim()) return null;
+
+  const lines = rawText
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  for (const line of lines) {
+    if (/^(sachbearbeiter|sachbearbeiterin|sachbearbeiter\/in|telefon|tel\.?|fax|e-?mail|mail)\b/i.test(line)) continue;
+    const match = line.match(_AUTHORITY_LINE_RE);
+    if (match) return cleanSenderCandidate(match[1] ?? match[0]);
+  }
+
+  const domainMatch = rawText.match(_AUTHORITY_DOMAIN_RE);
+  const host = domainMatch?.[1];
+  if (!host) return null;
+  const authorityHost = host.match(/^(kreis|landkreis)-([a-z0-9-]+)$/i);
+  if (authorityHost?.[1] && authorityHost[2]) {
+    const place = authorityHost[2]
+      .split('-')
+      .map(part => part ? part[0].toUpperCase() + part.slice(1) : part)
+      .join(' ');
+    return `${authorityHost[1] === 'landkreis' ? 'Landkreis' : 'Kreis'} ${place}`;
+  }
+
+  return null;
+}
 
 export function buildDocumentSender(
   kind: string,
@@ -297,6 +336,11 @@ export function buildDocumentSender(
       const v = empf.value.trim();
       return v.length <= MAX_SENDER_LENGTH ? v : 'Unbekannt';
     }
+  }
+
+  if (_EMPFAENGER_KINDS.has(kind)) {
+    const rawTextSender = extractAuthoritySenderFromRawText(s.raw_text);
+    if (rawTextSender) return rawTextSender;
   }
 
   return 'Unbekannt';

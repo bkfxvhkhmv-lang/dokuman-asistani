@@ -135,14 +135,17 @@ export default function AppSheet({
                 tint={Colors.bg === '#0F0F17' ? 'dark' : 'light'}
                 style={[StyleSheet.absoluteFill, { borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
               />
-              <View style={[
-                StyleSheet.absoluteFill,
-                {
-                  backgroundColor: Colors.bg === '#0F0F17' ? 'rgba(18,18,26,0.88)' : 'rgba(255,255,255,0.92)',
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                },
-              ]} />
+              <View
+                pointerEvents="none"
+                style={[
+                  StyleSheet.absoluteFill,
+                  {
+                    backgroundColor: Colors.bg === '#0F0F17' ? 'rgba(18,18,26,0.88)' : 'rgba(255,255,255,0.92)',
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                  },
+                ]}
+              />
             </>
           ) : (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]} />

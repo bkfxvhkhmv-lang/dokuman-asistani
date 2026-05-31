@@ -383,7 +383,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
-  centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 24 },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },

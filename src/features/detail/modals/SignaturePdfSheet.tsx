@@ -14,6 +14,7 @@ import {
 import Svg, { Polyline } from 'react-native-svg';
 import Pdf from 'react-native-pdf';
 import { captureRef } from 'react-native-view-shot';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { PDFDocument } from 'pdf-lib';
@@ -281,19 +282,38 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
         return;
       }
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(stamped.uri, {
-          mimeType: 'application/pdf',
-          dialogTitle: `${buildPdfExportBasename(dok)}.pdf`,
-          UTI: 'com.adobe.pdf',
-        });
-      } else {
-        Alert.alert('Fertig', 'Das unterschriebene PDF wurde erstellt.');
+      // Persist to documentDirectory so it survives cache clears
+      const filename = `${buildPdfExportBasename(dok)}_unterschrieben.pdf`;
+      const destDir = FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? '';
+      const savedUri = destDir ? `${destDir}${filename}` : stamped.uri;
+      if (destDir && savedUri !== stamped.uri) {
+        await FileSystem.copyAsync({ from: stamped.uri, to: savedUri });
       }
 
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onDone?.();
       onClose();
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Ask user: keep saved or also share
+      Alert.alert(
+        'PDF unterschrieben',
+        'Das unterschriebene PDF wurde gespeichert.',
+        [
+          { text: 'Fertig', style: 'cancel' },
+          {
+            text: 'Teilen',
+            onPress: async () => {
+              if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(savedUri, {
+                  mimeType: 'application/pdf',
+                  dialogTitle: filename,
+                  UTI: 'com.adobe.pdf',
+                });
+              }
+            },
+          },
+        ],
+      );
     } catch (error) {
       console.warn('[SignaturePdfSheet] save failed', error);
       Alert.alert('Fehler', 'PDF konnte nicht unterschrieben werden.');

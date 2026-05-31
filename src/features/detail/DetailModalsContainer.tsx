@@ -280,7 +280,7 @@ export default function DetailModalsContainer({
         dok={dok}
         onDone={() =>
           showToast({
-            message: 'PDF mit Unterschrift erstellt',
+            message: 'PDF-Unterschrift vorbereitet',
             tone: 'success',
             icon: 'checkmark-circle',
           })}

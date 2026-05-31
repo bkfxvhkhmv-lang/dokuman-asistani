@@ -74,11 +74,11 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 5. PDF mit Unterschrift (conditional) ────────────────────────────────
+    // ── 5. PDF unterschreiben (conditional) ──────────────────────────────────
     const signbareTypen = new Set(['Formular', 'Vertrag', 'Antrag', 'Behörden / Amt']);
     if (aktiv.includes('form') || signbareTypen.has(dok.typ ?? '')) {
       rows.push({
-        key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF mit Unterschrift', group: 'advanced',
+        key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF unterschreiben', group: 'advanced',
         onPress: () => openModal('signatur'),
       });
     }

@@ -74,9 +74,16 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 5. Partner informieren (conditional) ─────────────────────────────────
-    // PDF unterschreiben: parked — interaction quality insufficient for release.
-    // Needs: full-screen pad, proper drag/resize gesture, zoom-aware placement.
+    // ── 5. PDF unterschreiben (conditional) ──────────────────────────────────
+    const signbareTypen = new Set(['Formular', 'Vertrag', 'Antrag', 'Behörden / Amt']);
+    if (aktiv.includes('form') || signbareTypen.has(dok.typ ?? '')) {
+      rows.push({
+        key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF unterschreiben', group: 'advanced',
+        onPress: () => openModal('signatur'),
+      });
+    }
+
+    // ── 6. Partner informieren (conditional) ─────────────────────────────────
     if (partnerEmailEnabled) {
       rows.push({
         key: 'menu_partner', icon: 'users', label: 'Partner informieren', group: 'secondary',

@@ -168,15 +168,15 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const panResponder = useMemo(
     () =>
       PanResponder.create({
-        onStartShouldSetPanResponder: () => step === 'draw',
-        onMoveShouldSetPanResponder: () => step === 'draw',
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        // Never yield the gesture to parent (AppSheet swipe-to-close)
+        onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: evt => {
-          if (step !== 'draw') return;
           const { locationX: x, locationY: y } = evt.nativeEvent;
           setPaths(prev => [...prev, [[x, y]]]);
         },
         onPanResponderMove: evt => {
-          if (step !== 'draw') return;
           const { locationX: x, locationY: y } = evt.nativeEvent;
           setPaths(prev => {
             if (!prev.length) return prev;
@@ -187,7 +187,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           });
         },
       }),
-    [step],
+    [], // no deps needed — never changes
   );
 
   const placementResponder = useMemo(
@@ -195,8 +195,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
+        onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: () => {
-          // Capture position at gesture start via ref — no re-creation needed
           dragStartRef.current = signatureBoxRef.current;
         },
         onPanResponderMove: (_, gesture) => {
@@ -212,7 +212,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
         onPanResponderRelease: () => { dragStartRef.current = null; },
         onPanResponderTerminate: () => { dragStartRef.current = null; },
       }),
-    [], // no deps — reads live values through refs
+    [],
   );
 
   const handleClear = useCallback(() => setPaths([]), []);
@@ -478,11 +478,13 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                   page={pageIndex + 1}
                   style={{ flex: 1, width: '100%', height: '100%' }}
                   fitPolicy={2}
+                  scrollEnabled={false}
                   onError={(e) => setPdfError(String((e as any)?.message ?? e))}
                 />
                 {!!signatureUri && !!signatureBox && (
                   <View
                     {...placementResponder.panHandlers}
+                    hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
                     style={{
                       position: 'absolute',
                       left: signatureBox.x,
@@ -492,10 +494,24 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                       borderWidth: 1.5,
                       borderColor: C.primary,
                       borderStyle: 'dashed',
-                      backgroundColor: 'rgba(255,255,255,0.04)',
+                      backgroundColor: 'rgba(255,255,255,0.06)',
                     }}
                   >
                     <Image source={{ uri: signatureUri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                    {/* Corner handles for visual feedback */}
+                    {[
+                      { top: -4, left: -4 },
+                      { top: -4, right: -4 },
+                      { bottom: -4, left: -4 },
+                      { bottom: -4, right: -4 },
+                    ].map((pos, i) => (
+                      <View key={i} style={{
+                        position: 'absolute', ...pos,
+                        width: 10, height: 10,
+                        borderRadius: 2,
+                        backgroundColor: C.primary,
+                      }} />
+                    ))}
                   </View>
                 )}
               </>

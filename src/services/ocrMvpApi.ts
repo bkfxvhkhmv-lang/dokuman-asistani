@@ -129,7 +129,7 @@ export async function analyzeDocument(
     signal,
     // Content-Type header verilmiyor — RN FormData boundary'yi otomatik ekler
   });
-  return parseJsonResponse<{ job_id: string; status: string }>(res, 'OCR upload hatası');
+  return parseJsonResponse<{ job_id: string; status: string }>(res, 'Analyse-Fehler');
 }
 
 // POST /documents/{job_id}/accepted — learning loop: final accepted snapshot

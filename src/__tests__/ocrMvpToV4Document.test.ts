@@ -164,4 +164,56 @@ describe('ocrMvpToV4Document deadline normalization', () => {
     });
     expect(draft.document.betrag).toBe(809.68);
   });
+
+  it('extracts insurance amount from "Bitte überweisen Sie fristgerecht*: 246,18"', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-huk',
+      status: 'done',
+      document_type: 'insurance',
+      confidence: 0.82,
+      action_summary: {
+        kind: 'insurance',
+        raw_text: [
+          'HUK24 AG',
+          'Bitte überweisen Sie fristgerecht*: 246,18',
+          'Bankverbindung: IBAN DE12 3456 7890 1234 56',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.betrag).toBe(246.18);
+  });
+
+  it('does not pick insurance sub-amounts instead of the transfer instruction amount', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-huk2',
+      status: 'done',
+      document_type: 'insurance',
+      confidence: 0.82,
+      action_summary: {
+        kind: 'insurance',
+        raw_text: [
+          'HUK24 AG',
+          'Haftpflicht 38,03',
+          'Kasko 34,58',
+          'Bitte überweisen Sie fristgerecht*: 246,18',
+          'IBAN DE12 3456 7890',
+        ].join('\n'),
+      },
+    });
+    expect(draft.document.betrag).toBe(246.18);
+  });
+
+  it('extracts amount from "zu überweisen" pattern', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-huk3',
+      status: 'done',
+      document_type: 'insurance',
+      confidence: 0.8,
+      action_summary: {
+        kind: 'insurance',
+        raw_text: 'zu überweisen: 156,00',
+      },
+    });
+    expect(draft.document.betrag).toBe(156.00);
+  });
 });

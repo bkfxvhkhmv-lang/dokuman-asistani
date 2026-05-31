@@ -68,6 +68,12 @@ const _AMOUNT_FIELD_RE =
 const _AMOUNT_LINE_RE =
   /(?:gesamtbetrag|endbetrag|rechnungsbetrag|zahlbetrag|betrag|summe|gesamt|zu\s+zahlen)[^\d]{0,12}(\d{1,3}(?:\.\d{3})*,\d{2}|\d{1,6}[.,]\d{2})\s*(?:€|eur)?/i;
 
+// Insurance/transfer instruction fallback — matches lines like:
+// "Bitte überweisen Sie fristgerecht*: 246,18"
+// "zu überweisen: 246,18"  "Überweisungsbetrag: 246,18"
+const _PAYMENT_INSTR_RE =
+  /(?:bitte\s+überweisen\s+sie|zu\s+überweisen|überweisungsbetrag|jahresbeitrag(?:\s+\w+)*?fällig)[^0-9]{0,50}(\d{1,3}(?:\.\d{3})*,\d{2}|\d{1,6}[.,]\d{2})/i;
+
 function extractFristCandidate(raw: string): string {
   const phraseMatch = raw.match(_FRIST_PHRASE_RE);
   if (phraseMatch?.[1]) return phraseMatch[1];
@@ -148,6 +154,10 @@ function extractAmountSource(s: OcrMvpJobStatus['action_summary']): number | nul
   if (!rawText) return null;
   const lineMatch = rawText.match(_AMOUNT_LINE_RE);
   if (lineMatch?.[1]) return parseAmountValue(lineMatch[1]);
+
+  // Payment instruction fallback: "Bitte überweisen Sie fristgerecht*: 246,18"
+  const instrMatch = rawText.match(_PAYMENT_INSTR_RE);
+  if (instrMatch?.[1]) return parseAmountValue(instrMatch[1]);
 
   return null;
 }

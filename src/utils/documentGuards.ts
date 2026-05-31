@@ -96,6 +96,14 @@ export function isLowConfidence(dok: { confidence?: number | null }): boolean {
   return (dok.confidence ?? 100) < 55;
 }
 
+/**
+ * True when the document has a usable payment target (IBAN).
+ * Guards "Zahlung vorbereiten" — showing that button without a recipient/IBAN is unsafe.
+ */
+export function hasPaymentTarget(dok: { iban?: string | null }): boolean {
+  return !!(dok.iban?.trim());
+}
+
 function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
   return pattern.test((dok.typ ?? '').toLowerCase());
 }

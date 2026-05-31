@@ -8,7 +8,7 @@ import type { Dokument, StoreState } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
 import { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
 import { getTageVerbleibend } from '@/utils/formatters';
-import { getReviewIssues } from '@/utils/documentGuards';
+import { getReviewIssues, hasPaymentTarget } from '@/utils/documentGuards';
 import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 import { canOfferPaymentAction } from '@/utils/documentGuards';
@@ -16,23 +16,25 @@ import { canOfferPaymentAction } from '@/utils/documentGuards';
 // ── Action metadata ───────────────────────────────────────────────────────────
 
 const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:    { label: 'Zahlung vorbereiten',      shortLabel: 'Bezahlen',   icon: 'currency-eur',    tone: 'primary' },
-  gutschrift:{ label: 'Angaben bearbeiten',        shortLabel: 'Bearbeiten', icon: 'receipt',         tone: 'neutral' },
-  einspruch: { label: 'Einspruch vorbereiten',    shortLabel: 'Einspruch',  icon: 'pencil-line',     tone: 'danger' },
-  kalender:  { label: 'Frist eintragen',          shortLabel: 'Kalender',   icon: 'calendar-blank',  tone: 'success' },
-  mail:      { label: 'Per E-Mail antworten',      shortLabel: 'E-Mail',     icon: 'envelope-simple', tone: 'neutral' },
-  review:    { label: 'Angaben prüfen',           shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
-  ai:        { label: 'Dokument verstehen',       shortLabel: 'Verstehen',  icon: 'sparkle',         tone: 'neutral' },
-  erledigt:  { label: 'Als erledigt markieren',   shortLabel: 'Erledigt',   icon: 'check-circle',    tone: 'neutral' },
+  zahlen:      { label: 'Zahlung vorbereiten',   shortLabel: 'Bezahlen',   icon: 'currency-eur',     tone: 'primary' },
+  zahlendaten: { label: 'Zahlungsdaten prüfen',  shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
+  gutschrift:  { label: 'Angaben bearbeiten',    shortLabel: 'Bearbeiten', icon: 'receipt',          tone: 'neutral' },
+  einspruch:   { label: 'Einspruch vorbereiten', shortLabel: 'Einspruch',  icon: 'pencil-line',      tone: 'danger' },
+  kalender:    { label: 'Frist eintragen',       shortLabel: 'Kalender',   icon: 'calendar-blank',   tone: 'success' },
+  mail:        { label: 'Per E-Mail antworten',  shortLabel: 'E-Mail',     icon: 'envelope-simple',  tone: 'neutral' },
+  review:      { label: 'Angaben prüfen',        shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
+  ai:          { label: 'Dokument verstehen',    shortLabel: 'Verstehen',  icon: 'sparkle',          tone: 'neutral' },
+  erledigt:    { label: 'Als erledigt markieren',shortLabel: 'Erledigt',   icon: 'check-circle',     tone: 'neutral' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
-  ai:        'Dokument erklären oder zusammenfassen.',
-  zahlen:    'Überweisungsdaten oder Banking vorbereiten.',
-  gutschrift:'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
-  kalender:  'Frist mit Erinnerung im Kalender sichern.',
-  mail:      'Entwurf vorbereiten oder Antwort per E-Mail senden.',
-  einspruch: 'Mustertext und Fristen für Widerspruch prüfen.',
+  ai:          'Dokument erklären oder zusammenfassen.',
+  zahlen:      'Überweisungsdaten oder Banking vorbereiten.',
+  zahlendaten: 'Vor einer Überweisung Empfänger und IBAN ergänzen.',
+  gutschrift:  'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
+  kalender:    'Frist mit Erinnerung im Kalender sichern.',
+  mail:        'Entwurf vorbereiten oder Antwort per E-Mail senden.',
+  einspruch:   'Mustertext und Fristen für Widerspruch prüfen.',
 };
 
 function toneColors(tone: string, colors: ThemeColors) {
@@ -61,7 +63,11 @@ function inferPrimaryKey(dok: Dokument, digitalTwin: DocumentDigitalTwinModel | 
 
   const nextTwin = normalizeNextAction(digitalTwin?.intelligence?.lifecycle?.nextAction);
   // zahlen nur bei positivem Betrag — negativer Betrag ist Gutschrift, kein Zahlungsausgang
-  const canZahlen = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
+  const hasBetragContext = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
+  // Zahlung vorbereiten only safe when a payment target (IBAN) is known
+  const canZahlen = hasBetragContext && hasPaymentTarget(dok);
+  // Amount context present but no IBAN → steer user to fill in payment data first
+  if (hasBetragContext && !canZahlen) return 'zahlendaten';
 
   if (overdue) {
     if (nextTwin.includes('zahl') && canZahlen) return 'zahlen';
@@ -128,6 +134,7 @@ function buildPressMap(handlers: Record<string, (() => void) | undefined>) {
     vorlage: handlers.onYanitSablon, institutionen: handlers.onKurumlar,
     hilfe: handlers.onHilfe, partner: handlers.onZahlenMitPartner,
     gutschrift: handlers.onEdit,
+    zahlendaten: handlers.onEdit,
   };
 }
 
@@ -150,7 +157,7 @@ export function getDetailActionPlan(
 
   const primary = { key: primaryKey, ...ACTION_META[primaryKey], onPress: onPress[primaryKey] };
 
-  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag);
+  const canZahlenSecondary = dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag) && hasPaymentTarget(dok);
   const coreLimit = !dok.erledigt ? 1 : 2;
   const coreSecondaryKeys = ([
     canZahlenSecondary && 'zahlen',
@@ -191,6 +198,11 @@ function buildReviewContext(dok: Dokument): { title: string; body: string } | nu
   if (issues.includes('amount'))   return { title: 'Betrag kurz prüfen',  body: 'Vor einer Überweisung Betrag und Empfänger prüfen.' };
   if (issues.includes('deadline')) return { title: 'Frist beachten',       body: 'Datum und Frist kurz prüfen.' };
   if (issues.includes('sender'))   return { title: 'Absender prüfen',      body: 'Der Absender konnte nicht sicher erkannt werden.' };
+  // Payment-type doc with betrag present but uncertain confidence → more specific than generic fallback
+  const isPaymentDoc = /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/i.test(dok.typ ?? '');
+  if (confidence < 55 && isPaymentDoc && dok.betrag != null) {
+    return { title: 'Betrag kurz prüfen', body: 'Vor einer Überweisung Betrag und Empfänger prüfen.' };
+  }
   if (confidence < 55)             return { title: 'Kurz bestätigen',      body: 'Einige Angaben wurden nicht sicher erkannt.' };
   return null;
 }
@@ -202,10 +214,11 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan, onOpenMore,
   const { primary, secondary, hidden } = actionPlan;
   const extras = moreMenuCount > 0 ? moreMenuCount : hidden.length;
 
-  const processTone = primary.key === 'review' ? 'warning'
-    : primary.key === 'einspruch' ? 'danger'
-    : primary.key === 'kalender'  ? 'success'
-    : primary.key === 'zahlen'    ? 'primary' : 'neutral';
+  const processTone = primary.key === 'review'      ? 'warning'
+    : primary.key === 'zahlendaten' ? 'warning'
+    : primary.key === 'einspruch'   ? 'danger'
+    : primary.key === 'kalender'    ? 'success'
+    : primary.key === 'zahlen'      ? 'primary' : 'neutral';
   const processColors = toneColors(processTone, C);
 
   const reviewCtx = primary.key === 'review' ? buildReviewContext(dok) : null;

@@ -5,7 +5,7 @@ import { formatBetrag, formatFrist, getTageText, getTageVerbleibend } from '@/ut
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
-import { canOfferPaymentAction, getReviewLabel } from '@/utils/documentGuards';
+import { canOfferPaymentAction, getReviewLabel, hasPaymentTarget } from '@/utils/documentGuards';
 
 type Props = {
   dok: Dokument;
@@ -40,6 +40,7 @@ export default function SimpleDocumentOverview({
     !deferPrimaryActions &&
     !!onZahlen &&
     canOfferPaymentAction(dok.betrag) &&
+    hasPaymentTarget(dok) &&
     (dok.aktionen?.includes('zahlen') || actionPlan?.primary?.key === 'zahlen');
 
   const kalenderSichtbar =

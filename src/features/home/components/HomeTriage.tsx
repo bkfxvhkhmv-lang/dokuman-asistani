@@ -94,12 +94,13 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
 
   const visibleItems = items.filter(i => i.count > 0);
   const reviewItem = items.find(i => i.key === 'pruefen');
+  const primaryItems = visibleItems.filter(i => i.key !== 'pruefen');
 
   return (
     <View style={[st.wrap, { marginHorizontal: S.md, marginBottom: S.md }]}>
       <Text style={[st.header, { color: C.textTertiary }]}>HEUTE WICHTIG</Text>
       <View style={st.grid}>
-        {visibleItems.map(item => {
+        {primaryItems.map(item => {
           const ts = toneStyle(item.tone);
           return (
             <TouchableOpacity
@@ -119,20 +120,35 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
         })}
       </View>
       {!!reviewItem?.count && (
-        <TouchableOpacity
-          onPress={() => onPress?.('pruefen')}
-          activeOpacity={0.75}
+        <View
           style={{
             marginTop: 10,
-            alignSelf: 'flex-start',
-            paddingVertical: 6,
-            paddingHorizontal: 2,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderRadius: 12,
+            backgroundColor: C.bgCard,
+            borderWidth: 0.5,
+            borderColor: C.borderLight,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
           }}
         >
-          <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
-            {`Alle ${reviewItem.count} anzeigen →`}
-          </Text>
-        </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
+              {`${reviewItem.count} offene Hinweise`}
+            </Text>
+            <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
+              Einige Angaben können ergänzt werden
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => onPress?.('pruefen')} activeOpacity={0.75}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
+              Alle anzeigen →
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );

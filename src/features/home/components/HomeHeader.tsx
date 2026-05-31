@@ -10,7 +10,8 @@ export default function HomeHeader({ data, scrollY }: { data: any; scrollY?: Ani
       <HomeHeaderCluster
         colors={data.Colors}
         dringend={data.dringend?.length ?? 0}
-        totalOpen={data.offenCount ?? data.sichtbareDocs?.length ?? 0}
+        totalOpen={data.aufgaben?.length ?? 0}
+        totalDocs={data.sichtbareDocs?.length ?? 0}
         quickScope={data.filter.quickScope ?? 'offen'}
         onScopeChange={quickScope =>
           data.setFilter((f: FilterParams) => ({ ...f, quickScope }))

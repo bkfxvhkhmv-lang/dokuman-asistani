@@ -8,13 +8,14 @@ interface HomeHeaderClusterProps {
   colors: any;
   dringend: number;
   totalOpen: number;
+  totalDocs: number;
   quickScope: 'offen' | 'alle';
   onScopeChange: (s: 'offen' | 'alle') => void;
   scrollY?: Animated.Value;
 }
 
 export default function HomeHeaderCluster({
-  colors, dringend, totalOpen, quickScope, onScopeChange, scrollY,
+  colors, dringend, totalOpen, totalDocs, quickScope, onScopeChange, scrollY,
 }: HomeHeaderClusterProps) {
   const insets = useSafeAreaInsets();
   const { fs } = useTheme();
@@ -48,17 +49,15 @@ export default function HomeHeaderCluster({
             style={[st.stickyTitle, { color: colors.text, fontSize: fs(17), opacity: stickyOpacity }]}
             numberOfLines={1}
           >
-            {totalOpen} {totalOpen === 1 ? T('home.doc_singular') : T('home.doc_plural')}
-            {dringend > 0 ? `  ·  ${dringend} ${T('home.urgent')}` : ''}
+            {T('home.title')}
           </Animated.Text>
         </View>
       </View>
 
-      {/* Hero section — fades + translates on scroll */}
       <Animated.View style={{ opacity: heroOpacity, transform: [{ translateY: heroTranslateY }] }}>
-        <View style={st.heroRow}>
-          <Text style={[st.heroNumber, { color: colors.text, fontSize: fs(56) }]}>
-            {totalOpen}
+        <View style={st.metaRow}>
+          <Text style={{ fontSize: fs(13), color: colors.textSecondary }}>
+            {totalDocs} {T(totalDocs === 1 ? 'home.doc_singular' : 'home.doc_plural')} insgesamt
           </Text>
           {dringend > 0 && (
             <View style={[st.urgentPill, { backgroundColor: `${colors.danger}14`, borderColor: `${colors.danger}30` }]}>
@@ -69,11 +68,7 @@ export default function HomeHeaderCluster({
             </View>
           )}
         </View>
-        <Text style={{ fontSize: fs(13), color: colors.textSecondary, marginTop: -6, marginBottom: 4 }}>
-          {totalOpen === 1 ? T('home.doc_singular') : T('home.doc_plural')}
-        </Text>
 
-        {/* Scope filter */}
         <View style={st.scopeRow}>
           {(['offen', 'alle'] as const).map(s => (
             <TouchableOpacity
@@ -91,7 +86,9 @@ export default function HomeHeaderCluster({
                 st.scopeLabel,
                 { color: quickScope === s ? colors.bg : colors.textSecondary, fontSize: fs(13) },
               ]}>
-                {s === 'offen' ? T('home.filter.open') : T('home.filter.all')}
+                {s === 'offen'
+                  ? `${T('home.filter.open')} ${totalOpen}`
+                  : `${T('home.filter.all')} ${totalDocs}`}
               </Text>
             </TouchableOpacity>
           ))}
@@ -102,13 +99,12 @@ export default function HomeHeaderCluster({
 }
 
 const st = StyleSheet.create({
-  wrap:        { paddingHorizontal: 20, paddingBottom: 12 },
+  wrap:        { paddingHorizontal: 20, paddingBottom: 10 },
   topRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   titleArea:   { flex: 1 },
   greeting:    { fontWeight: '600', letterSpacing: 0.1 },
   stickyTitle: { fontWeight: '800', letterSpacing: -0.4, marginTop: 2 },
-  heroRow:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
-  heroNumber:  { fontWeight: '800', letterSpacing: -2, lineHeight: 64 },
+  metaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 },
   urgentPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
   urgentDot:   { width: 6, height: 6, borderRadius: 3 },
   urgentText:  { fontWeight: '700' },

@@ -377,6 +377,16 @@ Feature areas:
 - Code changes: none
 - Remaining risk: this audit traces exact likely sources, but some screenshot-only symptoms can still involve another surface rendering the same string through a duplicate component.
 
+## 8. Follow-up Updates
+- 2026-06-02 — Phase 1A resolver wiring applied in commit `70f663f9b`
+  - Shared compact-surface type resolver added in `/Users/bayramgul/bp_canavar_v6_refactor/src/constants/docTypeConfig.ts`
+  - `/Users/bayramgul/bp_canavar_v6_refactor/src/components/DokumentKarte.tsx` now uses display-time resolved type for:
+    - card intent/icon tone
+    - urgency/review badge gating
+    - compact card insight summary
+    - accessibility label type identity
+  - Result: Home/Search/Dokumente cards now benefit from the same weak-type refinement chain as Detail without mutating stored documents.
+
 ## Ownership
 This report was prepared by: Codex
 

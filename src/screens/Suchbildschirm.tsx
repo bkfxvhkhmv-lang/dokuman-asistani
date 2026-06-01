@@ -15,7 +15,7 @@
  * Eski monolithic versiyon 439 satir tek dosyaydi; modulerlestirme
  * sonrasi her bilesen test edilebilir hale geldi.
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,11 +23,14 @@ import { useRouter } from 'expo-router';
 
 import { useStore } from '@/store';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import { useSheet } from '@/hooks/useSheet';
 import { useSearchState } from '@features/search/useSearchState';
 import { useSmartSearch } from '@/hooks/useSmartSearch';
 import DokumentKarte from '@/components/DokumentKarte';
 import EmptyState from '@/components/EmptyState';
 import Icon from '@/components/Icon';
+import AppBottomSheet from '@/components/AppBottomSheet';
 import type { Dokument } from '@/store';
 
 import SearchHeader      from '@features/search/components/SearchHeader';
@@ -42,8 +45,12 @@ import type { SemanticResult } from '@features/search/components/constants';
 
 export default function Suchbildschirm() {
   const router = useRouter();
-  const { state } = useStore();
+  const { state, dispatch } = useStore();
   const { Colors: C, S } = useTheme();
+  const { t } = useT();
+  const { config: sheetConfig, hideSheet, confirm } = useSheet();
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const {
     query, filterOffen, setFilterOffen,
@@ -71,17 +78,84 @@ export default function Suchbildschirm() {
     !v4Modus && zeigeSuche && !filterAktiv && smartSearch.mergedResults.length > 0
       ? smartSearch.mergedResults.map(r => r.dok)
       : lokal;
+  const visibleDocIds = useMemo(() => displayDocs.map(d => d.id), [displayDocs]);
+  const selectedVisibleCount = useMemo(
+    () => visibleDocIds.filter(id => selectedIds.has(id)).length,
+    [visibleDocIds, selectedIds],
+  );
+  const allVisibleSelected = visibleDocIds.length > 0 && selectedVisibleCount === visibleDocIds.length;
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+  const cancelSelection = useCallback(() => {
+    clearSelection();
+    setSelectionMode(false);
+  }, [clearSelection]);
+  const enterSelectionMode = useCallback((initialId?: string) => {
+    setSelectionMode(true);
+    if (initialId) setSelectedIds(new Set([initialId]));
+  }, []);
+  const toggleSelected = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+  const selectAllVisible = useCallback(() => {
+    setSelectedIds(new Set(visibleDocIds));
+    if (!selectionMode) setSelectionMode(true);
+  }, [visibleDocIds, selectionMode]);
+  const deleteSelected = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    const ok = await confirm({
+      title: t('search.delete_selected_title', { n: selectedIds.size }),
+      message: t('search.delete_selected_body'),
+      icon: 'trash',
+      tone: 'danger',
+      cancelLabel: t('common.cancel'),
+      confirmLabel: t('search.delete_selected'),
+      dangerConfirm: true,
+    });
+    if (!ok) return;
+    for (const id of selectedIds) dispatch({ type: 'DELETE_DOKUMENT', id });
+    cancelSelection();
+  }, [cancelSelection, confirm, dispatch, selectedIds, t]);
+
+  useEffect(() => {
+    if (!selectionMode) return;
+    if (v4Modus || !zeigeSuche) {
+      cancelSelection();
+      return;
+    }
+    setSelectedIds(prev => {
+      const next = new Set(Array.from(prev).filter(id => visibleDocIds.includes(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [cancelSelection, selectionMode, v4Modus, visibleDocIds, zeigeSuche]);
 
   const renderLokal = useCallback(({ item, index }: { item: Dokument; index: number }) => (
     <Animated.View entering={FadeInDown.delay(Math.min(index * 45, 300)).springify().damping(18)}>
       <DokumentKarte
         dok={item}
-        onPress={() => router.push({ pathname: '/detail', params: { dokId: item.id } })}
-        onLongPress={() => {}}
-        secilen={false}
+        onPress={() => {
+          if (selectionMode) {
+            toggleSelected(item.id);
+            return;
+          }
+          router.push({ pathname: '/detail', params: { dokId: item.id } });
+        }}
+        onLongPress={() => {
+          if (selectionMode) {
+            toggleSelected(item.id);
+            return;
+          }
+          enterSelectionMode(item.id);
+        }}
+        secilen={selectedIds.has(item.id)}
       />
     </Animated.View>
-  ), [router]);
+  ), [enterSelectionMode, router, selectedIds, selectionMode, toggleSelected]);
 
   const renderV4 = useCallback(({ item }: { item: SemanticResult }) => (
     <SemanticKarte
@@ -120,6 +194,88 @@ export default function Suchbildschirm() {
           S={S}
         />
         {!v4Modus ? <SearchCategoryChips typ={typ} onTyp={handleTyp} C={C} S={S} /> : null}
+
+        {!v4Modus && zeigeSuche ? (
+          <View
+            style={{
+              marginHorizontal: S.md,
+              marginBottom: 8,
+              paddingHorizontal: S.md,
+              paddingVertical: 10,
+              borderRadius: 14,
+              backgroundColor: C.bgCard,
+              borderWidth: 0.5,
+              borderColor: C.border,
+              gap: 10,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: C.text }}>
+                {selectionMode ? t('search.selection_count', { n: selectedIds.size }) : `${displayDocs.length} ${displayDocs.length !== 1 ? 'ERGEBNISSE' : 'ERGEBNIS'}`}
+                {!selectionMode && mitErledigt ? ' (inkl. Erledigt)' : ''}
+              </Text>
+              <TouchableOpacity onPress={selectionMode ? cancelSelection : () => setSelectionMode(true)} activeOpacity={0.75}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
+                  {selectionMode ? t('common.cancel') : t('search.select')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {selectionMode ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={selectAllVisible}
+                  activeOpacity={0.75}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 999,
+                    backgroundColor: allVisibleSelected ? C.primaryLight : C.bg,
+                    borderWidth: 0.5,
+                    borderColor: allVisibleSelected ? C.primary : C.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: allVisibleSelected ? C.primaryDark : C.textSecondary }}>
+                    {t('search.select_all_visible')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={clearSelection}
+                  activeOpacity={0.75}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 999,
+                    backgroundColor: C.bg,
+                    borderWidth: 0.5,
+                    borderColor: C.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: C.textSecondary }}>
+                    {t('search.clear_selection')}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={deleteSelected}
+                  disabled={selectedIds.size === 0}
+                  activeOpacity={0.75}
+                  style={{
+                    marginLeft: 'auto',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 999,
+                    backgroundColor: selectedIds.size > 0 ? C.dangerLight : C.bg,
+                    borderWidth: 0.5,
+                    borderColor: selectedIds.size > 0 ? C.danger : C.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: selectedIds.size > 0 ? C.danger : C.textTertiary }}>
+                    {t('search.delete_selected')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
 
         {/* Banner / hint katmanlari */}
         {v4Modus && (
@@ -193,18 +349,6 @@ export default function Suchbildschirm() {
             data={displayDocs}
             keyExtractor={d => d.id}
             contentContainerStyle={{ paddingTop: S.sm, paddingBottom: 40 }}
-            ListHeaderComponent={
-              <Text
-                style={{
-                  fontSize: 10, fontWeight: '600',
-                  color: C.textTertiary, letterSpacing: 0.8,
-                  marginLeft: S.lg, marginBottom: 8,
-                }}
-              >
-                {displayDocs.length} ERGEBNIS{displayDocs.length !== 1 ? 'SE' : ''}
-                {mitErledigt ? ' (inkl. Erledigt)' : ''}
-              </Text>
-            }
             ListEmptyComponent={
               <View>
                 <EmptyState
@@ -261,6 +405,15 @@ export default function Suchbildschirm() {
           mitErledigt={mitErledigt}
           setMitErledigt={setMitErledigt}
           C={C}
+        />
+        <AppBottomSheet
+          visible={!!sheetConfig}
+          onClose={hideSheet}
+          title={sheetConfig?.title ?? ''}
+          message={sheetConfig?.message}
+          icon={sheetConfig?.icon ?? 'information-circle'}
+          tone={sheetConfig?.tone ?? 'default'}
+          actions={sheetConfig?.actions ?? [{ label: 'OK', variant: 'primary', onPress: hideSheet }]}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -100,6 +100,11 @@ export default function DocumentPagesViewer({
   const [contentHeight, setContentHeight] = useState(Dimensions.get('window').height);
   const thumbBottomPad = Math.max(12, insets.bottom + 8);
   const [pdfPageCounts, setPdfPageCounts] = useState<Record<number, number>>({});
+  // Per-page rotation state (degrees, UI-only — not persisted)
+  const [rotations, setRotations] = useState<Record<number, number>>({});
+  const handleRotate = useCallback(() => {
+    setRotations(prev => ({ ...prev, [active]: ((prev[active] ?? 0) + 90) % 360 }));
+  }, [active]);
   const effectivePageCount = pdfPageCounts[active] ?? sortedPages.length;
 
   if (sortedPages.length === 0) {
@@ -114,6 +119,7 @@ export default function DocumentPagesViewer({
           pageCount={effectivePageCount}
           onClose={onClose}
           onShare={handleShare}
+          onRotate={handleRotate}
         />
 
         <View
@@ -142,6 +148,7 @@ export default function DocumentPagesViewer({
                 isMissing={missingPages.has(page.id)}
                 availableHeight={contentHeight}
                 onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
+                rotation={rotations[idx] ?? 0}
               />
             ))}
           </ScrollView>

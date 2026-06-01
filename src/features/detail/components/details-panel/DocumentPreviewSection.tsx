@@ -120,9 +120,12 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
       {onOpenFullscreen ? (
         <TouchableOpacity activeOpacity={0.95} onPress={onOpenFullscreen} accessibilityRole="imagebutton">
           {inner}
-          <View style={{ paddingBottom: S.sm, alignItems: 'center' }}>
+          <View style={{ paddingBottom: S.sm, alignItems: 'center', gap: 2 }}>
             <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary }}>
               Antippen · Vollbild
+            </Text>
+            <Text style={{ fontSize: 9, color: C.textTertiary, opacity: 0.6 }}>
+              Falsch gedreht? Im Vollbild drehen.
             </Text>
           </View>
         </TouchableOpacity>

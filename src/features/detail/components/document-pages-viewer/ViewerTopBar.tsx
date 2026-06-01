@@ -10,9 +10,10 @@ interface Props {
   pageCount: number;
   onClose: () => void;
   onShare: () => void;
+  onRotate?: () => void;
 }
 
-export default function ViewerTopBar({ activeIndex, pageCount, onClose, onShare }: Props) {
+export default function ViewerTopBar({ activeIndex, pageCount, onClose, onShare, onRotate }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[st.topBarSafeWrapper, { paddingTop: insets.top }]}>
@@ -27,9 +28,17 @@ export default function ViewerTopBar({ activeIndex, pageCount, onClose, onShare 
           </Text>
         </View>
 
-        <TouchableOpacity onPress={onShare} hitSlop={HIT_SLOP_LG} style={st.iconBtn}>
-          <Icon name="share" size={20} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {onRotate && (
+            <TouchableOpacity onPress={onRotate} hitSlop={HIT_SLOP_LG} style={st.iconBtn}
+              accessibilityLabel="Drehen" accessibilityRole="button">
+              <Icon name="arrow-clockwise" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={onShare} hitSlop={HIT_SLOP_LG} style={st.iconBtn}>
+            <Icon name="share" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

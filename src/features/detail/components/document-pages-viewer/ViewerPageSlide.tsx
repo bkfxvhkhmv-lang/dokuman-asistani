@@ -11,11 +11,12 @@ interface Props {
   isMissing: boolean;
   availableHeight?: number;
   onPdfPageCount?: (count: number) => void;
+  rotation?: number; // degrees, multiples of 90
 }
 
 const WINDOW = Dimensions.get('window');
 
-export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdfPageCount }: Props) {
+export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdfPageCount, rotation = 0 }: Props) {
   const [pdfError, setPdfError] = useState(false);
 
   const W = WINDOW.width;
@@ -88,7 +89,7 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdf
       >
         <Image
           source={{ uri }}
-          style={{ width: W, height: H }}
+          style={{ width: W, height: H, transform: rotation ? [{ rotate: `${rotation}deg` }] : [] }}
           resizeMode="contain"
         />
         <DocumentMagnifier uri={uri} containerWidth={W} containerHeight={H} />

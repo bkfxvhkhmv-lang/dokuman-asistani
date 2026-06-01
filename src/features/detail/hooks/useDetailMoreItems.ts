@@ -10,6 +10,7 @@ import type { ModalData } from '@/features/detail/hooks/useModalController';
 import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
 import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
 import { analyzeFinanzamt } from '@/features/detail/services/finanzamtAnalysis';
+import { useT } from '@/hooks/useT';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
 
@@ -30,6 +31,7 @@ export function useDetailMoreItems({
   setBudgetModalVisible,
   onRevertSignature,
 }: Params) {
+  const { t } = useT();
   return useMemo<MoreMenuItem[]>(() => {
     if (!dok) return [];
 
@@ -54,7 +56,7 @@ export function useDetailMoreItems({
       key: 'menu_edit',
       icon: 'pencil-simple',
       label: 'Angaben bearbeiten',
-      subtitle: 'Typ, Betrag, Datum oder Absender anpassen',
+      subtitle: t('detail.action.edit_subtitle'),
       group: 'secondary',
       onPress: tap(actions.handleEdit),
     });
@@ -122,5 +124,5 @@ export function useDetailMoreItems({
     }
 
     return rows;
-  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature]);
+  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature, t]);
 }

@@ -149,3 +149,120 @@ Responsible changed files:
 Follow-up owner suggestion:
 - Codex: review-count and title-sanitization code fixes
 - Claude: copy/i18n review if wording needs refinement
+
+---
+
+## Package 2 — 2026-06-01 (this session)
+
+### Fix applied: Angaben bearbeiten subtitle (detail.action.edit_subtitle)
+
+**Problem:** "Typ, Betrag, Datum oder Absender anpassen" was hardcoded and payment-biased.
+Medical forms, court letters, and other non-payment documents also showed this subtitle,
+implying Betrag is always relevant.
+
+**Fix:** Replaced with generic `t('detail.action.edit_subtitle')` → "Dokumentdaten anpassen".
+Added i18n key in all 7 languages:
+- de: Dokumentdaten anpassen
+- tr: Belge bilgilerini düzenle
+- en: Edit document data
+- fr: Modifier les données du document
+- es: Editar datos del documento
+- ru: Редактировать данные документа
+- ar: تعديل بيانات المستند
+
+Changed files:
+- `src/features/detail/hooks/useDetailMoreItems.ts` — useT import + t() call + dep array
+- `src/i18n/translations.ts` — 7 language entries
+
+tsc: ✅ clean
+
+---
+
+### Audit 2 — Dokument/Sonstiges classification
+
+**Observed in recording (21:57–22:04):**
+
+| Document | Shown type | Expected type |
+|---|---|---|
+| Unique Jewelry GmbH Rechnung | Dokument | Rechnungen |
+| DRV Bund Rentenbezugsbescheinigung | Dokument | Behördenpost / Sonstiges |
+| Pflanzhits GmbH Rechnung | Dokument | Rechnungen |
+| sim.de Willkommensbrief | Dokument | Sonstiges / Vertrag |
+| Autodoc GmbH Facture (French) | Dokument | Rechnungen |
+| Amtsgericht Saarbrücken | **Behördenpost ✅** | — |
+
+**Root cause (assessed):**
+Google Form Parser returns `kind: unknown` for these documents.
+Backend classification falls through to default "Dokument".
+Frontend normalization doesn't apply additional keyword-based type mapping
+before the type reaches the display layer.
+
+**Deterministic mapping opportunities (low risk):**
+
+| Condition | Suggested type | Risk |
+|---|---|---|
+| title/OCR contains "Rechnung" + sender has GmbH/AG | Rechnungen | Low |
+| sender matches known Behörden prefix list (Amtsgericht, Finanzamt, etc.) | Behördenpost | Low |
+| sender matches telecom patterns (sim.de, Telekom, Vodafone...) | Sonstiges/Vertrag | Medium |
+| OCR contains "Rentenbezug\|Rentenbescheid\|Versicherungsnummer" | Behördenpost | Low |
+
+**Recommendation:** Implement as a post-classification normalizer in frontend,
+NOT in OCR pipeline. Keep changes in one `documentTypeNormalizer.ts` utility.
+Do not touch AI Labeler.
+
+---
+
+### Audit 3 — Raw OCR title cleanup
+
+**Two distinct problem classes found:**
+
+**Class A — Address tail (PLZ-based rule catches this):**
+Example: `Pflanzhits GmbH Otto-Hahn-Strasse 21 26683 Saterland`
+- Contains 5-digit PLZ `26683` ✅
+- Rule: title.length > 40 AND /\b\d{5}\b/.test(title) → strip from first street/PLZ token
+- Fix would reduce to: `Pflanzhits GmbH`
+
+**Class B — Legal boilerplate (PLZ rule does NOT catch this):**
+Example: `sim de ist eine Marke der Drillisch Online GmbH - Wilhelm-Röntgen-Str 1-5-6347`
+- "6347" is a street number fragment, not a German PLZ → PLZ rule fails
+- Separate rule needed: detect "ist eine Marke der" / "eine Marke von" / "- Wilhelm-Röntgen-Str" pattern
+- Or: strip everything after " - " if remainder contains no new useful info
+
+**Recommendation:** Implement as two separate guards in title sanitizer:
+1. PLZ guard (safe, narrow)
+2. Legal boilerplate guard (` - ` + known patterns, conservative list)
+Do NOT use a generic Straße/Ort regex — false positive risk too high.
+
+---
+
+### Audit 4 — Modal/camera transition overlay
+
+**Symptom observed (~22:03 in recording):**
+When transitioning from one scan result to the next camera scan,
+the "Analysieren" modal header remained visible at the top of screen
+while the camera view underneath was loading/dark.
+
+**Assessment:**
+This is likely a React Navigation or modal dismiss timing issue.
+The result modal was dismissed before the camera view fully mounted,
+creating a brief frame where both layers were partially visible.
+
+**Files to investigate:**
+- `src/features/ocr-mvp/screens/OcrMvpScreen.tsx` — scanner ↔ result state machine
+- `src/features/ocr-mvp/components/OcrMvpFlow.tsx` (if exists) — modal show/hide logic
+- Look for: `setShowResult(false)` being called before camera is ready
+
+**Recommended fix:** Add a short guard — only show camera after result modal
+has fully dismissed (e.g., via onDismiss callback or a `isModalVisible` flag).
+Low code change, targeted to transition state.
+
+**Status:** Not yet fixed. Needs investigation before implementation.
+
+---
+
+### Cleared non-issues
+
+| Item | Reason |
+|---|---|
+| "Analyse dauert länger als erwartet" | Mac sleep interrupted local backend — not a product issue |
+| Black camera frames in recording | User covered camera lens for focus/zoom — not a product issue |

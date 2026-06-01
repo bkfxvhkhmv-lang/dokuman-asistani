@@ -9,6 +9,7 @@ import { groupDocumentFields } from '@/features/detail/components/details-panel/
 import { OcrConfidenceSection } from '@/features/detail/components/details-panel/OcrConfidenceSection';
 import { DocumentPreviewSection } from '@/features/detail/components/details-panel/DocumentPreviewSection';
 import { EtikettenSection } from '@/features/detail/components/details-panel/EtikettenSection';
+import { BesserErkennenCard } from '@/features/detail/components/details-panel/BesserErkennenCard';
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
@@ -98,7 +99,10 @@ export default function DetailsPanel({
         ))}
       </SectionCard>
 
-      {/* ── 3. Zahlungsinformationen ──────────────────────────────────────── */}
+      {/* ── 3. KI-Erkennung (manual enrichment, shown only for weak docs) ── */}
+      <BesserErkennenCard dok={dok} />
+
+      {/* ── 4. Zahlungsinformationen ──────────────────────────────────────── */}
       {groups.zahlung.length > 0 && (
         <SectionCard title="Zahlungsinformationen">
           {groups.zahlung.map((f, i) => (

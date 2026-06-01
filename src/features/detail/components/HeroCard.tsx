@@ -10,7 +10,7 @@ import type { Dokument } from '@/store';
 import type { RiskEntry } from '@/utils/types';
 import type { DocIntent } from '@/features/detail/hooks/useDocumentAI';
 import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
-import { safeDisplayTitel, safeDisplayAbsender } from '@/utils/displaySanitizer';
+import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySanitizer';
 import { getReviewLabel } from '@/utils/documentGuards';
 import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 
@@ -56,7 +56,7 @@ export default function HeroCard({
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
+  const typeLabel = getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -77,9 +77,9 @@ export default function HeroCard({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
-              {typeLabel.toUpperCase()}{(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText); return s ? ` · ${s}` : ''; })()}
+              {typeLabel.toUpperCase()}{(() => { const s = resolveDocumentSender(dok); return s ? ` · ${s}` : ''; })()}
             </Text>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{resolveDocumentTitle(dok)}</Text>
           </View>
         </View>
       </Animated.View>
@@ -131,7 +131,7 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.lg, paddingBottom: S.md, borderTopWidth: 0.5, borderTopColor: C.borderLight }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: S.sm }}>
-          <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText); return s ? `${s} · ` : ''; })()}{formatDatum(dok.datum)}</Text>
+          <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{(() => { const s = resolveDocumentSender(dok); return s ? `${s} · ` : ''; })()}{formatDatum(dok.datum)}</Text>
           <TouchableOpacity onPress={onKontaktVerknuepfen}
             hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,

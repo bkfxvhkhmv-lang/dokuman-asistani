@@ -114,6 +114,47 @@ export function safeDisplayAbsender(
   return normalizeSender(raw || null, rohText);
 }
 
+// ── AI Labeler display resolvers ─────────────────────────────────────────────
+
+/**
+ * Resolves the effective display title applying the priority chain:
+ *   customTitle > aiDisplayTitle > titel
+ *
+ * customTitle (user-entered) always wins. aiDisplayTitle (AI-suggested,
+ * accepted by user) beats the raw OCR titel. Neither overwrites each other
+ * in the store — only the display priority is adjusted here.
+ */
+export function resolveDocumentTitle(dok: {
+  titel: string;
+  typ?: string | null;
+  confidence?: number | null;
+  customTitle?: string | null;
+  aiDisplayTitle?: string;
+}): string {
+  // customTitle and aiDisplayTitle are already clean user/AI strings —
+  // bypass OCR humanization (which would mangle hyphens, apply title-case, etc.)
+  if (dok.customTitle?.trim()) return dok.customTitle.trim();
+  if (dok.aiDisplayTitle?.trim()) return dok.aiDisplayTitle.trim();
+  // Raw OCR titel goes through full sanitization pipeline
+  return safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+}
+
+/**
+ * Resolves the effective sender for display applying the priority chain:
+ *   aiSender (accepted by user) > normalized absender / rohText recovery
+ *
+ * aiSender is only used when the user accepted a suggestion via Übernehmen.
+ */
+export function resolveDocumentSender(dok: {
+  absender: string;
+  confidence?: number | null;
+  rohText?: string | null;
+  aiSender?: string;
+}): string {
+  if (dok.aiSender?.trim()) return dok.aiSender.trim();
+  return safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText);
+}
+
 /**
  * Returns a safe display value for `titel`.
  * Applies humanization (URL-decode, slug cleanup, tech-filename mapping).

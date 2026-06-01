@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, getTageText, getTageVerbleibend } from '@/utils/formatters';
-import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { resolveDocumentTitle } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { getReviewLabel, hasCompletePaymentTarget } from '@/utils/documentGuards';
@@ -53,7 +53,7 @@ export default function SimpleDocumentOverview({
     !dok.fristImKalender;
 
   const conf = dok.confidence;
-  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
+  const typeLabel = getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
   const vertrauen = conf == null
     ? 'Automatisch erkannt'
     : getReviewLabel(dok) ?? (conf >= 75 ? 'KI-geprüft' : 'Automatisch erkannt');
@@ -76,7 +76,7 @@ export default function SimpleDocumentOverview({
         </Text>
         <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{typeLabel}</Text>
         <Text style={{ fontSize: 13, color: C.textSecondary }} numberOfLines={3}>
-          {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
+          {resolveDocumentTitle(dok)}
         </Text>
 
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />

@@ -13,6 +13,7 @@ import { BesserErkennenCard } from '@/features/detail/components/details-panel/B
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
+import { resolveDocumentSender } from '@/utils/displaySanitizer';
 import { useT } from '@/hooks/useT';
 
 export type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
@@ -49,8 +50,8 @@ export default function DetailsPanel({
 
   const wichtigsteRows: { icon: string; label: string; value: string; status?: FieldStatus; aiSparkle?: boolean }[] = [
     {
-      icon: 'buildings', label: T('field.sender'), value: dok.absender || '',
-      status: !dok.absender ? 'fehlt' : (lowConfidence ? 'pruefen' : undefined),
+      icon: 'buildings', label: T('field.sender'), value: resolveDocumentSender(dok) || dok.absender || '',
+      status: !dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined),
     },
     ...(showBeideDaten
       ? [

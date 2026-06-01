@@ -91,6 +91,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [selectedPreviewUri, setSelectedPreviewUri] = useState<string | null>(null);
   const [earlyPersistedDocId, setEarlyPersistedDocId] = useState<string | null>(null);
   const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const { setSuppressBanner } = useOfflineBannerSuppression();
   const timingRef = useRef<TimingMarks>({});
 
@@ -284,10 +285,11 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   const st = styles(Colors);
   const isActive = status !== 'idle';
+  const hideIdleChrome = scannerOpen && !isActive;
 
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
-      <View style={st.header}>
+      <View style={[st.header, hideIdleChrome && st.headerHidden]} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
         <Text style={st.title}>Analysieren</Text>
         {onClose && (
           <IconButton onPress={onClose} accessibilityLabel="Schließen">
@@ -344,7 +346,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
         {/* Idle durumda: health check + upload box */}
         {!isActive && (
-          <>
+          <View style={hideIdleChrome ? st.idleChromeHidden : undefined} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
             {health === 'checking' && (
               <View style={st.checkingBox}>
                 <ActivityIndicator color={Colors.primary} />
@@ -366,9 +368,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
             )}
 
             {health === 'online' && (
-              <OcrMvpUploadBox onSubmit={handleSubmit} />
+              <OcrMvpUploadBox onSubmit={handleSubmit} onScannerPresentingChange={setScannerOpen} />
             )}
-          </>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -382,6 +384,8 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
+  headerHidden:  { opacity: 0 },
+  idleChromeHidden: { opacity: 0 },
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
   centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 24 },
   scroll:        { flex: 1 },

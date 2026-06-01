@@ -10,15 +10,17 @@ import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 
 interface Props {
   onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
+  onScannerPresentingChange?: (presenting: boolean) => void;
 }
 
-export default function OcrMvpUploadBox({ onSubmit }: Props) {
+export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }: Props) {
   const { Colors: C } = useTheme();
   const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
   const [picking, setPicking] = useState(false);
 
   const withPicking = async (fn: () => Promise<ScannedAsset | null>) => {
     setPicking(true);
+    onScannerPresentingChange?.(true);
     try {
       const asset = await fn();
       if (!asset) return;
@@ -27,6 +29,11 @@ export default function OcrMvpUploadBox({ onSubmit }: Props) {
       Alert.alert('Scan fehlgeschlagen', e?.message ?? 'Unbekannter Fehler beim Scannen.', [{ text: 'OK' }]);
     } finally {
       setPicking(false);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          onScannerPresentingChange?.(false);
+        });
+      });
     }
   };
 

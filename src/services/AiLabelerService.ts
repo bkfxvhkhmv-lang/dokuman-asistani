@@ -28,7 +28,7 @@ const GENERIC_TITLE_RE =
   /^(dokument|formular|unbekanntes dokument|scan[\s_]\d*|neues dokument|sonstiges|analysiertes dokument|bild ausgewählt|foto aufgenommen)$/i;
 
 type LabelCandidate = Pick<Dokument,
-  | 'typ' | 'absender' | 'titel' | 'rohText' | 'v4DocId'
+  | 'typ' | 'absender' | 'titel' | 'rohText' | 'id'
   | 'aiLabelledAt' | 'confidence'
 >;
 
@@ -38,12 +38,14 @@ type LabelCandidate = Pick<Dokument,
  *
  * Guard conditions that prevent calling:
  *  - aiLabelledAt is set (already labelled — cache hit)
- *  - v4DocId is null (no backend document to reference)
- *  - rohText is empty (no OCR text to send)
+ *  - rohText is empty (no OCR text to analyse)
+ *  - id is missing (should never happen for a stored document)
+ *
+ * Note: v4DocId is NOT required here. The backend chat endpoint accepts
+ * the local dok.id (same pattern as BelgeChatModal).
  */
 export function shouldLabel(dok: Partial<LabelCandidate>): boolean {
   if (dok.aiLabelledAt) return false;
-  if (!dok.v4DocId?.trim()) return false;
   if (!dok.rohText?.trim()) return false;
 
   const typeIsWeak = WEAK_TYPES.has((dok.typ ?? '').trim().toLowerCase());
@@ -132,7 +134,7 @@ export interface AiLabelerResult {
  *  - Deciding whether to auto-apply (usable) or show a suggestion (not usable)
  */
 export async function labelDocument(dok: {
-  v4DocId: string;
+  id: string;     // local dok.id — same as used by BelgeChatModal
   rohText: string;
   titel: string;
   typ: string;
@@ -150,7 +152,7 @@ export async function labelDocument(dok: {
 
   let raw: unknown;
   try {
-    raw = await chatWithDocument(dok.v4DocId, [{ role: 'user', content: prompt }]);
+    raw = await chatWithDocument(dok.id, [{ role: 'user', content: prompt }]);
   } catch {
     return null;
   }

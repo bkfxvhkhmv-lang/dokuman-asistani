@@ -23,13 +23,13 @@ export function useAiLabeler(dok: Dokument) {
   const isEligible = shouldLabel(dok);
 
   const triggerLabel = useCallback(async () => {
-    if (!dok.v4DocId || !dok.rohText) return;
+    if (!dok.rohText) return;
     setLoading(true);
     setError(null);
     setSuggestion(null);
     try {
       const result = await labelDocument({
-        v4DocId: dok.v4DocId,
+        id: dok.id,       // same pattern as BelgeChatModal — local id, not v4DocId
         rohText: dok.rohText,
         titel: dok.titel,
         typ: dok.typ,
@@ -45,7 +45,7 @@ export function useAiLabeler(dok: Dokument) {
     } finally {
       setLoading(false);
     }
-  }, [dok.v4DocId, dok.rohText, dok.titel, dok.typ, dok.absender]);
+  }, [dok.id, dok.rohText, dok.titel, dok.typ, dok.absender]);
 
   const acceptSuggestion = useCallback(() => {
     if (!suggestion) return;

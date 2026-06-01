@@ -8,6 +8,7 @@ import SimpleDocumentOverview from '@/features/detail/components/SimpleDocumentO
 import ActionCard from '@/design/components/ActionCard';
 import DocumentSpeechSection from '@/features/detail/components/DocumentSpeechSection';
 import DocumentAnalysisProgressCard from '@/features/detail/components/DocumentAnalysisProgressCard';
+import { BesserErkennenCard } from '@/features/detail/components/details-panel/BesserErkennenCard';
 import DocumentTodosCard from '@/features/detail/components/DocumentTodosCard';
 import PagesPreviewCard from '@/features/detail/components/ozet-tab/PagesPreviewCard';
 import OzetKarteListe from '@/features/detail/components/ozet-tab/OzetKarteListe';
@@ -86,6 +87,7 @@ export default function OzetTab({
             onHilfe={onSimpleHilfe}
             deferPrimaryActions={pipelinePhase !== 'completed'}
           />
+          <BesserErkennenCard dok={dok} />
           <DocumentSpeechSection dok={dok} prominent />
           {dok.warnung ? <WarnhinweisKarte text={dok.warnung} /> : null}
         </>

@@ -22,7 +22,6 @@ describe('shouldLabel — trigger guard', () => {
     absender: 'Unbekannt',
     titel: 'Formular',
     rohText: 'Überweisungsschein\nMRT Lendenwirbelsäule\nDiagnose: Rückenschmerzen',
-    v4DocId: 'v4-doc-123',
     aiLabelledAt: undefined,
     confidence: 55,
   };
@@ -35,14 +34,14 @@ describe('shouldLabel — trigger guard', () => {
     expect(shouldLabel({ ...base, aiLabelledAt: '2026-06-01T12:00:00Z' })).toBe(false);
   });
 
-  it('returns false when v4DocId is missing (no backend doc)', () => {
-    expect(shouldLabel({ ...base, v4DocId: undefined })).toBe(false);
-    expect(shouldLabel({ ...base, v4DocId: '' })).toBe(false);
-  });
-
   it('returns false when rohText is empty (nothing to analyse)', () => {
     expect(shouldLabel({ ...base, rohText: undefined })).toBe(false);
     expect(shouldLabel({ ...base, rohText: '   ' })).toBe(false);
+  });
+
+  it('works without v4DocId — uses local dok.id like BelgeChatModal', () => {
+    // shouldLabel no longer requires v4DocId; backend is called with dok.id
+    expect(shouldLabel({ ...base })).toBe(true);
   });
 
   it('returns false for strong deterministic result (specific type + sender + title)', () => {
@@ -51,7 +50,6 @@ describe('shouldLabel — trigger guard', () => {
       absender: 'Finanzamt München',
       titel: 'Einkommensteuerbescheid 2025',
       rohText: 'Finanzamt München\nEinkommensteuerbescheid 2025',
-      v4DocId: 'v4-abc',
       aiLabelledAt: undefined,
       confidence: 90,
     })).toBe(false);

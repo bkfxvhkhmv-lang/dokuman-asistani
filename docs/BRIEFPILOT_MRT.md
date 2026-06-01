@@ -398,6 +398,11 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 | OCR-Verarbeitung | Standard | Standard | Priorisiert |
 
 **Extra Pack:** 4,99 € einmalig → +50 Dokumente + 10 Antwort-Entwürfe. Kein Abo-Wechsel.
+Extra Pack erhöht NICHT den Tier-Zugang. Steuerberater-Export bleibt Plus-only auch mit Extra Pack.
+
+**Steuerberater-Export (Excel+PDF ZIP) ist ausschließlich Plus.**
+Free und Privat haben keinen Zugang — auch nicht via Extra Pack.
+Begründung: Steuerberater-Export ist das Hauptmerkmal von Plus; in Privat würde es den Tier-Unterschied verwischen.
 
 ### User-facing units (never expose: tokens / credits / model names / backend cost)
 - Dokumente

@@ -185,7 +185,12 @@ The core product is a **document assistant for German letters, invoices and ever
 | PDF Export | ❌ | ✅ | ✅ |
 | OCR | Standard | Standard | Priorisiert |
 
-**Extra Pack:** 4,99 € einmalig → +50 Dokumente + 10 Antwort-Entwürfe
+**Extra Pack:** 4,99 € einmalig → +50 Dokumente + 10 Antwort-Entwürfe.
+Extra Pack increases Dokumente and Antwort-Entwürfe only.
+Extra Pack does NOT unlock Steuerberater-Export. Steuerberater-Export remains Plus-only.
+
+**Steuerberater-Export is Plus-only. Free and Privat have no access — not via Extra Pack, not conditionally.**
+Rationale: Steuerberater-Export is the primary Plus differentiator. Including it in Privat would eliminate the core reason to upgrade.
 
 **Antwort quota:**
 - Frist wahren / Klärung anfordern: kein LLM → kein Quota-Abzug

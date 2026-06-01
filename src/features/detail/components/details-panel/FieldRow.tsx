@@ -22,11 +22,12 @@ export function FieldRow({
   const { Colors: C } = useTheme();
 
   const displayValue = status === 'fehlt' ? null : (value || null);
-  const isActionable = !!onPress && !!status;
+  const isActionable = !!onPress;
 
   const rowContent = (
     <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
+      flexDirection: 'row', alignItems: 'center', gap: 10,
+      paddingVertical: 12, minHeight: 44,
       borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: C.border,
     }}>
       {/* Icon column */}
@@ -80,12 +81,9 @@ export function FieldRow({
         </View>
       )}
 
-      {/* Edit affordance — pencil when actionable with status, faint when no status */}
+      {/* Edit affordance — only shown when row is actually tappable */}
       {isActionable && (
         <Icon name="pencil-simple" size={14} color={C.textTertiary} />
-      )}
-      {showEditAffordance && !status && !isActionable && (
-        <Icon name="pencil-simple" size={14} color={C.borderLight} />
       )}
     </View>
   );

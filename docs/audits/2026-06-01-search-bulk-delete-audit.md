@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: none
+- Commit: 7a9c37f97
 - Task type: fix
 - Scope: Search/Ara document result management only
 - Status: PASS
@@ -109,8 +109,8 @@ Feature area:
   - device-level interaction still needs a quick live check
 
 ## 7. Commit
-- commit hash: none
-- commit message: pending
+- commit hash: `7a9c37f97`
+- commit message: `fix(search): support bulk delete in document results`
 
 ## 8. Follow-ups
 1. Device-check local search flow with 3 visible results:

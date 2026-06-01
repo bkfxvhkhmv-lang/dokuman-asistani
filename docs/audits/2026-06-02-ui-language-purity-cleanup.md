@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: f592b3755
 - Task type: fix / audit / validation
 - Scope: i18n and visible UI chrome only
 - Status: PARTIAL
@@ -183,7 +183,7 @@
   - not all 7-locale coverage was device-validated in this turn
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: f592b3755
 - commit message: `fix(i18n): enforce UI language purity across app chrome`
 
 ## 8. Follow-ups

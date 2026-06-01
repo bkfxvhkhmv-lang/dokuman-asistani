@@ -15,6 +15,9 @@ import {
   TextInput, Share, StyleSheet,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import { HIT_SLOP_LG } from '@/theme';
@@ -90,6 +93,13 @@ function Disclaimer({ C }: { C: any }) {
   );
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) {
@@ -147,6 +157,59 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
 
   const handleTeilen = async () => {
     await Share.share({ message: editText, title: draft?.betreff ?? 'Entwurf' });
+  };
+
+  const handleSavePdf = async () => {
+    if (!draft || !analysis) return;
+
+    const azLine = analysis.aktenzeichen ? `<div><strong>Aktenzeichen:</strong> ${escapeHtml(analysis.aktenzeichen)}</div>` : '';
+    const stNrLine = analysis.steuernummer ? `<div><strong>Steuernummer:</strong> ${escapeHtml(analysis.steuernummer)}</div>` : '';
+    const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><style>
+      body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1a1a2e;background:#fff;padding:32px}
+      .wrap{max-width:760px;margin:0 auto}
+      .label{font-size:11px;font-weight:700;letter-spacing:.4px;color:#8a8fa6;margin-bottom:6px}
+      .header{border-bottom:1px solid #e6e8f0;padding-bottom:18px;margin-bottom:18px}
+      .title{font-size:22px;font-weight:800;margin:0 0 8px}
+      .meta{font-size:13px;line-height:1.7;color:#3d4458}
+      .disclaimer{margin:18px 0;padding:10px 12px;border:1px solid #f0cf80;background:#fff7e8;border-radius:10px;font-size:12px;color:#7a5a12}
+      .section{margin-bottom:14px}
+      .section-title{font-size:11px;font-weight:700;letter-spacing:.4px;color:#8a8fa6;margin-bottom:4px}
+      .section-body{font-size:14px;line-height:1.7;color:#1a1a2e;white-space:pre-wrap}
+    </style></head><body><div class="wrap">
+      <div class="header">
+        <div class="label">BriefPilot — Antwort-Assistent</div>
+        <h1 class="title">${escapeHtml(draft.betreff)}</h1>
+        <div class="meta">
+          <div><strong>Empfänger:</strong> ${escapeHtml(draft.empfaenger)}</div>
+          ${azLine}
+          ${stNrLine}
+        </div>
+      </div>
+      <div class="disclaimer">Entwurf · Keine Rechtsberatung</div>
+      <div class="section">
+        <div class="section-title">Entwurf</div>
+        <div class="section-body">${escapeHtml(editText).replace(/\n/g, '<br/>')}</div>
+      </div>
+    </div></body></html>`;
+
+    const { uri } = await Print.printToFileAsync({ html, base64: false });
+    const safeBase = (draft.betreff || 'Antwort-Entwurf')
+      .replace(/[^\p{L}\p{N}\-_ ]/gu, '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .slice(0, 60) || 'Antwort-Entwurf';
+    const target = `${FileSystem.documentDirectory ?? FileSystem.cacheDirectory ?? ''}${safeBase}.pdf`;
+    if (target) {
+      try {
+        await FileSystem.copyAsync({ from: uri, to: target });
+      } catch {
+        // fall back to the temp file if copy fails
+      }
+    }
+    const shareUri = target || uri;
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(shareUri, { mimeType: 'application/pdf', dialogTitle: draft.betreff });
+    }
   };
 
   // ── Non-Finanzamt fallback ─────────────────────────────────────────────────
@@ -347,6 +410,16 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 6 }}>{draft.empfaenger}</Text>
               <Text style={{ fontSize: 11, color: C.textTertiary, marginBottom: 2 }}>Betreff</Text>
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{draft.betreff}</Text>
+              {(analysis?.aktenzeichen || analysis?.steuernummer) && (
+                <>
+                  <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 8, marginBottom: 2 }}>
+                    Steuernummer / Aktenzeichen
+                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>
+                    {[analysis?.steuernummer, analysis?.aktenzeichen].filter(Boolean).join(' · ')}
+                  </Text>
+                </>
+              )}
             </View>
 
             <Disclaimer C={C} />
@@ -371,8 +444,17 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
                 <Text style={{ fontSize: 14, fontWeight: '700', color: C.primaryDark }}>Kopieren</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => void handleSavePdf()}
+                style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgInput, flex: 1 }]}
+              >
+                <Icon name="file-pdf" size={16} color={C.text} />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Als PDF speichern</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
+              <TouchableOpacity
                 onPress={handleTeilen}
-                style={[st.primaryBtn, { backgroundColor: C.primary, flex: 1 }]}
+                style={[st.primaryBtn, { backgroundColor: C.primary }]}
               >
                 <Icon name="share-network" size={16} color="#fff" />
                 <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Teilen</Text>

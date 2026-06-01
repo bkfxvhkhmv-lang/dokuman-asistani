@@ -167,7 +167,34 @@ The core product is a **document assistant for German letters, invoices and ever
 1. **MRT güncellemesi** — bu dosya ✅
 2. **`preflight_all` çalıştır** — OCR backend reachability son doğrulama
 3. **TestFlight build** — `eas build --platform ios --profile testflight`
-4. **Sprint 2 backlog** — HUK sender, PDF signing polish, health path, Steuerberater Export v2
+4. **Sprint 2 backlog** — HUK sender, PDF signing polish, health path
+5. **Sprint 3 backlog** — Auth + real quota enforcement + Begründeter Entwurf LLM
+
+---
+
+## 8b. Pricing & Usage Limits — Draft
+
+**TestFlight: No quota enforcement. All features open. Measure real usage.**
+
+| Feature | Free | Privat | Plus |
+|---------|------|--------|------|
+| Preis | 0 € | 4,99 €/Mo · 39,99 €/Jahr | 9,99 €/Mo · 89,99 €/Jahr |
+| Dokumente / Monat | 3 | 30 | 100 |
+| Antwort-Entwürfe / Monat | — | 5 | 20 |
+| Steuerberater-Export (Excel+PDF) | ❌ | ❌ | ✅ Plus only |
+| PDF Export | ❌ | ✅ | ✅ |
+| OCR | Standard | Standard | Priorisiert |
+
+**Extra Pack:** 4,99 € einmalig → +50 Dokumente + 10 Antwort-Entwürfe
+
+**Antwort quota:**
+- Frist wahren / Klärung anfordern: kein LLM → kein Quota-Abzug
+- Begründeter Entwurf: zieht 1 Entwurf ab (wenn Quota-System aktiv)
+
+**Never expose:** tokens · credits · model names · backend cost
+
+**Future enforcement requires:** user auth + backend quota DB + RevenueCat/equivalent.
+Block before the expensive call. Frontend-only checks are not production enforcement.
 
 ---
 

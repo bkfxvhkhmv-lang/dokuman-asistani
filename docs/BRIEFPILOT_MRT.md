@@ -381,7 +381,56 @@ Tüm ana akışlar device'da doğrulandı. Rebuild tamamlandı.
 
 ---
 
-## 9. Backlog (Motor Bittikten Sonra)
+## 9. Pricing & Usage Limits — Draft
+
+**TestFlight policy: No quota enforcement during TestFlight. All features open. Measure usage, convert later.**
+
+### Pricing tiers
+
+| Feature | Free | Privat | Plus |
+|---------|------|--------|------|
+| Preis | 0 € | 4,99 €/Mo · 39,99 €/Jahr | 9,99 €/Mo · 89,99 €/Jahr |
+| Dokumente / Monat | 3 | 30 | 100 |
+| Antwort-Entwürfe / Monat | — (1 test ggf.) | 5 | 20 |
+| Steuerberater-Export (Excel+PDF) | ❌ | ❌ | ✅ |
+| Ausgaben-Übersicht | Basis | Ausgaben | Ausgaben + Budgets |
+| PDF Export | ❌ | ✅ Standard | ✅ Priorisiert |
+| OCR-Verarbeitung | Standard | Standard | Priorisiert |
+
+**Extra Pack:** 4,99 € einmalig → +50 Dokumente + 10 Antwort-Entwürfe. Kein Abo-Wechsel.
+
+### User-facing units (never expose: tokens / credits / model names / backend cost)
+- Dokumente
+- Antwort-Entwürfe
+- Steuerberater-Export
+
+### Antwort-Assistent quota policy
+
+| Modus | LLM? | Quota |
+|-------|------|-------|
+| Frist wahren | ❌ deterministic | ❌ kostenlos |
+| Klärung anfordern | ❌ deterministic (v1) | ❌ kostenlos |
+| Begründeter Entwurf | zukünftig 1× LLM | ✅ zieht 1 Antwort-Entwurf ab |
+
+### Future enforcement architecture (NOT implemented yet — requires auth)
+
+Real enforcement requires: user auth · subscription state · backend quota DB ·
+server-side entitlement checks · App Store / RevenueCat validation.
+
+Quota gates (when auth exists):
+- before OCR upload
+- before Begründeter-Entwurf LLM call
+- before Steuerberater ZIP export
+
+Rules:
+- Block before the expensive call — never after.
+- Never call AI if user lacks quota.
+- Frontend-only quota = NOT secure, not production enforcement.
+- Local counters = analytics/prototyping only.
+
+---
+
+## 10. Backlog (Motor Bittikten Sonra)
 
 Sıra: **Motor (P0 fixes) → Empty States → Haptic Feedback → Undo → List Card → Swipe → AI Reply → Onboarding → App Icon**
 

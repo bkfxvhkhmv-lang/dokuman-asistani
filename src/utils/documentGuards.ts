@@ -164,7 +164,7 @@ export function getReviewIssues(dok: {
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
   const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld/);
-  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld|steuer|kündigung|kuendigung/);
+  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld/);
 
   if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');

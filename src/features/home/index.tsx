@@ -216,7 +216,7 @@ export default function Home() {
 
 
       <HomeTriage
-        docs={data.sichtbareDocs}
+        docs={data.aufgaben}
         onPress={handleTriagePress}
         onScanPress={() => router.push('/(tabs)/Kamera')}
       />

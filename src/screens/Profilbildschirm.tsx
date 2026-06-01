@@ -162,11 +162,6 @@ export default function Profilbildschirm() {
         <SectionLabel text="KONTO" />
         <MenuSection rows={[
           {
-            icon: 'gear',
-            label: 'Einstellungen',
-            onPress: () => router.push('/einstellungen'),
-          },
-          {
             icon: 'lock',
             label: 'Datenschutz',
             onPress: showDatenschutz,

@@ -1,4 +1,4 @@
-import { getDetailTypeLabel } from '@/constants/docTypeConfig';
+import { getDetailTypeLabel, resolveDisplayDocumentType } from '@/constants/docTypeConfig';
 
 describe('getDetailTypeLabel — Formular medical referral refinement', () => {
   it('Formular + rohText contains MRT + Überweisung => MRT-Überweisung', () => {
@@ -73,5 +73,29 @@ describe('getDetailTypeLabel — display-time weak type upgrade', () => {
 
   it('Sonstiges without matching rohText stays Sonstiges', () => {
     expect(getDetailTypeLabel('Sonstiges', 'Willkommen bei sim.de Julia Stiegler')).toBe('Sonstiges');
+  });
+});
+
+describe('resolveDisplayDocumentType — compact card resolver', () => {
+  it('upgrades weak invoice type for card visuals and labels', () => {
+    const result = resolveDisplayDocumentType(
+      'Sonstiges',
+      'Autodoc GmbH Facture Bon de sortie Rechnungsnummer 17038456 Gesamtsumme 78,73 EUR',
+      'Dokument',
+    );
+    expect(result.detailLabel).toBe('Rechnung');
+    expect(result.semanticType).toBe('Rechnungen');
+    expect(result.config.shortLabel).toBe('Rechnung');
+  });
+
+  it('upgrades weak authority type for card visuals and labels', () => {
+    const result = resolveDisplayDocumentType(
+      'Dokument',
+      'Deutsche Rentenversicherung Bund Rentenbezugsbescheinigung',
+      'Dokument',
+    );
+    expect(result.detailLabel).toBe('Behördenbrief');
+    expect(result.semanticType).toBe('Behörden / Amt');
+    expect(result.config.shortLabel).toBe('Behörde');
   });
 });

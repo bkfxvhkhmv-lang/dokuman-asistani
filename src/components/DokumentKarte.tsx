@@ -10,7 +10,7 @@ import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySani
 import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
 import { useT } from '@/hooks/useT';
 import { needsManualReview } from '@/utils/documentGuards';
-import { getDocTypeConfig } from '@/constants/docTypeConfig';
+import { resolveDisplayDocumentType } from '@/constants/docTypeConfig';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -23,15 +23,15 @@ function getTageText(frist: string | null | undefined, T: (key: string, vars?: R
   return T('doc.due_days', { n: diff });
 }
 
-function getAccentColor(dok: Dokument, C: ThemeColors, Risk: RiskPalette): string {
+function getAccentColor(dok: Dokument, displayType: string, C: ThemeColors, Risk: RiskPalette): string {
   if (dok.erledigt) return C.textTertiary;
-  if (dok.typ === 'Gutschrift') return C.success;
+  if (displayType === 'Gutschrift') return C.success;
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const hasBetrag = typeof dok.betrag === 'number' && dok.betrag > 0;
   if (tage !== null && tage <= 0) return Risk.hoch.color;                    // overdue → red
-  if (dok.typ === 'Mahnung' && hasBetrag) return Risk.hoch.color;            // confirmed debt escalation → red
+  if (/mahnung/i.test(displayType) && hasBetrag) return Risk.hoch.color;     // confirmed debt escalation → red
   if (tage !== null && tage <= 7) return Risk.mittel.color;                  // within a week → amber
-  if (dok.typ === 'Mahnung') return Risk.mittel.color;                       // Mahnung, betrag unclear → amber
+  if (/mahnung/i.test(displayType)) return Risk.mittel.color;                // Mahnung, betrag unclear → amber
   if (dok.risiko === 'mittel' && dok.confidence != null && dok.confidence >= 55) return Risk.mittel.color;
   if (dok.risiko === 'hoch' && hasBetrag) return Risk.mittel.color;          // high risk only if amount confirmed
   return C.border;
@@ -55,17 +55,17 @@ function buildUrgencyBadge(
   return null;
 }
 
-function quickIntent(dok: Dokument, C: ThemeColors) {
-  const cfg = getDocTypeConfig(dok.typ);
+function quickIntent(dok: Dokument, displayType: string, C: ThemeColors) {
+  const { config: cfg } = resolveDisplayDocumentType(dok.aiDocumentType ?? displayType, dok.rohText, dok.titel);
   if (cfg.shortLabel === 'Rechnung') return { PhIcon: Money, color: C.primary };
   if (cfg.shortLabel === 'Versicherung') return { PhIcon: ShieldCheck, color: C.success };
   if (cfg.shortLabel === 'Behörde') return { PhIcon: FileText, color: C.primary };
   if (cfg.shortLabel === 'Vertrag') return { PhIcon: FileText, color: C.primaryDark };
   const t = [dok.rohText, dok.zusammenfassung, dok.titel].filter(Boolean).join(' ').toLowerCase();
-  if (dok.typ === 'Mahnung' || /mahnung|inkasso|pfändung/.test(t)) return { PhIcon: WarningCircle, color: C.danger };
-  if (dok.typ === 'Termin' || /termin|um\s+\d+:\d+/.test(t)) return { PhIcon: CalendarBlank, color: C.success };
+  if (/mahnung/i.test(displayType) || /mahnung|inkasso|pfändung/.test(t)) return { PhIcon: WarningCircle, color: C.danger };
+  if (/termin/i.test(displayType) || /termin|um\s+\d+:\d+/.test(t)) return { PhIcon: CalendarBlank, color: C.success };
   if (/widerspruch|einspruch/.test(t)) return { PhIcon: PencilSimple, color: C.primaryDark };
-  if (/rechnung|zahlung|forderung/.test(t) || (dok.betrag && dok.betrag > 0)) return { PhIcon: Money, color: C.primary };
+  if (/rechnung|zahlung|forderung/.test(t) || /rechnung/i.test(displayType) || (dok.betrag && dok.betrag > 0)) return { PhIcon: Money, color: C.primary };
   return { PhIcon: File, color: C.textSecondary };
 }
 
@@ -83,16 +83,19 @@ interface DokumentKarteProps {
 function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: DokumentKarteProps) {
   const { Colors, RiskColors, fs, hitSlopScale } = useTheme();
   const { t: T } = useT();
-  const accentColor   = getAccentColor(dok, Colors, RiskColors);
+  const displayTypeInfo = resolveDisplayDocumentType(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
+  const displayType = displayTypeInfo.detailLabel;
+  const reviewDok = { ...dok, typ: displayType };
+  const accentColor   = getAccentColor(dok, displayType, Colors, RiskColors);
   const tageText      = getTageText(dok.frist, T);
-  const intent        = quickIntent(dok, Colors);
+  const intent        = quickIntent(dok, displayType, Colors);
   const displayAbsender = resolveDocumentSender(dok);
   const displayTitel    = resolveDocumentTitle(dok);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
-  const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || dok.typ === 'Mahnung');
+  const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || /mahnung/i.test(displayType));
   const isDone      = dok.erledigt;
   const a11yLabel = [
-    dok.typ, dok.titel, dok.absender,
+    displayType, displayTitel, displayAbsender || dok.absender,
     isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
     typeof dok.betrag === 'number' && dok.betrag > 0 ? `${dok.betrag.toFixed(2)} Euro` : null,
   ].filter(Boolean).join(', ');
@@ -106,10 +109,10 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     : null;
 
   const listSnippet    = excerptForDocumentListCard(dok);
-  const cardInsight    = buildCardInsight(dok);
+  const cardInsight    = buildCardInsight(reviewDok);
   const secondaryLine  = cardInsight ?? listSnippet ?? null;
-  const nextStep       = deriveNextStep(dok);
-  const urgencyBadge   = buildUrgencyBadge(dok, tage, cardInsight, Colors);
+  const nextStep       = deriveNextStep(reviewDok);
+  const urgencyBadge   = buildUrgencyBadge(reviewDok, tage, cardInsight, Colors);
 
   const nextStepColors = (urgency: NextStepUrgency) => {
     if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };

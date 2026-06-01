@@ -5,6 +5,7 @@ import {
 } from 'phosphor-react-native';
 import {
   normalizeDocumentTyp,
+  normalizeAndRefineTyp,
   type CanonicalDocumentType,
 } from '@/product/canonicalDocTypes';
 
@@ -113,6 +114,21 @@ export function getDocTypeConfig(typ: string | null | undefined): DocTypeConfig 
   return CONFIG[canonical as CanonicalDocumentType] ?? FALLBACK;
 }
 
+export interface DisplayDocumentTypeInfo {
+  /**
+   * User-facing singular type label for cards/details.
+   * Examples: Rechnung, Behördenbrief, MRT-Überweisung
+   */
+  detailLabel: string;
+  /**
+   * Refined semantic type used for guards, icon intent and chips.
+   * Examples: Rechnungen, Behörden / Amt
+   */
+  semanticType: string;
+  /** Card/list visual config derived from the refined semantic type. */
+  config: DocTypeConfig;
+}
+
 /**
  * Singular, user-facing label for single-document detail surfaces.
  * When rohText/titel are provided, generic "Formular" is refined to a
@@ -153,4 +169,25 @@ export function getDetailTypeLabel(
   }
 
   return getDocTypeConfig(typ).shortLabel;
+}
+
+/**
+ * Shared display resolver for compact surfaces (cards/lists/search rows).
+ * Keeps detail-grade weak-type refinement while still returning a semantic
+ * type that card visuals and guards can use safely.
+ */
+export function resolveDisplayDocumentType(
+  typ: string | null | undefined,
+  rohText?: string | null,
+  titel?: string | null,
+): DisplayDocumentTypeInfo {
+  const baseType = (typ ?? '').trim();
+  const evidence = [rohText ?? '', titel ?? ''].filter(Boolean).join('\n');
+  const semanticType = normalizeAndRefineTyp(baseType || 'Sonstiges', evidence);
+  const detailLabel = getDetailTypeLabel(baseType || semanticType, rohText, titel);
+  return {
+    detailLabel,
+    semanticType,
+    config: getDocTypeConfig(semanticType),
+  };
 }

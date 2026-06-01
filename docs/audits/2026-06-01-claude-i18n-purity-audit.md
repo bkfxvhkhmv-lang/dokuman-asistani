@@ -9,7 +9,7 @@
 - **Commits:** `53f6290e`
 - **Task type:** audit + fix
 - **Scope:** All user-facing strings in recent features; 7-language completeness check
-- **Status:** PASS (all 7 languages complete after fix)
+- **Status:** PASS (all 7 languages complete — YanıtSablonlariModal also closed)
 
 ---
 
@@ -109,13 +109,14 @@ grep -n "DOC_TYPE_LABEL|Besser erkennen|Excel herunterladen|Übernehmen|Ignorier
 | Hash | Message |
 |------|---------|
 | `53f6290e` | fix(i18n): complete 7-language translation coverage for recent features |
+| `a23dfac8` | fix(i18n): localize reply assistant chrome |
 
 ---
 
 ## 8. Follow-ups
 | Priority | Task | File | Notes |
 |----------|------|------|-------|
-| SHOULD FIX | YanıtSablonlariModal UI chrome (button labels, mode names) → useT() | `src/components/YanıtSablonlariModal.tsx` | Complex modal; separate focused PR |
+| ~~SHOULD FIX~~ DONE | YanıtSablonlariModal UI chrome → useT() | `src/components/YanıtSablonlariModal.tsx` | `a23dfac8` |
 | SHOULD FIX | Prüfen ob `OcrMvpUploadBox` hardcoded strings hat | `src/features/ocr-mvp/components/OcrMvpUploadBox.tsx` | Scan-entry screen |
 | SHOULD FIX | Kommentare in Türkisch/Englisch in kürzlich geänderten Dateien → Deutsch | Various | Follow Projekt-Sprachregel |
 | LATER | Technische Werte wie `processing`/`failed` Status-Anzeige lokalisieren wenn sichtbar | store/status displays | Needs audit of status display surfaces |

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import AiSparkle from '@/components/AiSparkle';
 import Icon from '@/components/Icon';
+import { useT } from '@/hooks/useT';
 
 export type FieldStatus = 'pruefen' | 'fehlt' | undefined;
 
@@ -20,6 +21,7 @@ export function FieldRow({
   onPress?: () => void;
 }) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
 
   const displayValue = status === 'fehlt' ? null : (value || null);
   const isActionable = !!onPress;
@@ -50,7 +52,7 @@ export function FieldRow({
           </Text>
         ) : (
           <Text style={{ fontSize: 13, color: C.textTertiary, fontStyle: 'italic', marginTop: 2 }}>
-            Nicht erkannt
+            {T('field.not_recognized')}
           </Text>
         )}
       </View>
@@ -64,7 +66,7 @@ export function FieldRow({
           borderColor: `${C.warning}66`,
         }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: C.warning ?? C.warningText }}>
-            Prüfen
+            {T('field.review')}
           </Text>
         </View>
       )}
@@ -76,7 +78,7 @@ export function FieldRow({
           borderColor: `${C.danger}44`,
         }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: C.danger }}>
-            Fehlt
+            {T('field.missing')}
           </Text>
         </View>
       )}

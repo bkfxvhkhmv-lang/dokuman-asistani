@@ -6,6 +6,7 @@ import { useSyncEngine } from '@/hooks/useSyncEngine';
 import type { PipelineUiPhase } from '@/utils/documentPipelineStatus';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { useT } from '@/hooks/useT';
 
 function phaseColors(phase: PipelineUiPhase, C: ThemeColors) {
   switch (phase) {
@@ -29,6 +30,7 @@ type Props = {
 /** Pipeline sichtbar machen + Sync-CTA; bei abgeschlossener Analyse wird nichts gerendert. */
 export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnalysis }: Props) {
   const { Colors: C, S, R, fs } = useTheme();
+  const { t: T } = useT();
   const { dispatch } = useStore();
   const { sync, status: syncStatus } = useSyncEngine();
   const [busy, setBusy] = useState(false);
@@ -103,25 +105,25 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
       }}
     >
       <Text style={{ fontSize: fs(11), fontWeight: '800', color: tone.label, letterSpacing: 0.6, marginBottom: 6 }}>
-        DOKUMENT-ANALYSE
+        {T('detail.analysis.title').toUpperCase()}
       </Text>
       <Text style={{ fontSize: fs(15), fontWeight: '700', color: C.text }} numberOfLines={1}>
         {displayTitle}
       </Text>
       <Text style={{ fontSize: fs(13), color: tone.label, marginTop: 6, marginBottom: S.sm }}>
         {info.phase === 'error'
-          ? 'Die Analyse ist fehlgeschlagen. Bitte mit gutem WLAN erneut versuchen.'
-          : 'Nach dem Speichern wird der Text erkannt und die Übersicht vorbereitet. Meist 5–15 Sekunden.'}
+          ? T('detail.analysis.error_body')
+          : T('detail.analysis.processing_body')}
       </Text>
 
       <View style={{ marginTop: 4, marginBottom: S.md }}>
-        {stepLine('Auf Gerät gespeichert', 'done', 'upload')}
-        {stepLine('Dokument wird erkannt', stepText as 'done' | 'active' | 'wait' | 'error', 'ocr')}
-        {stepLine('Zusammenfassung wird erstellt', stepAi as 'done' | 'active' | 'wait' | 'error', 'ai')}
+        {stepLine(T('detail.analysis.saved'), 'done', 'upload')}
+        {stepLine(T('detail.analysis.recognizing'), stepText as 'done' | 'active' | 'wait' | 'error', 'ocr')}
+        {stepLine(T('detail.analysis.summary_creating'), stepAi as 'done' | 'active' | 'wait' | 'error', 'ai')}
       </View>
 
       <Text style={{ fontSize: fs(11), color: C.textTertiary }}>
-        ⏱ In der Regel 5–15 Sekunden nach Upload — bei großen oder unscharfen Briefen kann es etwas länger dauern.
+        {T('detail.analysis.eta')}
       </Text>
 
       <TouchableOpacity
@@ -140,7 +142,7 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={{ fontSize: fs(14), fontWeight: '700', color: '#fff' }}>
-              {info.phase === 'error' ? 'Erneut versuchen' : 'Aktualisieren'}
+              {info.phase === 'error' ? T('common.retry') : T('common.refresh')}
             </Text>
           )}
         </TouchableOpacity>

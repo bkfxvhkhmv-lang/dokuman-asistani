@@ -1,5 +1,7 @@
 import type { AmountSemantics } from '@/types/normalizedDocument';
 import { normalizeAndRefineTyp } from '@/product/canonicalDocTypes';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 export type { AmountSemantics } from '@/types/normalizedDocument';
 
 /**
@@ -268,8 +270,9 @@ export function getReviewLabel(dok: {
 }): string | null {
   if (!needsManualReview(dok)) return null;
   const issues = getReviewIssues(dok);
-  if (issues.length > 1 || (dok.confidence ?? 100) < 30) return 'Einige Angaben prüfen';
-  return 'Angaben prüfen';
+  const lang = getLangSync();
+  if (issues.length > 1 || (dok.confidence ?? 100) < 30) return t(lang, 'review.label_many');
+  return t(lang, 'review.label');
 }
 
 export function isPaymentLikeDocument(dok: { typ?: string | null }): boolean {

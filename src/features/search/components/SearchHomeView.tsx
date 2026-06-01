@@ -13,6 +13,14 @@ import type { ThemeColors } from '@/ThemeContext';
 import SpringChip from '@/features/search/components/SpringChip';
 import { SCHNELLSUCHE, type ChipTone } from '@/features/search/components/constants';
 import { SEARCH_MISSION_HINT } from '@/product/strategyCopy';
+import { useT } from '@/hooks/useT';
+
+function quickSearchLabelKey(query: string): string {
+  if (query === 'überfällig') return 'search.quick.overdue';
+  if (query === 'diese Woche') return 'search.quick.this_week';
+  if (query === 'über 100€') return 'search.quick.over_100';
+  return 'search.quick.review';
+}
 
 interface Props {
   suchVerlauf: string[];
@@ -32,6 +40,7 @@ function chipColors(tone: ChipTone | undefined, C: ThemeColors) {
 export default function SearchHomeView({
   suchVerlauf, setSuchVerlauf, etikettenVerlauf, onSearch, C, S,
 }: Props) {
+  const { t: T } = useT();
   return (
     <ScrollView contentContainerStyle={{ padding: S.lg }}>
       <Text
@@ -54,7 +63,7 @@ export default function SearchHomeView({
           marginBottom: S.md,
         }}
       >
-        SCHNELLSUCHE
+        {T('search.home.quick')}
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: S.xl }}>
         {SCHNELLSUCHE.map(t => {
@@ -69,7 +78,7 @@ export default function SearchHomeView({
                 borderWidth: 0.5, borderColor: pal.border,
               }}
             >
-              <Text style={{ fontSize: 13, fontWeight: t.tone ? '600' : '400', color: pal.text }}>{t.label}</Text>
+              <Text style={{ fontSize: 13, fontWeight: t.tone ? '600' : '400', color: pal.text }}>{T(quickSearchLabelKey(t.query))}</Text>
             </SpringChip>
           );
         })}
@@ -85,10 +94,10 @@ export default function SearchHomeView({
             }}
           >
             <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.8 }}>
-              ZULETZT GESUCHT
+              {T('search.home.recent')}
             </Text>
             <TouchableOpacity onPress={() => setSuchVerlauf([])}>
-              <Text style={{ fontSize: 11, color: C.danger }}>Löschen</Text>
+              <Text style={{ fontSize: 11, color: C.danger }}>{T('common.delete')}</Text>
             </TouchableOpacity>
           </View>
           {suchVerlauf.map((s, i) => (
@@ -118,7 +127,7 @@ export default function SearchHomeView({
               marginTop: S.xl, marginBottom: S.md,
             }}
           >
-            NACH ETIKETT SUCHEN
+            {T('search.home.tags')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             {etikettenVerlauf.slice(0, 10).map(e => (

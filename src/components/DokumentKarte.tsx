@@ -44,14 +44,15 @@ function buildUrgencyBadge(
   tage: number | null,
   cardInsight: string | null,
   C: ThemeColors,
+  T: (key: string, vars?: Record<string, string | number>) => string,
 ): UrgencyBadgeInfo | null {
   if (dok.erledigt) return null;
-  if (tage !== null && tage < 0)   return { label: 'Überfällig',   bg: C.dangerLight,  textColor: C.dangerText };
-  if (tage !== null && tage === 0) return { label: 'Heute',        bg: C.dangerLight,  textColor: C.dangerText };
-  if (tage !== null && tage <= 7)  return { label: 'Diese Woche',  bg: C.warningLight, textColor: C.warningText };
+  if (tage !== null && tage < 0)   return { label: T('doc.overdue'),   bg: C.dangerLight,  textColor: C.dangerText };
+  if (tage !== null && tage === 0) return { label: T('doc.today'),     bg: C.dangerLight,  textColor: C.dangerText };
+  if (tage !== null && tage <= 7)  return { label: T('doc.this_week'), bg: C.warningLight, textColor: C.warningText };
   // "Angaben prüfen" only when low confidence AND no structured insight already tells the story
   if (tage === null && !cardInsight && needsManualReview(dok))
-    return { label: 'Angaben prüfen', bg: C.warningLight, textColor: C.warningText };
+    return { label: T('review.label'), bg: C.warningLight, textColor: C.warningText };
   return null;
 }
 
@@ -108,11 +109,11 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
     ? { bg: Colors.primaryLight, text: Colors.primaryDark }
     : null;
 
-  const listSnippet    = excerptForDocumentListCard(dok);
+  const listSnippet    = excerptForDocumentListCard(dok, { appLang: T('common.lang_code') });
   const cardInsight    = buildCardInsight(reviewDok);
   const secondaryLine  = cardInsight ?? listSnippet ?? null;
   const nextStep       = deriveNextStep(reviewDok);
-  const urgencyBadge   = buildUrgencyBadge(reviewDok, tage, cardInsight, Colors);
+  const urgencyBadge   = buildUrgencyBadge(reviewDok, tage, cardInsight, Colors, T);
 
   const nextStepColors = (urgency: NextStepUrgency) => {
     if (urgency === 'critical') return { bg: Colors.dangerLight,  text: Colors.dangerText  };

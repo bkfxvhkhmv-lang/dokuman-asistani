@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { getTageVerbleibend } from '@/utils/formatters';
 import { getManualReviewReasons, needsManualReview } from '@/utils/documentGuards';
 import type { Dokument } from '@/store';
@@ -23,6 +24,7 @@ interface TriageItem {
 
 export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t: T } = useT();
 
   const items = useMemo((): TriageItem[] => {
     let dringend = 0, dieseWoche = 0, pruefen = 0, ueberfaellig = 0;
@@ -45,12 +47,12 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
     }
 
     return [
-      { key: 'dringend',     label: 'Dringend',       icon: 'warning-circle', count: dringend,     tone: dringend > 0     ? 'danger'  : 'neutral' },
-      { key: 'ueberfaellig', label: 'Überfällig',     icon: 'clock',          count: ueberfaellig, tone: ueberfaellig > 0 ? 'danger'  : 'neutral' },
-      { key: 'dieseWoche',   label: 'Diese Woche',    icon: 'calendar-blank', count: dieseWoche,   tone: dieseWoche > 0   ? 'warning' : 'neutral' },
-      { key: 'pruefen',      label: 'Offene Hinweise', subtitle: 'Einige Angaben können ergänzt werden', icon: 'magnifying-glass', count: pruefen, tone: pruefen > 0 ? 'warning' : 'neutral' },
+      { key: 'dringend',     label: T('dash.urgent'), icon: 'warning-circle', count: dringend,     tone: dringend > 0     ? 'danger'  : 'neutral' },
+      { key: 'ueberfaellig', label: T('doc.overdue'), icon: 'clock',          count: ueberfaellig, tone: ueberfaellig > 0 ? 'danger'  : 'neutral' },
+      { key: 'dieseWoche',   label: T('doc.this_week'), icon: 'calendar-blank', count: dieseWoche, tone: dieseWoche > 0   ? 'warning' : 'neutral' },
+      { key: 'pruefen',      label: T('home.triage.open_hints'), subtitle: T('home.triage.open_hints_sub'), icon: 'magnifying-glass', count: pruefen, tone: pruefen > 0 ? 'warning' : 'neutral' },
     ];
-  }, [docs]);
+  }, [docs, T]);
 
   const allZero = items.every(i => i.count === 0);
   if (allZero) {
@@ -62,10 +64,10 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
           <Icon name="check-circle" size={18} color={C.success} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
-              Keine dringenden Dokumente
+              {T('home.triage.none_title')}
             </Text>
             <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2, lineHeight: 15 }}>
-              Aktuell gibt es keine überfälligen Fristen oder offenen Prüfungen.
+              {T('home.triage.none_body')}
             </Text>
           </View>
         </View>
@@ -78,7 +80,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
             activeOpacity={0.75}
           >
             <Text style={{ fontSize: 12, fontWeight: '600', color: C.primary }}>
-              Neues Dokument scannen
+              {T('home.triage.scan_new')}
             </Text>
           </TouchableOpacity>
         )}
@@ -98,7 +100,7 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
 
   return (
     <View style={[st.wrap, { marginHorizontal: S.md, marginBottom: S.md }]}>
-      <Text style={[st.header, { color: C.textTertiary }]}>HEUTE WICHTIG</Text>
+      <Text style={[st.header, { color: C.textTertiary }]}>{T('home.triage.header')}</Text>
       <View style={st.grid}>
         {primaryItems.map(item => {
           const ts = toneStyle(item.tone);
@@ -137,15 +139,15 @@ export default function HomeTriage({ docs, onPress, onScanPress }: Props) {
         >
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
-              {`${reviewItem.count} offene Hinweise`}
+              {T('home.triage.count', { n: reviewItem.count })}
             </Text>
             <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-              Einige Angaben können ergänzt werden
+              {T('home.triage.open_hints_sub')}
             </Text>
           </View>
           <TouchableOpacity onPress={() => onPress?.('pruefen')} activeOpacity={0.75}>
             <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
-              Alle anzeigen →
+              {T('detail.show_all')} →
             </Text>
           </TouchableOpacity>
         </View>

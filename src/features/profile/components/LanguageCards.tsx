@@ -12,6 +12,7 @@ import { useTheme } from '@/ThemeContext';
 import { useLangPreference } from '@/hooks/useLangPreference';
 import { LANGUAGES } from '@/i18n/langConfig';
 import { AI_LANGUAGES } from '@/i18n/aiLangConfig';
+import { useT } from '@/hooks/useT';
 
 const COLS = 4;
 const GAP  = 6;
@@ -28,6 +29,7 @@ interface UILangProps {
 export function UILanguageCard({ bare }: UILangProps) {
   const { lang, changeLang } = useLangPreference();
   const { Colors: C, Shadow } = useTheme();
+  const { t: T } = useT();
   const [containerW, setContainerW] = React.useState(0);
   const pillW = containerW > 0 ? Math.floor((containerW - (COLS - 1) * GAP) / COLS) : undefined;
 
@@ -76,7 +78,7 @@ export function UILanguageCard({ bare }: UILangProps) {
         letterSpacing: 0.1,
       }}
     >
-      App-Oberfläche und Buttons erscheinen in dieser Sprache.
+      {T('settings.lang_hint')}
     </Text>
   );
   if (bare) {
@@ -95,7 +97,7 @@ export function UILanguageCard({ bare }: UILangProps) {
       }}
     >
       <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, marginBottom: 14, letterSpacing: 0.8 }}>
-        APP‑SPRACHE
+        {T('settings.ui_language_section')}
       </Text>
       {pills}
       {hint}
@@ -113,6 +115,7 @@ interface AILangProps {
 
 export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   const { Colors: C, Shadow } = useTheme();
+  const { t: T } = useT();
   const [containerW, setContainerW] = React.useState(0);
   const pillW = containerW > 0 ? Math.floor((containerW - (COLS - 1) * GAP) / COLS) : undefined;
 
@@ -150,7 +153,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
   );
   const hint = (
     <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: bare ? 8 : 12, marginHorizontal: 16, letterSpacing: 0.1 }}>
-      Zusammenfassungen und Hinweise der KI erscheinen in dieser Sprache.
+      {T('settings.ai_lang_hint')}
     </Text>
   );
   if (bare) {
@@ -169,7 +172,7 @@ export function AILanguageCard({ aiLang, changeAiLang, bare }: AILangProps) {
       }}
     >
       <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, marginBottom: 14, letterSpacing: 0.8 }}>
-        KI-ANTWORT‑SPRACHE
+        {T('settings.ai_language_section')}
       </Text>
       {pills}
       {hint}

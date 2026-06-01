@@ -4,20 +4,12 @@ import { useTheme } from '@/ThemeContext';
 import { AppSheet, AppButton } from '@/design/components';
 import Icon from '@/components/Icon';
 import type { MoreMenuGroup, MoreMenuItem } from '@/features/detail/detail-modals/types';
+import { useT } from '@/hooks/useT';
 
 const _t = (msg: string) => { if (__DEV__) console.log('[MORE_TRACE]', msg); };
 
-const GROUP_LABEL: Record<MoreMenuGroup, string> = {
-  main:           'Hauptaktionen',
-  communication:  'Chat & Antwort',
-  secondary:      'Weitere Werkzeuge',
-  advanced:       'Weitere Werkzeuge',
-};
-
 /** Sichtbar ohne Scroll: Haupt + genug Chat — alles andere unter „Weitere Werkzeuge". */
 const FIRST_SCREEN_TOTAL = 5;
-
-const SECTION_WEITERE_WERKZEUGE = 'Weitere Werkzeuge';
 
 function pileByGroup(items: MoreMenuItem[]) {
   const m: Record<MoreMenuGroup, MoreMenuItem[]> = {
@@ -48,7 +40,14 @@ interface Props {
 
 export default function MoreMenuSheet({ visible, onClose, items }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const pile = useMemo(() => pileByGroup(items), [items]);
+  const groupLabel: Record<MoreMenuGroup, string> = {
+    main: T('detail.more.group_main'),
+    communication: T('detail.more.group_communication'),
+    secondary: T('detail.more.group_tools'),
+    advanced: T('detail.more.group_tools'),
+  };
 
   useEffect(() => {
     if (visible) _t(`sheet visible=true itemCount=${items.length}`);
@@ -137,7 +136,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
     >
       {main.length > 0 && (
         <View>
-          <SectionHeader label={GROUP_LABEL.main} />
+          <SectionHeader label={groupLabel.main} />
           {main.map((item, i) => (
             <Row key={item.key} item={item} isLastRow={i === main.length - 1 && communication.length === 0} />
           ))}
@@ -146,7 +145,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
 
       {(commHead.length > 0 || commRest.length > 0) && (
         <View>
-          {(main.length === 0 || communication.length > 0) ? <SectionHeader label={GROUP_LABEL.communication} /> : null}
+          {(main.length === 0 || communication.length > 0) ? <SectionHeader label={groupLabel.communication} /> : null}
 
           {commHead.map((item, i) => (
             <Row
@@ -168,7 +167,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
               {!extraCommOpen ? (
                 <TouchableOpacity onPress={() => setExtraCommOpen(true)} style={{ paddingVertical: 10 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: C.primary }}>
-                    Alle anzeigen
+                    {T('detail.show_all')}
                   </Text>
                 </TouchableOpacity>
               ) : null}
@@ -193,13 +192,13 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
             }}
           >
             <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.5 }}>
-              {SECTION_WEITERE_WERKZEUGE}
+              {T('detail.more.group_tools')}
             </Text>
             <Icon name={weitereOpen ? 'caret-up' : 'caret-down'} size={13} color={C.primary} />
           </TouchableOpacity>
           {!weitereOpen ? (
             <Text style={{ fontSize: 12, color: C.textTertiary, marginBottom: 0, lineHeight: 17 }}>
-              Alles Weitere an einem Ort — aufklappen, wenn du es brauchst.
+              {T('detail.more.tools_sub')}
             </Text>
           ) : null}
           {weitereOpen &&
@@ -211,7 +210,7 @@ export default function MoreMenuSheet({ visible, onClose, items }: Props) {
 
       {items.length === 0 && (
         <Text style={{ paddingVertical: 16, fontSize: 13, color: C.textSecondary }}>
-          Keine weiteren Schnellaktionen — nutze „Aktionen" oben oder die Übersicht.
+          {T('detail.more.empty')}
         </Text>
       )}
     </AppSheet>

@@ -60,34 +60,32 @@ export default function SearchFilterModal({
         </Text>
 
         {/* BETRAG */}
-        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          BETRAG (€)
-        </Text>
+        <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>{T('field.amount').toUpperCase()} (€)</Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
           <View style={{ flex: 1 }}>
-            <AppInput label="Von (€)" placeholder="z. B. 50" value={minBetrag} onChangeText={setMinBetrag} keyboardType="numeric" />
+            <AppInput label={T('common.from_amount')} placeholder={T('search.example_50')} value={minBetrag} onChangeText={setMinBetrag} keyboardType="numeric" />
           </View>
           <View style={{ flex: 1 }}>
-            <AppInput label="Bis (€)" placeholder="z. B. 500" value={maxBetrag} onChangeText={setMaxBetrag} keyboardType="numeric" />
+            <AppInput label={T('common.to_amount')} placeholder={T('search.example_500')} value={maxBetrag} onChangeText={setMaxBetrag} keyboardType="numeric" />
           </View>
         </View>
 
         {/* ZEITRAUM */}
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          ZEITRAUM
+          {T('search.range').toUpperCase()}
         </Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
           <View style={{ flex: 1 }}>
-            <AppInput label="Von" placeholder="TT.MM.JJJJ" value={vonDatum} onChangeText={setVonDatum} />
+            <AppInput label={T('common.from')} placeholder="TT.MM.JJJJ" value={vonDatum} onChangeText={setVonDatum} />
           </View>
           <View style={{ flex: 1 }}>
-            <AppInput label="Bis" placeholder="TT.MM.JJJJ" value={bisDatum} onChangeText={setBisDatum} />
+            <AppInput label={T('common.to')} placeholder="TT.MM.JJJJ" value={bisDatum} onChangeText={setBisDatum} />
           </View>
         </View>
 
         {/* BEREICH */}
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          BEREICH
+          {T('search.scope').toUpperCase()}
         </Text>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
           {(['alle', 'Rechnungen', 'Behörden', 'Nachweise'] as const).map(t => (
@@ -108,7 +106,7 @@ export default function SearchFilterModal({
                   color:      typ === t ? C.primaryDark : C.textSecondary,
                 }}
               >
-                {t === 'alle' ? 'Alle' : t}
+                {t === 'alle' ? T('home.filter.all') : T(`search.scope.${t.toLowerCase()}`)}
               </Text>
             </SpringChip>
           ))}
@@ -116,7 +114,7 @@ export default function SearchFilterModal({
 
         {/* PRÜFSTATUS */}
         <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>
-          PRÜFSTATUS
+          {T('search.review_status').toUpperCase()}
         </Text>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
           {RISIKEN.map(r => {
@@ -143,7 +141,7 @@ export default function SearchFilterModal({
                     color:      isActive ? rColor : C.textSecondary,
                   }}
                 >
-                  {r === 'alle' ? 'Alle' : r.charAt(0).toUpperCase() + r.slice(1)}
+                  {r === 'alle' ? T('home.filter.all') : T(`risk.level.${r}`)}
                 </Text>
               </SpringChip>
             );
@@ -183,7 +181,7 @@ export default function SearchFilterModal({
             }}
             onPress={onReset}
           >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>Zurücksetzen</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>{T('search.reset')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -193,7 +191,7 @@ export default function SearchFilterModal({
             }}
             onPress={onClose}
           >
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Anwenden</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>{T('search.apply')}</Text>
           </TouchableOpacity>
         </View>
       </View>

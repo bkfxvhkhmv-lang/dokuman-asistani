@@ -216,8 +216,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
             marginBottom: 4,
           }}
         >
-          Vorlesen nutzt dieselbe Spracheinstellung wie die KI unten — Tempo weiterhin in den
-          Geräte‑Barriereeinstellungen.
+          {T('settings.tts_note')}
         </Text>
         <FlatGroup>
           <AILanguageCard bare aiLang={aiLang} changeAiLang={changeAiLang} />

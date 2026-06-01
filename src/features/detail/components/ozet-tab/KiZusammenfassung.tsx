@@ -33,7 +33,7 @@ export default function KiZusammenfassung({
         <TouchableOpacity onPress={() => onMailTaslak()}
           hitSlop={HIT_SLOP_LG}
           style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border }}>
-          <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>E-Mail</Text>
+          <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>{T('common.email')}</Text>
         </TouchableOpacity>
       </View>
       <Text style={{ fontSize: 13, color: C.textSecondary, lineHeight: 20 }}>{zusammenfassung}</Text>
@@ -44,7 +44,7 @@ export default function KiZusammenfassung({
             backgroundColor: ozetQuellenSichtbar ? C.primaryLight : C.bgInput,
             borderWidth: 0.5, borderColor: ozetQuellenSichtbar ? C.primary : C.border }}>
           <Text style={{ fontSize: 11, fontWeight: '600', color: ozetQuellenSichtbar ? C.primaryDark : C.textSecondary }}>
-            {ozetQuellenSichtbar ? 'Quellen ausblenden' : 'Quellen anzeigen'}
+            {ozetQuellenSichtbar ? T('detail.hide_sources') : T('detail.show_sources')}
           </Text>
         </TouchableOpacity>
       )}

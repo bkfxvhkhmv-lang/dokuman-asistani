@@ -19,6 +19,8 @@ import { resolveDocumentSender } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import { getReviewLabel } from '@/utils/documentGuards';
 import { getDetailTypeLabel } from '@/constants/docTypeConfig';
+import { useT } from '@/hooks/useT';
+import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
 
 interface Props {
   dok: Dokument;
@@ -38,6 +40,7 @@ function confidenceColor(conf: number, C: any): string {
 
 export default function AnalyseHeaderCard({ dok }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t: TT, lang } = useT();
 
   const status   = computeDocumentStatus(dok);
   const statusUi = DOCUMENT_STATUS_UI[status];
@@ -45,7 +48,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
 
   const conf     = dok.confidence;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
+  const typeLabel = translateDocumentTypeLabel(getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel), lang);
   const tage     = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const fristStr = dok.frist ? formatFrist(dok.frist) : null;
   const fristCol = tage === null ? C.text
@@ -78,7 +81,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <AiSparkle />
           <Text style={{ fontSize: 10, fontWeight: '600', color: confidenceColor(conf, C) }}>
-              {reviewLabel ?? 'KI-geprüft'}
+              {reviewLabel ?? TT('detail.trust.ai_checked')}
           </Text>
         </View>
       )}
@@ -87,7 +90,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}
       <View style={{ paddingHorizontal: S.lg, paddingBottom: hasFacts ? 10 : 16 }}>
         <Text style={{ ...T.label, color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
-          {typeLabel ? typeLabel.toUpperCase() : 'SONSTIGES'}
+          {typeLabel ? typeLabel.toUpperCase() : TT('doc.type.other').toUpperCase()}
           {(() => { const s = resolveDocumentSender(dok); return s ? ` · ${s}` : ''; })()}
         </Text>
       </View>
@@ -104,7 +107,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
               borderRightWidth: dok.frist ? 0.5 : 0, borderRightColor: C.borderLight,
             }}>
               <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 4 }}>
-                {dok.betrag < 0 ? 'GUTSCHRIFT' : 'BETRAG'}
+                {dok.betrag < 0 ? TT('doc.type.credit_note').toUpperCase() : TT('field.amount').toUpperCase()}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text style={{ ...T.heroNumber, color: C.text }}>
@@ -118,7 +121,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
           {dok.frist ? (
             <View style={{ flex: 1, padding: S.md }}>
               <Text style={{ ...T.label, color: C.textTertiary, marginBottom: 4 }}>
-                FRIST
+                {TT('field.deadline').toUpperCase()}
               </Text>
               <Text style={{ ...T.heroNumber, color: fristCol }}>
                 {fristStr}

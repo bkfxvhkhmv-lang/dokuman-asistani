@@ -14,23 +14,23 @@ interface Props {
 
 // Map raw OCR risk strings to user-facing messages, deduplicated by category.
 const GRUND_TO_USER: Record<string, string> = {
-  'Ziffern/Buchstaben-Verwechslung (0/O, 1/I/l)': 'Bitte Zahlen und Buchstaben prüfen.',
-  'Ungewöhnliche Groß-/Kleinschreibung':           'Bitte Schreibweise prüfen.',
-  'Ungewöhnliche Dezimalzahl':                     'Bitte Betrag und Kommastellen prüfen.',
-  'Betrag scheint zu klein (< 10)':                'Bitte Betrag prüfen.',
-  'Unlesbare Zeichen':                             'Einige Zeichen konnten nicht erkannt werden.',
-  'Buchstabe in Zahl eingefügt':                   'Bitte Zahlen prüfen.',
-  'IBAN-Prüfziffer stimmt nicht — OCR-Fehler?':   'Bitte IBAN prüfen.',
+  'Ziffern/Buchstaben-Verwechslung (0/O, 1/I/l)': 'ocr.hint.check_numbers_letters',
+  'Ungewöhnliche Groß-/Kleinschreibung':           'ocr.hint.check_spelling',
+  'Ungewöhnliche Dezimalzahl':                     'ocr.hint.check_amount_decimals',
+  'Betrag scheint zu klein (< 10)':                'ocr.hint.check_amount',
+  'Unlesbare Zeichen':                             'ocr.hint.chars_missing',
+  'Buchstabe in Zahl eingefügt':                   'ocr.hint.check_numbers',
+  'IBAN-Prüfziffer stimmt nicht — OCR-Fehler?':   'ocr.hint.check_iban',
 };
 
-function toUserMessage(grund: string): string {
-  return GRUND_TO_USER[grund] ?? 'Bitte diesen Wert prüfen.';
+function toUserMessage(T: (key: string) => string, grund: string): string {
+  return T(GRUND_TO_USER[grund] ?? 'ocr.hint.check_value');
 }
 
-function reviewIssueMessage(issue: ReturnType<typeof getReviewIssues>[number]): string {
-  if (issue === 'sender') return 'Absender bitte prüfen oder ergänzen.';
-  if (issue === 'amount') return 'Betrag bitte prüfen oder ergänzen.';
-  return 'Frist bitte prüfen oder ergänzen.';
+function reviewIssueMessage(T: (key: string) => string, issue: ReturnType<typeof getReviewIssues>[number]): string {
+  if (issue === 'sender') return T('ocr.hint.sender_missing');
+  if (issue === 'amount') return T('ocr.hint.amount_missing');
+  return T('ocr.hint.deadline_missing');
 }
 
 /** Nur bei niedriger Confidence oder Risiko-Zeilen — keine technische Punktzahl für V1. */
@@ -45,15 +45,15 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
 
   // Deduplicate by user-facing message — same issue flagged multiple times shows once.
   const issueRows = reviewIssues.map(issue => ({
-    message: reviewIssueMessage(issue),
+    message: reviewIssueMessage(T, issue),
     risiko: issue === 'sender' ? 'mittel' : 'hoch',
   }));
   const riskRows = ocrRisiken.map(r => ({
     message: hasAmountIssue && (
       r.grund === 'Ungewöhnliche Dezimalzahl' || r.grund === 'Betrag scheint zu klein (< 10)'
     )
-      ? 'Betrag bitte prüfen oder ergänzen.'
-      : toUserMessage(r.grund),
+      ? T('ocr.hint.amount_missing')
+      : toUserMessage(T, r.grund),
     risiko: r.risiko,
   })).filter(r => {
     if (isPaymentDoc) return true;
@@ -66,7 +66,7 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
   return (
     <SectionCard title={T('detail.section.hint')}>
       <Text style={{ fontSize: 12, color: C.textSecondary, lineHeight: 19 }}>
-        Einige Angaben sollten kurz geprüft werden.
+        {T('ocr.hint.intro')}
       </Text>
       {unique.length > 0 && (
         <View style={{ marginTop: 10, gap: 6 }}>

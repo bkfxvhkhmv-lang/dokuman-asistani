@@ -16,21 +16,6 @@ const GENERIC_TITLE_FALLBACKS = new Set([
   'Datei ausgewählt',
 ]);
 
-const KIND_LABEL: Record<string, string> = {
-  invoice:    'Rechnung',
-  settlement: 'Nebenkosten',
-  form:       'Formular',
-  letter:     'Behördenpost',
-  insurance:  'Versicherungsdokument',
-  quote:      'Angebot',
-};
-
-const RISK_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  dusuk:  { label: 'Niedriges Risiko', color: '#22C55E', bg: '#22C55E18' },
-  orta:   { label: 'Mittleres Risiko', color: '#F59E0B', bg: '#F59E0B18' },
-  yuksek: { label: 'Hohes Risiko',     color: '#FF6B6B', bg: '#FF6B6B18' },
-};
-
 type ActionHandler = 'preview' | 'download';
 interface ActionCfg { label: string; icon: string; handler: ActionHandler }
 
@@ -59,7 +44,7 @@ export default function OcrMvpActionSummary({
   const st = styles(Colors);
 
   const kind      = summary.kind ?? 'unknown';
-  const kindLabel = KIND_LABEL[kind] ?? 'Dokument';
+  const kindLabel = T(`ocr.doctype.${kind}`) || T('ocr.doctype.unknown');
   // Backend echoes the upload filename as title (e.g. "Scan 1780169901922") — treat as no-title.
   const rawTitle  = /^Scan[\s_]+\d/i.test(summary.title ?? '') ? null : summary.title;
   const humanized = humanizeTitle(rawTitle);
@@ -71,7 +56,13 @@ export default function OcrMvpActionSummary({
     }
     return humanized;
   })();
-  const riskCfg   = summary.risk_level ? RISK_CONFIG[summary.risk_level] : null;
+  const riskCfg = summary.risk_level
+    ? {
+        label: summary.risk_level === 'dusuk' ? T('risk.level.niedrig') : summary.risk_level === 'orta' ? T('risk.level.mittel') : T('risk.level.hoch'),
+        color: summary.risk_level === 'dusuk' ? '#22C55E' : summary.risk_level === 'orta' ? '#F59E0B' : '#FF6B6B',
+        bg: summary.risk_level === 'dusuk' ? '#22C55E18' : summary.risk_level === 'orta' ? '#F59E0B18' : '#FF6B6B18',
+      }
+    : null;
 
   const handlePress = (handler: ActionHandler) => {
     if (handler === 'preview')  { onPreview();  return; }
@@ -83,9 +74,9 @@ export default function OcrMvpActionSummary({
   const previewLabel = (): string => {
     const hasFields = (summary.fields_count ?? 0) > 0;
     const hasTables = (summary.tables_count ?? 0) > 0;
-    if (!hasFields && hasTables) return 'Tabellen anzeigen';
-    if (hasFields  && hasTables) return 'Datenvorschau';
-    return 'Felder anzeigen';
+    if (!hasFields && hasTables) return T('ocr.result.show_tables');
+    if (hasFields  && hasTables) return T('ocr.result.data_preview');
+    return T('ocr.result.show_fields');
   };
 
   const actions = (summary.recommended_actions ?? [])
@@ -195,7 +186,17 @@ export default function OcrMvpActionSummary({
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
                 <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
-                  {key === 'show_fields' ? previewLabel() : key === 'export_excel' ? T('ocr.result.excel') : cfg.label}
+                  {key === 'show_fields'
+                    ? previewLabel()
+                    : key === 'export_excel'
+                      ? T('ocr.result.excel')
+                      : key === 'export_share'
+                        ? T('common.share')
+                        : key === 'show_summary'
+                          ? T('ocr.result.show_summary')
+                          : key === 'create_reply_draft'
+                            ? T('ocr.result.show_draft')
+                            : cfg.label}
                 </Text>
               </TouchableOpacity>
             );

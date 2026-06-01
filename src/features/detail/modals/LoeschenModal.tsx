@@ -28,16 +28,16 @@ export default function LoeschenModal({ visible, onClose, onConfirm, phase = 'co
         <View style={{ padding: 24, paddingBottom: 28 }}>
           <View style={{ width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20, backgroundColor: C.border }} />
           <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 8 }}>
-            Dokument wird gelöscht
+            {T('modal.delete.pending_title')}
           </Text>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 18, lineHeight: 18 }}>
-            Tippe auf Rückgängig, um den Löschvorgang abzubrechen.
+            {T('modal.delete.pending_body')}
           </Text>
           <TouchableOpacity
             onPress={handleUndo}
             style={{ paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: C.bgInput, marginBottom: 10 }}
           >
-            <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Rückgängig</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('common.undo')}</Text>
           </TouchableOpacity>
         </View>
       </PremiumModal>

@@ -38,7 +38,7 @@ export default function SearchHeader({
       <View style={{ flex: 1 }}>
         <AppInput
           variant="search"
-          placeholder='z. B. "überfällig", "über 100€", "Finanzamt"'
+          placeholder={t('common.search_placeholder')}
           value={query}
           onChangeText={onChange}
           onClear={onClear}

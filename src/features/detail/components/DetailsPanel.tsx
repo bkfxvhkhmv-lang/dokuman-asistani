@@ -55,8 +55,8 @@ export default function DetailsPanel({
     },
     ...(showBeideDaten
       ? [
-          { icon: 'calendar-blank', label: 'Belegdatum',  value: belegDatum! },
-          { icon: 'scan',           label: 'Erfasst am',  value: erfasstDatum || '–' },
+          { icon: 'calendar-blank', label: T('field.document_date'),  value: belegDatum! },
+          { icon: 'scan',           label: T('field.captured_at'),  value: erfasstDatum || '–' },
         ]
       : [{
           icon: 'calendar-blank', label: T('field.date'),
@@ -84,7 +84,7 @@ export default function DetailsPanel({
       <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
 
       {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
-      <SectionCard title="Dokumentdaten">
+      <SectionCard title={T('detail.section.doc_data')}>
         {wichtigsteRows.map((f, i) => (
           <FieldRow
             key={f.label}
@@ -105,7 +105,7 @@ export default function DetailsPanel({
 
       {/* ── 4. Zahlungsinformationen ──────────────────────────────────────── */}
       {groups.zahlung.length > 0 && (
-        <SectionCard title="Zahlungsinformationen">
+        <SectionCard title={T('detail.section.payment_info')}>
           {groups.zahlung.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -122,7 +122,7 @@ export default function DetailsPanel({
 
       {/* ── 4. Kontakt ───────────────────────────────────────────────────── */}
       {groups.kontakt.length > 0 && (
-        <SectionCard title="Kontakt">
+        <SectionCard title={T('detail.section.contact')}>
           {groups.kontakt.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -138,7 +138,7 @@ export default function DetailsPanel({
 
       {/* ── 4b. Vertragsdetails ───────────────────────────────────────────── */}
       {groups.vertrag.length > 0 && (
-        <SectionCard title="Vertragsdetails">
+        <SectionCard title={T('detail.section.contract_details')}>
           {groups.vertrag.map((f, i) => (
             <FieldRow
               key={f.key}
@@ -163,7 +163,7 @@ export default function DetailsPanel({
               padding: S.lg, paddingBottom: weitereSichtbar ? S.sm : S.lg }}
           >
             <Text style={{ fontSize: 13, fontWeight: '700', color: C.textSecondary }}>
-              Weitere Angaben
+              {T('detail.section.more_info')}
             </Text>
             <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
           </TouchableOpacity>
@@ -207,10 +207,10 @@ export default function DetailsPanel({
         }}>
           <Icon name="document-text" size={22} color={C.textTertiary} />
           <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, textAlign: 'center' }}>
-            Noch nicht alle Felder erkannt.
+            {T('details.empty_title')}
           </Text>
           <Text style={{ fontSize: 12, color: C.textTertiary, textAlign: 'center', lineHeight: 18 }}>
-            Du kannst die wichtigsten Angaben{'\n'}manuell prüfen oder bearbeiten.
+            {T('details.empty_body')}
           </Text>
           {onEdit && (
             <TouchableOpacity
@@ -218,7 +218,7 @@ export default function DetailsPanel({
               style={{ marginTop: 4, paddingHorizontal: 20, paddingVertical: 9,
                 borderRadius: 999, borderWidth: 1, borderColor: C.primary, backgroundColor: C.primaryLight }}
             >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>Felder bearbeiten</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>{T('details.edit_fields')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -233,7 +233,7 @@ export default function DetailsPanel({
               style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', backgroundColor: C.primary }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Bearbeiten</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>{T('common.edit')}</Text>
             </TouchableOpacity>
           )}
           {onExport && (
@@ -242,7 +242,7 @@ export default function DetailsPanel({
               style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Exportieren</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('export.sheet.title')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -254,7 +254,7 @@ export default function DetailsPanel({
           onPress={onLoeschen}
           style={{ alignItems: 'center', marginTop: 18, paddingVertical: 8 }}
         >
-          <Text style={{ fontSize: 13, color: C.danger }}>Dokument löschen</Text>
+          <Text style={{ fontSize: 13, color: C.danger }}>{T('detail.delete_document')}</Text>
         </TouchableOpacity>
       )}
     </View>

@@ -36,8 +36,13 @@ export function buildCardInsight(
  * iki satırda sadece başlık + "…" görünmesini önler.
  */
 export function excerptForDocumentListCard(
-  dok: Pick<Dokument, 'kurzfassung' | 'zusammenfassung'>,
+  dok: Pick<Dokument, 'kurzfassung' | 'zusammenfassung' | 'detectedLanguage'>,
+  opts?: { appLang?: string },
 ): string | null {
+  const appLang = opts?.appLang?.slice(0, 2);
+  const detectedLang = dok.detectedLanguage?.slice(0, 2);
+  if (appLang && detectedLang && detectedLang !== appLang) return null;
+
   const kurz = dok.kurzfassung?.trim();
   if (kurz) return kurz;
 

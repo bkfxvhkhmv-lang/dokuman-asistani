@@ -13,6 +13,8 @@ import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
 import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySanitizer';
 import { getReviewLabel } from '@/utils/documentGuards';
 import { getDetailTypeLabel } from '@/constants/docTypeConfig';
+import { useT } from '@/hooks/useT';
+import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
 
 const TYP_ICON: Record<string, string> = {
   Mahnung:     'warning-circle',
@@ -48,6 +50,7 @@ export default function HeroCard({
   simpleLayout = false,
 }: HeroCardProps) {
   const { Colors: C, S, Shadow, fs } = useTheme();
+  const { t: T, lang } = useT();
 
   const workflowPalette: Record<string, { bg: string; text: string }> = {
     green: { bg: C.successLight, text: C.successText },
@@ -56,7 +59,7 @@ export default function HeroCard({
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
+  const typeLabel = translateDocumentTypeLabel(getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel), lang);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -86,9 +89,9 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.md, paddingVertical: S.sm }}>
         {([
-          { iconName: 'warning-circle', label: simpleLayout ? 'Wichtig' : 'Risiko', value: info.label, color: info.color, show: true, aiField: false },
-          { iconName: 'clock',          label: simpleLayout ? 'Bis wann?' : 'Frist', value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist, aiField: dok.confidence != null },
-          { iconName: 'currency-eur',   label: simpleLayout ? 'Betrag' : 'Betrag', value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag, aiField: dok.confidence != null },
+          { iconName: 'warning-circle', label: simpleLayout ? T('hero.important') : T('hero.risk'), value: info.label, color: info.color, show: true, aiField: false },
+          { iconName: 'clock',          label: simpleLayout ? T('hero.by_when') : T('field.deadline'), value: dok.frist ? formatFrist(dok.frist) : null, color: info.color, show: !!dok.frist, aiField: dok.confidence != null },
+          { iconName: 'currency-eur',   label: T('field.amount'), value: dok.betrag ? formatBetrag(dok.betrag) : null, color: C.primaryDark, show: !!dok.betrag, aiField: dok.confidence != null },
         ] as const).filter(r => r.show && r.value).map((row, i, arr) => (
           <View key={`${row.label}-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7,
             borderBottomWidth: i < arr.length - 1 ? 0.5 : 0, borderBottomColor: C.borderLight }}>
@@ -121,10 +124,10 @@ export default function HeroCard({
           <Icon name="info" size={12} color={C.textTertiary} />
           <Text style={{ fontSize: 11, color: C.textTertiary, flex: 1, lineHeight: 15 }}>
             {dok.confidence == null
-              ? 'Automatisch erkannt · Angaben bitte kurz prüfen'
+              ? T('detail.trust.auto_review')
               : dok.confidence >= 75
-                ? 'Automatisch erkannt'
-                : reviewLabel ?? 'Automatisch erkannt'}
+                ? T('detail.trust.auto')
+                : reviewLabel ?? T('detail.trust.auto')}
           </Text>
         </View>
       </View>
@@ -142,7 +145,7 @@ export default function HeroCard({
                 <Text style={{ fontSize: 10, fontWeight: '600', color: C.success }}>{kontaktName}</Text>
               </View>
             ) : (
-              <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary }}>+ Kontakt</Text>
+              <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary }}>{T('contact.link.title')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -150,7 +153,7 @@ export default function HeroCard({
           <View style={{ marginTop: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, backgroundColor: C.successLight }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Icon name="check" size={12} color={C.successText} />
-              <Text style={{ fontSize: 12, fontWeight: '600', color: C.successText }}>Erledigt</Text>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: C.successText }}>{T('doc.done')}</Text>
             </View>
           </View>
         )}

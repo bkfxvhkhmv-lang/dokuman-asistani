@@ -10,6 +10,7 @@ import { inferSpeechLocaleFromText, ttsLocaleForAppLang, ttsLocaleForDetectedLan
 import { splitTextIntoSpeechChunks, speakChunksSequentially, stopAllSpeech } from '@/services/tts/speakChunks';
 import { useLangPreference } from '@/hooks/useLangPreference';
 import { speechUi, speechA11yLabel } from '@/i18n/speechUiStrings';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   dok: Dokument;
@@ -23,6 +24,7 @@ type Kind = 'full' | 'critical';
 export default function DocumentSpeechSection({ dok, prominent = false }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
   const { lang } = useLangPreference();
+  const { t: T } = useT();
 
   const [busyKind, setBusyKind] = useState<Kind | null>(null);
   const [playingKind, setPlayingKind] = useState<Kind | null>(null);
@@ -97,10 +99,10 @@ export default function DocumentSpeechSection({ dok, prominent = false }: Props)
       {prominent ? (
         <View style={{ marginHorizontal: S.md, marginTop: 2, marginBottom: 12 }}>
           <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary }}>
-            Vorlesen
+            {T('detail.speech.title')}
           </Text>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginTop: 4, lineHeight: 18 }}>
-            Den kompletten Brief anhören — ein Tipp genügt.
+            {T('detail.speech.body')}
           </Text>
         </View>
       ) : null}

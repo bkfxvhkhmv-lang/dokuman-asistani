@@ -7,6 +7,8 @@ import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { getReviewLabel, hasCompletePaymentTarget } from '@/utils/documentGuards';
 import { getDetailTypeLabel } from '@/constants/docTypeConfig';
+import { useT } from '@/hooks/useT';
+import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
 
 type Props = {
   dok: Dokument;
@@ -30,12 +32,13 @@ export default function SimpleDocumentOverview({
   deferPrimaryActions = false,
 }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t: T, lang } = useT();
 
   const tage = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const rel = dok.frist ? getTageText(dok.frist) : null;
   const fristZeile = dok.frist
     ? `${formatFrist(dok.frist)}${rel ? ` (${rel})` : ''}`
-    : 'Keine Frist angegeben';
+    : T('detail.no_deadline');
 
   const zahlenSichtbar =
     !deferPrimaryActions &&
@@ -53,10 +56,10 @@ export default function SimpleDocumentOverview({
     !dok.fristImKalender;
 
   const conf = dok.confidence;
-  const typeLabel = getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
+  const typeLabel = translateDocumentTypeLabel(getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel), lang);
   const vertrauen = conf == null
-    ? 'Automatisch erkannt'
-    : getReviewLabel(dok) ?? (conf >= 75 ? 'KI-geprüft' : 'Automatisch erkannt');
+    ? T('detail.trust.auto')
+    : getReviewLabel(dok) ?? (conf >= 75 ? T('detail.trust.ai_checked') : T('detail.trust.auto'));
 
   return (
     <View style={{ marginHorizontal: S.md, marginBottom: S.md, gap: S.md }}>
@@ -72,7 +75,7 @@ export default function SimpleDocumentOverview({
         }}
       >
         <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          WAS IST DAS?
+          {T('simple.what_is_this').toUpperCase()}
         </Text>
         <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{typeLabel}</Text>
         <Text style={{ fontSize: 13, color: C.textSecondary }} numberOfLines={3}>
@@ -82,16 +85,16 @@ export default function SimpleDocumentOverview({
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
         <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          WAS SOLL ICH TUN?
+          {T('simple.what_should_i_do').toUpperCase()}
         </Text>
         <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>
-          {naechsterSchritt ?? 'Nichts Dringendes — bei Bedarf Hilfe nutzen'}
+          {naechsterSchritt ?? T('simple.nothing_urgent')}
         </Text>
 
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
         <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          BIS WANN?
+          {T('simple.by_when').toUpperCase()}
         </Text>
         <Text
           style={{

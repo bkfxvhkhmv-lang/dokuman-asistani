@@ -74,7 +74,7 @@ export default function HomeUrgencyBanner({
 
       {/* CTA */}
       <View style={[st.ctaBtn, { backgroundColor: risk.color }]}>
-        <Text style={st.ctaText}>Prüfen</Text>
+        <Text style={st.ctaText}>{T('dash.check')}</Text>
         <Icon name="chevron-forward" size={11} color="#fff" />
       </View>
     </TouchableOpacity>

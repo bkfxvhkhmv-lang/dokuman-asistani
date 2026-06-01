@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 const BOTTOM_CLEARANCE = 12; // tab bar is hidden while selection bar is visible
 
@@ -20,7 +21,8 @@ export default function HomeSelectionBar({
   count, onAbbrechen, onExport, onSteuerpaket, onLoeschen, C, dangerColor,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const label = count === 1 ? '1 Dokument ausgewählt' : `${count} Dokumente ausgewählt`;
+  const { t: T } = useT();
+  const label = T('home.selection_count', { n: count });
   const hasSelection = count > 0;
 
   return (
@@ -41,7 +43,7 @@ export default function HomeSelectionBar({
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={st.cancelBtn}
         >
-          <Text style={[st.cancelLabel, { color: C.textSecondary }]}>Abbrechen</Text>
+          <Text style={[st.cancelLabel, { color: C.textSecondary }]}>{T('common.cancel')}</Text>
         </TouchableOpacity>
         <Text style={[st.countLabel, { color: C.text }]} numberOfLines={1}>
           {label}
@@ -61,7 +63,7 @@ export default function HomeSelectionBar({
         >
           <Icon name="folder-open" size={20} color={hasSelection ? C.primary : C.textTertiary} />
           <Text style={[st.actionLabel, { color: hasSelection ? C.primary : C.textTertiary }]}>
-            Steuer
+            {T('home.selection.tax')}
           </Text>
         </TouchableOpacity>
 
@@ -73,7 +75,7 @@ export default function HomeSelectionBar({
         >
           <Icon name="upload-simple" size={20} color={hasSelection ? C.primary : C.textTertiary} />
           <Text style={[st.actionLabel, { color: hasSelection ? C.primary : C.textTertiary }]}>
-            Exportieren
+            {T('export.sheet.title')}
           </Text>
         </TouchableOpacity>
 
@@ -87,7 +89,7 @@ export default function HomeSelectionBar({
         >
           <Icon name="trash-simple" size={20} color={hasSelection ? dangerColor : C.textTertiary} />
           <Text style={[st.actionLabel, { color: hasSelection ? dangerColor : C.textTertiary }]}>
-            Löschen
+            {T('common.delete')}
           </Text>
         </TouchableOpacity>
       </View>

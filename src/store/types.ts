@@ -154,6 +154,17 @@ export interface Dokument {
    * `typ` = automatische Hauptkategorie, `userOrdner` = persönliche Ablage.
    */
   userOrdner?: string | null;
+  // AI Labeler — optional enrichment fields, no migration required
+  /** AI-suggested display title; overrides titel only when confidence >= 70 and user hasn't corrected. */
+  aiDisplayTitle?: string;
+  /** AI-suggested document type string. */
+  aiDocumentType?: string;
+  /** AI-suggested canonical sender name. */
+  aiSender?: string;
+  /** AI label confidence score 0–100. */
+  aiConfidence?: number;
+  /** ISO timestamp of the labelling call. Set = already labelled, do not call again. */
+  aiLabelledAt?: string;
   // Internal
   _duplikat?: boolean;
   _aehnlichScore?: number;

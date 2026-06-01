@@ -19,6 +19,7 @@ import Icon from '@/components/Icon';
 import { HIT_SLOP_LG } from '@/theme';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
 import { exportiereTopluPDF } from '@/utils/exporters';
+import { downloadSteuerberaterZip } from '@/services/export/steuerberaterZip';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
 import StickyBottomCTA from '@/design/components/StickyBottomCTA';
@@ -45,6 +46,13 @@ type ExportOption = {
 
 function buildExportOptions(T: (k: string) => string): ExportOption[] {
   return [
+    {
+      id: 'steuerberater_zip',
+      label: 'Für Steuerberater exportieren',
+      description: 'Excel-Übersicht und Belege vorbereiten',
+      icon: 'file-xls',
+      premium: true,
+    },
     {
       id: 'steuerpaket',
       label: 'Steuerberater-Paket',
@@ -202,6 +210,14 @@ export default function ExportBildschirm() {
     }
     setLoading(true);
     try {
+      if (selected.has('steuerberater_zip')) {
+        showToast({
+          message: 'Der Export kann bei vielen Belegen etwas dauern.',
+          tone: 'info',
+          icon: 'information-circle',
+        });
+        await downloadSteuerberaterZip(aktJahr);
+      }
       if (selected.has('steuerpaket')) {
         if (steuerDoks.length === 0) {
           Alert.alert('Keine Steuernachweise', 'Unter den ausgewählten Dokumenten befinden sich keine steuerrelevanten Belege.');

@@ -27,11 +27,26 @@ export async function runHandleOriginalTeilen(params: {
   openNotice: OpenNotice;
 }): Promise<void> {
   const { dok, openNotice } = params;
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+  // Local document (OCR MVP, no cloud sync) — share local file directly
   if (!dok?.v4DocId) {
-    openNotice('Nicht verfügbar', 'Noch nicht synchronisiert.');
+    const localUri = dok?.uri ?? dok?.pages?.[0]?.uri ?? null;
+    if (!localUri) {
+      openNotice('Nicht verfügbar', 'Originaldatei nicht gefunden.');
+      return;
+    }
+    try {
+      const Sharing = await import('expo-sharing');
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(localUri);
+      }
+    } catch (e: unknown) {
+      openNotice('Fehler', (e as Error).message || 'Datei konnte nicht geteilt werden.');
+    }
     return;
   }
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
   try {
     const { shareOriginalFile } = await import('@/services/v4Api');
     const shareFilename = `${buildPdfExportBasename(dok)}.pdf`;

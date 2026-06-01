@@ -153,7 +153,7 @@ export default function DetailModalsContainer({
         onExcel={dok.ocrJobId ? () => void handleExcelDownload() : undefined}
         onOriginal={dok.uri ? () => void actions.handleOriginalTeilen() : undefined}
         onText={() => actions.handleTeilen(modal.anonModus)}
-        onSicherLink={() => actions.handleGuvenliPaylasim()}
+        onSicherLink={dok.v4DocId ? () => actions.handleGuvenliPaylasim() : undefined}
       />
 
       <LoeschenModal

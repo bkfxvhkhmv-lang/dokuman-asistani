@@ -9,7 +9,7 @@ interface Props {
   onPDF: () => void | Promise<void>;
   onOriginal?: () => void | Promise<void>;
   onText: () => void;
-  onSicherLink: () => void;
+  onSicherLink?: () => void;
   onMail?: () => void | Promise<void>;
   onExcel?: () => void | Promise<void>;
 }
@@ -64,7 +64,8 @@ export default function ExportierenSheet({
   const visible_options = OPTIONS.filter(o =>
     (o.key !== 'original' || !!onOriginal) &&
     (o.key !== 'mail'     || !!onMail) &&
-    (o.key !== 'excel'    || !!onExcel),
+    (o.key !== 'excel'    || !!onExcel) &&
+    (o.key !== 'sicher'   || !!onSicherLink),
   );
 
   return (

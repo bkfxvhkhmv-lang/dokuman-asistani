@@ -6,6 +6,7 @@ import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
 import { humanizeTitle, formatGermanCurrency, buildDocumentSender, buildDocumentTitle, extractDokumentDatum } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+import { useT } from '@/hooks/useT';
 
 const GENERIC_TITLE_FALLBACKS = new Set([
   'Foto aufgenommen',
@@ -34,7 +35,7 @@ type ActionHandler = 'preview' | 'download';
 interface ActionCfg { label: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:       { label: 'Excel für Steuerberater herunterladen', icon: 'download-outline',      handler: 'download' },
+  export_excel:       { label: 'Excel herunterladen',                   icon: 'download-outline',      handler: 'download' },
   export_share:       { label: 'Teilen',                                icon: 'share-outline',         handler: 'download' },
   show_fields:        { label: 'Felder anzeigen',                       icon: 'list-outline',          handler: 'preview'  },
   show_summary:       { label: 'Zusammenfassung anzeigen',              icon: 'document-text-outline', handler: 'preview'  },
@@ -54,6 +55,7 @@ export default function OcrMvpActionSummary({
   summary, onPreview, onDownload, isPreviewing, isDownloading, actionsSecondary,
 }: Props) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const st = styles(Colors);
 
   const kind      = summary.kind ?? 'unknown';
@@ -193,7 +195,7 @@ export default function OcrMvpActionSummary({
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
                 <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
-                  {key === 'show_fields' ? previewLabel() : cfg.label}
+                  {key === 'show_fields' ? previewLabel() : key === 'export_excel' ? T('ocr.result.excel') : cfg.label}
                 </Text>
               </TouchableOpacity>
             );

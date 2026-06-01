@@ -128,6 +128,11 @@ function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
   return pattern.test((dok.typ ?? '').toLowerCase());
 }
 
+const PAYMENT_LIKE_TYPE_RE =
+  /rechnung|mahnung|bußgeld|bussgeld|gebührenbescheid|gebuehrenbescheid|zahlungsaufforderung|beitragsrechnung|beitragsbescheid/;
+const DEADLINE_SENSITIVE_TYPE_RE =
+  /mahnung|bußgeld|bussgeld|widerspruch|einspruch|anhörung|anhoerung/;
+
 function isUnknownLike(value: string | null | undefined): boolean {
   const v = (value ?? '').trim().toLowerCase();
   return !v || v === 'unbekannt' || v === 'unbekannter absender' || v === 'unknown';
@@ -163,8 +168,8 @@ export function getReviewIssues(dok: {
   frist?: string | null;
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
-  const invoiceLike = matchesType(dok, /rechnung|mahnung|bußgeld|bussgeld/);
-  const deadlineSensitive = matchesType(dok, /mahnung|bußgeld|bussgeld/);
+  const invoiceLike = isPaymentLikeDocument(dok);
+  const deadlineSensitive = isDeadlineSensitiveDocument(dok);
 
   if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');
@@ -225,4 +230,12 @@ export function getReviewLabel(dok: {
   const issues = getReviewIssues(dok);
   if (issues.length > 1 || (dok.confidence ?? 100) < 30) return 'Einige Angaben prüfen';
   return 'Angaben prüfen';
+}
+
+export function isPaymentLikeDocument(dok: { typ?: string | null }): boolean {
+  return matchesType(dok, PAYMENT_LIKE_TYPE_RE);
+}
+
+export function isDeadlineSensitiveDocument(dok: { typ?: string | null }): boolean {
+  return matchesType(dok, DEADLINE_SENSITIVE_TYPE_RE);
 }

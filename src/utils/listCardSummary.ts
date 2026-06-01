@@ -1,4 +1,5 @@
 import type { Dokument } from '@/store';
+import { isDeadlineSensitiveDocument } from '@/utils/documentGuards';
 
 /**
  * Returns a compact, actionable one-liner for the document list card.
@@ -6,7 +7,7 @@ import type { Dokument } from '@/store';
  * Returns null for missing-data cases — caller falls back to listSnippet or renders nothing.
  */
 export function buildCardInsight(
-  dok: Pick<Dokument, 'betrag' | 'frist' | 'erledigt'>,
+  dok: Pick<Dokument, 'typ' | 'betrag' | 'frist' | 'erledigt'>,
 ): string | null {
   if (dok.erledigt) return null;
 
@@ -22,7 +23,8 @@ export function buildCardInsight(
     : null;
 
   if (betragStr && fristStr) return `${betragStr} · Zahlung bis ${fristStr}`;
-  if (betragStr) return `${betragStr} · Frist prüfen`;
+  if (betragStr && isDeadlineSensitiveDocument(dok)) return `${betragStr} · Frist prüfen`;
+  if (betragStr) return betragStr;
   if (fristStr) return `Frist bis ${fristStr}`;
 
   return null;

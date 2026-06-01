@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpStatus } from '@/hooks/useOcrMvpJob';
+import { useT } from '@/hooks/useT';
 
 const THUMB_W = 172;
 const THUMB_H = 216;
@@ -27,15 +28,16 @@ function getElapsedStageIndex(elapsed: number): number {
   return 0;
 }
 
-function buildSteps(elapsed: number, status: OcrMvpStatus): StepDescriptor[] {
-  const activeIndex = status === 'uploading' ? 0 : getElapsedStageIndex(elapsed);
-  const labels = [
-    'Dokument vorbereitet',
-    'Text wird erkannt',
-    'Beträge und Fristen werden geprüft',
-    elapsed >= 8 ? 'Fast fertig…' : 'Ergebnis wird gespeichert',
+function buildStepLabels(T: (key: string, vars?: Record<string, string | number>) => string, elapsed: number): string[] {
+  return [
+    T('ocr.status.step.prepared'),
+    T('ocr.status.step.text'),
+    T('ocr.status.step.details'),
+    elapsed >= 8 ? T('ocr.status.step.almost_done') : T('ocr.status.step.saving'),
   ];
+}
 
+function buildStepsWithLabels(labels: string[], activeIndex: number): StepDescriptor[] {
   return labels.map((label, index) => ({
     key: `${index}-${label}`,
     label,
@@ -45,12 +47,16 @@ function buildSteps(elapsed: number, status: OcrMvpStatus): StepDescriptor[] {
 
 export default function OcrMvpStatusCard({ status, previewUri }: Props) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const pulse = useRef(new Animated.Value(0.55)).current;
   const scanY = useRef(new Animated.Value(0)).current;
   const activeScale = useRef(new Animated.Value(1)).current;
   const startedAtRef = useRef<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const st = styles(Colors);
+
+  const activeIndex = status === 'uploading' ? 0 : getElapsedStageIndex(elapsed);
+  const stepLabels = useMemo(() => buildStepLabels(T, elapsed), [T, elapsed]);
 
   useEffect(() => {
     if (status !== 'uploading' && status !== 'processing') {
@@ -110,8 +116,8 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
     return () => anim.stop();
   }, [status, activeScale]);
 
-  const steps = useMemo(() => buildSteps(elapsed, status), [elapsed, status]);
-  const currentStep = steps.find(step => step.state === 'active')?.label ?? 'Dokument vorbereitet';
+  const steps = useMemo(() => buildStepsWithLabels(stepLabels, activeIndex), [activeIndex, stepLabels]);
+  const currentStep = steps.find(step => step.state === 'active')?.label ?? T('ocr.status.step.prepared');
 
   return (
     <View style={st.shell}>
@@ -133,9 +139,9 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
           </View>
 
           <View style={st.copyBlock}>
-            <Text style={st.cardTitle}>Dokument wird analysiert</Text>
-            <Text style={st.cardSubtitle}>Text, Beträge und Fristen werden erkannt.</Text>
-            <Text style={st.cardHint}>Das dauert meist nur wenige Sekunden.</Text>
+            <Text style={st.cardTitle}>{T('ocr.status.title')}</Text>
+            <Text style={st.cardSubtitle}>{T('ocr.status.subtitle')}</Text>
+            <Text style={st.cardHint}>{T('ocr.status.hint')}</Text>
           </View>
         </View>
 
@@ -168,7 +174,7 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
 
         <View style={st.footerNote}>
           <Icon name="check-circle" size={14} color={Colors.success} />
-          <Text style={st.footerText}>Deine Dokumente werden sicher verarbeitet.</Text>
+          <Text style={st.footerText}>{T('ocr.status.secure')}</Text>
         </View>
       </View>
 

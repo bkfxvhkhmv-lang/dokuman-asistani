@@ -4,7 +4,7 @@ import { useT } from '@/hooks/useT';
 import type { OcrRisikoItem } from '@/utils/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 import type { Dokument } from '@/store';
-import { getReviewIssues } from '@/utils/documentGuards';
+import { getReviewIssues, isPaymentLikeDocument } from '@/utils/documentGuards';
 
 interface Props {
   dok: Dokument;
@@ -41,6 +41,7 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
   const zweifel = confidencePct < 40 || ocrRisiken.length > 0 || reviewIssues.length > 0;
   if (!zweifel) return null;
   const hasAmountIssue = reviewIssues.includes('amount');
+  const isPaymentDoc = isPaymentLikeDocument(dok);
 
   // Deduplicate by user-facing message — same issue flagged multiple times shows once.
   const issueRows = reviewIssues.map(issue => ({
@@ -54,7 +55,10 @@ export function OcrConfidenceSection({ dok, confidencePct, ocrRisiken }: Props) 
       ? 'Betrag bitte prüfen oder ergänzen.'
       : toUserMessage(r.grund),
     risiko: r.risiko,
-  }));
+  })).filter(r => {
+    if (isPaymentDoc) return true;
+    return !/^Bitte Betrag/.test(r.message);
+  });
   const unique = Array.from(
     new Map([...issueRows, ...riskRows].map(r => [r.message, r])).values(),
   );

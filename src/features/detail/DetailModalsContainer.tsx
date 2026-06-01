@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Share } from 'react-native';
+import { Alert, Share } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { downloadOcrResult } from '@/services/ocrMvpApi';
 import * as Clipboard from 'expo-clipboard';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
@@ -58,6 +60,22 @@ export default function DetailModalsContainer({
       if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
     };
   }, []);
+
+  const handleExcelDownload = useCallback(async () => {
+    if (!dok.ocrJobId) return;
+    try {
+      const filename = `briefpilot_${dok.titel?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'export'}.xlsx`;
+      const uri = await downloadOcrResult(dok.ocrJobId, filename);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          UTI: 'com.microsoft.excel.xlsx',
+        });
+      }
+    } catch (e: any) {
+      Alert.alert('Excel-Export fehlgeschlagen', e?.message ?? 'Bitte erneut versuchen.');
+    }
+  }, [dok.ocrJobId, dok.titel]);
 
   const handleCopyEinspruch = useCallback(async () => {
     await Clipboard.setStringAsync(modal.einspruchText || '');
@@ -132,6 +150,7 @@ export default function DetailModalsContainer({
         onClose={modal.close}
         onMail={() => void actions.handleMailTaslak()}
         onPDF={() => void actions.handlePDF()}
+        onExcel={dok.ocrJobId ? () => void handleExcelDownload() : undefined}
         onOriginal={dok.uri ? () => void actions.handleOriginalTeilen() : undefined}
         onText={() => actions.handleTeilen(modal.anonModus)}
         onSicherLink={() => actions.handleGuvenliPaylasim()}

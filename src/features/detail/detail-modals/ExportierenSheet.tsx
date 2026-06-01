@@ -11,6 +11,7 @@ interface Props {
   onText: () => void;
   onSicherLink: () => void;
   onMail?: () => void | Promise<void>;
+  onExcel?: () => void | Promise<void>;
 }
 
 const OPTIONS = [
@@ -23,6 +24,11 @@ const OPTIONS = [
     key: 'pdf',
     label: 'PDF exportieren',
     sublabel: 'Als lesbares Dokument teilen.',
+  },
+  {
+    key: 'excel',
+    label: 'Excel herunterladen',
+    sublabel: 'Analyseergebnis als Tabelle exportieren.',
   },
   {
     key: 'original',
@@ -42,13 +48,14 @@ const OPTIONS = [
 ] as const;
 
 export default function ExportierenSheet({
-  visible, onClose, onPDF, onOriginal, onText, onSicherLink, onMail,
+  visible, onClose, onPDF, onOriginal, onText, onSicherLink, onMail, onExcel,
 }: Props) {
   const { Colors: C } = useTheme();
 
   const handlers: Record<string, (() => void | Promise<void>) | undefined> = {
     mail: onMail,
     pdf: onPDF,
+    excel: onExcel,
     original: onOriginal,
     text: onText,
     sicher: onSicherLink,
@@ -56,7 +63,8 @@ export default function ExportierenSheet({
 
   const visible_options = OPTIONS.filter(o =>
     (o.key !== 'original' || !!onOriginal) &&
-    (o.key !== 'mail'     || !!onMail),
+    (o.key !== 'mail'     || !!onMail) &&
+    (o.key !== 'excel'    || !!onExcel),
   );
 
   return (

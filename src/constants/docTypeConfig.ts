@@ -143,5 +143,14 @@ export function getDetailTypeLabel(
   if (/termin/.test(lower)) return 'Terminbestätigung';
   if (/behörde|behorden|amt|bescheid/.test(lower)) return 'Behördenbrief';
 
+  // Display-time upgrade for legacy weak types using rohText evidence.
+  // Does NOT mutate the stored document — display layer only.
+  const WEAK_DISPLAY = new Set(['Sonstiges', 'Dokument', 'Unbekannt', 'unknown', '']);
+  if (WEAK_DISPLAY.has(raw) && rohText) {
+    if (/\b(rechnung|rechnungsnummer|rechnungsdatum|invoice|gesamtsumme|endsumme)\b/i.test(rohText)) return 'Rechnung';
+    if (/\b(amtsgericht|landgericht|verwaltungsgericht|aktenzeichen|insolvenzverfahren)\b/i.test(rohText)) return 'Behördenbrief';
+    if (/\b(deutsche\s+rentenversicherung|rentenbezugsbescheinigung|drv\s+bund)\b/i.test(rohText)) return 'Behördenbrief';
+  }
+
   return getDocTypeConfig(typ).shortLabel;
 }

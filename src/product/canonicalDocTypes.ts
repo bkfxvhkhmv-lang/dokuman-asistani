@@ -83,6 +83,26 @@ export function refineCanonicalTypFromText(
     /\b(finanzamt|festsetzungsbescheid|elster|einkommensteuer|rückzahlung.?steuer)\b/i;
   if (tax.test(rawText) && current === 'Versicherung') return 'Steuer';
 
+  // Upgrade weak types when strong deterministic evidence exists.
+  // Only runs when the current type carries no meaningful classification.
+  const WEAK = new Set(['Sonstiges', 'Dokument', 'Formular', 'Unbekannt', 'unknown']);
+  if (WEAK.has(current)) {
+    // Invoice: explicit Rechnung keyword or Rechnungsnummer field
+    const isInvoice =
+      /\b(rechnung|rechnungsnummer|rechnungsdatum|invoice|gesamtsumme|endsumme|nettobetrag)\b/i;
+    if (isInvoice.test(rawText)) return 'Rechnungen';
+
+    // Court / judicial document
+    const isCourt =
+      /\b(amtsgericht|landgericht|oberlandesgericht|verwaltungsgericht|aktenzeichen\s+\d|insolvenzverfahren)\b/i;
+    if (isCourt.test(rawText)) return 'Behörden / Amt';
+
+    // German pension / social insurance authority
+    const isPension =
+      /\b(deutsche\s+rentenversicherung|rentenbezugsbescheinigung|rentenbescheid|drv\s+bund)\b/i;
+    if (isPension.test(rawText)) return 'Behörden / Amt';
+  }
+
   return current;
 }
 

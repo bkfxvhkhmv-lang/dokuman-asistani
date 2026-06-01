@@ -1,4 +1,4 @@
-import { safeDisplayTitel, humanizeTitle } from '@/utils/displaySanitizer';
+import { safeDisplayTitel, humanizeTitle, sanitizeOcrTitle } from '@/utils/displaySanitizer';
 
 describe('humanizeTitle', () => {
   it('decodes URL-encoded title', () => {
@@ -46,5 +46,53 @@ describe('safeDisplayTitel', () => {
 
   it('returns humanized title for normal confidence', () => {
     expect(safeDisplayTitel('Steuer%20B%2030', 'Rechnung', 80)).toBe('Steuer B 30');
+  });
+});
+
+describe('sanitizeOcrTitle', () => {
+  it('strips address tail when title > 40 chars and contains 5-digit PLZ', () => {
+    const input = 'Pflanzhits GmbH Otto-Hahn-Strasse 21 26683 Saterland';
+    const result = sanitizeOcrTitle(input);
+    expect(result).toBe('Pflanzhits GmbH Otto-Hahn-Strasse 21');
+    expect(result).not.toContain('26683');
+  });
+
+  it('strips legal boilerplate "ist eine Marke der"', () => {
+    const input = 'sim de ist eine Marke der Drillisch Online GmbH - Wilhelm-Röntgen-Str 1-5-6347';
+    const result = sanitizeOcrTitle(input);
+    expect(result).toBe('sim de');
+    expect(result).not.toContain('Drillisch');
+  });
+
+  it('leaves short legitimate org name unchanged', () => {
+    expect(sanitizeOcrTitle('Raiffeisen Bank Schirner')).toBe('Raiffeisen Bank Schirner');
+  });
+
+  it('leaves title without PLZ or boilerplate unchanged', () => {
+    expect(sanitizeOcrTitle('Unique Jewelry GmbH')).toBe('Unique Jewelry GmbH');
+  });
+
+  it('returns null/undefined unchanged', () => {
+    expect(sanitizeOcrTitle(null)).toBeNull();
+    expect(sanitizeOcrTitle(undefined)).toBeUndefined();
+  });
+
+  it('leaves short title with PLZ unchanged (does not strip)', () => {
+    // Short enough that stripping would destroy meaningful content
+    expect(sanitizeOcrTitle('Bonn 53113')).toBe('Bonn 53113');
+  });
+});
+
+describe('humanizeTitle — sanitization integrated', () => {
+  it('strips PLZ address tail from OCR title', () => {
+    const result = humanizeTitle('Pflanzhits GmbH Otto-Hahn-Strasse 21 26683 Saterland');
+    expect(result).not.toContain('26683');
+    expect(result).toContain('Pflanzhits');
+  });
+
+  it('strips legal boilerplate from OCR title', () => {
+    const result = humanizeTitle('sim de ist eine Marke der Drillisch Online GmbH');
+    expect(result).toBe('Sim De');
+    expect(result).not.toContain('Drillisch');
   });
 });

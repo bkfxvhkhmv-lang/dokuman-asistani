@@ -66,7 +66,9 @@ export function humanizeTitle(raw: string | null | undefined): string | null {
   }
   t = t.replace(/\s+/g, ' ').trim();
   if (t.length < 3) return null;
-  return toTitleCase(t);
+  // Apply conservative OCR title cleanup before final casing
+  const sanitized = sanitizeOcrTitleRaw(t);
+  return toTitleCase(sanitized);
 }
 
 // ── Export-safe document title ────────────────────────────────────────────────
@@ -188,4 +190,54 @@ export function safeDisplayTitel(
     return 'Neues Dokument';
   }
   return candidate;
+}
+
+// ── OCR title sanitizer ───────────────────────────────────────────────────────
+// Conservative cleanup for display only. Never touches customTitle/aiDisplayTitle.
+
+/** Matches a 5-digit German postal code anywhere in the string. */
+const PLZ_IN_ADDRESS_RE = /\s+\S*\b\d{5}\b.*/;
+
+/** Matches legal boilerplate "X ist eine Marke der Y" — OCR footer text leaking into title. */
+const LEGAL_BOILERPLATE_RE = /\s+ist\s+eine\s+Marke\s+der\b.*/i;
+
+/** Internal version operating on already-decoded raw strings (used in humanizeTitle). */
+function sanitizeOcrTitleRaw(t: string): string {
+  let result = t;
+  if (LEGAL_BOILERPLATE_RE.test(result)) {
+    result = result.replace(LEGAL_BOILERPLATE_RE, '').trim();
+  }
+  if (result.length > 40 && /\b\d{5}\b/.test(result)) {
+    const stripped = result.replace(PLZ_IN_ADDRESS_RE, '').trim();
+    if (stripped.length > 3 && stripped.length < result.length) result = stripped;
+  }
+  return result || t;
+}
+
+/**
+ * Sanitize an OCR-generated title for display.
+ * - Strips address tails when title > 40 chars AND contains a 5-digit German PLZ.
+ * - Strips legal boilerplate "ist eine Marke der ...".
+ * - Never shortens legitimate organization names without evidence.
+ * - Returns null/undefined unchanged.
+ */
+export function sanitizeOcrTitle(title: string | null | undefined): string | null | undefined {
+  if (!title) return title;
+  let result = title;
+
+  // Legal boilerplate guard (sim.de / Drillisch pattern)
+  if (LEGAL_BOILERPLATE_RE.test(result)) {
+    result = result.replace(LEGAL_BOILERPLATE_RE, '').trim();
+  }
+
+  // PLZ address-tail guard (Pflanzhits GmbH + street + PLZ + city)
+  if (result.length > 40 && /\b\d{5}\b/.test(result)) {
+    const stripped = result.replace(PLZ_IN_ADDRESS_RE, '').trim();
+    // Only accept if stripping actually shortened and left something meaningful
+    if (stripped.length > 3 && stripped.length < result.length) {
+      result = stripped;
+    }
+  }
+
+  return result || title;
 }

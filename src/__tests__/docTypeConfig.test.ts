@@ -49,3 +49,29 @@ describe('getDetailTypeLabel — standard cases unchanged', () => {
   it('Versicherung => Versicherungsdokument', () => expect(getDetailTypeLabel('Versicherung')).toBe('Versicherungsdokument'));
   it('Vertrag => Vertrag', () => expect(getDetailTypeLabel('Vertrag')).toBe('Vertrag'));
 });
+
+describe('getDetailTypeLabel — display-time weak type upgrade', () => {
+  it('Sonstiges + Rechnung in rohText => Rechnung', () => {
+    expect(getDetailTypeLabel('Sonstiges', 'Rechnung Nr. 2024-001 Gesamtsumme 128,80 EUR')).toBe('Rechnung');
+  });
+
+  it('Dokument + Amtsgericht in rohText => Behördenbrief', () => {
+    expect(getDetailTypeLabel('Dokument', 'Amtsgericht Saarbrücken Aktenzeichen 62 IK 64/09')).toBe('Behördenbrief');
+  });
+
+  it('Sonstiges + DRV Bund in rohText => Behördenbrief', () => {
+    expect(getDetailTypeLabel('Sonstiges', 'Deutsche Rentenversicherung Bund Rentenbezugsbescheinigung')).toBe('Behördenbrief');
+  });
+
+  it('strong type Rechnungen not overwritten by court rohText', () => {
+    expect(getDetailTypeLabel('Rechnungen', 'Amtsgericht Saarbrücken')).toBe('Rechnung');
+  });
+
+  it('strong type Versicherung not overwritten by invoice rohText', () => {
+    expect(getDetailTypeLabel('Versicherung', 'Rechnungsnummer 12345')).toBe('Versicherungsdokument');
+  });
+
+  it('Sonstiges without matching rohText stays Sonstiges', () => {
+    expect(getDetailTypeLabel('Sonstiges', 'Willkommen bei sim.de Julia Stiegler')).toBe('Sonstiges');
+  });
+});

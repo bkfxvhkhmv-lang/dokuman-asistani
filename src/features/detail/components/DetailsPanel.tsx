@@ -64,12 +64,12 @@ export default function DetailsPanel({
           status: !dok.dokumentDatum ? 'pruefen' as FieldStatus : undefined,
         }]
     ),
-    // Betrag always shown — 'fehlt' if missing
-    {
+    // Betrag: 'fehlt' only for payment-relevant document types
+    ...(dok.betrag != null || /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? [{
       icon: 'currency-eur', label: T('field.amount'),
       value: dok.betrag != null ? (formatBetrag(dok.betrag as number, dok.waehrung) ?? '') : '',
-      status: dok.betrag == null ? 'fehlt' : undefined,
-    },
+      status: (dok.betrag == null && /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '')) ? 'fehlt' as FieldStatus : undefined,
+    }] : []),
     ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
     // AI-inferred reference fields — always mark for review
     ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle })),

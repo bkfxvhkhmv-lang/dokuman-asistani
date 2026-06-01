@@ -151,3 +151,22 @@ Wichtig: BriefPilot ist eine Beta und ersetzt keine Rechtsberatung.
 - [ ] Internal testers (dev + QA) — build verified
 - [ ] External beta — 100 testers
 - [ ] App Store submission — after external beta feedback
+
+## 7. Latest Sprint Update
+
+- [x] AI Labeler v1 shipped as a manual `Besser erkennen` flow
+- [x] OCR MVP backend `/ai/label` endpoint shipped with strict JSON validation
+- [x] Mobile labeler routes via OCR MVP backend, not direct client-side LLM calls
+- [x] User confirmation required before applying AI labels
+- [x] Sender normalization improved without overwriting strong senders
+- [x] Home review count false positives reduced
+- [x] Detail UX polish shipped:
+  - amount-missing hidden for non-payment docs
+  - full-row touch targets on editable detail rows
+  - Profile → Einstellungen navigation loop removed
+- [x] OCR orientation safety layers active:
+  - frontend orientation normalization before upload
+  - backend EXIF transpose after upload
+- [ ] ABBYY content-based orientation correction intentionally remains disabled for release
+- [ ] Bußgeld v1 enrichment remains follow-up work
+- [ ] Auth / subscription / quota enforcement remains Sprint 3

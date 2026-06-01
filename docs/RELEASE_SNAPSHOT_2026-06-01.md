@@ -68,6 +68,73 @@ The core product is a **document assistant for German letters, invoices and ever
 
 ## 3. Feature Status — Full Picture
 
+## Latest Sprint Update — AI Labeler, OCR Orientation, Detail UX Polish
+
+### AI Labeler v1 — PASS
+
+- Manual `Besser erkennen` flow shipped.
+- AI Labeler service foundation shipped.
+- OCR MVP backend `POST /ai/label` endpoint shipped.
+- Mobile labeler now routes through the OCR MVP backend, not `V4 chatWithDocument`.
+- Strict JSON validation is enforced.
+- User confirmation is required before applying an AI label.
+- No automatic AI call on screen load.
+- No AI call during list rendering.
+- Stored result fields:
+  - `aiDisplayTitle`
+  - `aiDocumentType`
+  - `aiSender`
+  - `aiConfidence`
+  - `aiLabelledAt`
+
+### Backend `/ai/label`
+
+- Uses the backend-side provider key.
+- Client does not call Claude, Gemini or OpenAI directly.
+- Current provider: Anthropic / Claude via the existing backend setup.
+- Provider abstraction is conceptually prepared so Gemini can be evaluated later.
+- Safe JSON response pattern is active.
+- Invalid or low-confidence output fails safely.
+
+### Sender normalization — PASS
+
+- Weak senders such as `Unbekannt` can be improved.
+- Known institutions are normalized.
+- Existing stored documents can benefit from display-time recovery.
+- Strong senders are not overwritten by weak guesses.
+
+### Home amber / review count — PASS
+
+- False positives were reduced.
+- `Steuer` / `Kündigung` are not amber solely because a deadline is missing.
+- Home triage uses active task documents, not all visible documents.
+
+### Detail UX polish — PASS
+
+- `Betrag` → `Fehlt` is hidden for non-payment documents such as `Formular`, `Überweisung`, `MRT-Überweisung`.
+- `Betrag` missing is still shown for payment-like documents such as `Rechnung`, `Mahnung`, `Bußgeld`.
+- Editable detail rows now use full-row touch targets.
+- Profile → Einstellungen navigation loop was removed.
+
+### OCR orientation handling
+
+- Frontend Expo image orientation normalization is active via image manipulation before upload.
+- Backend PIL `ImageOps.exif_transpose` safety layer is active after upload.
+- ABBYY `correctOrientation` / `correctSkew` is implemented as opt-in only and disabled by default.
+- Reason: do not change OCR provider behavior before release.
+- Optional later test flags:
+  - `ABBYY_CORRECT_ORIENTATION=true`
+  - `ABBYY_CORRECT_SKEW=true`
+
+### Known limits / follow-ups
+
+- Physically upside-down documents may still require manual fullscreen rotate.
+- ABBYY content-based orientation correction is not enabled for release.
+- `Begründeter Entwurf` remains deterministic v1; AI-assisted full draft is Sprint 3.
+- Bußgeld v1 enrichment remains a follow-up.
+- Auth / subscription / quota enforcement remains Sprint 3.
+- PDF signing UX polish remains lower priority.
+
 ### 3a. Core Flows (carried forward from 2026-05-28)
 
 | Flow | Status |

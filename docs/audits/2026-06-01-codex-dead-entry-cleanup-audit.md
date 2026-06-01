@@ -6,7 +6,7 @@
 - Date: 2026-06-01
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: e294e1efa
+- Commit: 818bab122
 - Task type: audit / validation / docs
 - Scope: BelgeChatModal, HilfeModal, runDetailSmartAction('ai_chat') reachability and cleanup scope
 - Status: FOLLOW-UP REQUIRED
@@ -22,6 +22,7 @@
   - `/Users/bayramgul/bp_canavar_v6_refactor/src/features/detail/detail-screen/useDetailBildschirmLogic.ts`
   - `/Users/bayramgul/bp_canavar_v6_refactor/src/features/detail/components/tabs/DetailAnalysisTab.tsx`
   - `/Users/bayramgul/bp_canavar_v6_refactor/src/services/SmartActionsService.ts`
+- This audit intentionally did not delete files or remove routes.
 
 ## 2. Search Commands Used
 - `git -C /Users/bayramgul/bp_canavar_v6_refactor rev-parse --short HEAD`
@@ -34,6 +35,9 @@
   - `src/features/detail/DetailModalsContainer.tsx`
   - `src/components/belge-chat/BelgeChatModal.tsx`
   - `src/components/HilfeModal.tsx`
+  - `src/features/detail/detail-screen/useDetailBildschirmLogic.ts`
+  - `src/features/detail/components/tabs/DetailAnalysisTab.tsx`
+  - `src/features/detail/DetailScreen.tsx`
 
 ## 3. Files Touched
 - `/Users/bayramgul/bp_canavar_v6_refactor/docs/audits/2026-06-01-codex-dead-entry-cleanup-audit.md`
@@ -45,37 +49,46 @@
 ### Finding 1 — `BelgeChatModal` is not dead code
 - status: later
 - severity: SHOULD FIX
-- user impact: hidden chat behavior can still be surfaced indirectly, creating an inconsistent product surface if triggered by smart routing or analysis tab UI.
+- user impact: hidden chat behavior can still be surfaced indirectly, creating an inconsistent product surface if triggered by smart routing or analysis-tab UI.
 - technical root cause:
-  - `DetailModalsContainer` always mounts `BelgeChatModal`
-  - `runDetailSmartAction('ai_chat')` opens `modal.open('chat')`
-  - `useDetailBildschirmLogic` exposes `onChat`
-  - `DetailAnalysisTab` still renders `ChatEntryBar` with `modal.open('chat')`
+  - `DetailModalsContainer` mounts `BelgeChatModal`
+  - `runDetailSmartAction('ai_chat')` still opens `modal.open('chat')`
+  - `useDetailBildschirmLogic` still exposes `onChat`
+  - `DetailAnalysisTab` still contains `ChatEntryBar` wiring, although behind `ENABLE_RELEASE_CHAT_ENTRY_BAR = false`
 - minimal solution:
-  - decide whether document chat is a supported feature; if not, remove the visible `ChatEntryBar` and `ai_chat` routing before deleting the modal.
+  - remove visible entry points and smart-action emission first, then delete modal mount later.
 
 ### Finding 2 — `HilfeModal` is not dead code
 - status: later
 - severity: LATER
-- user impact: the old “Hilfe & Beratung” surface can still be reopened from non-inline paths, and its content/style no longer matches the tightened product scope.
+- user impact: the old generic help surface can still be reopened from non-inline paths and does not match the narrowed product surface.
 - technical root cause:
   - `DetailModalsContainer` mounts `HilfeModal`
   - `useDetailBildschirmLogic` still exposes `onHilfe`
-  - `DetailScreen` still passes `onSimpleHilfe={() => modal.open('hilfe')}`
+  - `DetailScreen` still passes `onSimpleHilfe={() => modal.open('hilfe')}` into `OzetTab`
 - minimal solution:
-  - identify whether `onSimpleHilfe` is still visible in current UI; if not visible, remove the prop chain first, then the modal.
+  - confirm whether `onSimpleHilfe` is still visible in current UI; if not, remove the prop chain before deleting the modal.
 
-### Finding 3 — `runDetailSmartAction('ai_chat')` is still reachable
+### Finding 3 — `ai_chat` is still a live smart-action route
 - status: later
 - severity: SHOULD FIX
-- user impact: smart actions can still route into chat even though inline tools were simplified and chat is no longer part of the desired primary product surface.
+- user impact: smart actions can still route to chat even though chat is no longer part of the simplified primary product surface.
 - technical root cause:
-  - `detailSmartRouting.ts` still maps `ai_chat` → `modal.open('chat')`
-  - `SmartActionsService` still emits `ai_chat` with label `Mit KI besprechen`
+  - `/Users/bayramgul/bp_canavar_v6_refactor/src/services/SmartActionsService.ts` still emits `ai_chat` with label `Mit KI besprechen`
+  - `/Users/bayramgul/bp_canavar_v6_refactor/src/features/detail/services/detailSmartRouting.ts` still routes `ai_chat` to `modal.open('chat')`
 - minimal solution:
-  - either remove `ai_chat` from `SmartActionsService` or reroute it to a supported feature; do not delete the modal first.
+  - stop emitting `ai_chat` from smart actions before deleting the modal.
 
-### Finding 4 — Generic draft/template system is not part of this cleanup target
+### Finding 4 — Visible chat entry in analysis tab is currently feature-flagged off, not removed
+- status: intentional
+- severity: LATER
+- user impact: no current visible issue if the flag stays false, but the code path remains easy to re-enable accidentally.
+- technical root cause:
+  - `ENABLE_RELEASE_CHAT_ENTRY_BAR = false` in `DetailAnalysisTab.tsx`
+- minimal solution:
+  - treat this as a soft-disable only; remove component wiring in the cleanup phase if product decision is final.
+
+### Finding 5 — Generic old draft/template libraries are not part of this cleanup target
 - status: not applicable
 - severity: INTENTIONAL
 - user impact: none
@@ -85,50 +98,52 @@
 - minimal solution:
   - none in this audit
 
-### Finding 5 — Cleanup order matters
+### Finding 6 — Cleanup order matters
 - status: intentional
 - severity: SHOULD FIX
-- user impact: deleting modals first would break still-reachable paths and create runtime modal-key dead ends.
+- user impact: deleting components first would create live modal-key dead ends or broken smart actions.
 - technical root cause:
-  - reachability still exists from analysis tab / smart action routing / detail screen prop chain
+  - reachability still exists from smart routing, analysis tab wiring, and detail prop chain
 - minimal solution:
   - cleanup should happen in this order:
     1. remove visible entry points
-    2. remove smart routing keys / prop chains
-    3. remove modal mounts
-    4. remove component files and stale exports
+    2. remove smart-action emission
+    3. remove routing keys / prop chains
+    4. remove modal mounts
+    5. remove component files and stale exports
 
 ## 5. Decisions
 - What was changed:
   - only this audit report was added
 - What was deliberately not changed:
   - no modal code
-  - no smart action code
-  - no detail screen code
+  - no smart-action code
+  - no detail-screen code
 - Why:
   - task requested audit only
-  - these entries are not purely dead; they still have live reachability in code
+  - these targets are not fully dead; they still have live reachability in code
 
 ## 6. Validation
-- `npx tsc --noEmit`: PASS
+- `npx tsc --noEmit`: FAIL (unrelated existing errors in `src/components/YanıtSablonlariModal.tsx`)
 - tests run: none
 - manual checks: none in this turn; code reachability audit only
 - remaining risks:
-  - `BelgeChatModal` is still user-reachable via `DetailAnalysisTab`
-  - `ai_chat` remains in smart action generation
-  - `HilfeModal` may still be reachable through `DetailScreen` prop path even if not prominent in current UI
+  - `BelgeChatModal` is still reachable through smart routing and latent analysis-tab entry wiring
+  - `HilfeModal` may still be reachable through `DetailScreen` prop path
+  - compile is currently blocked by unrelated existing errors in `/Users/bayramgul/bp_canavar_v6_refactor/src/components/YanıtSablonlariModal.tsx`
+  - worktree contains unrelated dirty file: `/Users/bayramgul/bp_canavar_v6_refactor/src/i18n/translations.ts` (not touched in this audit)
 
 ## 7. Commit
-- Commit hash: none
-- Commit message: none
+- Commit hash: 818bab122
+- Commit message: docs(audit): record dead-entry cleanup findings
 
 ## 8. Follow-ups
-1. Audit `DetailAnalysisTab` and decide whether `ChatEntryBar` should remain visible.
-2. Remove `ai_chat` emission from `SmartActionsService` if chat is no longer a supported surface.
-3. Trace `onSimpleHilfe` in `DetailScreen` and confirm whether it is still visually reachable; if not, remove the prop chain.
+1. Remove `ai_chat` emission from `SmartActionsService` if chat is no longer a supported surface.
+2. Remove or keep-disabled `ChatEntryBar` wiring in `DetailAnalysisTab` as a final product decision, not just a flag.
+3. Trace whether `onSimpleHilfe` is still visually reachable in `OzetTab`; remove that prop chain if dead.
 4. After entry points are removed, delete `BelgeChatModal` mount from `DetailModalsContainer`.
 5. After entry points are removed, delete `HilfeModal` mount from `DetailModalsContainer`.
-6. Only after routing is removed, delete stale component exports such as `src/components/belge-chat/index.ts`.
+6. After routing is removed, delete stale exports such as `src/components/belge-chat/index.ts`.
 
 ## Ownership
 This report was prepared by: Codex

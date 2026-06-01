@@ -4,6 +4,21 @@ import { scanWithVisionKit, visionKitAvailable } from '@/modules/scanner/engine/
 import { generatePdfFromImages } from '@/core/pdf/js-pdf-generate/generatePdfFromImages';
 import type { ScannedAsset, ScannerProvider } from './types';
 
+/**
+ * Bake EXIF orientation into pixels so the preview and OCR receive a
+ * correctly-oriented image regardless of how the camera saved it.
+ * Failsafe: returns original URI on any error.
+ */
+async function normalizeImageOrientation(uri: string): Promise<string> {
+  try {
+    const { manipulateAsync, SaveFormat } = await import('expo-image-manipulator');
+    const result = await manipulateAsync(uri, [], { compress: 0.92, format: SaveFormat.JPEG });
+    return result.uri;
+  } catch {
+    return uri; // failsafe — never block the user
+  }
+}
+
 export const ExpoScannerProvider: ScannerProvider = {
   async pickFile(): Promise<ScannedAsset | null> {
     const res = await DocumentPicker.getDocumentAsync({
@@ -32,13 +47,14 @@ export const ExpoScannerProvider: ScannerProvider = {
     });
     if (res.canceled || res.assets.length === 0) return null;
     const asset = res.assets[0];
+    const normalizedUri = await normalizeImageOrientation(asset.uri);
     return {
-      uri: asset.uri,
+      uri: normalizedUri,
       name: `photo_${Date.now()}.jpg`,
       mimeType: 'image/jpeg',
       source: 'camera',
       displayName: 'Foto aufgenommen',
-      previewUri: asset.uri,
+      previewUri: normalizedUri,
     };
   },
 
@@ -52,13 +68,14 @@ export const ExpoScannerProvider: ScannerProvider = {
     });
     if (res.canceled || res.assets.length === 0) return null;
     const asset = res.assets[0];
+    const normalizedUri = await normalizeImageOrientation(asset.uri);
     return {
-      uri: asset.uri,
+      uri: normalizedUri,
       name: `image_${Date.now()}.jpg`,
       mimeType: asset.mimeType ?? 'image/jpeg',
       source: 'photo-library',
       displayName: 'Bild ausgewählt',
-      previewUri: asset.uri,
+      previewUri: normalizedUri,
     };
   },
 
@@ -72,14 +89,14 @@ export const ExpoScannerProvider: ScannerProvider = {
 
     // Single page: send as JPEG (fast, no PDF overhead)
     if (result.imageUris.length === 1) {
-      const uri = result.imageUris[0];
+      const normalizedUri = await normalizeImageOrientation(result.imageUris[0]);
       return {
-        uri,
+        uri: normalizedUri,
         name: `scan_${Date.now()}.jpg`,
         mimeType: 'image/jpeg',
         source: 'camera',
         displayName: 'Scan aufgenommen',
-        previewUri: uri,
+        previewUri: normalizedUri,
         pageCount: 1,
       };
     }

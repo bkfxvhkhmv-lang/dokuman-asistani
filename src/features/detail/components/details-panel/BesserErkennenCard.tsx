@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store/types';
 import { useAiLabeler } from '@/hooks/useAiLabeler';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   dok: Dokument;
@@ -18,6 +19,7 @@ interface Props {
  */
 export function BesserErkennenCard({ dok }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t } = useT();
   const {
     isEligible, loading, suggestion, error,
     triggerLabel, acceptSuggestion, ignoreSuggestion,
@@ -48,7 +50,7 @@ export function BesserErkennenCard({ dok }: Props) {
           </Text>
           {!suggestion && !error && !loading && (
             <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-              BriefPilot kann Titel, Typ und Absender mit KI prüfen.
+              {t('besser.card.subtitle')}
             </Text>
           )}
         </View>
@@ -62,7 +64,7 @@ export function BesserErkennenCard({ dok }: Props) {
             }}
           >
             <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>
-              Besser erkennen
+              {t('besser.button')}
             </Text>
           </TouchableOpacity>
         )}
@@ -76,7 +78,7 @@ export function BesserErkennenCard({ dok }: Props) {
         }}>
           <ActivityIndicator size="small" color={C.primary} />
           <Text style={{ fontSize: 12, color: C.textSecondary }}>
-            BriefPilot prüft den Dokumenttyp …
+            {t('besser.loading')}
           </Text>
         </View>
       )}
@@ -100,7 +102,7 @@ export function BesserErkennenCard({ dok }: Props) {
           paddingHorizontal: S.lg, paddingVertical: 14, gap: 10,
         }}>
           <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.4 }}>
-            WIR VERMUTEN
+            {t('besser.suggest.header')}
           </Text>
 
           {/* Suggested title */}
@@ -124,8 +126,8 @@ export function BesserErkennenCard({ dok }: Props) {
 
           {/* Confidence indicator */}
           <Text style={{ fontSize: 10, color: C.textTertiary }}>
-            {suggestion.response.confidence}% Erkennungssicherheit
-            {suggestion.response.needsUserConfirmation ? ' · Bitte prüfen' : ''}
+            {t('besser.suggest.confidence', { n: suggestion.response.confidence })}
+            {suggestion.response.needsUserConfirmation ? ` · ${t('besser.suggest.check')}` : ''}
           </Text>
 
           {/* Action buttons */}
@@ -139,7 +141,7 @@ export function BesserErkennenCard({ dok }: Props) {
               }}
             >
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
-                Übernehmen
+                {t('besser.accept')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -152,7 +154,7 @@ export function BesserErkennenCard({ dok }: Props) {
               }}
             >
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.textSecondary }}>
-                Ignorieren
+                {t('besser.ignore')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -13,15 +13,16 @@ import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { buildHumanExportBasename } from '@/utils/exportFilename';
 import OcrMvpActionSummary from './OcrMvpActionSummary';
+import { useT } from '@/hooks/useT';
 
-const DOC_TYPE_LABEL: Record<string, string> = {
-  invoice:    'Rechnung',
-  settlement: 'Nebenkosten',
-  insurance:  'Versicherungsdokument',
-  quote:      'Angebot',
-  form:       'Formular',
-  letter:     'Behördenpost',
-  unknown:    'Unbekanntes Dokument',
+const DOC_TYPE_KEY: Record<string, string> = {
+  invoice:    'ocr.doctype.invoice',
+  settlement: 'ocr.doctype.settlement',
+  insurance:  'ocr.doctype.insurance',
+  quote:      'ocr.doctype.quote',
+  form:       'ocr.doctype.form',
+  letter:     'ocr.doctype.letter',
+  unknown:    'ocr.doctype.unknown',
 };
 
 function buildExportFilename(
@@ -30,7 +31,7 @@ function buildExportFilename(
   ext: string,
 ): string {
   const kind = summary?.kind ?? docType ?? 'unknown';
-  const label = DOC_TYPE_LABEL[kind] ?? 'Dokument';
+  const label = { invoice:'Rechnung', settlement:'Nebenkosten', insurance:'Versicherung', quote:'Angebot', form:'Formular', letter:'Brief', unknown:'Dokument' }[kind] ?? 'Dokument';
   const base = buildHumanExportBasename({
     sender: summary?.vendor_name || summary?.sender,
     title: summary?.vendor_name || summary?.sender || label,
@@ -52,13 +53,14 @@ interface Props {
 
 export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments, onOpenDocument }: Props) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const insets = useSafeAreaInsets();
   const [downloading, setDownloading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
 
-  const docLabel   = DOC_TYPE_LABEL[result.document_type ?? ''] ?? result.document_type ?? '—';
+  const docLabel = T(DOC_TYPE_KEY[result.document_type ?? ''] ?? 'ocr.doctype.unknown');
   const isHighRisk = HIGH_RISK_TYPES.has(result.document_type ?? '') && result.needs_review;
   const confPct    = result.confidence != null ? Math.round(result.confidence * 100) : null;
   const hasSummary = !!result.action_summary;
@@ -137,14 +139,14 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
           {onOpenDocument && (
             <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>
               <Icon name="arrow-forward-circle-outline" size={18} color="#fff" />
-              <Text style={st.savePrimaryLabel}>Dokument öffnen</Text>
+              <Text style={st.savePrimaryLabel}>{T('ocr.result.open')}</Text>
             </TouchableOpacity>
           )}
         </View>
       ) : onSaveToDocuments && (
         <TouchableOpacity style={st.savePrimaryBtn} onPress={onSaveToDocuments} activeOpacity={0.8}>
           <Icon name="folder-open-outline" size={18} color="#fff" />
-          <Text style={st.savePrimaryLabel}>In Dokumente speichern</Text>
+          <Text style={st.savePrimaryLabel}>{T('ocr.result.save')}</Text>
         </TouchableOpacity>
       )}
 
@@ -178,7 +180,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               ? <ActivityIndicator color={Colors.primary} />
               : <>
                   <Icon name="download-outline" size={20} color={Colors.primary} />
-                  <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
+                  <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
                 </>}
           </TouchableOpacity>
         </>
@@ -246,7 +248,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               activeOpacity={0.8}
             >
               <Icon name="download-outline" size={20} color={Colors.primary} />
-              <Text style={st.downloadLabel}>{isXlsx ? 'Excel herunterladen' : 'Herunterladen / Teilen'}</Text>
+              <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
             </TouchableOpacity>
           </StickyBottomCTA>
         </SafeAreaView>

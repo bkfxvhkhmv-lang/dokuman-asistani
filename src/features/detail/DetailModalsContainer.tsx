@@ -3,6 +3,7 @@ import { Alert, Share } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { downloadOcrResult } from '@/services/ocrMvpApi';
 import * as Clipboard from 'expo-clipboard';
+import { useT } from '@/hooks/useT';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
 import type { Dokument, StoreAction, StoreState } from '@/store';
@@ -61,6 +62,8 @@ export default function DetailModalsContainer({
     };
   }, []);
 
+  const { t: T } = useT();
+
   const handleExcelDownload = useCallback(async () => {
     if (!dok.ocrJobId) return;
     try {
@@ -73,9 +76,9 @@ export default function DetailModalsContainer({
         });
       }
     } catch (e: any) {
-      Alert.alert('Excel-Export fehlgeschlagen', e?.message ?? 'Bitte erneut versuchen.');
+      Alert.alert(T('reply.excel.error'), e?.message ?? T('reply.excel.error.body'));
     }
-  }, [dok.ocrJobId, dok.titel]);
+  }, [dok.ocrJobId, dok.titel, T]);
 
   const handleCopyEinspruch = useCallback(async () => {
     await Clipboard.setStringAsync(modal.einspruchText || '');

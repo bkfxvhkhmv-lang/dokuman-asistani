@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { AppSheet } from '@/design/components';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   visible: boolean;
@@ -14,54 +15,32 @@ interface Props {
   onExcel?: () => void | Promise<void>;
 }
 
-const OPTIONS = [
-  {
-    key: 'mail',
-    label: 'Per E-Mail senden',
-    sublabel: 'Mit Betreff und Anhang als E-Mail-Entwurf öffnen.',
-  },
-  {
-    key: 'pdf',
-    label: 'PDF exportieren',
-    sublabel: 'Als lesbares Dokument teilen.',
-  },
-  {
-    key: 'excel',
-    label: 'Excel herunterladen',
-    sublabel: 'Analyseergebnis als Tabelle exportieren.',
-  },
-  {
-    key: 'original',
-    label: 'Originaldatei teilen',
-    sublabel: 'Scan oder hochgeladene Datei weitergeben.',
-  },
-  {
-    key: 'text',
-    label: 'Text-Zusammenfassung teilen',
-    sublabel: 'Kurzfassung als Text senden.',
-  },
-  {
-    key: 'sicher',
-    label: 'Sicherer Link',
-    sublabel: 'Zeitlich begrenzten Link erstellen.',
-  },
-] as const;
+type OptionKey = 'mail' | 'pdf' | 'excel' | 'original' | 'text' | 'sicher';
+
+const OPTION_KEYS: OptionKey[] = ['mail', 'pdf', 'excel', 'original', 'text', 'sicher'];
 
 export default function ExportierenSheet({
   visible, onClose, onPDF, onOriginal, onText, onSicherLink, onMail, onExcel,
 }: Props) {
   const { Colors: C } = useTheme();
+  const { t } = useT();
 
-  const handlers: Record<string, (() => void | Promise<void>) | undefined> = {
-    mail: onMail,
-    pdf: onPDF,
-    excel: onExcel,
+  const options = OPTION_KEYS.map(key => ({
+    key,
+    label:    t(`export.option.${key === 'sicher' ? 'secure' : key}.label`),
+    sublabel: t(`export.option.${key === 'sicher' ? 'secure' : key}.sublabel`),
+  }));
+
+  const handlers: Record<OptionKey, (() => void | Promise<void>) | undefined> = {
+    mail:     onMail,
+    pdf:      onPDF,
+    excel:    onExcel,
     original: onOriginal,
-    text: onText,
-    sicher: onSicherLink,
+    text:     onText,
+    sicher:   onSicherLink,
   };
 
-  const visible_options = OPTIONS.filter(o =>
+  const visible_options = options.filter(o =>
     (o.key !== 'original' || !!onOriginal) &&
     (o.key !== 'mail'     || !!onMail) &&
     (o.key !== 'excel'    || !!onExcel) &&
@@ -72,15 +51,14 @@ export default function ExportierenSheet({
     <AppSheet
       visible={visible}
       onClose={onClose}
-      title="Exportieren"
-      subtitle="Wähle, wie du dieses Dokument weitergeben möchtest."
+      title={t('export.sheet.title')}
+      subtitle={t('export.sheet.subtitle')}
     >
       {visible_options.map((opt, index) => (
         <TouchableOpacity
           key={opt.key}
           onPress={() => {
             onClose();
-            // Wait for sheet dismiss animation before presenting next view controller
             setTimeout(() => { void Promise.resolve(handlers[opt.key]?.()); }, 350);
           }}
           style={{

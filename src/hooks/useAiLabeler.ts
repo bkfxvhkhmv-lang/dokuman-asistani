@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { shouldLabel, labelDocument, type AiLabelerResult } from '@/services/AiLabelerService';
 import type { Dokument } from '@/store/types';
 import { useStore } from '@/store';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 /**
  * Manual AI Labeler hook for the Detail screen.
@@ -36,12 +38,12 @@ export function useAiLabeler(dok: Dokument) {
         absender: dok.absender,
       });
       if (!result) {
-        setError('Das Dokument konnte nicht sicher besser erkannt werden.');
+        setError(t(getLangSync(), 'besser.error'));
       } else {
         setSuggestion(result);
       }
     } catch {
-      setError('Das Dokument konnte nicht sicher besser erkannt werden.');
+      setError(t(getLangSync(), 'besser.error'));
     } finally {
       setLoading(false);
     }

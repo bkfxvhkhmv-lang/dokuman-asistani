@@ -21,39 +21,40 @@ import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 import { postAcceptedSnapshot } from '@/services/ocrMvpApi';
 import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
+import { useT } from '@/hooks/useT';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
-function toSafeError(kind: OcrMvpErrorKind, status: string): SafeError {
+function toSafeError(kind: OcrMvpErrorKind, status: string, T: (k: string) => string): SafeError {
   if (status === 'timeout' || kind === 'timeout') {
     return {
-      title: 'Analyse dauert länger als erwartet',
-      body: 'Du kannst es erneut versuchen oder eine andere Datei wählen.',
-      icon: 'time-outline',
-      ctaLabel: 'Erneut versuchen',
+      title:    T('ocr.error.timeout.title'),
+      body:     T('ocr.error.timeout.body'),
+      icon:     'time-outline',
+      ctaLabel: T('ocr.error.cta.retry'),
     };
   }
   if (kind === 'network') {
     return {
-      title: 'Verbindung zum Analysedienst nicht möglich',
-      body: 'Die Analyse ist aktuell nicht verfügbar. Bitte versuche es später erneut.',
-      icon: 'wifi-outline',
-      ctaLabel: 'Erneut versuchen',
+      title:    T('ocr.error.network.title'),
+      body:     T('ocr.error.network.body'),
+      icon:     'wifi-outline',
+      ctaLabel: T('ocr.error.cta.retry'),
     };
   }
   if (kind === 'server') {
     return {
-      title: 'Dokument konnte nicht gelesen werden',
-      body: 'Versuche ein schärferes Foto oder eine PDF-Datei.',
-      icon: 'document-outline',
-      ctaLabel: 'Andere Datei wählen',
+      title:    T('ocr.error.server.title'),
+      body:     T('ocr.error.server.body'),
+      icon:     'document-outline',
+      ctaLabel: T('ocr.error.server.cta'),
     };
   }
   return {
-    title: 'Analyse fehlgeschlagen',
-    body: 'Bitte versuche es noch einmal.',
-    icon: 'alert-circle-outline',
-    ctaLabel: 'Erneut versuchen',
+    title:    T('ocr.error.generic.title'),
+    body:     T('ocr.error.generic.body'),
+    icon:     'alert-circle-outline',
+    ctaLabel: T('ocr.error.cta.retry'),
   };
 }
 
@@ -80,6 +81,7 @@ type TimingMarks = Partial<Record<
 
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const router = useRouter();
   const { state, dispatch } = useStore();
   const { status, jobId, result, error, errorKind, startJob, reset } = useOcrMvpJob();
@@ -207,7 +209,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
       if (!docId || !persistedPages?.length) {
         if (!selectedUri) {
-          Alert.alert('Speichern fehlgeschlagen', 'Quelldatei konnte nicht gefunden werden.');
+          Alert.alert(T('ocr.save.error.title'), T('ocr.save.error.source'));
           return;
         }
         docId = generateId();
@@ -252,7 +254,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
         },
       }).catch((e) => console.warn('[learning] accepted snapshot failed', e));
     } catch (e: any) {
-      Alert.alert('Speichern fehlgeschlagen', e?.message ?? 'Dokument konnte nicht gespeichert werden.');
+      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
     }
   }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
 
@@ -324,7 +326,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
         {/* Fehler */}
         {(status === 'error' || status === 'timeout') && (() => {
-          const safeErr = toSafeError(errorKind, status);
+          const safeErr = toSafeError(errorKind, status, T);
           return (
             <View style={st.errorCard}>
               <Icon name={safeErr.icon} size={24} color="#F59E0B" />
@@ -347,7 +349,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
               <View style={st.checkingBox}>
                 <ActivityIndicator color={Colors.primary} />
                 <Text style={[st.checkingLabel, { color: Colors.textSecondary }]}>
-                  Analyse wird vorbereitet …
+                  {T('ocr.preparing')}
                 </Text>
               </View>
             )}
@@ -355,12 +357,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
             {health === 'offline' && (
               <View style={st.errorCard}>
                 <Icon name="cloud-offline-outline" size={24} color="#F59E0B" />
-                <Text style={st.errorTitle}>Analyse nicht verfügbar</Text>
-                <Text style={st.errorMsg}>
-                  Die Analyse ist aktuell nicht verfügbar. Bitte versuche es später erneut.
-                </Text>
+                <Text style={st.errorTitle}>{T('ocr.offline.title')}</Text>
+                <Text style={st.errorMsg}>{T('ocr.offline.body')}</Text>
                 <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
-                  <Text style={st.retryLabel}>Erneut versuchen</Text>
+                  <Text style={st.retryLabel}>{T('ocr.error.cta.retry')}</Text>
                 </TouchableOpacity>
               </View>
             )}

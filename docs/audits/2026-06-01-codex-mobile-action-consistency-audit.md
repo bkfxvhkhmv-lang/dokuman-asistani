@@ -151,6 +151,15 @@
 5. Run a separate dead-entry cleanup audit for `BelgeChatModal`, `HilfeModal`, and `runDetailSmartAction('ai_chat')` to prevent accidental re-exposure.
 6. Audit all `AppSheet`-based long-form modals and wrap long bodies in `ScrollView` where missing.
 
+
+## Post-Audit Follow-up
+- 2026-06-01: Codex applied two focused visibility fixes after this audit.
+- Commit: pending at report-write time.
+- Changes:
+  - hid `PDF unterschreiben` from inline saved-document actions
+  - narrowed `Antwort schreiben` visibility to Finanzamt-like documents only
+- Reason: both were identified in this audit as visible entry-point inconsistencies.
+
 ## Ownership
 This report was prepared by: Codex
 Responsible changed files:

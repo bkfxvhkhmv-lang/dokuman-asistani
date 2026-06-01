@@ -1,7 +1,7 @@
 /**
  * Inline tool order (Erledigen tab):
  * Exportieren → Angaben bearbeiten → Ausgaben →
- * Antwort → PDF unterschreiben → Erledigt → Löschen
+ * Antwort → Erledigt → Löschen
  */
 import { useMemo } from 'react';
 import type { Dokument } from '@/store';
@@ -9,6 +9,7 @@ import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { ModalData } from '@/features/detail/hooks/useModalController';
 import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
 import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
+import { analyzeFinanzamt } from '@/features/detail/services/finanzamtAnalysis';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
 
@@ -40,6 +41,7 @@ export function useDetailMoreItems({
 
     const aktiv = dok.aktionen ?? [];
     const rows: MoreMenuItem[] = [];
+    const isFinanzamtReply = analyzeFinanzamt(dok).isFinanzamt;
 
     // ── 1. Exportieren ────────────────────────────────────────────────────────
     rows.push({
@@ -66,22 +68,14 @@ export function useDetailMoreItems({
     }
 
     // ── 4. Antwort schreiben (conditional) ───────────────────────────────────
-    const antwortTypen: string[] = ['Behörden / Amt', 'Versicherung'];
-    if (aktiv.includes('mail') || aktiv.includes('einspruch') || antwortTypen.includes(dok.typ ?? '')) {
+    if (isFinanzamtReply) {
       rows.push({
         key: 'menu_vorlage', icon: 'envelope-simple', label: 'Antwort schreiben', group: 'communication',
         onPress: () => openModal('yanitSablon'),
       });
     }
 
-    // ── 5. PDF unterschreiben / Unterschrift entfernen ────────────────────────
-    const signbareTypen = new Set(['Formular', 'Vertrag', 'Antrag', 'Behörden / Amt']);
-    if (aktiv.includes('form') || signbareTypen.has(dok.typ ?? '')) {
-      rows.push({
-        key: 'menu_signpdf', icon: 'pen-nib', label: 'PDF unterschreiben', group: 'advanced',
-        onPress: () => openModal('signatur'),
-      });
-    }
+    // ── 5. Unterschrift entfernen (only after a signed PDF exists) ───────────
     if (dok.unsignedUri && onRevertSignature) {
       rows.push({
         key: 'menu_revert_sig', icon: 'arrow-counter-clockwise',

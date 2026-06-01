@@ -1,4 +1,5 @@
 import type { OcrMvpActionSummary } from '@/services/ocrMvpApi';
+import { normalizeCanonical } from '@/utils/senderNormalization';
 export { humanizeTitle } from '@/utils/displaySanitizer';
 
 // Filename-like patterns that are never meaningful document titles.
@@ -382,7 +383,13 @@ export function buildDocumentSender(
   }
 
   const rawTextCompanySender = extractCompanySenderFromRawText(s.raw_text);
-  if (rawTextCompanySender) return rawTextCompanySender;
+  if (rawTextCompanySender) return normalizeCanonical(rawTextCompanySender) ?? rawTextCompanySender;
 
   return 'Unbekannt';
+}
+
+/** Post-processes a sender string produced by buildDocumentSender. */
+export function normalizeBuildSender(sender: string): string {
+  if (!sender || sender === 'Unbekannt') return sender;
+  return normalizeCanonical(sender) ?? sender;
 }

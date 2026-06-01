@@ -2,7 +2,7 @@ import type { Dokument, ScannedPage } from '@/store/types';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { generateId } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
-import { buildDocumentTitle, buildDocumentSender, extractDokumentDatum } from './ocrMvpDocumentIdentity';
+import { buildDocumentTitle, buildDocumentSender, extractDokumentDatum, normalizeBuildSender } from './ocrMvpDocumentIdentity';
 
 // Opaque wrapper — store write happens in a separate step, never here.
 export interface OcrMvpV4DocumentDraft {
@@ -229,7 +229,7 @@ export function ocrMvpToV4Document(
     id:              options?.id ?? generateId(),
     titel:           buildDocumentTitle(kind, s, dokumentDatum),
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
-    absender:        buildDocumentSender(kind, s),
+    absender:        normalizeBuildSender(buildDocumentSender(kind, s)),
     zusammenfassung: s?.summary?.trim() || buildZusammenfassung(kind, s) || null,
     warnung:         s?.warnings?.[0] ?? null,
     betrag:          extractAmountSource(s),

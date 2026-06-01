@@ -85,6 +85,8 @@ export function safeDisplayDocumentTitleForExport(value: string | null | undefin
 
 // ── Absender / Titel display sanitization ────────────────────────────────────
 
+import { normalizeSender } from '@/utils/senderNormalization';
+
 function isLikelyGarbled(s: string): boolean {
   const t = s.trim();
   if (t.length <= 2) return true;
@@ -95,24 +97,21 @@ function isLikelyGarbled(s: string): boolean {
   return false;
 }
 
-const ABSENDER_PLACEHOLDERS = new Set([
-  'unbekannt', 'unbekannter absender', 'unknown', 'unknown sender',
-  'absender unbekannt', 'kein absender', 'n/a', '-', '—',
-]);
-
 /**
- * Returns a safe display value for `absender`.
- * Returns '' for empty, garbled, or known placeholder values so callers
- * can omit the sender label entirely rather than showing "Unbekannt".
+ * Returns a safe, normalized display value for `absender`.
+ * - Returns '' for empty, garbled, or placeholder values.
+ * - Normalizes known brand names ("VODAFONE GmbH" → "Vodafone").
+ * - Recovers a sender from `rohText` when absender is weak/missing.
+ * Never modifies stored data.
  */
 export function safeDisplayAbsender(
   absender: string | null | undefined,
   confidence?: number | null,
+  rohText?: string | null,
 ): string {
-  if (!absender || absender.trim().length === 0) return '';
-  if (isLikelyGarbled(absender)) return '';
-  if (ABSENDER_PLACEHOLDERS.has(absender.trim().toLowerCase())) return '';
-  return absender.trim();
+  const raw = absender?.trim() ?? '';
+  if (raw && isLikelyGarbled(raw)) return '';
+  return normalizeSender(raw || null, rohText);
 }
 
 /**

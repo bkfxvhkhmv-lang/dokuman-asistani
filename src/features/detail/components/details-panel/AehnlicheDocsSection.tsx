@@ -26,7 +26,7 @@ export function AehnlicheDocsSection({ dokumente }: Props) {
               {safeDisplayTitel(d.titel, d.typ, d.confidence)}
             </Text>
             <Text style={{ fontSize: 11, color: C.textTertiary }}>
-              {safeDisplayAbsender(d.absender, d.confidence)} · {d.typ}
+              {safeDisplayAbsender(d.absender, d.confidence, d.rohText)} · {d.typ}
             </Text>
             <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>
               Ähnliche Merkmale gefunden

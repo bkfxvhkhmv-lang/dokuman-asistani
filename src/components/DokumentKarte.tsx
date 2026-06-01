@@ -86,7 +86,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const accentColor   = getAccentColor(dok, Colors, RiskColors);
   const tageText      = getTageText(dok.frist, T);
   const intent        = quickIntent(dok, Colors);
-  const displayAbsender = safeDisplayAbsender(dok.absender, dok.confidence);
+  const displayAbsender = safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText);
   const displayTitel    = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || dok.typ === 'Mahnung');

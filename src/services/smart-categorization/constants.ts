@@ -26,12 +26,22 @@ export const INSTITUTION_DB: {
 }[] = [
   // Behörden
   { pattern: /finanzamt/i,              name: 'Finanzamt',             typ: 'Steuerbescheid',   subtyp: 'Einkommensteuer',    icon: '🏛', land: 'DE' },
+  { pattern: /kreisjugendamt/i,         name: 'Kreisjugendamt',        typ: 'Behördenbescheid', subtyp: null,                 icon: '🏛', land: 'DE' },
+  { pattern: /kreissozialamt/i,         name: 'Kreissozialamt',        typ: 'Behördenbescheid', subtyp: null,                 icon: '🏛', land: 'DE' },
+  { pattern: /landratsamt/i,            name: 'Landratsamt',           typ: 'Behördenbescheid', subtyp: null,                 icon: '🏛', land: 'DE' },
+  { pattern: /landkreis/i,              name: 'Landkreis',             typ: 'Behördenbescheid', subtyp: null,                 icon: '🏛', land: 'DE' },
   { pattern: /ausländer(?:behörde|amt)/i,name: 'Ausländerbehörde',    typ: 'Behördenbescheid', subtyp: 'Ausländerbehörde',   icon: '🏛', land: 'DE' },
   { pattern: /jobcenter/i,              name: 'Jobcenter',             typ: 'Behördenbescheid', subtyp: 'Jobcenter',          icon: '🏛', land: 'DE' },
+  { pattern: /agentur\s+f[uü]r\s+arbeit/i, name: 'Agentur für Arbeit', typ: 'Behördenbescheid', subtyp: null,               icon: '🏛', land: 'DE' },
   { pattern: /sozialamt/i,              name: 'Sozialamt',             typ: 'Behördenbescheid', subtyp: 'Sozialamt',          icon: '🏛', land: 'DE' },
-  { pattern: /kranken(?:kasse|amt)/i,   name: 'Krankenkasse',          typ: 'Behördenbescheid', subtyp: 'Krankenamt',         icon: '🏥', land: 'DE' },
   { pattern: /ordnungsamt/i,            name: 'Ordnungsamt',           typ: 'Bußgeld',          subtyp: 'Ordnungsamt',        icon: '🚔', land: 'DE' },
   { pattern: /bußgeldstelle/i,          name: 'Bußgeldstelle',         typ: 'Bußgeld',          subtyp: 'Verkehrsdelikt',     icon: '🚔', land: 'DE' },
+  // Krankenkassen (specific before generic kranken*)
+  { pattern: /techniker\s+krankenkasse/i, name: 'Techniker Krankenkasse', typ: 'Behördenbescheid', subtyp: 'Krankenamt',    icon: '🏥', land: 'DE' },
+  { pattern: /barmer/i,                 name: 'Barmer',                typ: 'Behördenbescheid', subtyp: 'Krankenamt',         icon: '🏥', land: 'DE' },
+  { pattern: /dak.gesundheit|\bdak\b/i, name: 'DAK',                   typ: 'Behördenbescheid', subtyp: 'Krankenamt',         icon: '🏥', land: 'DE' },
+  { pattern: /\baok\b/i,                name: 'AOK',                   typ: 'Behördenbescheid', subtyp: 'Krankenamt',         icon: '🏥', land: 'DE' },
+  { pattern: /kranken(?:kasse|amt)/i,   name: 'Krankenkasse',          typ: 'Behördenbescheid', subtyp: 'Krankenamt',         icon: '🏥', land: 'DE' },
   // Telecom
   { pattern: /vodafone/i,               name: 'Vodafone',              typ: 'Rechnung',         subtyp: 'Telefon/Internet',   icon: '📱', land: 'DE' },
   { pattern: /telekom|deutsche telekom/i,name: 'Deutsche Telekom',    typ: 'Rechnung',         subtyp: 'Telefon/Internet',   icon: '📱', land: 'DE' },
@@ -52,8 +62,10 @@ export const INSTITUTION_DB: {
   { pattern: /volksbank|raiffeisen/i,   name: 'Volksbank',             typ: 'Rechnung',         subtyp: null,                 icon: '🏦', land: 'DE' },
   // Versicherungen
   { pattern: /allianz/i,                name: 'Allianz',               typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },
-  { pattern: /axa\b/i,                  name: 'AXA',                   typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },
-  { pattern: /huk.coburg/i,             name: 'HUK-Coburg',            typ: 'Versicherung',     subtyp: 'Kfz-Versicherung',   icon: '', land: 'DE' },
+  { pattern: /\baxa\b/i,                name: 'AXA',                   typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },
+  { pattern: /\bhuk.?24\b/i,            name: 'HUK24',                 typ: 'Versicherung',     subtyp: 'Kfz-Versicherung',   icon: '', land: 'DE' },
+  { pattern: /huk.coburg/i,             name: 'HUK-COBURG',            typ: 'Versicherung',     subtyp: 'Kfz-Versicherung',   icon: '', land: 'DE' },
+  { pattern: /online.versicherung/i,    name: 'HUK24',                 typ: 'Versicherung',     subtyp: 'Kfz-Versicherung',   icon: '', land: 'DE' },
   { pattern: /generali/i,               name: 'Generali',              typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },
   { pattern: /ergo\b/i,                 name: 'ERGO',                  typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },
   { pattern: /r\+v|r und v/i,           name: 'R+V',                   typ: 'Versicherung',     subtyp: null,                 icon: '', land: 'DE' },

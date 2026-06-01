@@ -94,7 +94,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
       <View style={{ paddingHorizontal: S.lg, paddingBottom: hasFacts ? 10 : 16 }}>
         <Text style={{ ...T.label, color: C.textTertiary, letterSpacing: 0.4 }} numberOfLines={1}>
           {typeLabel ? typeLabel.toUpperCase() : 'SONSTIGES'}
-          {(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence); return s ? ` · ${s}` : ''; })()}
+          {(() => { const s = safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText); return s ? ` · ${s}` : ''; })()}
         </Text>
       </View>
 

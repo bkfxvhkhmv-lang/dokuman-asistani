@@ -92,7 +92,7 @@ export default function HomeDashboardCards({
                 {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
               </Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
-                {safeDisplayAbsender(dok.absender, dok.confidence)}
+                {safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText)}
               </Text>
               {frist && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>

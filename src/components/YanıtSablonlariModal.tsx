@@ -29,6 +29,7 @@ import {
   buildBegruendetDraft,
   type FinanzamtAnalysis,
 } from '@/features/detail/services/finanzamtAnalysis';
+import { useT } from '@/hooks/useT';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,31 +50,22 @@ interface Props {
 
 // ── Mode definitions ──────────────────────────────────────────────────────────
 
-const MODES: Array<{
-  id: Mode;
-  label: string;
-  subtitle: string;
-  icon: string;
-}> = [
-  {
-    id: 'frist_wahren',
-    label: 'Frist wahren',
-    subtitle: 'Kurz reagieren und Zeit gewinnen. Eine ausführliche Begründung kann später ergänzt werden.',
-    icon: 'clock',
-  },
-  {
-    id: 'klaerung',
-    label: 'Klärung anfordern',
-    subtitle: 'Fordere eine verständliche Begründung, Berechnung oder fehlende Unterlagen an.',
-    icon: 'question',
-  },
-  {
-    id: 'begruendet',
-    label: 'Begründeter Entwurf',
-    subtitle: 'Erstelle einen ausführlicheren Entwurf mit deinen Angaben und Nachweisen.',
-    icon: 'pencil-line',
-  },
-];
+const MODE_IDS: Mode[] = ['frist_wahren', 'klaerung', 'begruendet'];
+const MODE_ICONS: Record<Mode, string> = {
+  frist_wahren: 'clock',
+  klaerung:     'question',
+  begruendet:   'pencil-line',
+};
+const MODE_LABEL_KEY: Record<Mode, string> = {
+  frist_wahren: 'reply.fristWahren.label',
+  klaerung:     'reply.klaerung.label',
+  begruendet:   'reply.begruendet.label',
+};
+const MODE_SUBTITLE_KEY: Record<Mode, string> = {
+  frist_wahren: 'reply.fristWahren.subtitle',
+  klaerung:     'reply.klaerung.subtitle',
+  begruendet:   'reply.begruendet.subtitle',
+};
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
@@ -83,11 +75,11 @@ function Handle({ C }: { C: any }) {
   );
 }
 
-function Disclaimer({ C }: { C: any }) {
+function Disclaimer({ C, disclaimer }: { C: any; disclaimer: string }) {
   return (
     <View style={{ marginHorizontal: 16, marginVertical: 8, padding: 10, borderRadius: 10, backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning }}>
       <Text style={{ fontSize: 11, color: C.warningText }}>
-        Entwurf · Keine Rechtsberatung — bitte [Platzhalter] ersetzen und Angaben prüfen.
+        {disclaimer}
       </Text>
     </View>
   );
@@ -104,6 +96,7 @@ function escapeHtml(value: string): string {
 
 export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t: T } = useT();
 
   const analysis = useMemo(() => (dok ? analyzeFinanzamt(dok) : null), [dok]);
 
@@ -223,17 +216,17 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
           <View style={{ paddingHorizontal: 20, paddingBottom: 32, alignItems: 'center' }}>
             <Icon name="info" size={36} color={C.textTertiary} style={{ marginBottom: 16 }} />
             <Text style={{ fontSize: 16, fontWeight: '700', color: C.text, textAlign: 'center', marginBottom: 10 }}>
-              Antwort-Assistent
+              {T('reply.modal.title')}
             </Text>
             <Text style={{ fontSize: 14, color: C.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 24 }}>
-              Der Antwort-Assistent ist in dieser Version zunächst für Finanzamt-Schreiben verfügbar.
+              {T('reply.modal.notAvailable')}
             </Text>
             <TouchableOpacity
               onPress={handleClose}
               hitSlop={HIT_SLOP_LG}
               style={{ paddingVertical: 12, paddingHorizontal: 28, borderRadius: R.lg, backgroundColor: C.bgInput, borderWidth: 1, borderColor: C.border }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>Schließen</Text>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('reply.modal.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -253,7 +246,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
             {/* Back button slot (none on first screen) + title */}
             <View style={{ paddingHorizontal: 20, marginBottom: 4 }}>
               <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
-                Wie möchten Sie antworten?
+                {T('reply.modal.howReply')}
               </Text>
             </View>
 
@@ -262,7 +255,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <Icon name="identification-badge" size={14} color={C.textTertiary} />
                 <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary }}>
-                  FINANZAMT — ANALYSE
+                  {T('reply.modal.finanzamt.badge')}
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: C.textSecondary, lineHeight: 17 }}>
@@ -271,20 +264,20 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-              {MODES.map(m => (
+              {MODE_IDS.map(id => (
                 <TouchableOpacity
-                  key={m.id}
-                  onPress={() => handleModeSelect(m.id)}
+                  key={id}
+                  onPress={() => handleModeSelect(id)}
                   style={[st.modeCard, { backgroundColor: C.bgCard, borderColor: C.border }]}
                   activeOpacity={0.75}
                 >
                   <View style={[st.modeIconWrap, { backgroundColor: C.primaryLight }]}>
-                    <Icon name={m.icon} size={20} color={C.primary} />
+                    <Icon name={MODE_ICONS[id]} size={20} color={C.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{m.label}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T(MODE_LABEL_KEY[id])}</Text>
                     <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 3, lineHeight: 16 }}>
-                      {m.subtitle}
+                      {T(MODE_SUBTITLE_KEY[id])}
                     </Text>
                   </View>
                   <Icon name="caret-right" size={14} color={C.border} />
@@ -299,22 +292,22 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
           <>
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 16, gap: 10 }}>
               <TouchableOpacity onPress={() => setScreen('mode_selection')} hitSlop={HIT_SLOP_LG}>
-                <Text style={{ fontSize: 15, color: C.primary }}>← Zurück</Text>
+                <Text style={{ fontSize: 15, color: C.primary }}>{T('reply.modal.back')}</Text>
               </TouchableOpacity>
               <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: C.text }}>
-                Begründeter Entwurf
+                {T('reply.begruendet.label')}
               </Text>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}>
               {/* Q1 */}
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 8 }}>
-                Haben Sie einen Nachweis für diese Ausgabe?
+                {T('reply.q1.label')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
                 {[
-                  { val: true, label: 'Ja, Belege vorhanden' },
-                  { val: false, label: 'Nein / unsicher' },
+                  { val: true, label: T('reply.q1.yes') },
+                  { val: false, label: T('reply.q1.no') },
                 ].map(opt => (
                   <TouchableOpacity
                     key={String(opt.val)}
@@ -333,12 +326,12 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
 
               {/* Q2 */}
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 8 }}>
-                War diese Ausgabe beruflich oder betrieblich veranlasst?
+                {T('reply.q2.label')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
                 {[
-                  { val: true, label: 'Ja, beruflich' },
-                  { val: false, label: 'Privat / unklar' },
+                  { val: true, label: T('reply.q2.yes') },
+                  { val: false, label: T('reply.q2.no') },
                 ].map(opt => (
                   <TouchableOpacity
                     key={String(opt.val)}
@@ -357,12 +350,12 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
 
               {/* Q3 */}
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.text, marginBottom: 8 }}>
-                Weitere Angaben (optional)
+                {T('reply.q3.label')}
               </Text>
               <TextInput
                 value={answers.zusatzinfo ?? ''}
                 onChangeText={v => setAnswers(a => ({ ...a, zusatzinfo: v }))}
-                placeholder="z. B. Art der Ausgabe, besondere Umstände"
+                placeholder={T('reply.q3.placeholder')}
                 placeholderTextColor={C.textTertiary}
                 style={[st.textInput, { backgroundColor: C.bgInput, borderColor: C.border, color: C.text }]}
                 multiline
@@ -373,8 +366,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
               {answers.hasNachweis === false && (
                 <View style={{ marginTop: 12, padding: 12, borderRadius: 10, backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning }}>
                   <Text style={{ fontSize: 12, color: C.warningText, lineHeight: 17 }}>
-                    Ohne Nachweis empfehlen wir zunächst „Frist wahren" oder „Klärung anfordern".
-                    Ein vollständiger Einspruch ist trotzdem möglich — bitte im Entwurf entsprechend ergänzen.
+                    {T('reply.noNachweis.warning')}
                   </Text>
                 </View>
               )}
@@ -383,7 +375,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
                 onPress={handleQuestionsComplete}
                 style={[st.primaryBtn, { backgroundColor: C.primary, marginTop: 24 }]}
               >
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Entwurf erstellen</Text>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>{T('reply.createDraft')}</Text>
               </TouchableOpacity>
             </ScrollView>
           </>
@@ -397,10 +389,10 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
                 onPress={() => mode === 'begruendet' ? setScreen('questions') : setScreen('mode_selection')}
                 hitSlop={HIT_SLOP_LG}
               >
-                <Text style={{ fontSize: 15, color: C.primary }}>← Zurück</Text>
+                <Text style={{ fontSize: 15, color: C.primary }}>{T('reply.modal.back')}</Text>
               </TouchableOpacity>
               <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: C.text }}>
-                {MODES.find(m => m.id === mode)?.label ?? 'Entwurf'}
+                {mode ? T(MODE_LABEL_KEY[mode]) : T('reply.createDraft')}
               </Text>
             </View>
 
@@ -422,7 +414,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
               )}
             </View>
 
-            <Disclaimer C={C} />
+            <Disclaimer C={C} disclaimer={T('reply.disclaimer')} />
 
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
               <TextInput
@@ -441,14 +433,14 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
                 style={[st.secondaryBtn, { borderColor: C.primary, backgroundColor: C.primaryLight, flex: 1 }]}
               >
                 <Icon name="clipboard-text" size={16} color={C.primaryDark} />
-                <Text style={{ fontSize: 14, fontWeight: '700', color: C.primaryDark }}>Kopieren</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: C.primaryDark }}>{T('reply.copy')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => void handleSavePdf()}
                 style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgInput, flex: 1 }]}
               >
                 <Icon name="file-pdf" size={16} color={C.text} />
-                <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Als PDF speichern</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('reply.savePdf')}</Text>
               </TouchableOpacity>
             </View>
             <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
@@ -457,7 +449,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
                 style={[st.primaryBtn, { backgroundColor: C.primary }]}
               >
                 <Icon name="share-network" size={16} color="#fff" />
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>Teilen</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>{T('reply.share')}</Text>
               </TouchableOpacity>
             </View>
           </>

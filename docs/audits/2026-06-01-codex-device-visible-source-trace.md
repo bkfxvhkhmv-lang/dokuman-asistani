@@ -386,7 +386,7 @@ Feature areas:
     - compact card insight summary
     - accessibility label type identity
   - Result: Home/Search/Dokumente cards now benefit from the same weak-type refinement chain as Detail without mutating stored documents.
-- 2026-06-02 — Phase 1B review noise reduction applied in commit `pending-phase-1b`
+- 2026-06-02 — Phase 1B review noise reduction applied in commit `772301de0`
   - `/Users/bayramgul/bp_canavar_v6_refactor/src/utils/documentGuards.ts` now separates low-confidence from actionable review reasons.
   - Generic/weak type alone no longer creates `needsManualReview()`.
   - Payment/deadline review checks now use an effective review type that can refine weak OCR types from text evidence without downgrading strong raw types like `Bußgeld` or `Kündigung`.

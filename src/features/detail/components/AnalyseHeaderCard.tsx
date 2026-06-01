@@ -31,12 +31,6 @@ function statusColors(colorKey: string, C: any) {
   return { bg: C.bgInput, text: C.textSecondary };
 }
 
-function confidenceLabel(conf: number): string {
-  if (conf >= 75) return 'KI-geprüft';
-  if (conf >= 55) return 'Angaben prüfen';
-  return 'Einige Angaben prüfen';
-}
-
 function confidenceColor(conf: number, C: any): string {
   if (conf >= 75) return C.success;
   return C.warning;
@@ -81,13 +75,13 @@ export default function AnalyseHeaderCard({ dok }: Props) {
           <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
         </View>
         {status !== 'needs_review' && conf != null && (reviewLabel || conf >= 75) && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <AiSparkle />
-            <Text style={{ fontSize: 10, fontWeight: '600', color: confidenceColor(conf, C) }}>
-              {reviewLabel ?? confidenceLabel(conf)}
-            </Text>
-          </View>
-        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <AiSparkle />
+          <Text style={{ fontSize: 10, fontWeight: '600', color: confidenceColor(conf, C) }}>
+              {reviewLabel ?? 'KI-geprüft'}
+          </Text>
+        </View>
+      )}
       </View>
 
       {/* ── Typ · Absender ───────────────────────────────────────────────── */}

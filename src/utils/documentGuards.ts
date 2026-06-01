@@ -1,4 +1,5 @@
 import type { AmountSemantics } from '@/types/normalizedDocument';
+import { normalizeAndRefineTyp } from '@/product/canonicalDocTypes';
 export type { AmountSemantics } from '@/types/normalizedDocument';
 
 /**
@@ -129,9 +130,11 @@ function matchesType(dok: { typ?: string | null }, pattern: RegExp): boolean {
 }
 
 const PAYMENT_LIKE_TYPE_RE =
-  /rechnung|mahnung|bußgeld|bussgeld|gebührenbescheid|gebuehrenbescheid|zahlungsaufforderung|beitragsrechnung|beitragsbescheid/;
+  /rechnung|mahnung|bußgeld|bussgeld|gebührenbescheid|gebuehrenbescheid|zahlungsaufforderung|beitragsrechnung|beitragsbescheid|kaufbeleg/;
 const DEADLINE_SENSITIVE_TYPE_RE =
-  /mahnung|bußgeld|bussgeld|widerspruch|einspruch|anhörung|anhoerung/;
+  /mahnung|bußgeld|bussgeld|widerspruch|einspruch|anhörung|anhoerung|kündigung|kuendigung/;
+const SENDER_SENSITIVE_TYPE_RE =
+  /behörd|behord|amt|gericht|rentenversicherung|finanzamt|bescheid|kündigung|kuendigung/;
 
 function isUnknownLike(value: string | null | undefined): boolean {
   const v = (value ?? '').trim().toLowerCase();
@@ -154,8 +157,22 @@ function hasUsefulIdentity(dok: { typ?: string | null; titel?: string | null; ab
   return hasUsefulType(dok) || hasUsefulTitle(dok) || !isUnknownLike(dok.absender);
 }
 
+function getEffectiveReviewType(dok: {
+  typ?: string | null;
+  rohText?: string | null;
+  titel?: string | null;
+}): string {
+  const baseType = (dok.typ ?? '').trim() || 'Sonstiges';
+  if (!/^(sonstiges|dokument|formular|unbekannt|unknown)$/i.test(baseType)) {
+    return baseType;
+  }
+  const evidence = [dok.rohText ?? '', dok.titel ?? ''].filter(Boolean).join('\n');
+  return normalizeAndRefineTyp(baseType, evidence);
+}
+
 export type ManualReviewReason =
   | 'low_confidence'
+  | 'missing_sender_for_important_doc'
   | 'missing_amount_for_payment_doc'
   | 'missing_deadline_for_urgent_doc'
   | 'empty_identity_and_no_useful_fields';
@@ -166,12 +183,16 @@ export function getReviewIssues(dok: {
   absender?: string | null;
   betrag?: number | null;
   frist?: string | null;
+  rohText?: string | null;
 }): Array<'sender' | 'amount' | 'deadline'> {
   const issues: Array<'sender' | 'amount' | 'deadline'> = [];
-  const invoiceLike = isPaymentLikeDocument(dok);
-  const deadlineSensitive = isDeadlineSensitiveDocument(dok);
+  const effectiveType = getEffectiveReviewType(dok);
+  const reviewDok = { ...dok, typ: effectiveType };
+  const invoiceLike = isPaymentLikeDocument(reviewDok);
+  const deadlineSensitive = isDeadlineSensitiveDocument(reviewDok);
+  const senderSensitive = SENDER_SENSITIVE_TYPE_RE.test(effectiveType.toLowerCase());
 
-  if (!dok.absender && !hasUsefulIdentity(dok)) issues.push('sender');
+  if (isUnknownLike(dok.absender) && (!hasUsefulIdentity(reviewDok) || senderSensitive)) issues.push('sender');
   if (invoiceLike && dok.betrag == null) issues.push('amount');
   if (deadlineSensitive && !dok.frist) issues.push('deadline');
 
@@ -187,6 +208,7 @@ export function getManualReviewReasons(dok: {
   frist?: string | null;
   confidence?: number | null;
   erledigt?: boolean;
+  rohText?: string | null;
 }): ManualReviewReason[] {
   if (dok.erledigt) return [];
 
@@ -195,6 +217,7 @@ export function getManualReviewReasons(dok: {
   if (confidence < 15) reasons.push('low_confidence');
 
   const issues = getReviewIssues(dok);
+  if (issues.includes('sender')) reasons.push('missing_sender_for_important_doc');
   if (issues.includes('amount')) reasons.push('missing_amount_for_payment_doc');
   if (issues.includes('deadline')) reasons.push('missing_deadline_for_urgent_doc');
 
@@ -205,6 +228,21 @@ export function getManualReviewReasons(dok: {
   return reasons;
 }
 
+export function getActionableReviewReasons(dok: {
+  typ?: string | null;
+  titel?: string | null;
+  absender?: string | null;
+  betrag?: number | null;
+  frist?: string | null;
+  confidence?: number | null;
+  erledigt?: boolean;
+  rohText?: string | null;
+}): Exclude<ManualReviewReason, 'low_confidence'>[] {
+  return getManualReviewReasons(dok).filter(
+    (reason): reason is Exclude<ManualReviewReason, 'low_confidence'> => reason !== 'low_confidence',
+  );
+}
+
 export function needsManualReview(dok: {
   typ?: string | null;
   titel?: string | null;
@@ -213,8 +251,9 @@ export function needsManualReview(dok: {
   frist?: string | null;
   confidence?: number | null;
   erledigt?: boolean;
+  rohText?: string | null;
 }): boolean {
-  return getManualReviewReasons(dok).length > 0;
+  return getActionableReviewReasons(dok).length > 0;
 }
 
 export function getReviewLabel(dok: {
@@ -225,6 +264,7 @@ export function getReviewLabel(dok: {
   frist?: string | null;
   confidence?: number | null;
   erledigt?: boolean;
+  rohText?: string | null;
 }): string | null {
   if (!needsManualReview(dok)) return null;
   const issues = getReviewIssues(dok);

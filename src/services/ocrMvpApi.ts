@@ -182,6 +182,26 @@ export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
   return parseJsonResponse<OcrMvpJobStatus>(res, 'OCR Ergebnisfehler');
 }
 
+// POST /ai/label → Claude Haiku document classification from raw OCR text
+export interface AiLabelRequest {
+  rohText: string;
+  currentTitle?: string | null;
+  currentType?: string | null;
+  currentSender?: string | null;
+}
+
+export async function labelDocumentViaOcrMvp(req: AiLabelRequest): Promise<unknown> {
+  const res = await fetch(`${OCR_MVP_BASE}/ai/label`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(req),
+  });
+  if (!res.ok) {
+    throw new Error(`/ai/label ${res.status}`);
+  }
+  return res.json();
+}
+
 // GET /documents/{job_id}/download → local file URI
 export async function downloadOcrResult(
   jobId: string,

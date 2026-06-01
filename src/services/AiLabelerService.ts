@@ -16,7 +16,7 @@
 import type { Dokument } from '@/store/types';
 import { isWeakSender } from '@/utils/senderNormalization';
 import { parseAiLabelResponse, type AiLabelResponse } from '@/utils/aiLabelSchema';
-import { chatWithDocument } from '@/services/v4Api';
+import { labelDocumentViaOcrMvp } from '@/services/ocrMvpApi';
 
 // ── Trigger guard ─────────────────────────────────────────────────────────────
 
@@ -134,30 +134,28 @@ export interface AiLabelerResult {
  *  - Deciding whether to auto-apply (usable) or show a suggestion (not usable)
  */
 export async function labelDocument(dok: {
-  id: string;     // local dok.id — same as used by BelgeChatModal
+  id: string;
   rohText: string;
   titel: string;
   typ: string;
   absender: string;
 }): Promise<AiLabelerResult | null> {
-  const excerpt = buildLabelExcerpt(dok.rohText);
-  if (!excerpt) return null;
-
-  const prompt = buildLabelPrompt(
-    excerpt,
-    dok.titel || 'Unbekanntes Dokument',
-    dok.typ   || 'Unbekannt',
-    dok.absender || 'Unbekannt',
-  );
+  if (!dok.rohText?.trim()) return null;
 
   let raw: unknown;
   try {
-    raw = await chatWithDocument(dok.id, [{ role: 'user', content: prompt }]);
+    raw = await labelDocumentViaOcrMvp({
+      rohText:       dok.rohText,
+      currentTitle:  dok.titel   || null,
+      currentType:   dok.typ     || null,
+      currentSender: dok.absender || null,
+    });
   } catch {
     return null;
   }
 
-  const replyText = (raw as { reply?: string })?.reply ?? '';
+  // Backend returns validated JSON directly — wrap as string for parseAiLabelResponse
+  const replyText = typeof raw === 'string' ? raw : JSON.stringify(raw);
   const response = parseAiLabelResponse(replyText);
   if (!response) return null;
 

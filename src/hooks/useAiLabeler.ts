@@ -29,10 +29,10 @@ export function useAiLabeler(dok: Dokument) {
     setSuggestion(null);
     try {
       const result = await labelDocument({
-        id: dok.id,       // same pattern as BelgeChatModal — local id, not v4DocId
-        rohText: dok.rohText,
-        titel: dok.titel,
-        typ: dok.typ,
+        id:       dok.id,
+        rohText:  dok.rohText,
+        titel:    dok.titel,
+        typ:      dok.typ,
         absender: dok.absender,
       });
       if (!result) {

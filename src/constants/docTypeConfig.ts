@@ -113,8 +113,16 @@ export function getDocTypeConfig(typ: string | null | undefined): DocTypeConfig 
   return CONFIG[canonical as CanonicalDocumentType] ?? FALLBACK;
 }
 
-/** Singular, user-facing label for single-document detail surfaces. */
-export function getDetailTypeLabel(typ: string | null | undefined): string {
+/**
+ * Singular, user-facing label for single-document detail surfaces.
+ * When rohText/titel are provided, generic "Formular" is refined to a
+ * more specific label if medical referral terms are detected.
+ */
+export function getDetailTypeLabel(
+  typ: string | null | undefined,
+  rohText?: string | null,
+  titel?: string | null,
+): string {
   const raw = (typ ?? '').trim();
   const lower = raw.toLowerCase();
 
@@ -124,7 +132,14 @@ export function getDetailTypeLabel(typ: string | null | undefined): string {
   if (/rechnung|rechnungen|invoice/.test(lower)) return 'Rechnung';
   if (/versicherung/.test(lower)) return 'Versicherungsdokument';
   if (/vertrag|verträge/.test(lower)) return 'Vertrag';
-  if (/formular/.test(lower)) return 'Formular';
+  if (/formular/.test(lower)) {
+    if (rohText) {
+      const haystack = `${rohText} ${titel ?? ''}`;
+      if (/\bmrt\b/i.test(haystack) && /[üu]berweisung/i.test(haystack)) return 'MRT-Überweisung';
+      if (/[üu]berweisungsschein|[üu]berweisung/i.test(haystack)) return 'Überweisung';
+    }
+    return 'Formular';
+  }
   if (/termin/.test(lower)) return 'Terminbestätigung';
   if (/behörde|behorden|amt|bescheid/.test(lower)) return 'Behördenbrief';
 

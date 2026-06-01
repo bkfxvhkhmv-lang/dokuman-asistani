@@ -130,3 +130,32 @@ describe('normalizeSender — full orchestration', () => {
     expect(normalizeSender('Unbekannt', rohText)).toBe('');
   });
 });
+
+describe('BWW Energie sender normalization', () => {
+  it('BWW Energie GmbH => BWW Energie (canonical)', () => {
+    expect(normalizeCanonical('BWW Energie GmbH')).toBe('BWW Energie');
+  });
+
+  it('BWW Energie => BWW Energie', () => {
+    expect(normalizeCanonical('BWW Energie')).toBe('BWW Energie');
+  });
+
+  it('Unbekannt + rohText contains BWW Energie GmbH => BWW Energie', () => {
+    const rohText = 'BWW Energie GmbH\nRechnungsnummer: 123\nGesamtbetrag: 809,68 EUR';
+    expect(normalizeSender('Unbekannt', rohText)).toBe('BWW Energie');
+  });
+
+  it('weak old sender + rohText contains BWW Energie => BWW Energie', () => {
+    const rohText = 'BWW Energie\nAbschlag Gas und Strom\nKundennummer: 456';
+    expect(normalizeSender('', rohText)).toBe('BWW Energie');
+  });
+
+  it('bare "BWW" alone without Energie context => no match (conservative)', () => {
+    expect(normalizeCanonical('BWW')).toBeNull();
+  });
+
+  it('strong unrelated sender is not overwritten by bare BWW in rohText', () => {
+    const rohText = 'BWW Vermittlung GmbH\nAndere Firma';
+    expect(normalizeSender('Commerzbank AG', rohText)).toBe('Commerzbank');
+  });
+});

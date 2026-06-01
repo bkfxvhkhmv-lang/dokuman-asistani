@@ -51,6 +51,7 @@ export const INSTITUTION_DB: {
   // Energie
   { pattern: /eon\b|e\.on/i,            name: 'E.ON',                  typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },
   { pattern: /rwe\b/i,                  name: 'RWE',                   typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },
+  { pattern: /\bbww\s+energie\b/i,      name: 'BWW Energie',           typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },
   { pattern: /stadtwerke/i,             name: 'Stadtwerke',            typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },
   { pattern: /enBW/i,                   name: 'EnBW',                  typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },
   { pattern: /vattenfall/i,             name: 'Vattenfall',            typ: 'Rechnung',         subtyp: 'Strom/Gas',          icon: '⚡', land: 'DE' },

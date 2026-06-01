@@ -43,6 +43,8 @@ const CANONICAL_RULES: { pattern: RegExp; name: string | null }[] = [
   { pattern: /\brwe\b/i,                                   name: 'RWE' },
   { pattern: /enbw/i,                                      name: 'EnBW' },
   { pattern: /vattenfall/i,                                name: 'Vattenfall' },
+  // BWW Energie — matched only when "Energie" or clear energy context is present (conservative)
+  { pattern: /\bbww\s+energie\b/i,                         name: 'BWW Energie' },
   // Health insurance
   { pattern: /techniker\s+krankenkasse/i,                  name: 'Techniker Krankenkasse' },
   { pattern: /barmer/i,                                    name: 'Barmer' },

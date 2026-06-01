@@ -56,7 +56,7 @@ export default function HeroCard({
   };
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.typ);
+  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>

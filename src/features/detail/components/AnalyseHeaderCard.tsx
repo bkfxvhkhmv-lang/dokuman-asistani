@@ -51,7 +51,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
 
   const conf     = dok.confidence;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.typ);
+  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
   const tage     = dok.frist ? getTageVerbleibend(dok.frist) : null;
   const fristStr = dok.frist ? formatFrist(dok.frist) : null;
   const fristCol = tage === null ? C.text

@@ -38,7 +38,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
 
   if (!dok) return null;
   const reviewLabel = getReviewLabel(dok);
-  const typeLabel = getDetailTypeLabel(dok.typ);
+  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
 
   return (
     <Animated.View style={[

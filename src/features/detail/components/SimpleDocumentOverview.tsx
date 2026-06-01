@@ -53,7 +53,7 @@ export default function SimpleDocumentOverview({
     !dok.fristImKalender;
 
   const conf = dok.confidence;
-  const typeLabel = getDetailTypeLabel(dok.typ);
+  const typeLabel = getDetailTypeLabel(dok.typ, dok.rohText, dok.titel);
   const vertrauen = conf == null
     ? 'Automatisch erkannt'
     : getReviewLabel(dok) ?? (conf >= 75 ? 'KI-geprüft' : 'Automatisch erkannt');

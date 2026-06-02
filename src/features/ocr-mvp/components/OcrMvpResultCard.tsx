@@ -150,41 +150,44 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         </TouchableOpacity>
       )}
 
-      {/* Action summary paneli oder fallback — Excel export sekundär */}
-      {hasSummary ? (
-        <OcrMvpActionSummary
-          summary={result.action_summary!}
-          onPreview={handlePreview}
-          onDownload={handleDownload}
-          isPreviewing={previewing}
-          isDownloading={downloading}
-          actionsSecondary
-        />
-      ) : (
-        <>
-          <View style={st.infoBlock}>
-            <Row label={T('field.type')} value={docLabel} colors={Colors} />
-          </View>
+      {/* Action summary paneli oder fallback — nach dem Speichern visuell sekundär */}
+      <View style={isSavedToDocuments ? st.secondaryZone : undefined}>
+        {isSavedToDocuments && <View style={st.secondaryDivider} />}
+        {hasSummary ? (
+          <OcrMvpActionSummary
+            summary={result.action_summary!}
+            onPreview={handlePreview}
+            onDownload={handleDownload}
+            isPreviewing={previewing}
+            isDownloading={downloading}
+            actionsSecondary
+          />
+        ) : (
+          <>
+            <View style={st.infoBlock}>
+              <Row label={T('field.type')} value={docLabel} colors={Colors} />
+            </View>
 
-          <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
-            {previewing
-              ? <ActivityIndicator color={Colors.primary} />
-              : <>
-                  <Icon name="eye-outline" size={20} color={Colors.primary} />
-                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>{T('ocr.result.show_result')}</Text>
-                </>}
-          </TouchableOpacity>
+            <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
+              {previewing
+                ? <ActivityIndicator color={Colors.primary} />
+                : <>
+                    <Icon name="eye-outline" size={20} color={Colors.primary} />
+                    <Text style={[st.downloadLabel, { color: Colors.primary }]}>{T('ocr.result.show_result')}</Text>
+                  </>}
+            </TouchableOpacity>
 
-          <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
-            {downloading
-              ? <ActivityIndicator color={Colors.primary} />
-              : <>
-                  <Icon name="download-outline" size={20} color={Colors.primary} />
-                  <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
-                </>}
-          </TouchableOpacity>
-        </>
-      )}
+            <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
+              {downloading
+                ? <ActivityIndicator color={Colors.primary} />
+                : <>
+                    <Icon name="download-outline" size={20} color={Colors.primary} />
+                    <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
+                  </>}
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
 
       {/* Risk uyarısı — her zaman göster (summary olsa da olmasa da) */}
       {isHighRisk && (
@@ -206,8 +209,14 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
 
 
-      <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
-        <Text style={st.resetLabel}>{T('ocr.result.new_analysis')}</Text>
+      <TouchableOpacity
+        style={[st.resetBtn, isSavedToDocuments && st.resetBtnSaved]}
+        onPress={onReset}
+        activeOpacity={0.75}
+      >
+        <Text style={[st.resetLabel, isSavedToDocuments && st.resetLabelSaved]}>
+          {T('ocr.result.new_analysis')}
+        </Text>
       </TouchableOpacity>
 
       {/* Önizleme / Export modal */}
@@ -396,8 +405,15 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     paddingVertical: 8,
   },
   savedBadgeText: { color: C.success, fontSize: 13, fontWeight: '600' },
-  resetBtn:      { alignItems: 'center', paddingVertical: 12 },
-  resetLabel:    { color: C.textSecondary, fontSize: 14 },
+  resetBtn:        { alignItems: 'center', paddingVertical: 12 },
+  resetBtnSaved:   { opacity: 0.45 },
+  resetLabel:      { color: C.textSecondary, fontSize: 14 },
+  resetLabelSaved: { fontSize: 12 },
+  secondaryZone:   { opacity: 0.7 },
+  secondaryDivider: {
+    height: StyleSheet.hairlineWidth, backgroundColor: C.border,
+    marginHorizontal: 8, marginBottom: 4,
+  },
   modalRoot:     { flex: 1, backgroundColor: C.bg },
   modalHeader:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

@@ -29,6 +29,7 @@ import { DETAIL_SCREEN_TABS, DETAIL_SIMPLE_SCREEN_TABS } from '@/features/detail
 import { detailScreenStyles as st } from '@/features/detail/detail-screen/detailScreen.styles';
 import { deriveNaechsterSchrittZeile } from '@/utils/detailNextStep';
 import { safeBack } from '@/navigation/safeBack';
+import { setTabBarHidden } from '@/navigation/tabBarVisibility';
 import { useStore } from '@/store';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
@@ -48,7 +49,9 @@ export default function Detailbildschirm() {
 
   useFocusEffect(
     useCallback(() => {
+      setTabBarHidden(true);
       return () => {
+        setTabBarHidden(false);
         void Speech.stop();
       };
     }, []),

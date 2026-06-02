@@ -4,6 +4,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, StyleSheet, Switch, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { safeBack } from '@/navigation/safeBack';
 import Constants from 'expo-constants';
@@ -58,6 +59,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const prefs = usePersistedPrefs();
   const [experteEin, setExperteEin] = useState(false);
   const { bottom: safeBottom } = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const datenschutz = state.einstellungen.datenschutzModus;
 
@@ -135,7 +137,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
       )}
 
       <ScrollView
-        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: safeBottom + 88 }}
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: tabBarHeight + safeBottom + 32 }}
         showsVerticalScrollIndicator={false}
       >
         <Text
@@ -375,8 +377,8 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           </>
         )}
 
-        <View style={{ alignItems: 'center', paddingTop: 16 }}>
-          <Text style={{ fontSize: fs(11), color: C.textTertiary }}>
+        <View style={{ alignItems: 'center', paddingTop: 24, paddingBottom: 8 }}>
+          <Text style={{ fontSize: fs(11), color: C.textTertiary, opacity: 0.6 }}>
             {T('settings.version', { v: appVersion })}
           </Text>
         </View>

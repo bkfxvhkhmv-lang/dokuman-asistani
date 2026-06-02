@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: 44176b3a4
 - Task type: fix / validation
 - Scope: quiet hierarchy polish for existing home/detail card surfaces
 - Status: PASS
@@ -63,7 +63,7 @@
 - `git status --short`: clean after commit
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: 44176b3a4
 - commit message: `style(ui): refine visual hierarchy and reduce visual noise`
 
 ## 8. Follow-ups

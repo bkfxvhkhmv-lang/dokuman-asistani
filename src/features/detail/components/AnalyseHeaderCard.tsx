@@ -28,14 +28,14 @@ interface Props {
 
 function statusColors(colorKey: string, C: any) {
   if (colorKey === 'danger')  return { bg: C.dangerLight,  text: C.danger };
-  if (colorKey === 'warning') return { bg: C.warningLight, text: C.warning };
+  if (colorKey === 'warning') return { bg: C.warningLight, text: C.warningText };
   if (colorKey === 'success') return { bg: C.successLight, text: C.success };
   return { bg: C.bgInput, text: C.textSecondary };
 }
 
 function confidenceColor(conf: number, C: any): string {
   if (conf >= 75) return C.success;
-  return C.warning;
+  return C.warningText;
 }
 
 export default function AnalyseHeaderCard({ dok }: Props) {
@@ -54,7 +54,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
   const fristCol = tage === null ? C.text
     : tage < 0   ? C.danger
     : tage <= 3  ? C.danger
-    : tage <= 7  ? C.warning
+    : tage <= 7  ? C.warningText
     : C.text;
   const tageStr  = tage === null ? null
     : tage < 0   ? `${Math.abs(tage)} Tage überfällig`

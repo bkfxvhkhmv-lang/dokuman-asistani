@@ -52,8 +52,8 @@ export const tabStyles = StyleSheet.create({
     height:        AURA_CORE,
     borderRadius:  AURA_CORE / 2,
     shadowOffset:  { width: 0, height: 0 },
-    shadowOpacity: 0.65,
-    shadowRadius:  12,
+    shadowOpacity: 0.35,
+    shadowRadius:  7,
   },
 
   /* ── Tabs ── */

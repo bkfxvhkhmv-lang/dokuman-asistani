@@ -55,7 +55,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
     kritisch: C.dangerText, hoch: C.warningText, mittel: C.warningText, niedrig: C.successText, kein: C.primaryDark,
   };
   const TREND_COLOR: Record<RiskTrend, string> = {
-    worse: C.danger, stable: C.warning, better: C.success,
+    worse: C.danger, stable: C.textTertiary, better: C.success,
   };
 
   const bg = LEVEL_BG[displayLevel];

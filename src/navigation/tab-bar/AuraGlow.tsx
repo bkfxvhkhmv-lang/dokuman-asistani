@@ -27,7 +27,7 @@ export default function AuraGlow({ x, primaryColor }: Props) {
       {/* Outer soft halo */}
       <Animated.View
         pointerEvents="none"
-        style={[st.auraHalo, { backgroundColor: `${primaryColor}16` }, haloStyle]}
+        style={[st.auraHalo, { backgroundColor: `${primaryColor}0D` }, haloStyle]}
       />
       {/* Inner bright core — iOS'da shadow, Android'de elevation kullanir */}
       <Animated.View
@@ -35,9 +35,9 @@ export default function AuraGlow({ x, primaryColor }: Props) {
         style={[
           st.auraCore,
           {
-            backgroundColor: `${primaryColor}26`,
+            backgroundColor: `${primaryColor}1A`,
             shadowColor:     primaryColor,
-            elevation:       6,
+            elevation:       3,
           },
           coreStyle,
         ]}

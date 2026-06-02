@@ -44,7 +44,7 @@ export default function HomeBudgetBarView({ budget, docs, onPress: _onPress }: H
 
   const accentColor = topTarget
     ? TARGET_STATUS_COLOR[topTarget.status]
-    : (budget.unpaidCount > 0 ? '#EE6055' : '#1D9E75');
+    : (budget.unpaidCount > 0 ? Colors.danger : Colors.success);
 
   const { sparkPoints, areaPath, lastX, lastY } = useMemo(
     () => computeSparkGeometry(budget.monthlyBuckets),
@@ -100,8 +100,8 @@ export default function HomeBudgetBarView({ budget, docs, onPress: _onPress }: H
                 <View style={st.chips}>
                   <BudgetChip label={`${formatBetrag(budget.thisMonthTotal) ?? '€0'} / Monat`} color="#4361EE" />
                   {budget.unpaidCount > 0
-                    ? <BudgetChip label={`${budget.unpaidCount} unbezahlt`} color="#EE6055" />
-                    : <BudgetChip label="Alles bezahlt ✓" color="#1D9E75" />}
+                    ? <BudgetChip label={`${budget.unpaidCount} unbezahlt`} color={Colors.danger} />
+                    : <BudgetChip label="Alles bezahlt ✓" color={Colors.success} />}
                   {budget.nextMonthEstimate > 0 && (
                     <BudgetChip
                       label={`~${formatBetrag(budget.nextMonthEstimate) ?? '–'} nächsten Monat`}

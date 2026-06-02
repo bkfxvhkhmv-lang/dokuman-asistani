@@ -49,9 +49,9 @@ export function CriticalGlowLayers({ show, pulseStyle, statusColor }: Props) {
           backgroundColor: `${statusColor}18`,
           shadowColor: statusColor,
           shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.65,
-          shadowRadius: 22,
-          elevation: 12,
+          shadowOpacity: 0.18,
+          shadowRadius: 8,
+          elevation: 4,
         },
         pulseStyle,
       ]}

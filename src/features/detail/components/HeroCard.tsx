@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils';
 import { HIT_SLOP_LG } from '@/theme';
@@ -67,13 +66,6 @@ export default function HeroCard({
         backgroundColor: info.color, padding: S.lg, paddingBottom: S.md,
         transform: parallaxTranslate ? [{ translateY: parallaxTranslate }] : [],
       }}>
-        {/* Shine overlay — Apple Pay card plastiklik efekti */}
-        <LinearGradient
-          colors={['rgba(255,255,255,0.18)', 'transparent', 'rgba(0,0,0,0.06)']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-          pointerEvents="none"
-        />
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
           <View style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
             <Icon name={TYP_ICON[dok.typ] || 'document-text'} size={28} color="rgba(255,255,255,0.9)" />

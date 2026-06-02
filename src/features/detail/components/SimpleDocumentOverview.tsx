@@ -74,27 +74,27 @@ export default function SimpleDocumentOverview({
           gap: S.md,
         }}
       >
-        <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          {T('simple.what_is_this').toUpperCase()}
+        <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.6 }}>
+          {T('simple.what_is_this')}
         </Text>
-        <Text style={{ fontSize: 20, fontWeight: '900', color: C.text }}>{typeLabel}</Text>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: C.text }}>{typeLabel}</Text>
         <Text style={{ fontSize: 13, color: C.textSecondary }} numberOfLines={3}>
           {resolveDocumentTitle(dok)}
         </Text>
 
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
-        <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          {T('simple.what_should_i_do').toUpperCase()}
+        <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.6 }}>
+          {T('simple.what_should_i_do')}
         </Text>
-        <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
           {naechsterSchritt ?? T('simple.nothing_urgent')}
         </Text>
 
         <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
-        <Text style={{ fontSize: 11, fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6 }}>
-          {T('simple.by_when').toUpperCase()}
+        <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.6 }}>
+          {T('simple.by_when')}
         </Text>
         <Text
           style={{
@@ -131,12 +131,12 @@ export default function SimpleDocumentOverview({
               flexGrow: 1,
               minWidth: '46%',
               paddingVertical: 14,
-              borderRadius: R.lg,
+              borderRadius: R.md,
               backgroundColor: C.primary,
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff' }}>Zahlung vorbereiten</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Zahlung vorbereiten</Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.92)', marginTop: 2 }}>
               {formatBetrag(dok.betrag!, dok.waehrung || '€')}
             </Text>
@@ -151,14 +151,14 @@ export default function SimpleDocumentOverview({
               flexGrow: 1,
               minWidth: '46%',
               paddingVertical: 14,
-              borderRadius: R.lg,
+              borderRadius: R.md,
               backgroundColor: C.primaryLight,
               borderWidth: 1,
               borderColor: `${C.primary}66`,
               alignItems: 'center',
             }}
           >
-            <Text style={{ fontSize: 15, fontWeight: '800', color: C.primaryDark }}>Kalender</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: C.primaryDark }}>Kalender</Text>
           </TouchableOpacity>
         ) : null}
 
@@ -170,7 +170,7 @@ export default function SimpleDocumentOverview({
               flexGrow: 1,
               minWidth: '46%',
               paddingVertical: 14,
-              borderRadius: R.lg,
+              borderRadius: R.md,
               backgroundColor: C.bgCard,
               borderWidth: 1,
               borderColor: C.border,

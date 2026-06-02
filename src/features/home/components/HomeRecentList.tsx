@@ -83,7 +83,7 @@ function HomeRecentListInner({ data }: { data: any }) {
   const sectionMap = {
     Aufgaben: {
       title: T('detail.section.tasks'),
-      eyebrow: T('detail.status.action_needed').toUpperCase(),
+      eyebrow: T('detail.status.action_needed'),
       docs: data.aufgaben ?? [],
     },
     Dokumente: {
@@ -94,17 +94,17 @@ function HomeRecentListInner({ data }: { data: any }) {
     },
     Ordner: {
       title: T('empty.title'),
-      eyebrow: T('field.type').toUpperCase(),
+      eyebrow: T('field.type'),
       docs: data.ordnerDocs?.length ? data.ordnerDocs : data.alleDocs ?? [],
     },
     Kalender: {
       title: T('field.deadline'),
-      eyebrow: T('doc.this_week').toUpperCase(),
+      eyebrow: T('doc.this_week'),
       docs: data.kalDocs ?? [],
     },
     Zahlungen: {
       title: T('field.amount'),
-      eyebrow: T('dash.amount').toUpperCase(),
+      eyebrow: T('dash.amount'),
       docs: (data.zahlungsDocs ?? []).slice(2),
     },
   };
@@ -260,7 +260,7 @@ const st = StyleSheet.create({
     fontWeight: '600',
   },
   title: {
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: -0.3,
   },
 });

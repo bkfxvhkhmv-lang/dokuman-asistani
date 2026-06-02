@@ -1,7 +1,7 @@
 ## Metadata
 - Date: 2026-06-03
 - Scope: visible Home/Search/Detail business/category/status label leaks
-- Commit: pending
+- Commit: `d5db65bcd` `fix(i18n): localize remaining document category labels`
 
 ## Before
 - TR locale could still render legacy business/status labels on compact document surfaces:

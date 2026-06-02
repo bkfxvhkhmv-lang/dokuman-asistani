@@ -12,7 +12,7 @@ import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
 import SpringChip from '@/features/search/components/SpringChip';
 import { SCHNELLSUCHE, type ChipTone } from '@/features/search/components/constants';
-import { SEARCH_MISSION_HINT } from '@/product/strategyCopy';
+import { getSearchMissionHint } from '@/product/strategyCopy';
 import { useT } from '@/hooks/useT';
 
 function quickSearchLabelKey(query: string): string {
@@ -53,7 +53,7 @@ export default function SearchHomeView({
           letterSpacing: 0.05,
         }}
       >
-        {SEARCH_MISSION_HINT}
+        {getSearchMissionHint()}
       </Text>
       {/* Schnellsuche chip'leri */}
       <Text

@@ -5,25 +5,30 @@ import { AppCard } from '@/design/components';
 import { getTageVerbleibend } from '@/utils';
 import {
   DASHBOARD_ALL_CLEAR_MARK,
-  DASHBOARD_ALL_CLEAR_TEXT,
-  DASHBOARD_ATTENTION_PRIMARY,
-  DASHBOARD_EYEBROW_ALL_CLEAR,
-  DASHBOARD_EYEBROW_BUSY,
+  dashboardAttentionPrimary,
+  getDashboardAllClearText,
+  getDashboardEyebrowAllClear,
+  getDashboardEyebrowBusy,
 } from '@/product/strategyCopy';
 import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ThemeColors } from '@/ThemeContext';
 import type { SpacingTokens } from '@/theme';
+import { useT } from '@/hooks/useT';
 
 
-function fristTag(fristISO: string | null | undefined, C: ThemeColors) {
+function fristTag(
+  fristISO: string | null | undefined,
+  C: ThemeColors,
+  T: (key: string, vars?: Record<string, string | number>) => string,
+) {
   const t = getTageVerbleibend(fristISO ?? null);
   if (t === null) return null;
-  if (t < 0)   return { text: 'Überfällig!',    color: C.danger };
-  if (t === 0) return { text: 'Heute fällig!',  color: C.danger };
-  if (t === 1) return { text: 'Morgen fällig',  color: C.warning };
-  if (t <= 3)  return { text: `Noch ${t} Tage`, color: C.warning };
-  return { text: `${t} Tage`, color: null };
+  if (t < 0)   return { text: T('doc.overdue'), color: C.danger };
+  if (t === 0) return { text: T('doc.due_today'), color: C.danger };
+  if (t === 1) return { text: T('doc.tomorrow'), color: C.warning };
+  if (t <= 3)  return { text: T('doc.due_days', { n: t }), color: C.warning };
+  return { text: T('doc.in_days', { n: t }), color: null };
 }
 
 function workflowTone(dok: Dokument, colors: ThemeColors) {
@@ -50,31 +55,32 @@ interface HomeDashboardCardsProps {
 export default function HomeDashboardCards({
   colors: C, dashboardStats, spacing: S, topDocs = [], onDocPress, onStatChipPress,
 }: HomeDashboardCardsProps) {
+  const { t: T } = useT();
   const { wichtig = 0, mitDeadline = 0, mahnungen = 0, vertraege = 0, duplikate = 0, fehlend = 0 } = dashboardStats;
   const allClear = wichtig === 0 && mitDeadline === 0;
 
   const chips = [
-    { label: 'Mahnungen', val: mahnungen, icon: 'alert-circle-outline', warn: mahnungen > 0, filter: 'Mahnung' },
-    { label: 'Verträge',  val: vertraege, icon: 'document-text-outline', warn: false,          filter: 'Vertrag' },
-    { label: 'Duplikate', val: duplikate, icon: 'copy-outline',           warn: duplikate > 0, filter: 'duplikate' },
-    { label: 'Unvollst.', val: fehlend,   icon: 'reader-outline',         warn: fehlend > 0,   filter: 'fehlend' },
+    { label: T('dashboard.chip.reminders'), val: mahnungen, icon: 'alert-circle-outline', warn: mahnungen > 0, filter: 'Mahnung' },
+    { label: T('dashboard.chip.contracts'), val: vertraege, icon: 'document-text-outline', warn: false, filter: 'Vertrag' },
+    { label: T('dashboard.chip.duplicates'), val: duplikate, icon: 'copy-outline', warn: duplikate > 0, filter: 'duplikate' },
+    { label: T('dashboard.chip.incomplete'), val: fehlend, icon: 'reader-outline', warn: fehlend > 0, filter: 'fehlend' },
   ];
 
   return (
     <View style={{ paddingHorizontal: S.md, marginBottom: S.md }}>
       {/* Hero card */}
       <AppCard style={[st.heroCard, { backgroundColor: allClear ? C.success : C.primary }]} padding={S.lg} radius={18}>
-        <Text style={st.eyebrow}>{allClear ? DASHBOARD_EYEBROW_ALL_CLEAR : DASHBOARD_EYEBROW_BUSY}</Text>
+        <Text style={st.eyebrow}>{allClear ? getDashboardEyebrowAllClear() : getDashboardEyebrowBusy()}</Text>
         {allClear ? (
           <>
             <Text style={st.heroNumber}>{DASHBOARD_ALL_CLEAR_MARK}</Text>
-            <Text style={st.heroText}>{DASHBOARD_ALL_CLEAR_TEXT}</Text>
+            <Text style={st.heroText}>{getDashboardAllClearText()}</Text>
           </>
         ) : (
           <>
             <Text style={st.heroNumber}>{wichtig}</Text>
             <Text style={st.heroText}>
-              {DASHBOARD_ATTENTION_PRIMARY(wichtig, mitDeadline)}
+              {dashboardAttentionPrimary(wichtig, mitDeadline)}
             </Text>
           </>
         )}
@@ -82,7 +88,7 @@ export default function HomeDashboardCards({
 
       {/* Snippet doc cards */}
       {topDocs.slice(0, 2).map(dok => {
-        const frist    = dok.frist ? fristTag(dok.frist, C) : null;
+        const frist    = dok.frist ? fristTag(dok.frist, C, T) : null;
         const workflow = workflowTone(dok, C);
         return (
           <TouchableOpacity key={dok.id} onPress={() => onDocPress?.(dok)}

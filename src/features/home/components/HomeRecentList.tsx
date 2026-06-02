@@ -15,8 +15,8 @@ import { useStaggerFadeIn } from '@/hooks/useStaggerFadeIn';
 import EmptyState, { type EmptyVariant } from '@/components/EmptyState';
 import { buildDocStacks } from '@/services/CardStackService';
 import {
-  DOCUMENTS_SECTION_EYEBROW,
-  DOCUMENTS_SECTION_SUBLINE,
+  getDocumentsSectionEyebrow,
+  getDocumentsSectionSubline,
 } from '@/product/strategyCopy';
 import { useT } from '@/hooks/useT';
 
@@ -88,8 +88,8 @@ function HomeRecentListInner({ data }: { data: any }) {
     },
     Dokumente: {
       title: T('home.recent'),
-      eyebrow: DOCUMENTS_SECTION_EYEBROW,
-      subtitle: DOCUMENTS_SECTION_SUBLINE,
+      eyebrow: getDocumentsSectionEyebrow(),
+      subtitle: getDocumentsSectionSubline(),
       docs: data.alleDocs ?? [],
     },
     Ordner: {
@@ -143,7 +143,7 @@ function HomeRecentListInner({ data }: { data: any }) {
         action={
           showScanCta
             ? {
-                label: 'Dokument scannen',
+                label: T('home.triage.scan_new'),
                 onPress: () => router.push('/(tabs)/Kamera'),
               }
             : undefined
@@ -161,7 +161,7 @@ function HomeRecentListInner({ data }: { data: any }) {
             onPress={data.secilenModus ? data.secimiIptal : data.secimiBaslat}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel={data.secilenModus ? 'Abbrechen' : 'Auswählen'}
+            accessibilityLabel={data.secilenModus ? T('search.cancel') : T('search.select')}
             accessibilityState={{ selected: data.secilenModus }}
           >
             {data.secilenModus ? (
@@ -172,12 +172,12 @@ function HomeRecentListInner({ data }: { data: any }) {
                 paddingVertical: 4,
               }}>
                 <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>
-                  Abbrechen
+                  {T('search.cancel')}
                 </Text>
               </View>
             ) : (
               <Text style={{ color: data.Colors.primary, fontSize: 14, fontWeight: '600' }}>
-                Auswählen
+                {T('search.select')}
               </Text>
             )}
           </TouchableOpacity>

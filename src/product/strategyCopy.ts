@@ -1,49 +1,73 @@
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
+
 /**
  * Kuzey Kutbu metinleri (DE UI) — ürün özü:
  * ...
  */
 
 /** Ölçüm / iletişim: müşteriye verilen net vaat (Retention + Onboarding). */
-export const TEAM_CUSTOMER_PROMISE_DE =
-  'Der Nutzer lädt ein Dokument hoch und weiß in Sekunden, was als Nächstes zu tun ist.';
+export function getTeamCustomerPromise(): string {
+  return t(getLangSync(), 'strategy.customer_promise');
+}
 
-export const PRODUCT_TAGLINE_SHORT =
-  'Dokumente sicher sortieren — suchen, fristig handeln, exportieren.';
+export function getProductTaglineShort(): string {
+  return t(getLangSync(), 'strategy.tagline');
+}
 
 export function homeHeaderSubtitle(hasUnread: boolean, unreadCount: number): string {
   if (hasUnread && unreadCount > 0) {
-    const pl = unreadCount > 1;
-    return `${unreadCount} neue${pl ? '' : 's'} Dokument${pl ? 'e' : ''}`;
+    return t(getLangSync(), 'strategy.new_docs', { n: unreadCount });
   }
-  return PRODUCT_TAGLINE_SHORT;
+  return getProductTaglineShort();
 }
 
-export const HOME_ALL_GOOD_TITLE = 'Heute alles im Griff.';
-export const HOME_ALL_GOOD_BODY =
-  'Keine kritischen Fristen — deine Dokumente sind durchsuchbar und exportbereit.';
+export function getHomeAllGoodTitle(): string {
+  return t(getLangSync(), 'strategy.all_good_title');
+}
 
-export const HOME_QUICK_FILTER_META =
-  'Dokumente · Schnellfilter (offen / überfällig / alle)';
+export function getHomeAllGoodBody(): string {
+  return t(getLangSync(), 'strategy.all_good_body');
+}
 
-export const SEARCH_MISSION_HINT =
-  'Suche nach Absender, Betrag, Datum, Dokumenttyp oder Stichwort — dieselben Felder nutzt du später beim Export.';
+export function getHomeQuickFilterMeta(): string {
+  return t(getLangSync(), 'strategy.quick_filter_meta');
+}
 
-export const DOCUMENTS_SECTION_EYEBROW = 'DOKUMENTE';
-export const DOCUMENTS_SECTION_TITLE = 'Zuletzt erfasst';
+export function getSearchMissionHint(): string {
+  return t(getLangSync(), 'strategy.search_hint');
+}
 
-export const DOCUMENTS_SECTION_SUBLINE =
-  'Nach Typ sortiert — im Detail: PDF & Pakete für Buchhaltung';
+export function getDocumentsSectionEyebrow(): string {
+  return t(getLangSync(), 'strategy.documents_eyebrow');
+}
+
+export function getDocumentsSectionTitle(): string {
+  return t(getLangSync(), 'home.recent');
+}
+
+export function getDocumentsSectionSubline(): string {
+  return t(getLangSync(), 'strategy.documents_subline');
+}
 
 /** HomeDashboardCards (QuickActions) — hero */
-export const DASHBOARD_EYEBROW_ALL_CLEAR = 'ÜBERSICHT';
-export const DASHBOARD_EYEBROW_BUSY = 'DOKUMENTE · FRISTEN';
+export function getDashboardEyebrowAllClear(): string {
+  return t(getLangSync(), 'strategy.dashboard_clear');
+}
+
+export function getDashboardEyebrowBusy(): string {
+  return t(getLangSync(), 'strategy.dashboard_busy');
+}
+
 export const DASHBOARD_ALL_CLEAR_MARK = '✓';
-export const DASHBOARD_ALL_CLEAR_TEXT =
-  'Klassiert — nichts Überfälliges. Export für Steuer & Buchhaltung jederzeit im Dokument.';
-export const DASHBOARD_ATTENTION_PRIMARY = (wichtig: number, mitDeadline: number) => {
-  const head =
-    wichtig === 1
-      ? 'Ein Dokument erfordert Aufmerksamkeit'
-      : `${wichtig} Dokumente erfordern Aufmerksamkeit`;
-  return `${head}${mitDeadline > 0 ? ` · ${mitDeadline} mit Frist` : ''}.`;
-};
+
+export function getDashboardAllClearText(): string {
+  return t(getLangSync(), 'strategy.dashboard_clear_text');
+}
+
+export function dashboardAttentionPrimary(wichtig: number, mitDeadline: number): string {
+  const deadlines = mitDeadline > 0
+    ? t(getLangSync(), 'strategy.deadline_suffix', { n: mitDeadline })
+    : '';
+  return t(getLangSync(), 'strategy.attention', { n: wichtig, deadlines });
+}

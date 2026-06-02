@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { RiskEngineResult, RiskLevel, RiskTrend } from '@/services/SmartRiskEngineService';
+import { useT } from '@/hooks/useT';
 
 interface SmartRiskPanelProps {
   result: RiskEngineResult;
@@ -15,6 +16,7 @@ const TREND_ICON: Record<RiskTrend, string> = {
 };
 
 function ScoreGauge({ score, color, bg, textColor }: { score: number; color: string; bg: string; textColor: string }) {
+  const { t: T } = useT();
   return (
     <View style={{ alignItems: 'center' }}>
       <View style={{ width: 64, height: 64, borderRadius: 32,
@@ -24,7 +26,7 @@ function ScoreGauge({ score, color, bg, textColor }: { score: number; color: str
         <Text style={{ fontSize: 18, fontWeight: '900', color }}>{score}</Text>
       </View>
       <Text style={{ fontSize: 9, fontWeight: '700', color: textColor, marginTop: 4, textAlign: 'center' }}>
-        RISIKO
+        {T('risk.title')}
       </Text>
     </View>
   );
@@ -32,13 +34,14 @@ function ScoreGauge({ score, color, bg, textColor }: { score: number; color: str
 
 export default function SmartRiskPanel({ result, onAktion, compact = false }: SmartRiskPanelProps) {
   const { Colors: C, R } = useTheme();
+  const { t: T } = useT();
   const [expanded, setExpanded] = useState(false);
   const { level, isDataInsufficient } = result;
 
   const displayLevel: typeof level = isDataInsufficient ? 'kein' : level;
-  const displayLabel = isDataInsufficient ? 'Risikobewertung unvollständig' : result.levelLabel;
+  const displayLabel = isDataInsufficient ? T('risk.incomplete.title') : result.levelLabel;
   const displayErklaerung = isDataInsufficient
-    ? 'Für eine sichere Bewertung fehlen wichtige Angaben wie Betrag, Frist oder Absender.'
+    ? T('risk.incomplete.body')
     : result.erklaerung;
   const vorschlaege = result.reduzierungsVorschlaege.filter(v => v.dringlichkeit !== 'bald');
 
@@ -93,7 +96,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             paddingVertical: 8, borderTopWidth: 0.5, borderColor: border + '44' }}
         >
           <Text style={{ fontSize: 11, color: textColor, fontWeight: '600' }}>
-            {expanded ? 'Weniger' : 'Warum?'}
+            {expanded ? T('common.less') : T('common.why')}
           </Text>
           <Icon name={expanded ? 'caret-up' : 'caret-down'} size={11} color={textColor} />
         </TouchableOpacity>
@@ -146,7 +149,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
       {vorschlaege.length > 0 && (
         <View style={{ marginBottom: 10 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>
-            RISIKO SENKEN
+            {T('risk.reduce')}
           </Text>
           {vorschlaege.map((v, i) => (
             <TouchableOpacity
@@ -163,7 +166,11 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
                 borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 }}>
                 <Text style={{ fontSize: 9, fontWeight: '800',
                   color: v.dringlichkeit === 'sofort' ? '#fff' : C.textTertiary }}>
-                  {v.dringlichkeit === 'sofort' ? 'SOFORT' : v.dringlichkeit === 'diese_woche' ? 'DIESE WOCHE' : 'BALD'}
+                  {v.dringlichkeit === 'sofort'
+                    ? T('risk.urgency.now')
+                    : v.dringlichkeit === 'diese_woche'
+                      ? T('risk.urgency.this_week')
+                      : T('risk.urgency.soon')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -176,7 +183,9 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
         onPress={() => setExpanded(v => !v)}
         style={{ alignItems: 'center', paddingTop: 6, borderTopWidth: 0.5, borderColor: border + '44' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 11, color: textColor }}>{expanded ? 'Weniger Details' : 'Alle Risikofaktoren'}</Text>
+          <Text style={{ fontSize: 11, color: textColor }}>
+            {expanded ? T('risk.less_details') : T('risk.all_factors')}
+          </Text>
           <Icon name={expanded ? 'caret-up' : 'caret-down'} size={11} color={textColor} />
         </View>
       </TouchableOpacity>
@@ -184,7 +193,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
       {expanded && (
         <View style={{ marginTop: 10 }}>
           {/* Risk factors */}
-          <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>RISIKOFAKTOREN</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>{T('risk.factors')}</Text>
           {result.faktoren.map(f => (
             <View key={f.id} style={{ marginBottom: 8 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
@@ -206,7 +215,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
           {/* Dark patterns */}
           {result.darkPatterns.length > 0 && (
             <View style={{ marginTop: 8 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>RECHTLICHE AUFFÄLLIGKEITEN</Text>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>{T('risk.legal')}</Text>
               {result.darkPatterns.map(dp => (
                 <View key={dp.id} style={{ backgroundColor: C.bgCard, borderRadius: R.md, padding: 10,
                   marginBottom: 6, borderWidth: 1, borderColor: LEVEL_BORDER[dp.schwere as RiskLevel] + '44' }}>
@@ -225,11 +234,14 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
           {result.peerComparison && (
             <View style={{ marginTop: 8, backgroundColor: C.bgCard, borderRadius: R.md, padding: 10 }}>
               <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary, marginBottom: 4 }}>
-                VERGLEICH MIT ÄHNLICHEN DOKUMENTEN
+                {T('risk.peer_compare')}
               </Text>
               <Text style={{ fontSize: 12, color: C.text }}>{result.peerComparison.beschreibung}</Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-                {result.peerComparison.aehnlicheDokumente} ähnliche Dokumente · Ø Risiko: {result.peerComparison.durchschnittRisiko}
+                {T('risk.peer_stats', {
+                  n: result.peerComparison.aehnlicheDokumente,
+                  risk: result.peerComparison.durchschnittRisiko,
+                })}
               </Text>
             </View>
           )}

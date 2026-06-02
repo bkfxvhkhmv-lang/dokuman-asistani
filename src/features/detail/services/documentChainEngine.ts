@@ -1,4 +1,6 @@
 import type { Dokument } from '@/store';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 type ChainType = 'bussgeld' | 'forderung' | 'garantie' | 'rechnung' | 'vertrag' | 'versicherung' | 'standard';
 
@@ -18,15 +20,13 @@ export interface DocumentChain {
   daysUntilDeadline: number | null;
 }
 
-const CHAIN_LABELS: Record<ChainType, string> = {
-  bussgeld:   'Bußgeld → Reaktion → Zahlung',
-  forderung:  'Rechnung → Mahnung → Zahlung / Inkasso',
-  garantie:   'Kaufbeleg → Garantie → Service',
-  rechnung:   'Rechnung → Zahlung → Steuerablage',
-  vertrag:    'Vertrag → Frist → Verlängerung / Kündigung',
-  versicherung: 'Versicherung → Rückfrage → Nachweis',
-  standard:   'Dokument → Aktion → Archiv',
-};
+function LT(key: string, vars?: Record<string, string | number>) {
+  return t(getLangSync(), key, vars);
+}
+
+function getChainLabel(chainType: ChainType): string {
+  return LT(`chain.title.${chainType}`);
+}
 
 function inferChainType(dok: Dokument): ChainType {
   if (!dok) return 'standard';
@@ -52,30 +52,30 @@ function getDaysUntil(dateString: string | null | undefined): number | null {
 
 function buildRisk(chainType: ChainType, dok: Dokument, daysUntilDeadline: number | null): ChainRisk {
   if ((dok as any).workflowStatus === 'bezahlt') {
-    return { level: 'niedrig', label: 'Niedrig', reason: 'Der wichtigste Schritt wurde bereits abgeschlossen.' };
+    return { level: 'niedrig', label: LT('risk.level.short.niedrig'), reason: LT('chain.reason.done') };
   }
   if (chainType === 'bussgeld' || chainType === 'forderung') {
     if (daysUntilDeadline != null && daysUntilDeadline <= 0)
-      return { level: 'hoch', label: 'Hoch', reason: 'Die Frist ist erreicht oder bereits überschritten.' };
+      return { level: 'hoch', label: LT('risk.level.short.hoch'), reason: LT('chain.reason.deadline_overdue') };
     if (daysUntilDeadline != null && daysUntilDeadline <= 7)
-      return { level: 'mittel', label: 'Mittel', reason: 'Die Frist nähert sich und sollte zeitnah abgesichert werden.' };
-    return { level: 'mittel', label: 'Mittel', reason: 'Ohne Reaktion ist der nächste Eskalationsschritt wahrscheinlich.' };
+      return { level: 'mittel', label: LT('risk.level.short.mittel'), reason: LT('chain.reason.deadline_soon') };
+    return { level: 'mittel', label: LT('risk.level.short.mittel'), reason: LT('chain.reason.escalation') };
   }
   if (chainType === 'rechnung') {
     if (daysUntilDeadline != null && daysUntilDeadline <= 0)
-      return { level: 'mittel', label: 'Mittel', reason: 'Die Zahlung sollte jetzt abgeschlossen werden.' };
+      return { level: 'mittel', label: LT('risk.level.short.mittel'), reason: LT('chain.reason.payment_due') };
     if ((dok as any).archiveBehavior === 'moveTo:Steuer')
-      return { level: 'niedrig', label: 'Niedrig', reason: 'Das Dokument ist bereits für die Ablage vorbereitet.' };
+      return { level: 'niedrig', label: LT('risk.level.short.niedrig'), reason: LT('chain.reason.archive_ready') };
   }
   if (chainType === 'garantie') {
-    return { level: 'niedrig', label: 'Niedrig', reason: 'Kaufbeleg sicher aufbewahren.' };
+    return { level: 'niedrig', label: LT('risk.level.short.niedrig'), reason: LT('chain.reason.keep_receipt') };
   }
   if (chainType === 'vertrag') {
     if (daysUntilDeadline != null && daysUntilDeadline <= 30)
-      return { level: 'mittel', label: 'Mittel', reason: 'Vertragsfrist bald erreicht — Verlängerung oder Kündigung prüfen.' };
-    return { level: 'niedrig', label: 'Niedrig', reason: 'Vertrag aktiv — Fristen beobachten.' };
+      return { level: 'mittel', label: LT('risk.level.short.mittel'), reason: LT('chain.reason.contract_soon') };
+    return { level: 'niedrig', label: LT('risk.level.short.niedrig'), reason: LT('chain.reason.contract_watch') };
   }
-  return { level: 'niedrig', label: 'Niedrig', reason: 'Kein sofortiger Handlungsbedarf.' };
+  return { level: 'niedrig', label: LT('risk.level.short.niedrig'), reason: LT('chain.reason.no_action') };
 }
 
 function resolveNextStep(
@@ -88,14 +88,14 @@ function resolveNextStep(
   if (aiNext) return aiNext;
 
   if (chainType === 'bussgeld') {
-    if (daysUntilDeadline != null && daysUntilDeadline <= 14) return 'Einspruch einlegen oder zahlen';
-    return 'Frist beobachten';
+    if (daysUntilDeadline != null && daysUntilDeadline <= 14) return LT('chain.next.bussgeld');
+    return LT('chain.next.watch_deadline');
   }
-  if (chainType === 'forderung') return 'Zahlung leisten oder Widerspruch einlegen';
-  if (chainType === 'rechnung')  return dok.erledigt ? 'Für Steuer ablegen' : 'Zahlung durchführen';
-  if (chainType === 'garantie')  return 'Kaufbeleg aufbewahren';
-  if (chainType === 'vertrag')   return 'Fristen prüfen';
-  return 'Dokument prüfen und archivieren';
+  if (chainType === 'forderung') return LT('chain.next.forderung');
+  if (chainType === 'rechnung')  return dok.erledigt ? LT('chain.next.tax_archive') : LT('chain.next.pay');
+  if (chainType === 'garantie')  return LT('chain.next.keep_receipt');
+  if (chainType === 'vertrag')   return LT('chain.next.check_deadlines');
+  return LT('chain.next.review_archive');
 }
 
 export function buildDocumentChain(dok: Dokument | undefined, digitalTwin: any): DocumentChain | null {
@@ -105,13 +105,13 @@ export function buildDocumentChain(dok: Dokument | undefined, digitalTwin: any):
   const history = (dok as any).actionHistory || [];
   const lastAction = history[0] || null;
   const daysUntilDeadline = getDaysUntil(dok.frist || (dok as any).garantieBis);
-  const previousStep = lastAction?.timeline || (dok.gelesen ? 'Dokument geöffnet' : 'Dokument eingegangen');
+  const previousStep = lastAction?.timeline || (dok.gelesen ? LT('chain.prev.opened') : LT('chain.prev.received'));
   const currentStep = (dok as any).workflowTimeline
     || digitalTwin?.statusSummary
     || digitalTwin?.intelligence?.lifecycle?.phaseLabel
-    || 'Wird analysiert';
+    || LT('chain.current.analysing');
   const nextStep = resolveNextStep(chainType, dok, digitalTwin, daysUntilDeadline);
   const risk = buildRisk(chainType, dok, daysUntilDeadline);
 
-  return { chainType, title: CHAIN_LABELS[chainType], previousStep, currentStep, nextStep, risk, daysUntilDeadline };
+  return { chainType, title: getChainLabel(chainType), previousStep, currentStep, nextStep, risk, daysUntilDeadline };
 }

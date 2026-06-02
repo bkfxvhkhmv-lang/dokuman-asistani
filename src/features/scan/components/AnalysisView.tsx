@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Rect, Path, Line } from 'react-native-svg';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { ACCENT } from '@/features/scan/constants';
 import {
   PROCESSING_TIMEOUT_MS,
@@ -65,6 +66,7 @@ export default function AnalysisView({
   onRetry,
 }: AnalysisViewProps) {
   const { Colors: C, fs } = useTheme();
+  const { t: T } = useT();
   const scanY  = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
   const [dots, setDots] = useState('');
@@ -113,12 +115,12 @@ export default function AnalysisView({
           /* ── Normal processing state ── */
           <>
             <Text style={[st.title, { color: C.text, fontSize: fs(19) }]}>
-              KI erkennt Daten{dots}
+              {T('scan.processing.title')}{dots}
             </Text>
             <Text style={[st.subtitle, { color: C.textTertiary, fontSize: fs(13) }]}>
               {pageCount > 1
-                ? `${pageCount} Seiten werden analysiert`
-                : 'Dokument wird analysiert'}
+                ? T('scan.processing.subtitle_multi', { n: pageCount })
+                : T('detail.analysis.recognizing')}
             </Text>
           </>
         ) : (

@@ -1,19 +1,21 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { Dokument } from '@/store';
 
 /** Sunucuda OCR / Verarbeitungsstatus (`v4JobStatus`). */
 export default function V4JobStatusRibbon({ dok }: { dok: Dokument }) {
   const { Colors: C, S, R } = useTheme();
+  const { t: T } = useT();
   const status = dok.v4JobStatus;
   if (!status || status === 'completed') return null;
 
   let line: string;
-  if (status === 'pending') line = 'Dokument wird vorbereitet …';
-  else if (status === 'processing') line = 'Dokument wird analysiert …';
-  else if (status === 'failed') line = 'Analyse fehlgeschlagen';
-  else line = 'Status: Unbekannt';
+  if (status === 'pending') line = T('scan.ribbon.preparing');
+  else if (status === 'processing') line = T('detail.analysis.recognizing');
+  else if (status === 'failed') line = T('scan.ribbon.failed');
+  else return null;
 
   return (
     <View

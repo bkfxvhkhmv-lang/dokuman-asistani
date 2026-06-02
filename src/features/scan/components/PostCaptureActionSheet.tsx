@@ -65,8 +65,8 @@ export default function PostCaptureActionSheet({ pageCount, onSelect }: PostCapt
 
         <PostCapturePrimaryDiagnose
           glowOpacity={glowOp}
-          title="Weiter zur Analyse"
-          subtitle="KI erkennt Felder, Frist und Risiko."
+          title={t('scan.ready_title')}
+          subtitle={t('scan.postcapture.analyse_subtitle')}
           onDiagnose={() => onSelect('diagnose')}
         />
 

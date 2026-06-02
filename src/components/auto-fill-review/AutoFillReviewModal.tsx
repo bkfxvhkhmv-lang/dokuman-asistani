@@ -4,6 +4,7 @@ import {
   ActivityIndicator, Alert,
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type {
   AutoFillField,
   AutoFillResult,
@@ -30,6 +31,7 @@ export default function AutoFillReviewModal({
   autoFillResult, categoryResult, isProcessing = false,
 }: AutoFillReviewModalProps) {
   const { Colors: C, R } = useTheme();
+  const { t: T } = useT();
   const [edits, setEdits] = useState<Partial<ExtractedFields>>({});
   const [editingKey, setEditingKey] = useState<keyof ExtractedFields | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -124,7 +126,7 @@ export default function AutoFillReviewModal({
               <View style={{ alignItems: 'center', paddingVertical: 48 }}>
                 <ActivityIndicator size="large" color={C.primary} />
                 <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>
-                  Dokument wird analysiert …
+                  {T('detail.analysis.recognizing')}
                 </Text>
               </View>
             ) : (

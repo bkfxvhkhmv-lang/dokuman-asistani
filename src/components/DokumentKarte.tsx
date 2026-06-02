@@ -9,6 +9,7 @@ import { excerptForDocumentListCard, buildCardInsight } from '@/utils/listCardSu
 import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySanitizer';
 import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
 import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
+import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
 import { useT } from '@/hooks/useT';
 import { needsManualReview } from '@/utils/documentGuards';
 import { resolveDisplayDocumentType } from '@/constants/docTypeConfig';
@@ -93,12 +94,14 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const intent        = quickIntent(dok, displayType, Colors);
   const displayAbsender = resolveDocumentSender(dok);
   const rawTitel        = resolveDocumentTitle(dok);
-  const displayTitel    = translateDocumentTypeLabel(rawTitel, lang) ?? rawTitel;
+  const displayTitel    = translateLegacyBusinessLabel(rawTitel, lang);
+  const localizedType   = translateDocumentTypeLabel(displayType, lang);
+  const workflowStampLabel = translateLegacyBusinessLabel(dok.workflowStamp, lang);
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || /mahnung/i.test(displayType));
   const isDone      = dok.erledigt;
   const a11yLabel = [
-    displayType, displayTitel, displayAbsender || dok.absender,
+    localizedType, displayTitel, displayAbsender || dok.absender,
     isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
     typeof dok.betrag === 'number' && dok.betrag > 0 ? `${dok.betrag.toFixed(2)} Euro` : null,
   ].filter(Boolean).join(', ');
@@ -199,7 +202,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
           <View style={[styles.workflowBox, { backgroundColor: workflowTone.bg }]}>
             <View style={[styles.workflowDot, { backgroundColor: workflowTone.text }]} />
             <Text style={[styles.workflowStamp, { color: workflowTone.text }]}>
-              {dok.workflowStamp}
+              {workflowStampLabel}
             </Text>
           </View>
         ) : urgencyBadge ? (

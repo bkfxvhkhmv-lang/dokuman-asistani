@@ -14,6 +14,7 @@ import { getReviewLabel } from '@/utils/documentGuards';
 import { getDetailTypeLabel } from '@/constants/docTypeConfig';
 import { useT } from '@/hooks/useT';
 import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
+import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
 
 const TYP_ICON: Record<string, string> = {
   Mahnung:     'warning-circle',
@@ -59,6 +60,9 @@ export default function HeroCard({
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
   const typeLabel = translateDocumentTypeLabel(getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel), lang);
+  const displayTitle = translateLegacyBusinessLabel(resolveDocumentTitle(dok), lang);
+  const workflowStampLabel = translateLegacyBusinessLabel(dok.workflowStamp, lang);
+  const workflowTimelineLabel = translateLegacyBusinessLabel(dok.workflowTimeline, lang);
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -74,7 +78,7 @@ export default function HeroCard({
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
               {typeLabel.toUpperCase()}{(() => { const s = resolveDocumentSender(dok); return s ? ` · ${s}` : ''; })()}
             </Text>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{resolveDocumentTitle(dok)}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{displayTitle}</Text>
           </View>
         </View>
       </Animated.View>
@@ -151,11 +155,11 @@ export default function HeroCard({
         )}
         {!!dok.workflowStamp && (
           <View style={{ marginTop: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, backgroundColor: workflowTone.bg }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: workflowTone.text }}>{dok.workflowStamp}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: workflowTone.text }}>{workflowStampLabel}</Text>
           </View>
         )}
-        {!!dok.workflowTimeline && !simpleLayout && (
-          <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 8 }}>{dok.workflowTimeline}</Text>
+        {!!workflowTimelineLabel && !simpleLayout && (
+          <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 8 }}>{workflowTimelineLabel}</Text>
         )}
       </View>
     </View>

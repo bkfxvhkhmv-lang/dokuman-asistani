@@ -9,11 +9,12 @@ import {
   getDashboardEyebrowAllClear,
   getDashboardEyebrowBusy,
 } from '@/product/strategyCopy';
-import { safeDisplayAbsender, safeDisplayTitel } from '@/utils/displaySanitizer';
+import { safeDisplayAbsender, resolveDocumentTitle } from '@/utils/displaySanitizer';
 import type { Dokument } from '@/store';
 import type { ThemeColors } from '@/ThemeContext';
 import type { SpacingTokens } from '@/theme';
 import { useT } from '@/hooks/useT';
+import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
 
 
 function fristTag(
@@ -54,7 +55,7 @@ interface HomeDashboardCardsProps {
 export default function HomeDashboardCards({
   colors: C, dashboardStats, spacing: S, topDocs = [], onDocPress, onStatChipPress,
 }: HomeDashboardCardsProps) {
-  const { t: T } = useT();
+  const { t: T, lang } = useT();
   const { wichtig = 0, mitDeadline = 0, mahnungen = 0, vertraege = 0, duplikate = 0, fehlend = 0 } = dashboardStats;
   const allClear = wichtig === 0 && mitDeadline === 0;
 
@@ -96,7 +97,7 @@ export default function HomeDashboardCards({
             style={[st.snippet, { backgroundColor: C.bgCard, borderColor: C.border }]} activeOpacity={0.75}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, letterSpacing: -0.1 }} numberOfLines={1}>
-                {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
+                {translateLegacyBusinessLabel(resolveDocumentTitle(dok), lang)}
               </Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
                 {safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText)}
@@ -111,10 +112,10 @@ export default function HomeDashboardCards({
               )}
               {!!dok.workflowStamp && workflow && (
                 <View style={[st.workflowBox, { backgroundColor: workflow.bg }]}>
-                  <Text style={[st.workflowStamp, { color: workflow.text }]}>{dok.workflowStamp}</Text>
+                  <Text style={[st.workflowStamp, { color: workflow.text }]}>{translateLegacyBusinessLabel(dok.workflowStamp, lang)}</Text>
                   {!!dok.workflowTimeline && (
                     <Text style={[st.workflowTimeline, { color: workflow.text }]} numberOfLines={1}>
-                      {dok.workflowTimeline}
+                      {translateLegacyBusinessLabel(dok.workflowTimeline, lang)}
                     </Text>
                   )}
                 </View>

@@ -7,6 +7,8 @@ import type {
 } from '@/types/normalizedDocument';
 import { hasCompletePaymentTarget, inferAmountSemantics } from '@/utils/documentGuards';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 // Maps the app's internal DocumentType to NormalizedDocumentType.
 const DOCTYPE_MAP: Record<string, NormalizedDocumentType> = {
@@ -28,11 +30,12 @@ function betragConfidence(dok: Dokument): FieldConfidence {
 }
 
 function minimalNextStep(dok: Dokument): NormalizedNextStep | undefined {
+  const lang = getLangSync();
   const semantics = inferAmountSemantics(dok.betrag);
-  if (semantics === 'credit')  return { action: 'check_credit', label: 'Gutschrift prüfen' };
+  if (semantics === 'credit')  return { action: 'check_credit', label: t(lang, 'detail.next.credit_check') };
   if (semantics === 'payable') return {
     action: 'pay',
-    label: hasCompletePaymentTarget(dok) ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
+    label: hasCompletePaymentTarget(dok) ? t(lang, 'detail.next.prepare_payment') : t(lang, 'detail.next.check_payment_data'),
   };
   return undefined;
 }

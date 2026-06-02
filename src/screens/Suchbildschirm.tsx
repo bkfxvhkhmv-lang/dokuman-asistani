@@ -48,7 +48,7 @@ export default function Suchbildschirm() {
   const { state, dispatch } = useStore();
   const { Colors: C, S } = useTheme();
   const { t } = useT();
-  const { config: sheetConfig, hideSheet, confirm } = useSheet();
+  const { config: sheetConfig, showSheet, hideSheet, confirm } = useSheet();
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -118,9 +118,38 @@ export default function Suchbildschirm() {
       dangerConfirm: true,
     });
     if (!ok) return;
+
+    const snapshots = state.dokumente.filter(d => selectedIds.has(d.id));
     for (const id of selectedIds) dispatch({ type: 'DELETE_DOKUMENT', id });
     cancelSelection();
-  }, [cancelSelection, confirm, dispatch, selectedIds, t]);
+
+    let undone = false;
+    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 3000);
+
+    showSheet({
+      title:   t('modal.delete.pending_title'),
+      message: t('modal.delete.pending_body'),
+      icon:    'trash',
+      tone:    'default',
+      actions: [
+        {
+          label: t('common.undo'),
+          variant: 'primary',
+          onPress: () => {
+            undone = true;
+            clearTimeout(undoTimer);
+            snapshots.forEach(snap => dispatch({ type: 'ADD_DOKUMENT', payload: snap }));
+            hideSheet();
+          },
+        },
+        {
+          label: t('common.ok'),
+          variant: 'secondary',
+          onPress: () => { undone = true; clearTimeout(undoTimer); hideSheet(); },
+        },
+      ],
+    });
+  }, [cancelSelection, confirm, dispatch, hideSheet, selectedIds, showSheet, state.dokumente, t]);
 
   useEffect(() => {
     if (!selectionMode) return;

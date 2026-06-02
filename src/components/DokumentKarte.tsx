@@ -8,6 +8,7 @@ import type { Dokument } from '@/store';
 import { excerptForDocumentListCard, buildCardInsight } from '@/utils/listCardSummary';
 import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySanitizer';
 import { deriveNextStep, type NextStepUrgency } from '@/utils/deriveNextStep';
+import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
 import { useT } from '@/hooks/useT';
 import { needsManualReview } from '@/utils/documentGuards';
 import { resolveDisplayDocumentType } from '@/constants/docTypeConfig';
@@ -83,7 +84,7 @@ interface DokumentKarteProps {
 
 function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: DokumentKarteProps) {
   const { Colors, RiskColors, fs, hitSlopScale } = useTheme();
-  const { t: T } = useT();
+  const { t: T, lang } = useT();
   const displayTypeInfo = resolveDisplayDocumentType(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel);
   const displayType = displayTypeInfo.detailLabel;
   const reviewDok = { ...dok, typ: displayType };
@@ -91,7 +92,8 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const tageText      = getTageText(dok.frist, T);
   const intent        = quickIntent(dok, displayType, Colors);
   const displayAbsender = resolveDocumentSender(dok);
-  const displayTitel    = resolveDocumentTitle(dok);
+  const rawTitel        = resolveDocumentTitle(dok);
+  const displayTitel    = translateDocumentTypeLabel(rawTitel, lang) ?? rawTitel;
   const tage = dok.frist ? Math.ceil((new Date(dok.frist).getTime() - Date.now()) / 86400000) : null;
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || /mahnung/i.test(displayType));
   const isDone      = dok.erledigt;

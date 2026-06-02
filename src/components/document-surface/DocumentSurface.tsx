@@ -113,6 +113,7 @@ const st = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
+    opacity: 0.65,
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
   },

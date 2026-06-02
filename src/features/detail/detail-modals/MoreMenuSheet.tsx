@@ -6,7 +6,7 @@ import Icon from '@/components/Icon';
 import type { MoreMenuGroup, MoreMenuItem } from '@/features/detail/detail-modals/types';
 import { useT } from '@/hooks/useT';
 
-const _t = (msg: string) => { if (__DEV__) console.log('[MORE_TRACE]', msg); };
+const _t = (_msg: string) => {};
 
 /** Sichtbar ohne Scroll: Haupt + genug Chat — alles andere unter „Weitere Werkzeuge". */
 const FIRST_SCREEN_TOTAL = 5;

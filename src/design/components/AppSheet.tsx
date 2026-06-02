@@ -104,7 +104,6 @@ export default function AppSheet({
   }));
 
   const interactive = visible && mounted;
-  if (__DEV__) console.log('[MORE_TRACE] AppSheet visible=' + visible + ' mounted=' + mounted + ' interactive=' + interactive);
 
   return (
     <Modal visible={mounted} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>

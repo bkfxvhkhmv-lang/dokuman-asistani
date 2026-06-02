@@ -22,13 +22,13 @@ export type CanonicalDocumentType = (typeof CANONICAL_DOCUMENT_TYPES)[number];
 
 /**
  * 3 Hauptgruppen + Alle.
- * Rechnungen = Zahlungen; Behörden = Ämter/Fristen/Steuer; Nachweise = Verträge/Versicherung/Nachweis.
+ * Rechnungen = Zahlungen; Behörden = amtliche Schreiben; Sonstiges = generische Restgruppe.
  */
 export const SEARCH_CATEGORY_QUICK_CHIPS = [
   { filter: 'alle',        label: 'Alle'        },
   { filter: 'Rechnungen',  label: 'Rechnungen'  },
   { filter: 'Behörden',    label: 'Behörden'    },
-  { filter: 'Nachweise',   label: 'Nachweise'   },
+  { filter: 'Sonstiges',   label: 'Sonstiges'   },
 ] as const;
 
 /** Bekannte OCR-/Klassifikator-Kürzel → kanonisches `typ`-Label */
@@ -126,9 +126,9 @@ export function documentMatchesTypChip(dokTyp: string | undefined | null, chip: 
     case 'Behörden':
       return ['Behörde', 'Bußgeld', 'Termin', 'Behörden / Amt', 'Steuer', 'Steuerbescheid', 'Schule / Kita', 'Finanzamt'].includes(t)
         || ['Behörden / Amt', 'Steuer', 'Schule / Kita'].includes(nDoc);
-    case 'Nachweise':
-      return ['Versicherung', 'Garantie', 'Garantie / Kaufbeleg', 'Gesundheit', 'Vertrag', 'Kündigung', 'Verträge', 'Nachweis', 'Bescheinigung', 'Formular'].includes(t)
-        || ['Versicherung', 'Garantie / Kaufbeleg', 'Gesundheit', 'Verträge', 'Sonstiges'].includes(nDoc);
+    case 'Sonstiges':
+      return ['Sonstiges', 'Dokument', 'Formular', 'Unbekannt', 'unknown'].includes(t)
+        || nDoc === 'Sonstiges';
     // ── Legacy einzelne Typen (Filtermodal) ──────────────────────────────
     case 'Behörden / Amt':
       return ['Behörde', 'Bußgeld', 'Termin'].includes(t) || nDoc === 'Behörden / Amt';

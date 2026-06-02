@@ -88,7 +88,7 @@ export default function SearchFilterModal({
           {T('search.scope').toUpperCase()}
         </Text>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-          {(['alle', 'Rechnungen', 'Behörden', 'Nachweise'] as const).map(t => (
+          {(['alle', 'Rechnungen', 'Behörden', 'Sonstiges'] as const).map(t => (
             <SpringChip
               key={t}
               onPress={() => setTyp(t)}
@@ -109,7 +109,7 @@ export default function SearchFilterModal({
                 {t === 'alle' ? T('home.filter.all')
                   : t === 'Rechnungen' ? T('doc.type.invoice_plural')
                   : t === 'Behörden'  ? T('doc.type.authority_group')
-                  : T('doc.type.proofs')}
+                  : T('doc.type.other')}
               </Text>
             </SpringChip>
           ))}

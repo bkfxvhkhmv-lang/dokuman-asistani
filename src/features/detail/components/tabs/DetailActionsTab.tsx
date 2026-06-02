@@ -30,12 +30,12 @@ const SECTIONS: { labelKey: string; keys: string[]; primaryKeys?: string[] }[] =
   },
   {
     labelKey: 'detail.section.edit',
-    keys: ['menu_edit', 'menu_budget', 'menu_chat', 'menu_formular', 'menu_kur'],
+    keys: ['menu_edit', 'menu_budget'],
     primaryKeys: ['menu_budget'],
   },
   {
     labelKey: 'detail.section.close',
-    keys: ['menu_erl', 'anon', 'menu_h', 'del'],
+    keys: ['menu_erl', 'del'],
     primaryKeys: [],
   },
 ];

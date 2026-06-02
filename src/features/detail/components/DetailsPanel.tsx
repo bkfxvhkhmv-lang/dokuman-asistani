@@ -231,9 +231,9 @@ export default function DetailsPanel({
             <TouchableOpacity
               onPress={onEdit}
               style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
-                alignItems: 'center', backgroundColor: C.primary }}
+                alignItems: 'center', backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border }}
             >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>{T('common.edit')}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('common.edit')}</Text>
             </TouchableOpacity>
           )}
           {onExport && (
@@ -252,7 +252,8 @@ export default function DetailsPanel({
       {onLoeschen && (
         <TouchableOpacity
           onPress={onLoeschen}
-          style={{ alignItems: 'center', marginTop: 18, paddingVertical: 8 }}
+          style={{ alignItems: 'center', marginTop: 18, paddingVertical: 10,
+            borderWidth: 1, borderColor: C.dangerBorder, borderRadius: R.md ?? R.lg }}
         >
           <Text style={{ fontSize: 13, color: C.danger }}>{T('detail.delete_document')}</Text>
         </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, getTageText, getTageVerbleibend } from '@/utils/formatters';
 import { resolveDocumentTitle } from '@/utils/displaySanitizer';
@@ -82,7 +82,7 @@ export default function SimpleDocumentOverview({
           {resolveDocumentTitle(dok)}
         </Text>
 
-        <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
+        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
         <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.6 }}>
           {T('simple.what_should_i_do')}
@@ -91,7 +91,7 @@ export default function SimpleDocumentOverview({
           {naechsterSchritt ?? T('simple.nothing_urgent')}
         </Text>
 
-        <View style={{ height: 1, backgroundColor: C.borderLight, marginVertical: 4 }} />
+        <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: C.borderLight, marginVertical: 4 }} />
 
         <Text style={{ fontSize: 11, fontWeight: '600', color: C.textTertiary, letterSpacing: 0.6 }}>
           {T('simple.by_when')}

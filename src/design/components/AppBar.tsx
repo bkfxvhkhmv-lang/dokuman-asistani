@@ -40,7 +40,7 @@ export default function AppBar({
     <View style={[
       st.bar,
       { backgroundColor: bg },
-      borderBottom && { borderBottomWidth: 0.5, borderBottomColor: Colors.border },
+      borderBottom && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
       style,
     ]}>
       <View style={st.slot}>

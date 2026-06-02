@@ -35,7 +35,7 @@ export const LightColors: ColorPalette = {
   // Borders — hairline (1 ton fark)
   border: '#E8E7E1', borderLight: '#F0EFE9',
   // Typography
-  text: '#18181B', textSecondary: '#6B6B72', textTertiary: '#B0B0B8', textInverse: '#FFFFFF',
+  text: '#111827', textSecondary: '#6B7280', textTertiary: '#9CA3AF', textInverse: '#FFFFFF',
 };
 
 export const DarkColors: ColorPalette = {

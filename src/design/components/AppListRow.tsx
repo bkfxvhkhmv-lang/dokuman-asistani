@@ -36,7 +36,7 @@ export default function AppListRow({
   const labelColor = danger ? Colors.danger : Colors.text;
 
   const content = (
-    <View style={[st.row, !noBorder && { borderBottomWidth: 0.5, borderBottomColor: Colors.border }, style]}>
+    <View style={[st.row, !noBorder && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border }, style]}>
       {icon ? (
         <View style={[st.iconBadge, { backgroundColor: iconBg + '1A' }]}>
           <Icon name={icon} size={16} color={iconBg} />

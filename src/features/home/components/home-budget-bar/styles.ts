@@ -23,6 +23,6 @@ export const homeBudgetStyles = StyleSheet.create({
   progressLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   progressLabel: { fontSize: 11, fontWeight: '700' },
   velocityText: { fontSize: 10, fontWeight: '500' },
-  insightRow: { borderTopWidth: 0.5, marginTop: 12, paddingTop: 10 },
+  insightRow: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: 12, paddingTop: 10 },
   insightText: { fontSize: 12, fontWeight: '500', lineHeight: 17 },
 });

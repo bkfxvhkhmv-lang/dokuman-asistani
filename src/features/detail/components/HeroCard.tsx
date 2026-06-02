@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils';
 import { HIT_SLOP_LG } from '@/theme';
@@ -109,7 +109,7 @@ export default function HeroCard({
             gap: 6,
             paddingTop: 10,
             paddingBottom: 4,
-            borderTopWidth: 0.5,
+            borderTopWidth: StyleSheet.hairlineWidth,
             borderTopColor: C.borderLight,
           }}
         >
@@ -124,7 +124,7 @@ export default function HeroCard({
         </View>
       </View>
 
-      <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.lg, paddingBottom: S.md, borderTopWidth: 0.5, borderTopColor: C.borderLight }}>
+      <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.lg, paddingBottom: S.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.borderLight }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: S.sm }}>
           <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{(() => { const s = resolveDocumentSender(dok); return s ? `${s} · ` : ''; })()}{formatDatum(dok.datum)}</Text>
           <TouchableOpacity onPress={onKontaktVerknuepfen}

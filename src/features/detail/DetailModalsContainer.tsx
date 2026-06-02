@@ -307,11 +307,13 @@ export default function DetailModalsContainer({
             },
           });
           showToast({
-            message: 'PDF unterschrieben und gespeichert',
+            message: T('signature.v2.success_title'),
             tone: 'success',
             icon: 'checkmark-circle',
           });
-          onOpenFullscreen?.();
+          // Delay fullscreen open until SignaturePdfSheet close animation
+          // finishes — simultaneous Modal transitions conflict on iOS
+          setTimeout(() => onOpenFullscreen?.(), 400);
         }}
       />
     </>

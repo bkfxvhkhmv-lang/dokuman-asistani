@@ -8,6 +8,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import type { ThemeColors } from '@/ThemeContext';
 import Highlight from '@/features/search/components/Highlight';
 import type { SemanticResult } from '@/features/search/components/constants';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   result: SemanticResult;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function SemanticKarte({ result, query, onPress, C }: Props) {
+  const { t: T } = useT();
   const score = result.score ?? 0;
   const scoreColor =
     score >= 0.7 ? C.success :
@@ -66,7 +68,7 @@ export default function SemanticKarte({ result, query, onPress, C }: Props) {
           </Text>
         )}
         <View style={{ flex: 1 }} />
-        <Text style={{ fontSize: 10, color: C.textTertiary }}>Intelligente Suche</Text>
+        <Text style={{ fontSize: 10, color: C.textTertiary }}>{T('search.semantic_label')}</Text>
       </View>
     </TouchableOpacity>
   );

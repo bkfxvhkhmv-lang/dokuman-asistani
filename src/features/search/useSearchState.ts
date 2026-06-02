@@ -37,7 +37,7 @@ export function useSearchState(docs: Dokument[]) {
 
   const { results: v4Ergebnisse, loading: v4Laden, error: v4FehlerRaw, searchRemote, clear: clearV4 } = useSearch();
 
-  const v4Fehler = v4FehlerRaw ? 'Intelligente Suche nicht verfügbar — lokale Suche wird verwendet' : null;
+  const v4Fehler = v4FehlerRaw ? 'search.mode.smart_error' : null;
 
   const filterAktiv = !!(
     minBetrag || maxBetrag || vonDatum || bisDatum ||

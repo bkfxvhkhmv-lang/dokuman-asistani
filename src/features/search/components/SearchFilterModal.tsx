@@ -76,10 +76,10 @@ export default function SearchFilterModal({
         </Text>
         <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
           <View style={{ flex: 1 }}>
-            <AppInput label={T('common.from')} placeholder="TT.MM.JJJJ" value={vonDatum} onChangeText={setVonDatum} />
+            <AppInput label={T('common.from')} placeholder={T('search.date_placeholder')} value={vonDatum} onChangeText={setVonDatum} />
           </View>
           <View style={{ flex: 1 }}>
-            <AppInput label={T('common.to')} placeholder="TT.MM.JJJJ" value={bisDatum} onChangeText={setBisDatum} />
+            <AppInput label={T('common.to')} placeholder={T('search.date_placeholder')} value={bisDatum} onChangeText={setBisDatum} />
           </View>
         </View>
 
@@ -180,11 +180,11 @@ export default function SearchFilterModal({
           <TouchableOpacity
             style={{
               flex: 1, borderRadius: 12, padding: 14,
-              alignItems: 'center', borderWidth: 1, borderColor: C.danger,
+              alignItems: 'center', borderWidth: 1, borderColor: C.border,
             }}
             onPress={onReset}
           >
-            <Text style={{ fontSize: 14, fontWeight: '600', color: C.danger }}>{T('search.reset')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: C.textSecondary }}>{T('search.reset')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

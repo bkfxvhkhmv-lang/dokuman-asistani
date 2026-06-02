@@ -342,7 +342,7 @@ export default function Suchbildschirm() {
             C={C} S={S}
           />
         )}
-        {v4Fehler && <V4Error error={v4Fehler} C={C} S={S} />}
+        {v4Fehler && <V4Error error={t(v4Fehler)} C={C} S={S} />}
 
         {/* Ana icerik — uc state: home, v4 list, lokal list */}
         {!zeigeSuche ? (
@@ -364,7 +364,7 @@ export default function Suchbildschirm() {
                 <View style={{ alignItems: 'center', paddingVertical: 24 }}>
                   <ActivityIndicator color={C.primary} />
                   <Text style={{ fontSize: 12, color: C.textTertiary, marginTop: 8 }}>
-                    Intelligente Suche läuft…
+                    {t('search.smart.loading')}
                   </Text>
                 </View>
               ) : (
@@ -375,14 +375,14 @@ export default function Suchbildschirm() {
                     marginLeft: S.lg, marginBottom: 8,
                   }}
                 >
-                  {(v4Ergebnisse as SemanticResult[]).length} INTELLIGENTE TREFFER
+                  {t('search.smart.hits', { n: (v4Ergebnisse as SemanticResult[]).length })}
                 </Text>
               )
             }
             ListEmptyComponent={!v4Laden ? (
               <View style={{ alignItems: 'center', marginTop: 60 }}>
                 <Icon name="bulb" size={36} color={C.text} style={{ marginBottom: 12 }} />
-                <Text style={{ fontSize: 15, color: C.textSecondary }}>Keine Treffer</Text>
+                <Text style={{ fontSize: 15, color: C.textSecondary }}>{t('search.no_results')}</Text>
                 {query.length > 0 && (
                   <Text style={{ fontSize: 15, fontWeight: '600', color: C.text, marginTop: 4 }}>
                     "{query}"
@@ -401,16 +401,16 @@ export default function Suchbildschirm() {
               <View>
                 <EmptyState
                   variant="search"
-                  title="Keine Treffer"
+                  title={t('search.no_results')}
                   subtitle={
                     smartSearch.correctionHint
-                      ? `Meinten Sie "${smartSearch.correctionHint}"?`
-                      : 'Passe die Suche an oder nutze einen Schnellfilter.'
+                      ? `${t('search.correction.hint')} "${smartSearch.correctionHint}"?`
+                      : t('search.empty.subtitle')
                   }
                   action={
                     smartSearch.correctionHint
-                      ? { label: `„${smartSearch.correctionHint}" suchen`, onPress: () => handleSearchWithSmart(smartSearch.correctionHint!) }
-                      : { label: 'Filter zurücksetzen', onPress: resetFilter }
+                      ? { label: t('search.empty.search_hint', { hint: smartSearch.correctionHint! }), onPress: () => handleSearchWithSmart(smartSearch.correctionHint!) }
+                      : { label: t('search.reset'), onPress: resetFilter }
                   }
                 />
                 {/* Schnelle Vorschläge — nur wenn kein Korrekturhinweis */}

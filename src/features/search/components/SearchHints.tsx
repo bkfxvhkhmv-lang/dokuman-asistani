@@ -10,6 +10,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Icon from '@/components/Icon';
 import type { ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 /* -------------------------------------------------------------------------- */
 /* V4 mode banner                                                             */
@@ -23,6 +24,12 @@ interface V4BannerProps {
 }
 
 export function V4Banner({ ftsWeight, setFtsWeight, C, S }: V4BannerProps) {
+  const { t: T } = useT();
+  const MODES: [string, string, number][] = [
+    [T('search.mode.text'), 'text', 0.7],
+    [T('search.mode.combined'), 'combined', 0.5],
+    [T('search.mode.smart'), 'smart', 0.3],
+  ];
   return (
     <View
       style={{
@@ -32,12 +39,12 @@ export function V4Banner({ ftsWeight, setFtsWeight, C, S }: V4BannerProps) {
       }}
     >
       <Text style={{ fontSize: 11, fontWeight: '600', color: C.primaryDark }}>
-        Intelligente Suche aktiv
+        {T('search.mode.smart_active')}
       </Text>
       <View style={{ flexDirection: 'row', gap: 6 }}>
-        {([['Text', 0.7], ['Kombiniert', 0.5], ['Intelligent', 0.3]] as [string, number][]).map(([label, val]) => (
+        {MODES.map(([label, key, val]) => (
           <TouchableOpacity
-            key={label}
+            key={key}
             onPress={() => setFtsWeight(val)}
             style={{
               paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
@@ -65,6 +72,7 @@ interface ParsedHintsProps {
 }
 
 export function ParsedHints({ hints, C, S }: ParsedHintsProps) {
+  const { t: T } = useT();
   return (
     <ScrollView
       horizontal
@@ -73,7 +81,7 @@ export function ParsedHints({ hints, C, S }: ParsedHintsProps) {
       contentContainerStyle={{ paddingHorizontal: S.md }}
     >
       <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-        <Text style={{ fontSize: 11, color: C.textTertiary }}>Erkannt:</Text>
+        <Text style={{ fontSize: 11, color: C.textTertiary }}>{T('search.hints.detected')}</Text>
         {hints.map((h, i) => (
           <View
             key={i}
@@ -132,10 +140,11 @@ interface CorrectionHintProps {
 }
 
 export function CorrectionHint({ hint, onApply, C, S }: CorrectionHintProps) {
+  const { t: T } = useT();
   return (
     <TouchableOpacity onPress={onApply} style={{ marginHorizontal: S.md, marginBottom: 6 }}>
       <Text style={{ fontSize: 12, color: C.primary }}>
-        Meinten Sie: <Text style={{ fontWeight: '700' }}>{hint}</Text>?
+        {T('search.correction.hint')} <Text style={{ fontWeight: '700' }}>{hint}</Text>?
       </Text>
     </TouchableOpacity>
   );

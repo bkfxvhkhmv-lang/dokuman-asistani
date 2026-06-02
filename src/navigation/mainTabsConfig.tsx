@@ -96,7 +96,7 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
   }, [focused]);
 
   const pulseScale   = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.28] });
-  const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.26, 0.09, 0] });
+  const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.45, 0.15, 0] });
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', width: 80, height: 80 }}>
@@ -134,7 +134,7 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
         style={{
           position: 'absolute',
           width: 58, height: 58, borderRadius: 29,
-          borderWidth: 1.25, borderColor: `${colors.primary}CC`,
+          borderWidth: 1.8, borderColor: colors.primary,
           transform: [{ scale: pulseScale }],
           opacity: pulseOpacity,
         }}

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
+import { useT } from '@/hooks/useT';
 import { ExpoScannerProvider } from '../scanner/ExpoScannerProvider';
 import type { ScannedAsset } from '../scanner/types';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
@@ -15,6 +16,7 @@ interface Props {
 
 export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
   const [picking, setPicking] = useState(false);
 
@@ -26,7 +28,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
       if (!asset) return;
       setSelectedAsset(asset);
     } catch (e: any) {
-      Alert.alert('Scan fehlgeschlagen', e?.message ?? 'Unbekannter Fehler beim Scannen.', [{ text: 'OK' }]);
+      Alert.alert(T('ocr.upload.scan_error_title'), e?.message ?? T('ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
     } finally {
       setPicking(false);
       requestAnimationFrame(() => {
@@ -60,11 +62,11 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
 
       if (needsConfirm) {
         Alert.alert(
-          'Scan ersetzen?',
-          `Der aktuelle Scan mit ${n} Seiten wird entfernt.`,
+          T('ocr.upload.replace_title'),
+          T('ocr.upload.replace_body', { n }),
           [
-            { text: 'Abbrechen', style: 'cancel' },
-            { text: 'Neu scannen', style: 'destructive', onPress: reopen },
+            { text: T('common.cancel'), style: 'cancel' },
+            { text: T('ocr.upload.rescan'), style: 'destructive', onPress: reopen },
           ],
         );
       } else {
@@ -87,7 +89,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           <Text style={[st.selectedTitle, { color: C.text }]} numberOfLines={2}>
             {displayTitle}
           </Text>
-          <Text style={[st.selectedSub, { color: C.textSecondary }]}>Bereit zur Analyse</Text>
+          <Text style={[st.selectedSub, { color: C.textSecondary }]}>{T('ocr.upload.ready')}</Text>
         </View>
 
         <TouchableOpacity
@@ -108,7 +110,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           ) : (
             <>
               <Icon name="sparkles" size={18} color="#fff" />
-              <Text style={st.primaryBtnLabel}>Analysieren</Text>
+              <Text style={st.primaryBtnLabel}>{T('ocr.upload.analyze')}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -118,7 +120,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           onPress={handleÄndern}
           activeOpacity={0.75}
         >
-          <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>Ändern</Text>
+          <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>{T('ocr.upload.change')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -126,9 +128,9 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
 
   return (
     <View style={st.container}>
-      <Text style={[st.headline, { color: C.text }]}>Dokument scannen</Text>
+      <Text style={[st.headline, { color: C.text }]}>{T('ocr.upload.headline')}</Text>
       <Text style={[st.subline, { color: C.textSecondary }]}>
-        BriefPilot erkennt Art, Datum, Absender und nächste Schritte automatisch.
+        {T('ocr.upload.description')}
       </Text>
 
       <TouchableOpacity
@@ -144,8 +146,8 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
             <View style={[st.iconCircle, { backgroundColor: C.primary + '14' }]}>
               <Icon name="camera" size={32} color={C.primary} />
             </View>
-            <Text style={[st.cardTitle, { color: C.text }]}>Dokument scannen</Text>
-            <Text style={[st.cardSub, { color: C.textSecondary }]}>Automatisch erkennen und ausrichten</Text>
+            <Text style={[st.cardTitle, { color: C.text }]}>{T('ocr.upload.scan_title')}</Text>
+            <Text style={[st.cardSub, { color: C.textSecondary }]}>{T('ocr.upload.scan_sub')}</Text>
           </>
         )}
       </TouchableOpacity>
@@ -158,8 +160,8 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           disabled={picking}
         >
           <Icon name="document-outline" size={18} color={C.textSecondary} />
-          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>Datei auswählen</Text>
-          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>PDF · JPG</Text>
+          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>{T('ocr.upload.file_label')}</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>{T('ocr.upload.file_hint')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -169,8 +171,8 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           disabled={picking}
         >
           <Icon name="images-outline" size={18} color={C.textSecondary} />
-          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>Aus Fotos</Text>
-          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>Aus deiner Fotomediathek</Text>
+          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>{T('ocr.upload.photo_label')}</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>{T('ocr.upload.photo_hint')}</Text>
         </TouchableOpacity>
       </View>
     </View>

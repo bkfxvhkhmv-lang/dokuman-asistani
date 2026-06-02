@@ -9,6 +9,7 @@ import { useTheme } from '@/ThemeContext';
 import { useAuth } from '@/providers/AuthContext';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 import Icon from '@/components/Icon';
+import { useT } from '@/hooks/useT';
 
 type MenuRow = {
   icon: string;
@@ -83,6 +84,7 @@ export default function Profilbildschirm() {
   const isGuest = user?.isGuest === true;
   const { getUser } = useAuthFlow();
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
@@ -105,13 +107,13 @@ export default function Profilbildschirm() {
     (Constants.manifest as { version?: string } | undefined)?.version ?? '–';
 
   const showDatenschutz = () =>
-    Alert.alert('Datenschutz', 'Deine Daten bleiben auf deinem Gerät.\nDie vollständige Datenschutzerklärung findest du auf briefpilot.de.', [{ text: 'OK' }]);
+    Alert.alert(T('profile.privacy_label'), T('profile.privacy_body'), [{ text: T('common.ok') }]);
 
   const showAbmelden = () => {
     if (isGuest) { router.push('/login'); return; }
-    Alert.alert('Abmelden?', 'Du wirst aus deinem Konto ausgeloggt.', [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Abmelden', style: 'destructive', onPress: logout },
+    Alert.alert(T('profile.logout_title'), T('profile.logout_body'), [
+      { text: T('common.cancel'), style: 'cancel' },
+      { text: T('profile.logout'), style: 'destructive', onPress: logout },
     ]);
   };
 
@@ -131,15 +133,15 @@ export default function Profilbildschirm() {
           </View>
           <View style={st.headerInfo}>
             <Text style={[st.headerName, { color: C.text }]} numberOfLines={1}>
-              {userEmail || 'Mein Profil'}
+              {userEmail || T('profile.my_profile')}
             </Text>
-            <Text style={[st.headerSub, { color: C.textSecondary }]}>{state.dokumente.length} Dokumente gespeichert</Text>
+            <Text style={[st.headerSub, { color: C.textSecondary }]}>{T('profile.documents_saved', { n: state.dokumente.length })}</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.back()}
             style={[st.closeBtn, { backgroundColor: C.bgCard, borderColor: C.border }]}
             accessibilityRole="button"
-            accessibilityLabel="Schließen"
+            accessibilityLabel={T('common.close')}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Icon name="close" size={18} color={C.textSecondary} />
@@ -151,32 +153,32 @@ export default function Profilbildschirm() {
         <MenuSection rows={[
           {
             icon: 'calendar',
-            label: 'Offene Fristen',
-            sub: `${offeneFristen} ${offeneFristen === 1 ? 'Frist' : 'Fristen'} offen`,
+            label: T('profile.open_deadlines'),
+            sub: offeneFristen === 1 ? T('profile.deadline_open_one') : T('profile.deadline_open_many', { n: offeneFristen }),
             badge: offeneFristen > 0 ? offeneFristen : undefined,
             onPress: () => router.push('/(tabs)/index'),
           },
         ]} />
 
-        <SectionLabel text="KONTO" />
+        <SectionLabel text={T('profile.account_section').toUpperCase()} />
         <MenuSection rows={[
           {
             icon: 'lock',
-            label: 'Datenschutz',
+            label: T('profile.privacy_label'),
             onPress: showDatenschutz,
           },
           {
             icon: 'information-circle',
-            label: 'Über BriefPilot',
+            label: T('profile.about_label'),
             sub: `Version ${appVersion}`,
-            onPress: () => Alert.alert('BriefPilot', `Version ${appVersion}\n\nDeine Dokumente. Dein Überblick.`),
+            onPress: () => Alert.alert('BriefPilot', `Version ${appVersion}\n\n${T('profile.about_body')}`),
           },
         ]} />
 
         <MenuSection rows={[
           {
             icon: isGuest ? 'key' : 'log-out',
-            label: isGuest ? 'Anmelden' : 'Abmelden',
+            label: isGuest ? T('profile.login') : T('profile.logout'),
             danger: !isGuest,
             onPress: showAbmelden,
           },

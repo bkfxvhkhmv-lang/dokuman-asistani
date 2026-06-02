@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
+import { useT } from '@/hooks/useT';
 
 interface DetailHeaderProps {
   onBack: () => void;
@@ -16,6 +17,7 @@ export default function DetailHeader({
   erinnerungAktiv = false,
 }: DetailHeaderProps) {
   const { Colors: C, S } = useTheme();
+  const { t: T } = useT();
 
   return (
     <>
@@ -33,9 +35,9 @@ export default function DetailHeader({
           style={{ paddingVertical: 4, paddingRight: 8 }}
           hitSlop={HIT_SLOP_LG}
           accessibilityRole="button"
-          accessibilityLabel="Zurück"
+          accessibilityLabel={T('common.back')}
         >
-          <Text style={{ fontSize: 15, fontWeight: '500', color: C.primary }}>← Zurück</Text>
+          <Text style={{ fontSize: 15, fontWeight: '500', color: C.primary }}>← {T('common.back')}</Text>
         </TouchableOpacity>
         {erinnerungAktiv ? (
           <View

@@ -290,9 +290,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
       <View style={[st.header, hideIdleChrome && st.headerHidden]} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
-        <Text style={st.title}>Analysieren</Text>
+        <Text style={st.title}>{T('ocr.upload.analyze')}</Text>
         {onClose && (
-          <IconButton onPress={onClose} accessibilityLabel="Schließen">
+          <IconButton onPress={onClose} accessibilityLabel={T('common.close')}>
             <Icon name="close" size={22} color={Colors.textSecondary} />
           </IconButton>
         )}

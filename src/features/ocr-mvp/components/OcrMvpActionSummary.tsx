@@ -17,14 +17,14 @@ const GENERIC_TITLE_FALLBACKS = new Set([
 ]);
 
 type ActionHandler = 'preview' | 'download';
-interface ActionCfg { label: string; icon: string; handler: ActionHandler }
+interface ActionCfg { labelKey: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:       { label: 'Excel herunterladen',                   icon: 'download-outline',      handler: 'download' },
-  export_share:       { label: 'Teilen',                                icon: 'share-outline',         handler: 'download' },
-  show_fields:        { label: 'Felder anzeigen',                       icon: 'list-outline',          handler: 'preview'  },
-  show_summary:       { label: 'Zusammenfassung anzeigen',              icon: 'document-text-outline', handler: 'preview'  },
-  create_reply_draft: { label: 'Entwurf anzeigen',                      icon: 'create-outline',        handler: 'preview'  },
+  export_excel:       { labelKey: 'ocr.result.excel',        icon: 'download-outline',      handler: 'download' },
+  export_share:       { labelKey: 'common.share',            icon: 'share-outline',         handler: 'download' },
+  show_fields:        { labelKey: 'ocr.result.show_fields_label', icon: 'list-outline',     handler: 'preview'  },
+  show_summary:       { labelKey: 'ocr.result.show_summary', icon: 'document-text-outline', handler: 'preview'  },
+  create_reply_draft: { labelKey: 'ocr.result.show_draft',   icon: 'create-outline',        handler: 'preview'  },
 };
 
 interface Props {
@@ -130,7 +130,7 @@ export default function OcrMvpActionSummary({
               : null;
           })()}
           {summary.line_items_count != null && (
-            <MetaChip label={`${summary.line_items_count} Positionen`} C={Colors} />
+            <MetaChip label={T('ocr.result.meta.position_many', { n: summary.line_items_count })} C={Colors} />
           )}
         </View>
       )}
@@ -186,17 +186,7 @@ export default function OcrMvpActionSummary({
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
                 <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
-                  {key === 'show_fields'
-                    ? previewLabel()
-                    : key === 'export_excel'
-                      ? T('ocr.result.excel')
-                      : key === 'export_share'
-                        ? T('common.share')
-                        : key === 'show_summary'
-                          ? T('ocr.result.show_summary')
-                          : key === 'create_reply_draft'
-                            ? T('ocr.result.show_draft')
-                            : cfg.label}
+                  {key === 'show_fields' ? previewLabel() : T(cfg.labelKey)}
                 </Text>
               </TouchableOpacity>
             );

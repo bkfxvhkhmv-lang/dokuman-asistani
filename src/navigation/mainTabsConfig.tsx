@@ -95,8 +95,8 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
     }
   }, [focused]);
 
-  const pulseScale   = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.52] });
-  const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.45, 0.15, 0] });
+  const pulseScale   = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.28] });
+  const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.26, 0.09, 0] });
 
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', width: 80, height: 80 }}>
@@ -104,26 +104,26 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
       {Platform.OS === 'ios' ? (
         <View style={{
           position: 'absolute',
-          width: 72, height: 72, borderRadius: 36,
+          width: 62, height: 62, borderRadius: 31,
           shadowColor: colors.primary,
           shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: focused ? 0.55 : 0.22,
-          shadowRadius: focused ? 22 : 12,
+          shadowOpacity: focused ? 0.24 : 0.10,
+          shadowRadius: focused ? 10 : 6,
           backgroundColor: 'transparent',
         }} />
       ) : (
-        // Android: 140px radial gradient glow — mimics iOS shadow
+        // Android: daraltilmis radial glow — komsu tab etiketlerine tasmasin
         <LinearGradient
           colors={[
-            `${colors.primary}${focused ? '55' : '33'}`,
-            `${colors.primary}${focused ? '2A' : '16'}`,
-            `${colors.primary}${focused ? '11' : '08'}`,
+            `${colors.primary}${focused ? '30' : '18'}`,
+            `${colors.primary}${focused ? '18' : '0D'}`,
+            `${colors.primary}${focused ? '0A' : '05'}`,
             'transparent',
           ]}
           style={{
             position: 'absolute',
-            width: 140, height: 140, borderRadius: 70,
-            top: -30, left: -30,
+            width: 108, height: 108, borderRadius: 54,
+            top: -14, left: -14,
           }}
           pointerEvents="none"
         />
@@ -133,8 +133,8 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
       <Animated.View
         style={{
           position: 'absolute',
-          width: 64, height: 64, borderRadius: 32,
-          borderWidth: 1.5, borderColor: colors.primary,
+          width: 58, height: 58, borderRadius: 29,
+          borderWidth: 1.25, borderColor: `${colors.primary}CC`,
           transform: [{ scale: pulseScale }],
           opacity: pulseOpacity,
         }}
@@ -148,10 +148,10 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
           backgroundColor: focused ? colors.primary : '#FFFFFF',
           alignItems: 'center', justifyContent: 'center',
           shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: focused ? 10 : 4 },
-          shadowOpacity: focused ? 0.50 : 0.18,
-          shadowRadius: focused ? 20 : 10,
-          elevation: focused ? 18 : 8,
+          shadowOffset: { width: 0, height: focused ? 7 : 3 },
+          shadowOpacity: focused ? 0.22 : 0.10,
+          shadowRadius: focused ? 10 : 6,
+          elevation: focused ? 10 : 5,
           borderWidth: 0.8,
           borderColor: `${colors.primary}${focused ? '70' : '28'}`,
         }}

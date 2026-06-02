@@ -122,28 +122,27 @@ export default function Profilbildschirm() {
   return (
     <View style={[st.safe, { backgroundColor: C.bg }]}>
       {/* Header */}
-      <View style={[st.header, { backgroundColor: C.primaryDark, paddingTop: insets.top + 16 }]}>
+      <View style={[st.header, { backgroundColor: C.bg, borderBottomColor: C.border, paddingTop: insets.top + 16 }]}>
         <View style={st.headerRow}>
-          <View style={st.avatar}>
-            <Text style={st.avatarText}>
+          <View style={[st.avatar, { backgroundColor: C.primaryLight, borderColor: `${C.primary}22` }]}>
+            <Text style={[st.avatarText, { color: C.primary }]}>
               {userEmail ? userEmail.charAt(0).toUpperCase() : 'B'}
             </Text>
           </View>
           <View style={st.headerInfo}>
-            <Text style={st.headerName} numberOfLines={1}>
+            <Text style={[st.headerName, { color: C.text }]} numberOfLines={1}>
               {userEmail || 'Mein Profil'}
             </Text>
-            <Text style={st.headerSub}>{state.dokumente.length} Dokumente gespeichert</Text>
-            {/* upgrade pill hidden until Plus is available */}
+            <Text style={[st.headerSub, { color: C.textSecondary }]}>{state.dokumente.length} Dokumente gespeichert</Text>
           </View>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={st.closeBtn}
+            style={[st.closeBtn, { backgroundColor: C.bgCard, borderColor: C.border }]}
             accessibilityRole="button"
             accessibilityLabel="Schließen"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Icon name="close" size={20} color="rgba(255,255,255,0.75)" />
+            <Icon name="close" size={18} color={C.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -192,31 +191,31 @@ export default function Profilbildschirm() {
 
 const st = StyleSheet.create({
   safe:         { flex: 1 },
-  header:       { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 },
-  headerRow:    { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  avatar:       { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
-  avatarText:   { fontSize: 26, fontWeight: '800', color: '#fff' },
+  header:       { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 20, borderBottomWidth: StyleSheet.hairlineWidth },
+  headerRow:    { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  avatar:       { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  avatarText:   { fontSize: 22, fontWeight: '800' },
   headerInfo:   { flex: 1 },
-  headerName:   { fontSize: 20, fontWeight: '800', color: '#fff' },
-  headerSub:    { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
-  upgradePill:  { marginTop: 8, alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', paddingHorizontal: 10, paddingVertical: 4 },
-  upgradeText:  { fontSize: 12, fontWeight: '700', color: '#fff' },
+  headerName:   { fontSize: 16, fontWeight: '700' },
+  headerSub:    { fontSize: 12, marginTop: 3 },
+  upgradePill:  { marginTop: 8, alignSelf: 'flex-start', borderRadius: 999, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },
+  upgradeText:  { fontSize: 12, fontWeight: '700' },
 
-  scroll:       { paddingTop: 20, paddingBottom: 60 },
+  scroll:       { paddingTop: 16, paddingBottom: 60 },
 
-  section:      { marginHorizontal: 16, borderRadius: 16, borderWidth: 1, overflow: 'hidden', marginBottom: 12 },
-  row:          { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 18, gap: 14 },
-  iconBox:      { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  section:      { marginHorizontal: 16, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', marginBottom: 10 },
+  row:          { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 12 },
+  iconBox:      { width: 29, height: 29, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   rowBody:      { flex: 1 },
   rowTitleRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rowLabel:     { fontSize: 15, fontWeight: '600' },
+  rowLabel:     { fontSize: 14, fontWeight: '600' },
   rowSub:       { fontSize: 12, marginTop: 2 },
   premiumPill:  { backgroundColor: '#FEF9C3', borderRadius: 999, paddingHorizontal: 7, paddingVertical: 2 },
   premiumText:  { fontSize: 10, fontWeight: '800', color: '#92400E' },
   badge:        { borderRadius: 999, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   badgeText:    { fontSize: 11, fontWeight: '800', color: '#fff' },
 
-  sectionLabel: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, marginLeft: 20, marginBottom: 8 },
-  version:      { textAlign: 'center', fontSize: 11, marginTop: 8 },
-  closeBtn:     { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.6, marginLeft: 20, marginBottom: 6 },
+  version:      { textAlign: 'center', fontSize: 11, marginTop: 8, opacity: 0.5 },
+  closeBtn:     { width: 32, height: 32, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
 });

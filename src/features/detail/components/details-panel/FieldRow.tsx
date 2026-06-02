@@ -28,7 +28,7 @@ export function FieldRow({
 
   const rowContent = (
     <View style={{
-      flexDirection: 'row', alignItems: 'center', gap: 10,
+      flexDirection: 'row', alignItems: 'flex-start', gap: 10,
       paddingVertical: 12, minHeight: 44,
       borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: C.border,
     }}>
@@ -38,7 +38,7 @@ export function FieldRow({
       </View>
 
       {/* Label + value */}
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
           <Text style={{ fontSize: 10, color: C.textTertiary, fontWeight: '600' }}>
             {label.toUpperCase()}
@@ -47,7 +47,10 @@ export function FieldRow({
         </View>
 
         {displayValue ? (
-          <Text style={{ fontSize: 13, color: C.text, fontWeight: '600', marginTop: 2 }}>
+          <Text
+            selectable
+            style={{ fontSize: 13, color: C.text, fontWeight: '600', marginTop: 2, flexShrink: 1, lineHeight: 19 }}
+          >
             {displayValue}
           </Text>
         ) : (
@@ -64,6 +67,7 @@ export function FieldRow({
           borderRadius: 6, borderWidth: 0.5,
           backgroundColor: C.warningLight,
           borderColor: `${C.warning}66`,
+          alignSelf: 'flex-start',
         }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: C.warning ?? C.warningText }}>
             {T('field.review')}
@@ -76,6 +80,7 @@ export function FieldRow({
           borderRadius: 6, borderWidth: 0.5,
           backgroundColor: C.dangerLight,
           borderColor: `${C.danger}44`,
+          alignSelf: 'flex-start',
         }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: C.danger }}>
             {T('field.missing')}
@@ -85,7 +90,9 @@ export function FieldRow({
 
       {/* Edit affordance — only shown when row is actually tappable */}
       {isActionable && (
-        <Icon name="pencil-simple" size={14} color={C.textTertiary} />
+        <View style={{ paddingTop: 2 }}>
+          <Icon name="pencil-simple" size={14} color={C.textTertiary} />
+        </View>
       )}
     </View>
   );

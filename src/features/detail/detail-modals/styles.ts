@@ -16,6 +16,6 @@ export const detailModalStyles = StyleSheet.create({
   },
   infoRow:     { gap: 4 },
   infoLabel:   { fontSize: 11, fontWeight: '700', letterSpacing: 0.4 },
-  infoValue:   { fontSize: 15, fontWeight: '700' },
+  infoValue:   { fontSize: 15, fontWeight: '700', lineHeight: 21, flexShrink: 1 },
   infoDivider: { height: 0.5, marginVertical: 12 },
 });

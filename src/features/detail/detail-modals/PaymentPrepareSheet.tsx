@@ -23,8 +23,8 @@ export default function PaymentPrepareSheet({ visible, onClose, data, onOpenBank
       subtitle="Möchten Sie jetzt in Ihre Banking-App wechseln und die Überweisung vorbereiten?"
       footer={
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <AppButton label="Später" variant="secondary" onPress={onClose} style={{ flex: 1 }} />
-          <AppButton label="Banking-App öffnen" onPress={onOpenBankingApp} style={{ flex: 1 }} />
+          <AppButton label="Später" variant="secondary" onPress={onClose} style={{ flex: 1, borderRadius: 12 }} />
+          <AppButton label="Banking-App öffnen" onPress={onOpenBankingApp} style={{ flex: 1, borderRadius: 12 }} />
         </View>
       }
     >
@@ -35,19 +35,19 @@ export default function PaymentPrepareSheet({ visible, onClose, data, onOpenBank
         <View style={[st.infoCard, { backgroundColor: C.bg, borderColor: C.border }]}>
           <View style={st.infoRow}>
             <Text style={[st.infoLabel, { color: C.textTertiary }]}>Betrag</Text>
-            <Text style={[st.infoValue, { color: C.text }]}>{String(data?.amount ?? '')}</Text>
+            <Text selectable style={[st.infoValue, { color: C.text }]}>{String(data?.amount ?? '')}</Text>
           </View>
           <View style={[st.infoDivider, { backgroundColor: C.border }]} />
           <View style={st.infoRow}>
             <Text style={[st.infoLabel, { color: C.textTertiary }]}>Empfänger</Text>
-            <Text style={[st.infoValue, { color: C.text }]}>{String(data?.recipient ?? '')}</Text>
+            <Text selectable style={[st.infoValue, { color: C.text }]}>{String(data?.recipient ?? '')}</Text>
           </View>
           {!!data?.iban && (
             <>
               <View style={[st.infoDivider, { backgroundColor: C.border }]} />
               <View style={st.infoRow}>
                 <Text style={[st.infoLabel, { color: C.textTertiary }]}>IBAN</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(data.iban ?? '')}</Text>
+                <Text selectable style={[st.infoValue, { color: C.text }]}>{String(data.iban ?? '').replace(/(.{4})/g, '$1 ').trim()}</Text>
               </View>
             </>
           )}
@@ -56,7 +56,7 @@ export default function PaymentPrepareSheet({ visible, onClose, data, onOpenBank
               <View style={[st.infoDivider, { backgroundColor: C.border }]} />
               <View style={st.infoRow}>
                 <Text style={[st.infoLabel, { color: C.textTertiary }]}>Verwendung</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(data.reference ?? '')}</Text>
+                <Text selectable style={[st.infoValue, { color: C.text }]}>{String(data.reference ?? '')}</Text>
               </View>
             </>
           )}
@@ -65,7 +65,7 @@ export default function PaymentPrepareSheet({ visible, onClose, data, onOpenBank
               <View style={[st.infoDivider, { backgroundColor: C.border }]} />
               <View style={st.infoRow}>
                 <Text style={[st.infoLabel, { color: C.textTertiary }]}>Partner</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(data.partnerEmail ?? '')}</Text>
+                <Text selectable style={[st.infoValue, { color: C.text }]}>{String(data.partnerEmail ?? '')}</Text>
               </View>
             </>
           )}

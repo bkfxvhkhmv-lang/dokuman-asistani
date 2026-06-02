@@ -117,7 +117,6 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
   }, [status, activeScale]);
 
   const steps = useMemo(() => buildStepsWithLabels(stepLabels, activeIndex), [activeIndex, stepLabels]);
-  const currentStep = steps.find(step => step.state === 'active')?.label ?? T('ocr.status.step.prepared');
 
   return (
     <View style={st.shell}>
@@ -177,10 +176,6 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
           <Text style={st.footerText}>{T('ocr.status.secure')}</Text>
         </View>
       </View>
-
-      <Animated.Text style={[st.stageText, { opacity: pulse }]}>
-        {currentStep}
-      </Animated.Text>
     </View>
   );
 }

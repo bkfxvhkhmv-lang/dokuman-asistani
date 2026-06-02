@@ -4,7 +4,6 @@ import Icon from '@/components/Icon';
 import { AppCard } from '@/design/components';
 import { getTageVerbleibend } from '@/utils';
 import {
-  DASHBOARD_ALL_CLEAR_MARK,
   dashboardAttentionPrimary,
   getDashboardAllClearText,
   getDashboardEyebrowAllClear,
@@ -68,12 +67,14 @@ export default function HomeDashboardCards({
 
   return (
     <View style={{ paddingHorizontal: S.md, marginBottom: S.md }}>
-      {/* Hero card */}
-      <AppCard style={[st.heroCard, { backgroundColor: allClear ? C.success : C.primary }]} padding={S.lg} radius={18}>
+      {/* Hero card — always primary, all-clear uses a small indicator instead of large ✓ */}
+      <AppCard style={[st.heroCard, { backgroundColor: C.primary }]} padding={S.lg} radius={18}>
         <Text style={st.eyebrow}>{allClear ? getDashboardEyebrowAllClear() : getDashboardEyebrowBusy()}</Text>
         {allClear ? (
           <>
-            <Text style={st.heroNumber}>{DASHBOARD_ALL_CLEAR_MARK}</Text>
+            <View style={st.allClearIndicator}>
+              <Icon name="check-circle" size={16} color="rgba(255,255,255,0.85)" />
+            </View>
             <Text style={st.heroText}>{getDashboardAllClearText()}</Text>
           </>
         ) : (
@@ -150,9 +151,10 @@ export default function HomeDashboardCards({
 }
 
 const st = StyleSheet.create({
-  heroCard:        { marginBottom: 10 },
-  eyebrow:         { fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-  heroNumber:      { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  heroCard:          { marginBottom: 10 },
+  eyebrow:           { fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
+  heroNumber:        { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  allClearIndicator: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   heroText:        { fontSize: 12, color: 'rgba(255,255,255,0.80)', marginTop: 4, lineHeight: 17 },
   snippet:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 8 },
   workflowBox:     { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 4 },

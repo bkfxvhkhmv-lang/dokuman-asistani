@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: 60afd5481
 - Task type: fix / validation / docs
 - Scope: smart risk engine prose, detail next-step prose, enhancement recommendation prose, risk consumer views
 - Status: FOLLOW-UP COMPLETE
@@ -143,7 +143,7 @@
   - locale-specific prose coverage for all 7 languages is not fully exhaustive for the newly added key set
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: 60afd5481
 - commit message: `fix(i18n): complete runtime prose localization`
 
 ## 8. Follow-ups

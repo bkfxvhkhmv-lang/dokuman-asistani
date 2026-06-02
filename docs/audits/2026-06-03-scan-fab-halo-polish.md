@@ -1,7 +1,7 @@
 ## Metadata
 - Date: 2026-06-03
 - Scope: bottom scan FAB halo/glow only
-- Commit: pending
+- Commit: `7f01f1658` `style(nav): reduce scan FAB halo spread`
 
 ## Goal
 - Keep the scan button prominent

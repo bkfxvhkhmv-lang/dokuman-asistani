@@ -3,6 +3,8 @@ import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import type { Dokument } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 import { buildPdfExportBasename } from '@/utils/exportFilename';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
@@ -27,13 +29,14 @@ export async function runHandleOriginalTeilen(params: {
   openNotice: OpenNotice;
 }): Promise<void> {
   const { dok, openNotice } = params;
+  const lang = getLangSync();
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
   // Local document (OCR MVP, no cloud sync) — share local file directly
   if (!dok?.v4DocId) {
     const localUri = dok?.uri ?? dok?.pages?.[0]?.uri ?? null;
     if (!localUri) {
-      openNotice('Nicht verfügbar', 'Originaldatei nicht gefunden.');
+      openNotice(t(lang, 'sharing.notice.unavailable_title'), t(lang, 'sharing.notice.original_missing'));
       return;
     }
     try {
@@ -42,7 +45,7 @@ export async function runHandleOriginalTeilen(params: {
         await Sharing.shareAsync(localUri);
       }
     } catch (e: unknown) {
-      openNotice('Fehler', (e as Error).message || 'Datei konnte nicht geteilt werden.');
+      openNotice(t(lang, 'common.error'), (e as Error).message || t(lang, 'notice.share_error.body'));
     }
     return;
   }
@@ -52,7 +55,7 @@ export async function runHandleOriginalTeilen(params: {
     const shareFilename = `${buildPdfExportBasename(dok)}.pdf`;
     await shareOriginalFile(dok.v4DocId, shareFilename);
   } catch (e: unknown) {
-    openNotice('Fehler', (e as Error).message || 'Datei konnte nicht geteilt werden.');
+    openNotice(t(lang, 'common.error'), (e as Error).message || t(lang, 'notice.share_error.body'));
   }
 }
 
@@ -68,23 +71,24 @@ export async function runHandleSicherTeilenMitTTL(params: {
   openNotice: OpenNotice;
 }): Promise<void> {
   const { dok, ttl, modal, openNotice } = params;
+  const lang = getLangSync();
   if (!dok?.v4DocId) {
-    openNotice('Nicht verfügbar', 'Dieses Dokument wurde noch nicht mit V4 synchronisiert.');
+    openNotice(t(lang, 'sharing.notice.unavailable_title'), t(lang, 'sharing.notice.not_synced'));
     return;
   }
   try {
     const { createShareLink } = await import('@/services/v4Api');
     const res = await createShareLink(dok.v4DocId, ttl);
-    if (!res?.share_url) throw new Error('Es wurde kein Freigabelink zurückgegeben.');
+    if (!res?.share_url) throw new Error(t(lang, 'sharing.notice.no_link'));
     const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
     await Clipboard.setStringAsync(res.share_url);
     await Share.share({
-      message: `${displayTitle}\n\nBriefPilot Sicherer Link:\n${res.share_url}\n\nGültigkeit: ${ttl}`,
+      message: `${displayTitle}\n\n${t(lang, 'sharing.notice.secure_link_label')}\n${res.share_url}\n\n${t(lang, 'sharing.notice.valid_until', { ttl })}`,
       title: displayTitle,
     });
     modal.close();
   } catch (e: unknown) {
     console.error('[SicherTeilen]', e);
-    openNotice('Fehler', (e as Error)?.message || 'Link konnte nicht erstellt werden.');
+    openNotice(t(lang, 'common.error'), (e as Error)?.message || t(lang, 'notice.share_link_error.body'));
   }
 }

@@ -4,6 +4,8 @@ import type { Dokument, StoreAction } from '@/store';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 import { composePartnerPaymentNotice } from '@/features/detail/services/documentActionFlows';
 import { openBankingAppWithPayment } from '@/services/formFillerService';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 import { formatBetrag } from '@/utils/formatters';
 import { hasPaymentTarget } from '@/utils/documentGuards';
 import type { CommitOutcomeFn } from './types';
@@ -17,34 +19,35 @@ export function runHandleZahlen(params: {
   commitOutcome: CommitOutcomeFn;
 }): void {
   const { dok, dokId, dispatch, modal, router, commitOutcome } = params;
+  const lang = getLangSync();
   if (!dok) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   const hasRecipient = !!(dok.absender && !/^unbekannt/i.test(dok.absender.trim()));
   if (dok.betrag == null || !hasPaymentTarget(dok) || !hasRecipient) {
-    Alert.alert('Zahlungsdaten fehlen', 'Bitte Betrag, Empfänger und IBAN prüfen.');
+    Alert.alert(t(lang, 'payment.notice.missing_title'), t(lang, 'payment.notice.missing_body'));
     return;
   }
 
   modal.open('options', {
-    title: 'Zahlung vorbereiten',
+    title: t(lang, 'payment.sheet.title'),
     message: [
-      `Betrag: ${formatBetrag(dok.betrag, dok.waehrung || '€') ?? '—'}`,
-      `Empfänger: ${dok.absender}`,
-      `IBAN: ${dok.iban ?? '—'}`,
+      `${t(lang, 'payment.sheet.amount')}: ${formatBetrag(dok.betrag, dok.waehrung || '€') ?? '—'}`,
+      `${t(lang, 'payment.sheet.recipient')}: ${dok.absender}`,
+      `${t(lang, 'payment.sheet.iban')}: ${dok.iban ?? '—'}`,
     ].join('\n'),
     options: [
       {
-        text: 'Banking-App öffnen',
+        text: t(lang, 'payment.sheet.open_banking'),
         onPress: async () => {
           const result = await openBankingAppWithPayment(dok);
           if (result.opened) {
             modal.open('confirm', {
-              title: 'Zahlung abgeschlossen?',
-              message: 'Wenn die Überweisung erledigt ist, markieren wir das Dokument als erledigt.',
+              title: t(lang, 'payment.notice.completed_title'),
+              message: t(lang, 'payment.notice.completed_body'),
               actions: [
-                { text: 'Später' },
+                { text: t(lang, 'common.later') },
                 {
-                  text: 'Als erledigt markieren',
+                  text: t(lang, 'payment.notice.mark_done'),
                   onPress: () => {
                     dispatch({ type: 'MARK_ERLEDIGT', id: dokId });
                     commitOutcome('pay');
@@ -57,14 +60,14 @@ export function runHandleZahlen(params: {
           }
 
           modal.open('notice', {
-            title: 'Banking-App nicht gefunden',
+            title: t(lang, 'payment.notice.no_app_title'),
             message: result.copied
-              ? 'Die Zahlungsdaten wurden kopiert. Öffne deine Banking-App manuell und füge sie dort ein.'
-              : 'Es konnte keine Banking-App geöffnet werden.',
+              ? t(lang, 'payment.notice.no_app_copied')
+              : t(lang, 'payment.notice.no_app_body'),
           });
         },
       },
-      { text: 'Abbrechen', style: 'cancel' },
+      { text: t(lang, 'common.cancel'), style: 'cancel' },
     ],
   });
 }
@@ -79,35 +82,36 @@ export function runHandleZahlenMitPartner(params: {
   commitOutcome: CommitOutcomeFn;
 }): void {
   const { dok, dokId, partnerEmail, dispatch, modal, router, commitOutcome } = params;
+  const lang = getLangSync();
   if (!dok) return;
   const hasRecipient = !!(dok.absender && !/^unbekannt/i.test(dok.absender.trim()));
   if (dok.betrag == null || !hasPaymentTarget(dok) || !hasRecipient) {
-    Alert.alert('Zahlungsdaten fehlen', 'Bitte Betrag, Empfänger und IBAN prüfen.');
+    Alert.alert(t(lang, 'payment.notice.missing_title'), t(lang, 'payment.notice.missing_body'));
     return;
   }
 
   modal.open('options', {
-    title: 'Zahlung vorbereiten',
+    title: t(lang, 'payment.sheet.title'),
     message: [
-      `Betrag: ${formatBetrag(dok.betrag, dok.waehrung || '€') ?? '—'}`,
-      `Empfänger: ${dok.absender}`,
-      `IBAN: ${dok.iban ?? '—'}`,
-      partnerEmail ? `Partner: ${partnerEmail}` : null,
+      `${t(lang, 'payment.sheet.amount')}: ${formatBetrag(dok.betrag, dok.waehrung || '€') ?? '—'}`,
+      `${t(lang, 'payment.sheet.recipient')}: ${dok.absender}`,
+      `${t(lang, 'payment.sheet.iban')}: ${dok.iban ?? '—'}`,
+      partnerEmail ? `${t(lang, 'payment.sheet.partner')}: ${partnerEmail}` : null,
     ].filter(Boolean).join('\n'),
     options: [
       {
-        text: 'Banking-App öffnen',
+        text: t(lang, 'payment.sheet.open_banking'),
         onPress: async () => {
           const result = await openBankingAppWithPayment(dok);
           if (result.opened) {
             await composePartnerPaymentNotice(dok, partnerEmail ?? undefined);
             modal.open('confirm', {
-              title: 'Zahlung abgeschlossen?',
-              message: 'Wenn die Überweisung erledigt ist, markieren wir das Dokument als erledigt.',
+              title: t(lang, 'payment.notice.completed_title'),
+              message: t(lang, 'payment.notice.completed_body'),
               actions: [
-                { text: 'Später' },
+                { text: t(lang, 'common.later') },
                 {
-                  text: 'Als erledigt markieren',
+                  text: t(lang, 'payment.notice.mark_done'),
                   onPress: () => {
                     dispatch({ type: 'MARK_ERLEDIGT', id: dokId });
                     commitOutcome('pay', {
@@ -122,14 +126,14 @@ export function runHandleZahlenMitPartner(params: {
           }
 
           modal.open('notice', {
-            title: 'Banking-App nicht gefunden',
+            title: t(lang, 'payment.notice.no_app_title'),
             message: result.copied
-              ? 'Die Zahlungsdaten wurden kopiert. Öffne deine Banking-App manuell und füge sie dort ein.'
-              : 'Es konnte keine Banking-App geöffnet werden.',
+              ? t(lang, 'payment.notice.no_app_copied')
+              : t(lang, 'payment.notice.no_app_body'),
           });
         },
       },
-      { text: 'Abbrechen', style: 'cancel' },
+      { text: t(lang, 'common.cancel'), style: 'cancel' },
     ],
   });
 }

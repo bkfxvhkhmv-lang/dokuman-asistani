@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 export interface SheetAction {
   label: string;
@@ -16,6 +18,7 @@ export interface SheetConfig {
 
 export function useSheet() {
   const [config, setConfig] = useState<SheetConfig | null>(null);
+  const LT = useCallback((key: string, vars?: Record<string, string | number>) => t(getLangSync(), key, vars), []);
 
   const showSheet = useCallback((sheetConfig: SheetConfig) => {
     setConfig(sheetConfig);
@@ -35,17 +38,17 @@ export function useSheet() {
       message,
       icon: opts?.icon ?? 'information-circle',
       tone: opts?.tone ?? 'default',
-      actions: [{ label: 'OK', variant: 'primary', onPress: () => setConfig(null) }],
+      actions: [{ label: LT('common.ok'), variant: 'primary', onPress: () => setConfig(null) }],
     });
-  }, []);
+  }, [LT]);
 
   const confirm = useCallback(({
     title,
     message,
     icon = 'alert-circle',
     tone = 'warning' as const,
-    cancelLabel = 'Abbrechen',
-    confirmLabel = 'Bestätigen',
+    cancelLabel = LT('common.cancel'),
+    confirmLabel = LT('common.confirm'),
     dangerConfirm = false,
   }: {
     title: string;
@@ -76,7 +79,7 @@ export function useSheet() {
         ],
       });
     });
-  }, []);
+  }, [LT]);
 
   return { config, showSheet, hideSheet, alert, confirm };
 }

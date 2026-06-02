@@ -13,6 +13,7 @@ import { useScan } from '@/features/scan/context/ScanContext';
 import type { CameraViewProps } from '@/features/scan/components/camera-view/types';
 import { runQualityGateFromCorners } from '@/modules/scanner/engine/camera-quality-gate';
 import { getStatusText } from '@/modules/scanner/engine/camera-overlay-color';
+import { useT } from '@/hooks/useT';
 
 export type {
   StabilityState,
@@ -59,6 +60,7 @@ const hintStyles = StyleSheet.create({
 });
 
 export default function CameraView(props: CameraViewProps) {
+  const { t: T } = useT();
   const {
     cameraRef, hasPermission, onRequestPermission, onOpenGallery,
     stability,
@@ -172,8 +174,8 @@ export default function CameraView(props: CameraViewProps) {
 
   // Toast-Text: manuell vs. automatisch unterscheiden
   const captureToastText = captureToastSource === 'auto'
-    ? '⚡ Auto aufgenommen'
-    : '✓ Dokument aufgenommen';
+    ? T('scan.camera.auto_captured')
+    : T('scan.camera.captured');
 
   const hintText = showCaptureToast
     ? captureToastText
@@ -218,7 +220,7 @@ export default function CameraView(props: CameraViewProps) {
             <View key={i} style={[styles.corner, cornerStyle, { borderColor: cornerColor }]} />
           ))}
           {!showCaptureToast && (
-            <Text style={styles.guideLabel}>Dokument hier{'\n'}einrahmen</Text>
+            <Text style={styles.guideLabel}>{T('scan.camera.guide')}</Text>
           )}
         </Animated.View>
       )}
@@ -231,10 +233,10 @@ export default function CameraView(props: CameraViewProps) {
           {showCountdown ? (
             <View style={hintStyles.countdownPill}>
               <View style={[hintStyles.countdownFill, { width: `${autoCaptureReadiness!.countdownProgress * 100}%` as any }]} />
-              <Text style={hintStyles.countdownText}>Auto in {countdownSecsLeft}s</Text>
+              <Text style={hintStyles.countdownText}>{T('scan.camera.auto_in', { seconds: countdownSecsLeft ?? '0.0' })}</Text>
             </View>
           ) : (
-            <Text style={[hintStyles.text, hintStyles.autoIdleText]}>AUTO</Text>
+            <Text style={[hintStyles.text, hintStyles.autoIdleText]}>{T('scan.camera.auto')}</Text>
           )}
         </View>
       ) : null}

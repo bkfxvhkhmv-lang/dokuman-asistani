@@ -2,6 +2,9 @@
  * Display-only sanitization for OCR-extracted fields.
  * Never modifies stored data — only what the user sees in cards/lists.
  */
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
+import { normalizeSender } from '@/utils/senderNormalization';
 
 // ── Title humanization (shared across app) ───────────────────────────────────
 
@@ -12,11 +15,11 @@ function safeDecode(text: string): string {
 const FILE_EXT_RE = /\.(pdf|jpg|jpeg|png|xlsx|csv|docx|doc|txt)$/i;
 
 const TECH_FILENAME_MAP: { re: RegExp; label: string }[] = [
-  { re: /^image_\d+$/i,       label: 'Dokument aus Fotos' },
-  { re: /^photo_\d+$/i,       label: 'Foto aufgenommen' },
-  { re: /^IMG[_-]?\d+$/i,     label: 'Bild ausgewählt' },
-  { re: /^input(_full)?$/i,   label: 'Analysiertes Dokument' },
-  { re: /^Scan\s+\d{6,}$/i,   label: 'Analysiertes Dokument' },
+  { re: /^image_\d+$/i,       label: 'display.fallback.from_photos' },
+  { re: /^photo_\d+$/i,       label: 'display.fallback.photo_taken' },
+  { re: /^IMG[_-]?\d+$/i,     label: 'display.fallback.image_selected' },
+  { re: /^input(_full)?$/i,   label: 'display.fallback.analyzed_document' },
+  { re: /^Scan\s+\d{6,}$/i,   label: 'display.fallback.analyzed_document' },
 ];
 
 const TECH_SUFFIX_RE = /_[a-z]{2}[0-9a-f]{4,}$/i;
@@ -54,20 +57,21 @@ function toTitleCase(text: string): string {
 
 export function humanizeTitle(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  let t = safeDecode(raw.trim());
-  t = t.replace(FILE_EXT_RE, '');
+  const lang = getLangSync();
+  let text = safeDecode(raw.trim());
+  text = text.replace(FILE_EXT_RE, '');
   for (const { re, label } of TECH_FILENAME_MAP) {
-    if (re.test(t)) return label;
+    if (re.test(text)) return t(lang, label);
   }
-  t = t.replace(TECH_SUFFIX_RE, '');
-  t = t.replace(/[_-]/g, ' ');
+  text = text.replace(TECH_SUFFIX_RE, '');
+  text = text.replace(/[_-]/g, ' ');
   for (const [re, expanded] of ABBREV_MAP) {
-    t = t.replace(re, expanded);
+    text = text.replace(re, expanded);
   }
-  t = t.replace(/\s+/g, ' ').trim();
-  if (t.length < 3) return null;
+  text = text.replace(/\s+/g, ' ').trim();
+  if (text.length < 3) return null;
   // Apply conservative OCR title cleanup before final casing
-  const sanitized = sanitizeOcrTitleRaw(t);
+  const sanitized = sanitizeOcrTitleRaw(text);
   return toTitleCase(sanitized);
 }
 
@@ -78,16 +82,15 @@ export function humanizeTitle(raw: string | null | undefined): string | null {
  * Only decodes and normalizes — does not infer missing spaces or reformat.
  */
 export function safeDisplayDocumentTitleForExport(value: string | null | undefined): string {
-  if (!value || value.trim().length === 0) return 'Unbekanntes Dokument';
+  const lang = getLangSync();
+  if (!value || value.trim().length === 0) return t(lang, 'display.fallback.unknown_document');
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { decoded = value; }
   const normalized = decoded.replace(/\s+/g, ' ').trim();
-  return normalized.length > 0 ? normalized : 'Unbekanntes Dokument';
+  return normalized.length > 0 ? normalized : t(lang, 'display.fallback.unknown_document');
 }
 
 // ── Absender / Titel display sanitization ────────────────────────────────────
-
-import { normalizeSender } from '@/utils/senderNormalization';
 
 function isLikelyGarbled(s: string): boolean {
   const t = s.trim();
@@ -168,26 +171,27 @@ export function safeDisplayTitel(
   typ?: string | null,
   confidence?: number | null,
 ): string {
-  if (!titel || titel.trim().length === 0) return typ || 'Unbekanntes Dokument';
+  const lang = getLangSync();
+  if (!titel || titel.trim().length === 0) return typ || t(lang, 'display.fallback.unknown_document');
   if (confidence !== null && confidence !== undefined && confidence < 45) {
-    return typ || 'Unbekanntes Dokument';
+    return typ || t(lang, 'display.fallback.unknown_document');
   }
   // Stored scan IDs (e.g. "Scan 1780169901922") — use document type as title instead.
   if (/^Scan[\s_]+\d{6,}$/i.test(titel.trim())) {
-    const t = typ?.trim();
-    return (t && !/^unbekannt$/i.test(t)) ? t : 'Neues Dokument';
+    const trimmedTyp = typ?.trim();
+    return (trimmedTyp && !/^unbekannt$/i.test(trimmedTyp)) ? trimmedTyp : t(lang, 'display.fallback.new_document');
   }
   const humanized = humanizeTitle(titel);
   const candidate = (humanized ?? titel.trim()).trim();
   if (RESERVED_DISPLAY_TITLES.has(candidate.toLowerCase())) {
-    return typ || 'Unbekanntes Dokument';
+    return typ || t(lang, 'display.fallback.unknown_document');
   }
   if (GENERIC_DATE_ONLY_RE.test(candidate)) {
     const fallbackTyp = typ?.trim();
     if (fallbackTyp && fallbackTyp.length > 0 && !/^unbekannt$/i.test(fallbackTyp)) {
       return fallbackTyp;
     }
-    return 'Neues Dokument';
+    return t(lang, 'display.fallback.new_document');
   }
   return candidate;
 }

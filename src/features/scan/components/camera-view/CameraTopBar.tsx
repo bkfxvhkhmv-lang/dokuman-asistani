@@ -18,11 +18,11 @@ export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarPro
   const handleClose = () => {
     if (pageCount > 0) {
       Alert.alert(
-        'Scan abbrechen?',
-        `${pageCount} ${pageCount === 1 ? 'Seite' : 'Seiten'} werden verworfen.`,
+        T('scan.camera.abort_title'),
+        T(pageCount === 1 ? 'scan.camera.abort_body_single' : 'scan.camera.abort_body_multi', { n: pageCount }),
         [
-          { text: 'Weiterscannen', style: 'cancel' },
-          { text: 'Abbrechen', style: 'destructive', onPress: onClose },
+          { text: T('scan.camera.continue'), style: 'cancel' },
+          { text: T('common.cancel'), style: 'destructive', onPress: onClose },
         ],
       );
     } else {
@@ -45,7 +45,7 @@ export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarPro
       </TouchableOpacity>
 
       <TouchableOpacity onPress={toggleAutoCapture} hitSlop={HIT_SLOP_LG} style={[st.autoBtn, autoCapture && st.autoBtnActive]}>
-        <Text style={[st.autoBtnLabel, autoCapture && st.autoBtnLabelActive]}>AUTO</Text>
+        <Text style={[st.autoBtnLabel, autoCapture && st.autoBtnLabelActive]}>{T('scan.camera.auto')}</Text>
       </TouchableOpacity>
     </View>
   );

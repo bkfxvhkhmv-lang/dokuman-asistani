@@ -1,4 +1,6 @@
 import * as MailComposer from 'expo-mail-composer';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 import { formatBetrag, formatFrist, genEinspruchText, exportierePDFZuDatei } from '@/utils';
 import { openBankingAppWithPayment } from '@/services/formFillerService';
 import type { Dokument } from '@/store';
@@ -15,33 +17,35 @@ function hasKnownSender(dok: DokumentErweitert): boolean {
 }
 
 function buildFallbackSubject(dok: DokumentErweitert): string {
+  const lang = getLangSync();
   const title = displayTitleFor(dok);
-  const genericTitle = /^unbekannt/i.test(title) ? 'Dokument' : title;
-  if (hasKnownSender(dok)) return `${dok.absender!.trim()} — ${genericTitle}`;
-  return `${genericTitle} zur Prüfung`;
+  const genericTitle = /^unbekannt/i.test(title) ? t(lang, 'display.fallback.document') : title;
+  if (hasKnownSender(dok)) return t(lang, 'action_flow.fallback_subject_sender', { sender: dok.absender!.trim(), title: genericTitle });
+  return t(lang, 'action_flow.fallback_subject_review', { title: genericTitle });
 }
 
 // Only feminine nouns that are grammatically safe with "die" — everything else uses "das Dokument".
 const DIE_TYPEN = new Set(['Rechnung', 'Mahnung', 'Versicherung', 'Abrechnung', 'Nebenkostenabrechnung']);
 
 function buildFallbackBody(dok: DokumentErweitert): string {
+  const lang = getLangSync();
   const label = DIE_TYPEN.has(dok.typ ?? '')
-    ? `die ${dok.typ}`
-    : 'das Dokument';
+    ? t(lang, 'action_flow.fallback_doc_label_type', { type: dok.typ ?? t(lang, 'display.fallback.document') })
+    : t(lang, 'action_flow.fallback_doc_label_document');
 
   const hintParts = [
-    dok.frist ? `Frist bis ${formatFrist(dok.frist)}` : null,
-    dok.betrag ? `Betrag ${formatBetrag(dok.betrag)}` : null,
-    dok.aktenzeichen ? `Aktenzeichen ${dok.aktenzeichen}` : null,
+    dok.frist ? t(lang, 'action_flow.hint_deadline', { date: formatFrist(dok.frist) }) : null,
+    dok.betrag ? t(lang, 'action_flow.hint_amount', { amount: formatBetrag(dok.betrag) ?? '' }) : null,
+    dok.aktenzeichen ? t(lang, 'action_flow.hint_reference', { reference: dok.aktenzeichen }) : null,
   ].filter(Boolean);
 
   return [
-    'Hallo,',
+    t(lang, 'action_flow.mail_greeting'),
     '',
-    `im Anhang findest du ${label} zur Prüfung.`,
-    ...(hintParts.length ? ['', `Hinweis: ${hintParts.join(' · ')}.`] : []),
+    t(lang, 'action_flow.fallback_body_intro', { label }),
+    ...(hintParts.length ? ['', t(lang, 'action_flow.fallback_body_hint', { hints: hintParts.join(' · ') })] : []),
     '',
-    'Viele Grüße',
+    t(lang, 'action_flow.mail_signoff'),
   ].join('\n');
 }
 
@@ -57,36 +61,51 @@ const INSTITUTION_SEND_PROFILES: SendProfile[] = [
   {
     match: /finanzamt/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Steuersache${dok.aktenzeichen ? ` — AZ ${dok.aktenzeichen}` : ''} — ${displayTitleFor(dok)}`,
+    subjectTemplate: ({ dok }) => t(getLangSync(), 'action_flow.profile.finanzamt.subject', {
+      refPart: dok.aktenzeichen ? ` — AZ ${dok.aktenzeichen}` : '',
+      title: displayTitleFor(dok),
+    }),
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nanbei erhalten Sie das Dokument "${displayTitleFor(dok)}".${
-        dok.aktenzeichen ? `\nAktenzeichen: ${dok.aktenzeichen}` : ''
-      }\n\nBitte bestätigen Sie kurz den Eingang.\n\nMit freundlichen Grüßen`,
+      t(getLangSync(), 'action_flow.profile.finanzamt.body', {
+        title: displayTitleFor(dok),
+        referenceLine: dok.aktenzeichen ? `\n${t(getLangSync(), 'action_flow.reference_line', { reference: dok.aktenzeichen })}` : '',
+      }),
   },
   {
     match: /ordnungsamt|stadt|bußgeldstelle/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Rückmeldung zum Vorgang${dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : ''}`,
+    subjectTemplate: ({ dok }) => t(getLangSync(), 'action_flow.profile.authority.subject', {
+      refPart: dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : '',
+    }),
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nbezugnehmend auf "${displayTitleFor(dok)}" übersende ich Ihnen das beigefügte Dokument.${
-        dok.aktenzeichen ? `\nAktenzeichen: ${dok.aktenzeichen}` : ''
-      }\n\nMit freundlichen Grüßen`,
+      t(getLangSync(), 'action_flow.profile.authority.body', {
+        title: displayTitleFor(dok),
+        referenceLine: dok.aktenzeichen ? `\n${t(getLangSync(), 'action_flow.reference_line', { reference: dok.aktenzeichen })}` : '',
+      }),
   },
   {
     match: /beitragsservice|ard zdf deutschlandradio/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Beitragsservice${dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : ''} — ${displayTitleFor(dok)}`,
+    subjectTemplate: ({ dok }) => t(getLangSync(), 'action_flow.profile.beitragsservice.subject', {
+      refPart: dok.aktenzeichen ? ` — ${dok.aktenzeichen}` : '',
+      title: displayTitleFor(dok),
+    }),
     bodyTemplate: ({ dok }) =>
-      `Sehr geehrte Damen und Herren,\n\nim Anhang finden Sie die Unterlagen zu "${displayTitleFor(dok)}".\n\nIch bitte um kurze Rückmeldung zum Eingang.\n\nMit freundlichen Grüßen`,
+      t(getLangSync(), 'action_flow.profile.beitragsservice.body', {
+        title: displayTitleFor(dok),
+      }),
   },
   {
     match: /versicherung|assekuranz|krankenkasse/i,
     preferredChannel: 'email', requiresAttachment: true,
-    subjectTemplate: ({ dok }) => `Unterlagen zu ${displayTitleFor(dok)}`,
+    subjectTemplate: ({ dok }) => t(getLangSync(), 'action_flow.profile.insurance.subject', {
+      title: displayTitleFor(dok),
+    }),
     bodyTemplate: ({ dok }) =>
-      `Guten Tag,\n\nanbei sende ich Ihnen die Unterlagen zu "${displayTitleFor(dok)}".${
-        dok.aktenzeichen ? `\nReferenz: ${dok.aktenzeichen}` : ''
-      }\n\nMit freundlichen Grüßen`,
+      t(getLangSync(), 'action_flow.profile.insurance.body', {
+        title: displayTitleFor(dok),
+        referenceLine: dok.aktenzeichen ? `\n${t(getLangSync(), 'action_flow.reference_short_line', { reference: dok.aktenzeichen })}` : '',
+      }),
   },
 ];
 
@@ -109,10 +128,11 @@ interface PaymentSheetOptions {
 }
 
 export function buildPaymentSheetData(dok: DokumentErweitert, { partnerEmail = null, onMarkPaid }: PaymentSheetOptions = {}) {
+  const lang = getLangSync();
   return {
-    title:        'Zahlung vorbereiten',
-    amount:       dok.betrag ? formatBetrag(dok.betrag) : 'Kein Betrag erkannt',
-    recipient:    dok.absender || 'Unbekannter Empfänger',
+    title:        t(lang, 'payment.sheet.title'),
+    amount:       dok.betrag ? formatBetrag(dok.betrag) : t(lang, 'payment.sheet.no_amount'),
+    recipient:    dok.absender || t(lang, 'payment.sheet.unknown_recipient'),
     iban:         dok.iban || '',
     reference:    dok.aktenzeichen || displayTitleFor(dok) || '',
     partnerEmail,
@@ -153,7 +173,7 @@ export function buildInstitutionMailDraft(dok: DokumentErweitert) {
 
 export async function composeInstitutionMailWithAttachment(dok: DokumentErweitert): Promise<void> {
   const available = await MailComposer.isAvailableAsync();
-  if (!available) throw new Error('Bitte richten Sie eine E-Mail-App ein.');
+  if (!available) throw new Error(t(getLangSync(), 'action_flow.mail_app_missing'));
 
   const attachments = await resolveMailAttachmentUris(dok);
   const draft = buildInstitutionMailDraft(dok);
@@ -167,12 +187,15 @@ export async function composeInstitutionMailWithAttachment(dok: DokumentErweiter
 
 export async function composePartnerPaymentNotice(dok: DokumentErweitert, partnerEmail?: string): Promise<void> {
   if (!partnerEmail) return;
+  const lang = getLangSync();
 
   await MailComposer.composeAsync({
     recipients: [partnerEmail],
-    subject: `Zahlung: ${displayTitleFor(dok)}`,
-    body: `Hallo,\n\n${displayTitleFor(dok)}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag)}\n` : ''}${
-      dok.frist ? `Frist: ${formatFrist(dok.frist)}\n` : ''
-    }\n\n---\nBriefPilot`,
+    subject: t(lang, 'action_flow.partner_payment.subject', { title: displayTitleFor(dok) }),
+    body: t(lang, 'action_flow.partner_payment.body', {
+      title: displayTitleFor(dok),
+      amountLine: dok.betrag ? `${t(lang, 'payment.sheet.amount')}: ${formatBetrag(dok.betrag)}\n` : '',
+      deadlineLine: dok.frist ? `${t(lang, 'action_flow.deadline_label')}: ${formatFrist(dok.frist)}\n` : '',
+    }),
   });
 }

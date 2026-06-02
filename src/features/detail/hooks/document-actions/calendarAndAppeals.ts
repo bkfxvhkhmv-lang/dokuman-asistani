@@ -6,6 +6,8 @@ import {
   buildEinspruchSheetText,
   composeInstitutionMailWithAttachment,
 } from '@/features/detail/services/documentActionFlows';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 import { addToCalendar, scheduleFristLocalNotifications, exportierePDF } from '@/utils';
 import type { ActionSessionPayload, CommitOutcomeFn } from './types';
 
@@ -18,21 +20,22 @@ export async function runHandleKalender(params: {
   dokId?: string;
 }): Promise<void> {
   const { dok, openNotice, dispatch, dokId } = params;
+  const lang = getLangSync();
   if (!dok?.frist) {
-    openNotice('Kein Datum', 'Dieses Dokument hat kein Fälligkeitsdatum.');
+    openNotice(t(lang, 'calendar.notice.no_date_title'), t(lang, 'calendar.notice.no_date_body'));
     return;
   }
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   const ok = await addToCalendar(dok);
   if (!ok) {
-    openNotice('Kalender', 'Zugriff verweigert oder kein beschreibbarer Kalender gefunden.');
+    openNotice(t(lang, 'calendar.notice.unavailable_title'), t(lang, 'calendar.notice.unavailable_body'));
     return;
   }
   if (dispatch && dokId) {
     dispatch({ type: 'UPDATE_DOKUMENT', payload: { id: dokId, fristImKalender: true } });
   }
   await scheduleFristLocalNotifications({ ...dok, fristImKalender: true });
-  openNotice('Kalender & Erinnerungen', 'Termin eingetragen. Lokale Hinweise wurden geplant.');
+  openNotice(t(lang, 'calendar.notice.success_title'), t(lang, 'calendar.notice.success_body'));
 }
 
 export function runHandleEinspruch(dok: Dokument | undefined, modal: ModalController): void {
@@ -49,34 +52,36 @@ export async function runHandleMailTaslak(params: {
   commitOutcome: CommitOutcomeFn;
 }): Promise<void> {
   const { dok, openNotice, onActionSessionStart, commitOutcome } = params;
+  const lang = getLangSync();
   if (!dok) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   try {
     await composeInstitutionMailWithAttachment(dok);
     onActionSessionStart?.({
       actionType: 'mail',
-      title: 'E-Mail fertiggestellt?',
-      message: 'Wenn Sie den Entwurf fertig bearbeitet oder gesendet haben, markieren wir diesen Schritt direkt.',
+      title: t(lang, 'calendar.notice.mail_done_title'),
+      message: t(lang, 'calendar.notice.mail_done_body'),
       onConfirm: () => commitOutcome('mail'),
     });
   } catch (e: unknown) {
-    openNotice('E-Mail nicht verfügbar', (e as Error)?.message || 'Bitte richten Sie eine E-Mail-App ein.');
+    openNotice(t(lang, 'calendar.notice.mail_unavailable_title'), (e as Error)?.message || t(lang, 'calendar.notice.mail_unavailable_body'));
   }
 }
 
 export async function runHandlePDF(dok: Dokument | undefined, openNotice: OpenNotice): Promise<void> {
+  const lang = getLangSync();
   if (!dok) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   try {
     await exportierePDF(dok);
   } catch (e) {
     if (e instanceof Error && e.message === 'BRIEFPILOT_PDF_TOO_SMALL') {
-      openNotice('PDF', 'Die Datei wirkt leer oder zu klein. Bitte erneut versuchen.');
+      openNotice(t(lang, 'calendar.notice.pdf_title'), t(lang, 'calendar.notice.pdf_too_small'));
     } else if (e instanceof Error && e.message === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
-      openNotice('Teilen nicht verfügbar', 'Die Datei wurde erstellt, kann auf diesem Gerät aber gerade nicht geteilt werden.');
+      openNotice(t(lang, 'notice.share_unavailable.title'), t(lang, 'notice.share_unavailable.body'));
     } else {
       console.warn('[runHandlePDF]', e);
-      openNotice('Export fehlgeschlagen', 'Bitte versuche es erneut.');
+      openNotice(t(lang, 'calendar.notice.export_failed_title'), t(lang, 'calendar.notice.export_failed_body'));
     }
   }
 }

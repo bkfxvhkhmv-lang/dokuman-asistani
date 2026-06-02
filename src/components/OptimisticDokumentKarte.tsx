@@ -4,7 +4,7 @@
  * Shown in the list immediately after the user taps "Process All".
  * Renders:
  *   - Photo thumbnail (left column)
- *   - "Wird analysiert…" with animated dots
+ *   - localized analyzing label with animated dots
  *   - Skia data-stream lines (or Animated shimmer fallback)
  *   - Circular progress ring that fills over time
  *
@@ -16,6 +16,7 @@ import { View, Text, Image, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store';
+import { useT } from '@/hooks/useT';
 
 // ── Skia data-stream (optional, try-require) ──────────────────────────────
 
@@ -115,6 +116,7 @@ interface Props {
 
 export default function OptimisticDokumentKarte({ dok }: Props) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
   const accent = Colors.primary;
 
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -142,7 +144,7 @@ export default function OptimisticDokumentKarte({ dok }: Props) {
       {/* Right: content */}
       <View style={st.content}>
         <View style={st.topRow}>
-          <Text style={[st.label, { color: Colors.textSecondary }]}>Wird analysiert</Text>
+          <Text style={[st.label, { color: Colors.textSecondary }]}>{T('scan.optimistic.analyzing')}</Text>
           <AnimatedDots color={accent} />
         </View>
 

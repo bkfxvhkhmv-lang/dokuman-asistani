@@ -28,7 +28,7 @@ export function useSearchState(docs: Dokument[]) {
   const [suchVerlauf, setSuchVerlauf] = useState<string[]>([]);
   const [v4Modus, setV4Modus]         = useState(false);
   const [ftsWeight, setFtsWeight]     = useState(0.5);
-  const [chipTapped, setChipTapped]   = useState(false);
+  const [chipTapped, setChipTapped]   = useState(true);
   const v4Timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

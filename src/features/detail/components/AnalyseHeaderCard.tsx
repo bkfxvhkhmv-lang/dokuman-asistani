@@ -75,7 +75,7 @@ export default function AnalyseHeaderCard({ dok }: Props) {
         paddingHorizontal: S.lg, paddingTop: 16, paddingBottom: 8,
       }}>
         <View style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: sc.bg }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{statusUi.label}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: sc.text }}>{TT(statusUi.labelKey)}</Text>
         </View>
         {status !== 'needs_review' && conf != null && (reviewLabel || conf >= 75) && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

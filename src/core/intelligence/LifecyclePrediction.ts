@@ -7,6 +7,8 @@
  */
 import { InstitutionBehaviorModel, type InstitutionSuggestion } from '@/core/intelligence/InstitutionBehaviorModel';
 import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 
@@ -33,13 +35,13 @@ export interface LifecyclePrediction {
 
 // ── Sabitler ──────────────────────────────────────────────────────────────────
 
-const PHASE_LABELS: Record<LifecyclePhase, string> = {
-  received:      'Eingegangen',
-  reviewing:     'In Prüfung',
-  action_needed: 'Handlung nötig',
-  waiting:       'Warte auf Antwort',
-  resolved:      'Erledigt',
-  overdue:       'Frist überschritten',
+const PHASE_LABEL_KEYS: Record<LifecyclePhase, string> = {
+  received:      'detail.lifecycle.phase.received',
+  reviewing:     'detail.status.in_review',
+  action_needed: 'detail.status.action_needed',
+  waiting:       'detail.lifecycle.phase.waiting',
+  resolved:      'detail.status.done',
+  overdue:       'doc.overdue',
 };
 
 const PHASE_ICONS: Record<LifecyclePhase, string> = {
@@ -51,11 +53,11 @@ const PHASE_ICONS: Record<LifecyclePhase, string> = {
   overdue:       'warning-octagon',
 };
 
-const NEXT_ACTION_MAP: Partial<Record<string, { action: string; emoji: string }>> = {
-  zahlen:    { action: 'Zahlung erforderlich',   emoji: 'currency-eur' },
-  einspruch: { action: 'Einspruch prüfen',       emoji: 'pencil-simple' },
-  kalender:  { action: 'Kalender eintragen',     emoji: 'calendar-blank' },
-  mail:      { action: 'Per E-Mail antworten',   emoji: 'envelope-simple' },
+const NEXT_ACTION_MAP: Partial<Record<string, { actionKey: string; emoji: string }>> = {
+  zahlen:    { actionKey: 'detail.lifecycle.action.zahlen',    emoji: 'currency-eur' },
+  einspruch: { actionKey: 'detail.lifecycle.action.einspruch', emoji: 'pencil-simple' },
+  kalender:  { actionKey: 'detail.lifecycle.action.kalender',  emoji: 'calendar-blank' },
+  mail:      { actionKey: 'detail.lifecycle.action.mail',      emoji: 'envelope-simple' },
 };
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────
@@ -136,11 +138,12 @@ export class LifecyclePredictionEngine {
     if (dok.typ === 'Mahnung')   reasoning.push('Mahnung → ödeme veya itiraz gerekebilir');
     if (dok.typ === 'Bußgeld')   reasoning.push('Bußgeld → genellikle ödeme veya Einspruch');
 
+    const lang = getLangSync();
     return {
       phase,
-      phaseLabel:         PHASE_LABELS[phase],
+      phaseLabel:         t(lang, PHASE_LABEL_KEYS[phase]),
       phaseIcon:          PHASE_ICONS[phase],
-      nextAction:         actionInfo?.action ?? null,
+      nextAction:         actionInfo ? t(lang, actionInfo.actionKey) : null,
       nextActionEmoji:    actionInfo?.emoji  ?? null,
       predictedFristDays,
       predictedBetrag,
@@ -165,12 +168,13 @@ export class LifecyclePredictionEngine {
 
   static async summarize(dok: Record<string, any>): Promise<string> {
     const p = await this.predict(dok);
+    const lang = getLangSync();
     const parts = [p.phaseLabel];
     if (p.nextAction) parts.push(p.nextAction);
     if (p.predictedFristDays !== null) {
-      if (p.predictedFristDays < 0) parts.push('Frist abgelaufen');
-      else if (p.predictedFristDays === 0) parts.push('Heute fällig');
-      else parts.push(`${p.predictedFristDays} Tage verbleibend`);
+      if (p.predictedFristDays < 0) parts.push(t(lang, 'doc.overdue'));
+      else if (p.predictedFristDays === 0) parts.push(t(lang, 'doc.due_today'));
+      else parts.push(t(lang, 'doc.due_days', { n: p.predictedFristDays }));
     }
     return parts.join(' · ');
   }

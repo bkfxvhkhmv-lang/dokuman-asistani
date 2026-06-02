@@ -10,15 +10,15 @@ import { needsManualReview } from '@/utils/documentGuards';
 export type DocumentStatus = 'urgent' | 'open' | 'needs_review' | 'done';
 
 export interface DocumentStatusUi {
-  label: string;
+  labelKey: string;
   colorKey: 'danger' | 'warning' | 'success' | 'textSecondary';
 }
 
 export const DOCUMENT_STATUS_UI: Record<DocumentStatus, DocumentStatusUi> = {
-  urgent:       { label: 'Dringend',    colorKey: 'danger' },
-  open:         { label: 'Offen',       colorKey: 'warning' },
-  needs_review: { label: 'Prüfen',      colorKey: 'warning' },
-  done:         { label: 'Erledigt',    colorKey: 'success' },
+  urgent:       { labelKey: 'doc.urgent_label',   colorKey: 'danger'  },
+  open:         { labelKey: 'home.filter.open',   colorKey: 'warning' },
+  needs_review: { labelKey: 'review.label',       colorKey: 'warning' },
+  done:         { labelKey: 'detail.status.done', colorKey: 'success' },
 };
 
 /**

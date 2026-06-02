@@ -56,7 +56,6 @@ export function useDetailMoreItems({
       key: 'menu_edit',
       icon: 'pencil-simple',
       label: t('common.edit'),
-      subtitle: t('detail.action.edit_subtitle'),
       group: 'secondary',
       onPress: tap(actions.handleEdit),
     });

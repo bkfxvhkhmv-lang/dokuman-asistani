@@ -25,12 +25,12 @@ type Props = {
 const SECTIONS: { labelKey: string; keys: string[]; primaryKeys?: string[] }[] = [
   {
     labelKey: 'detail.section.share_export',
-    keys: ['menu_exportieren', 'menu_vorlage', 'menu_signpdf', 'menu_revert_sig', 'menu_partner'],
+    keys: ['menu_exportieren', 'menu_vorlage', 'menu_signpdf', 'menu_partner'],
     primaryKeys: ['menu_exportieren'],
   },
   {
     labelKey: 'detail.section.edit',
-    keys: ['menu_edit', 'menu_budget'],
+    keys: ['menu_edit', 'menu_revert_sig', 'menu_budget'],
     primaryKeys: ['menu_budget'],
   },
   {

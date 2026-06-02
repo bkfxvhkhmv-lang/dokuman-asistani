@@ -77,7 +77,16 @@ export function useDetailMoreItems({
       });
     }
 
-    // ── 5. Unterschrift entfernen (only after a signed PDF exists) ───────────
+    // ── 5. PDF unterschreiben (only when not already signed) ─────────────────
+    if (dok.uri && !dok.unsignedUri) {
+      rows.push({
+        key: 'menu_signpdf', icon: 'pen-nib',
+        label: t('detail.more.sign_pdf'), group: 'secondary',
+        onPress: () => openModal('signatur'),
+      });
+    }
+
+    // ── 5b. Unterschrift entfernen (only after a signed PDF exists) ───────────
     if (dok.unsignedUri && onRevertSignature) {
       rows.push({
         key: 'menu_revert_sig', icon: 'arrow-counter-clockwise',

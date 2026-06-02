@@ -74,11 +74,22 @@ export default function Suchbildschirm() {
   }, [handleSearch, smartSearch.search]);
 
   // V4 modu ve filtre aktif degilse smart-ordered docs goster
-  const displayDocs: Dokument[] =
-    !v4Modus && zeigeSuche && !filterAktiv && smartSearch.mergedResults.length > 0
-      ? smartSearch.mergedResults.map(r => r.dok)
-      : lokal;
+  const usingSmartResults = !v4Modus && zeigeSuche && !filterAktiv && smartSearch.mergedResults.length > 0;
+  const displayDocs: Dokument[] = usingSmartResults
+    ? smartSearch.mergedResults.map(r => r.dok)
+    : lokal;
   const visibleDocIds = useMemo(() => displayDocs.map(d => d.id), [displayDocs]);
+
+  // rohText / zusammenfassung highlight — only when smart results are active
+  const highlightMap = useMemo(() => {
+    if (!usingSmartResults) return null;
+    const m = new Map<string, string>();
+    for (const r of smartSearch.mergedResults) {
+      const h = r.highlights.find(h => h.field === 'rohText' || h.field === 'zusammenfassung');
+      if (h?.excerpt) m.set(r.dok.id, h.excerpt);
+    }
+    return m;
+  }, [usingSmartResults, smartSearch.mergedResults]);
   const selectedVisibleCount = useMemo(
     () => visibleDocIds.filter(id => selectedIds.has(id)).length,
     [visibleDocIds, selectedIds],
@@ -163,28 +174,33 @@ export default function Suchbildschirm() {
     });
   }, [cancelSelection, selectionMode, v4Modus, visibleDocIds, zeigeSuche]);
 
-  const renderLokal = useCallback(({ item, index }: { item: Dokument; index: number }) => (
-    <Animated.View entering={FadeInDown.delay(Math.min(index * 45, 300)).springify().damping(18)}>
-      <DokumentKarte
-        dok={item}
-        onPress={() => {
-          if (selectionMode) {
-            toggleSelected(item.id);
-            return;
-          }
-          router.push({ pathname: '/detail', params: { dokId: item.id } });
-        }}
-        onLongPress={() => {
-          if (selectionMode) {
-            toggleSelected(item.id);
-            return;
-          }
-          enterSelectionMode(item.id);
-        }}
-        secilen={selectedIds.has(item.id)}
-      />
-    </Animated.View>
-  ), [enterSelectionMode, router, selectedIds, selectionMode, toggleSelected]);
+  const renderLokal = useCallback(({ item, index }: { item: Dokument; index: number }) => {
+    const snippet = highlightMap?.get(item.id);
+    return (
+      <Animated.View entering={FadeInDown.delay(Math.min(index * 45, 300)).springify().damping(18)}>
+        <DokumentKarte
+          dok={item}
+          onPress={() => {
+            if (selectionMode) { toggleSelected(item.id); return; }
+            router.push({ pathname: '/detail', params: { dokId: item.id } });
+          }}
+          onLongPress={() => {
+            if (selectionMode) { toggleSelected(item.id); return; }
+            enterSelectionMode(item.id);
+          }}
+          secilen={selectedIds.has(item.id)}
+        />
+        {!!snippet && (
+          <Text
+            style={{ fontSize: 11, color: C.textTertiary, marginHorizontal: 30, marginTop: -2, marginBottom: 6 }}
+            numberOfLines={1}
+          >
+            {snippet}
+          </Text>
+        )}
+      </Animated.View>
+    );
+  }, [C.textTertiary, enterSelectionMode, highlightMap, router, selectedIds, selectionMode, toggleSelected]);
 
   const renderV4 = useCallback(({ item }: { item: SemanticResult }) => (
     <SemanticKarte

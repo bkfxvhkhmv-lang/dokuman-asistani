@@ -133,7 +133,7 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {ozet.gesamtAnzahl === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 48 }}>
-              <Text style={{ fontSize: 40 }}>📭</Text>
+              <Text style={{ fontSize: 24 }}>📭</Text>
               <Text style={{ fontSize: 15, color: C.textSecondary, marginTop: 12 }}>
                 Keine Dokumente für {seciliYil}
               </Text>

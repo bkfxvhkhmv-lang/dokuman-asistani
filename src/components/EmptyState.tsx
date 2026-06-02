@@ -44,13 +44,13 @@ function buildVariants(T: (k: string) => string): Record<EmptyVariant, VariantCo
       subtitle: T('doc.no_action'),
     },
     calendar: {
-      tintKey:  'warning',
+      tintKey:  'primary',
       icon:     'calendar-blank',
       title:    T('empty.title'),
       subtitle: T('empty.sub'),
     },
     payments: {
-      tintKey:  'danger',
+      tintKey:  'primary',
       icon:     'currency-eur',
       title:    T('empty.title'),
       subtitle: T('empty.sub'),

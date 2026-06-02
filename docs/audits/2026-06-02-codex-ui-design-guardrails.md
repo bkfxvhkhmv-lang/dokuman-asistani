@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: e5f6eb8cb
 - Task type: docs
 - Scope: quiet luxury UI guardrail definition for future mobile UI work
 - Status: PASS
@@ -58,7 +58,7 @@
   - guardrails only help if future UI changes actively follow them
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: e5f6eb8cb
 - commit message: `docs(design): add quiet luxury UI guardrails`
 
 ## 8. Follow-ups

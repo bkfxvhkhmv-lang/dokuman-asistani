@@ -134,7 +134,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <View style={st.savedState}>
           <View style={st.savedBadge}>
             <Icon name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={st.savedBadgeText}>{T('ocr.result.saved_badge')}</Text>
+            <Text style={st.savedBadgeText}>{T('ocr.result.saved')}</Text>
           </View>
           {onOpenDocument && (
             <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>

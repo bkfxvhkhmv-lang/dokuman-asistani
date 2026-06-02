@@ -29,27 +29,38 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
         setImgSize(prev => (prev.w === w ? prev : { w, h: w * 1.414 }));
       }}
     >
-      <Image
-        source={{ uri: dok.uri }}
-        style={{ width: imgSize.w || '100%', height: imgSize.h || 300 }}
-        resizeMode="contain"
-      />
-      {dok.entityBoxes && dok.entityBoxes.length > 0 && imgSize.w > 0 && (
-        <DocumentEntityOverlay
-          entityBoxes={dok.entityBoxes}
-          imageWidth={imgSize.w}
-          imageHeight={imgSize.h}
-          viewWidth={imgSize.w}
-          viewHeight={imgSize.h}
-          onBoxPress={box => setSpotlightBox(box)}
+      {isPdfDoc ? (
+        <Pdf
+          source={{ uri: dok.uri, cache: true }}
+          style={{ width: imgSize.w || 300, height: imgSize.h || 300 }}
+          singlePage
+          onLoadComplete={(n) => setPdfPageCount(n)}
         />
+      ) : (
+        <>
+          <Image
+            source={{ uri: dok.uri }}
+            style={{ width: imgSize.w || '100%', height: imgSize.h || 300 }}
+            resizeMode="contain"
+          />
+          {dok.entityBoxes && dok.entityBoxes.length > 0 && imgSize.w > 0 && (
+            <DocumentEntityOverlay
+              entityBoxes={dok.entityBoxes}
+              imageWidth={imgSize.w}
+              imageHeight={imgSize.h}
+              viewWidth={imgSize.w}
+              viewHeight={imgSize.h}
+              onBoxPress={box => setSpotlightBox(box)}
+            />
+          )}
+          <DocumentSpotlight
+            entity={spotlightBox}
+            scaleX={1}
+            scaleY={1}
+            onDismiss={() => setSpotlightBox(null)}
+          />
+        </>
       )}
-      <DocumentSpotlight
-        entity={spotlightBox}
-        scaleX={1}
-        scaleY={1}
-        onDismiss={() => setSpotlightBox(null)}
-      />
     </View>
   );
 
@@ -65,14 +76,7 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
         ...Shadow.sm,
       }}
     >
-      {/* Hidden PDF probe — fires onLoadComplete to capture real page count */}
-      {isPdfDoc && (
-        <Pdf
-          source={{ uri: dok.uri, cache: true }}
-          style={{ width: 0, height: 0 }}
-          onLoadComplete={(n) => setPdfPageCount(n)}
-        />
-      )}
+
       <View
         style={{
           flexDirection: 'row',

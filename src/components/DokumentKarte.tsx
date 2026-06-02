@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   amount:        { fontSize: 14, fontWeight: '600', letterSpacing: -0.2 },
   workflowBox:   { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '60%', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
   workflowDot:   { width: 6, height: 6, borderRadius: 3 },
-  workflowStamp: { fontSize: 11, fontWeight: '800', letterSpacing: 0.1 },
+  workflowStamp: { fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
   demoBadge:     { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
   demoBadgeText: { fontSize: 9, fontWeight: '600', letterSpacing: 0.3 },
   nextStepBox:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },

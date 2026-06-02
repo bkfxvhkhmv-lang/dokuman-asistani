@@ -74,7 +74,7 @@ export default function HeroCard({
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
               {typeLabel.toUpperCase()}{(() => { const s = resolveDocumentSender(dok); return s ? ` · ${s}` : ''; })()}
             </Text>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{resolveDocumentTitle(dok)}</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{resolveDocumentTitle(dok)}</Text>
           </View>
         </View>
       </Animated.View>

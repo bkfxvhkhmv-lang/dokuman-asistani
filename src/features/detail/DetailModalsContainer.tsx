@@ -45,11 +45,12 @@ interface Props {
   actions: ReturnType<typeof useDocumentActions>;
   beginActionSession: (data: ActionSession) => void;
   router: { back: () => void };
+  onOpenFullscreen?: () => void;
 }
 
 export default function DetailModalsContainer({
   modal, dok, dokId, state, dispatch, actions,
-  beginActionSession, router,
+  beginActionSession, router, onOpenFullscreen,
 }: Props) {
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const pendingMarkRef   = useRef(false);
@@ -310,6 +311,7 @@ export default function DetailModalsContainer({
             tone: 'success',
             icon: 'checkmark-circle',
           });
+          onOpenFullscreen?.();
         }}
       />
     </>

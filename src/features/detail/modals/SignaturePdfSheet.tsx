@@ -15,7 +15,6 @@ import Svg, { Polyline } from 'react-native-svg';
 import Pdf from 'react-native-pdf';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { PDFDocument } from 'pdf-lib';
 
@@ -295,27 +294,6 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onDone?.(savedUri);
       onClose();
-
-      // Ask user: keep saved or also share
-      Alert.alert(
-        T('signature.v2.success_title'),
-        T('signature.v2.success_body'),
-        [
-          { text: T('common.done'), style: 'cancel' },
-          {
-            text: T('common.share'),
-            onPress: async () => {
-              if (await Sharing.isAvailableAsync()) {
-                await Sharing.shareAsync(savedUri, {
-                  mimeType: 'application/pdf',
-                  dialogTitle: filename,
-                  UTI: 'com.adobe.pdf',
-                });
-              }
-            },
-          },
-        ],
-      );
     } catch (error) {
       console.warn('[SignaturePdfSheet] save failed', error);
       Alert.alert(T('common.error'), T('signature.v2.error_save'));

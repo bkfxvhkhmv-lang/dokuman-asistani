@@ -352,6 +352,7 @@ export default function Detailbildschirm() {
         actions={actions}
         beginActionSession={beginActionSession}
         router={router}
+        onOpenFullscreen={() => openPagesViewer(0)}
       />
 
       <BudgetGrafikModal

@@ -18,7 +18,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 
 import { useStore } from '@/store';
@@ -48,6 +49,8 @@ export default function Suchbildschirm() {
   const { state, dispatch } = useStore();
   const { Colors: C, S } = useTheme();
   const { t } = useT();
+  const tabBarHeight = useBottomTabBarHeight();
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const { config: sheetConfig, showSheet, hideSheet, confirm } = useSheet();
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -355,7 +358,7 @@ export default function Suchbildschirm() {
           <FlatList
             data={v4Ergebnisse as SemanticResult[]}
             keyExtractor={(r, i) => r.doc_id ?? String(i)}
-            contentContainerStyle={{ paddingTop: S.sm, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingTop: S.sm, paddingBottom: tabBarHeight + bottomInset + 24 }}
             ListHeaderComponent={
               v4Laden ? (
                 <View style={{ alignItems: 'center', paddingVertical: 24 }}>
@@ -393,7 +396,7 @@ export default function Suchbildschirm() {
           <FlatList
             data={displayDocs}
             keyExtractor={d => d.id}
-            contentContainerStyle={{ paddingTop: S.sm, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingTop: S.sm, paddingBottom: tabBarHeight + bottomInset + 24 }}
             ListEmptyComponent={
               <View>
                 <EmptyState
@@ -413,7 +416,9 @@ export default function Suchbildschirm() {
                 {/* Schnelle Vorschläge — nur wenn kein Korrekturhinweis */}
                 {!smartSearch.correctionHint && (
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 8, paddingHorizontal: S.lg }}>
-                    {['Rechnung', 'Finanzamt', 'Mahnung', 'Versicherung'].map(vorschlag => (
+                    {['Rechnung', 'Finanzamt', 'Mahnung', 'Versicherung'].filter(v =>
+                      !typ || !typ.toLowerCase().includes(v.toLowerCase().slice(0, 5))
+                    ).map(vorschlag => (
                       <TouchableOpacity
                         key={vorschlag}
                         onPress={() => handleSearchWithSmart(vorschlag)}

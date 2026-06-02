@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: 981804382
 - Task type: fix / validation / docs
 - Scope: FR/ES/RU/AR translation coverage for runtime prose keys
 - Status: PASS
@@ -93,7 +93,7 @@ PY
   - wording quality in low-traffic locales may still deserve native copy review later
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: 981804382
 - commit message: `fix(i18n): add FR/ES/RU/AR translations for runtime prose keys`
 
 ## 8. Follow-ups

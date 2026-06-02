@@ -106,7 +106,10 @@ export default function SearchFilterModal({
                   color:      typ === t ? C.primaryDark : C.textSecondary,
                 }}
               >
-                {t === 'alle' ? T('home.filter.all') : T(`search.scope.${t.toLowerCase()}`)}
+                {t === 'alle' ? T('home.filter.all')
+                  : t === 'Rechnungen' ? T('doc.type.invoice_plural')
+                  : t === 'Behörden'  ? T('doc.type.authority_group')
+                  : T('doc.type.proofs')}
               </Text>
             </SpringChip>
           ))}

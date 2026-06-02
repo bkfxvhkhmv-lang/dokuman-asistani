@@ -1,5 +1,5 @@
 import type { Dokument } from '@/store';
-import { isDeadlineSensitiveDocument } from '@/utils/documentGuards';
+import { isDeadlineSensitiveDocument, isPaymentLikeDocument } from '@/utils/documentGuards';
 
 /**
  * Returns a compact, actionable one-liner for the document list card.
@@ -22,10 +22,14 @@ export function buildCardInsight(
     ? fristDate!.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
     : null;
 
-  if (betragStr && fristStr) return `${betragStr} · Zahlung bis ${fristStr}`;
-  if (betragStr && isDeadlineSensitiveDocument(dok)) return `${betragStr} · Frist prüfen`;
+  const paymentDoc  = isPaymentLikeDocument(dok);
+  const deadlineDoc = isDeadlineSensitiveDocument(dok);
+
+  // Neutral amount + date — no payment framing for non-payment documents
+  if (betragStr && fristStr) return `${betragStr} · ${fristStr}`;
   if (betragStr) return betragStr;
-  if (fristStr) return `Frist bis ${fristStr}`;
+  // Show deadline only for genuinely time-sensitive or payment docs
+  if (fristStr && (paymentDoc || deadlineDoc)) return `Frist bis ${fristStr}`;
 
   return null;
 }

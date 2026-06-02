@@ -271,7 +271,7 @@ export function getReviewLabel(dok: {
   if (!needsManualReview(dok)) return null;
   const issues = getReviewIssues(dok);
   const lang = getLangSync();
-  if (issues.length > 1 || (dok.confidence ?? 100) < 30) return t(lang, 'review.label_many');
+  if (issues.length > 1) return t(lang, 'review.label_many');
   return t(lang, 'review.label');
 }
 

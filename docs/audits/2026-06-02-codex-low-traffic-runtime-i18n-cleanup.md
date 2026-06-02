@@ -6,7 +6,7 @@
 - Date: 2026-06-02
 - Repository: bp_canavar_v6_refactor
 - Branch: feature/ocr-api-integration
-- Commit: pending
+- Commit: f278e15ee
 - Task type: fix / validation / docs
 - Scope: SmartRiskPanel, smart-risk labels, document chain copy, strategy copy, remaining low-traffic Home/Search chrome
 - Status: PASS
@@ -129,7 +129,7 @@
   - runtime strategy copy is now locale-aware, but generated document prose remains intentionally untranslated
 
 ## 7. Commit
-- commit hash: pending
+- commit hash: f278e15ee
 - commit message: `fix(i18n): clean low-traffic runtime language surfaces`
 
 ## 8. Follow-ups

@@ -252,7 +252,7 @@ export class AutoCaptureEngine {
   }
 
   triggerFeedback() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (Platform.OS === 'android') Vibration.vibrate(50);
   }
 

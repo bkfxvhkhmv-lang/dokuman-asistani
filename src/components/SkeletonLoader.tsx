@@ -46,7 +46,7 @@ function ShimmerBar({
     <View style={[st.barBase, { backgroundColor: Colors.borderLight }, style]}>
       <Animated.View style={[StyleSheet.absoluteFill, animStyle]}>
         <LinearGradient
-          colors={['transparent', 'rgba(255,255,255,0.72)', 'transparent']}
+          colors={['transparent', 'rgba(255,255,255,0.42)', 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ width: SHIMMER_W, height: '100%' }}

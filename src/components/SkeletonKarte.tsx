@@ -32,9 +32,9 @@ function ShimmerBar({
         <LinearGradient
           colors={[
             'transparent',
-            'rgba(255,255,255,0.62)',
-            'rgba(255,255,255,0.80)',
-            'rgba(255,255,255,0.62)',
+            'rgba(255,255,255,0.38)',
+            'rgba(255,255,255,0.48)',
+            'rgba(255,255,255,0.38)',
             'transparent',
           ]}
           locations={[0, 0.35, 0.50, 0.65, 1]}

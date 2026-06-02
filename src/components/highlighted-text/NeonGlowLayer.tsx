@@ -1,15 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import { View } from 'react-native';
 import { SKIA_OK, SkCanvas, SkRect, SkLinearGrad, skVec } from './skiaDeps';
 
 export function NeonGlowLayer({
@@ -21,30 +12,12 @@ export function NeonGlowLayer({
   containerH: number;
   neonColors: string[];
 }) {
-  const glowOp = useSharedValue(0);
-
-  useEffect(() => {
-    glowOp.value = withDelay(
-      900,
-      withRepeat(
-        withSequence(
-          withTiming(0.55, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
-          withTiming(0.25, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
-        ),
-        -1,
-      ),
-    );
-    return () => cancelAnimation(glowOp);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const animStyle = useAnimatedStyle(() => ({ opacity: glowOp.value }));
-
   if (!SKIA_OK || containerW === 0 || neonColors.length === 0) return null;
 
   return (
-    <Animated.View
+    <View
       pointerEvents="none"
-      style={[StyleSheet.absoluteFill, animStyle]}
+      style={[StyleSheet.absoluteFill, { opacity: 0.15 }]}
     >
       <SkCanvas style={StyleSheet.absoluteFill}>
         {neonColors.map((color, i) => {
@@ -61,6 +34,6 @@ export function NeonGlowLayer({
           );
         })}
       </SkCanvas>
-    </Animated.View>
+    </View>
   );
 }

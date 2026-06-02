@@ -34,18 +34,11 @@ function DocIcon({ scanY }: { scanY: Animated.Value }) {
         pointerEvents="none"
       >
         <LinearGradient
-          colors={['transparent', ACCENT, '#C084FC', '#F472B6', '#FB923C', 'transparent']}
+          colors={['transparent', ACCENT, 'transparent']}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={StyleSheet.absoluteFill}
         />
-      </Animated.View>
-      <Animated.View
-        style={[st.sparkle, { transform: [{ translateY: scanY }], right: -8 }]}
-        pointerEvents="none"
-      >
-        <View style={[st.dot, { width: 5, height: 5, backgroundColor: '#FB923C' }]} />
-        <View style={[st.dot, { width: 3, height: 3, backgroundColor: '#C084FC', marginTop: 4 }]} />
       </Animated.View>
     </View>
   );
@@ -186,8 +179,6 @@ const st = StyleSheet.create({
     position: 'absolute', left: 6, right: 6, height: 3,
     borderRadius: 2, overflow: 'hidden',
   },
-  sparkle: { position: 'absolute', alignItems: 'center' },
-  dot:     { borderRadius: 999 },
   title:   { fontWeight: '700', letterSpacing: -0.3, textAlign: 'center' },
   subtitle: { textAlign: 'center', lineHeight: 20 },
   fallbackButtons: { width: '100%', gap: 10, marginTop: 8 },

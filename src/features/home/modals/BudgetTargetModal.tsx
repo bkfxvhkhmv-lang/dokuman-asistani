@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { useStore } from '@/store';
 import { HIT_SLOP } from '@/theme';
 import { analyzeAllTargets, TARGET_STATUS_COLOR, type TargetAnalysis } from '@/services/TargetService';
@@ -18,16 +19,20 @@ interface Props {
   docs:     Dokument[];
 }
 
-const PRESET_TARGETS: Omit<BudgetTarget, 'limitBetrag'>[] = [
-  { id: 'gesamt',      label: 'Gesamtausgaben' },
-  { id: 'Rechnung',    label: 'Rechnungen' },
-  { id: 'Versicherung',label: 'Versicherungen' },
-  { id: 'Vertrag',     label: 'Verträge / Abos' },
-];
+const PRESET_LABEL_KEYS: Record<string, string> = {
+  gesamt:      'budget.preset.total',
+  Rechnung:    'doc.type.invoice_plural',
+  Versicherung:'doc.type.insurance',
+  Vertrag:     'budget.preset.contracts',
+};
+
+const PRESET_IDS = ['gesamt', 'Rechnung', 'Versicherung', 'Vertrag'] as const;
 
 export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
   const { Colors, S, R } = useTheme();
+  const { t: T } = useT();
   const { state, dispatch } = useStore();
+  const presetTargets = PRESET_IDS.map(id => ({ id, label: T(PRESET_LABEL_KEYS[id]) }));
   const insets   = useSafeAreaInsets();
   const targets  = state.einstellungen.budgetTargets ?? [];
   const analyses = analyzeAllTargets(targets, docs);
@@ -88,7 +93,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
             Setze monatliche Limits. Der Assistent warnt dich, bevor du das Limit erreichst.
           </Text>
 
-          {PRESET_TARGETS.map(preset => {
+          {presetTargets.map(preset => {
             const analysis = analysisFor(preset.id);
             const color    = analysis ? TARGET_STATUS_COLOR[analysis.status] : Colors.textTertiary;
             const hasTarget = !!targets.find(t => t.id === preset.id);

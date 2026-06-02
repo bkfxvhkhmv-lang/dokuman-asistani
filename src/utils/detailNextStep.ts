@@ -28,13 +28,13 @@ export function deriveNaechsterSchrittZeile(dok: Dokument, plan: ActionPlan | nu
   if (!key) return null;
   if (key === 'zahlen' && dok.betrag != null) {
     const b = formatBetrag(dok.betrag, dok.waehrung || '€');
-    return b ? LT('detail.next.line.pay', { amount: b }) : (plan?.primary?.label ?? null);
+    return b ? LT('detail.next.line.pay', { amount: b }) : (plan?.primary ? LT(plan.primary.labelKey) : null);
   }
   if (key === 'gutschrift' && dok.betrag != null) {
     const b = formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€');
     return b ? LT('detail.next.line.credit', { amount: b }) : LT('detail.next.credit_check');
   }
-  return plan?.primary?.label ?? null;
+  return plan?.primary ? LT(plan.primary.labelKey) : null;
 }
 
 /**

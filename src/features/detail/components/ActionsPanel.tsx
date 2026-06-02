@@ -29,13 +29,13 @@ const ACTION_META: Record<string, { labelKey: string; shortLabelKey: string; ico
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
-  ai:          'Dokument erklären oder zusammenfassen.',
-  zahlen:      'Überweisungsdaten oder Banking vorbereiten.',
-  zahlendaten: 'Bitte Betrag, Empfänger und IBAN prüfen.',
-  gutschrift:  'Negativer Betrag — Guthaben, Rückerstattung oder Verrechnung prüfen.',
-  kalender:    'Frist mit Erinnerung im Kalender sichern.',
-  mail:        'Entwurf vorbereiten oder Antwort per E-Mail senden.',
-  einspruch:   'Mustertext und Fristen für Widerspruch prüfen.',
+  ai:          'detail.actions.hint.understand',
+  zahlen:      'detail.actions.hint.pay',
+  zahlendaten: 'detail.actions.hint.check_payment_data',
+  gutschrift:  'detail.actions.hint.credit_note',
+  kalender:    'detail.actions.hint.calendar',
+  mail:        'detail.actions.hint.mail',
+  einspruch:   'detail.actions.hint.objection',
 };
 
 function toneColors(tone: string, colors: ThemeColors) {
@@ -190,18 +190,18 @@ interface ActionsPanelProps {
   actionPlan: ActionPlan | null;
 }
 
-function buildReviewContext(dok: Dokument): { title: string; body: string } | null {
+function buildReviewContext(dok: Dokument, T: (key: string, params?: Record<string, string | number>) => string): { title: string; body: string } | null {
   const issues = getReviewIssues(dok);
   const confidence = dok.confidence ?? 100;
-  if (issues.includes('amount'))   return { title: 'Betrag ergänzen',     body: 'Der Betrag wurde nicht erkannt und sollte ergänzt werden.' };
-  if (issues.includes('deadline')) return { title: 'Frist beachten',       body: 'Datum und Frist kurz prüfen.' };
-  if (issues.includes('sender'))   return { title: 'Absender prüfen',      body: 'Der Absender konnte nicht sicher erkannt werden.' };
+  if (issues.includes('amount'))   return { title: T('detail.review.amount_title'),   body: T('detail.review.amount_body') };
+  if (issues.includes('deadline')) return { title: T('detail.review.deadline_title'), body: T('detail.review.deadline_body') };
+  if (issues.includes('sender'))   return { title: T('detail.review.sender_title'),   body: T('detail.review.sender_body') };
   // Payment-type doc with betrag present but uncertain confidence → specific, supportive tone
   const isPaymentDoc = /rechnung|mahnung|bußgeld|bussgeld|steuer|beitrag/i.test(dok.typ ?? '');
   if (confidence < 55 && isPaymentDoc && dok.betrag != null) {
-    return { title: 'Zahlung kurz prüfen', body: 'Bitte Betrag und Empfänger vor der Überweisung kurz bestätigen.' };
+    return { title: T('detail.review.payment_title'), body: T('detail.review.payment_body') };
   }
-  if (confidence < 55)             return { title: 'Kurz bestätigen',      body: 'Einige Angaben wurden nicht sicher erkannt.' };
+  if (confidence < 55)             return { title: T('detail.review.confirm_title'), body: T('detail.review.confirm_body') };
   return null;
 }
 
@@ -221,7 +221,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPa
     : primary.key === 'zahlen'      ? 'primary' : 'neutral';
   const processColors = toneColors(processTone, C);
 
-  const reviewCtx = primary.key === 'review' ? buildReviewContext(dok) : null;
+  const reviewCtx = primary.key === 'review' ? buildReviewContext(dok, t) : null;
 
   return (
     <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
@@ -239,7 +239,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPa
                   <Text style={[T.meta, { color: C.textSecondary, marginTop: 4 }]}>
                     {primary.key === 'review'
                       ? reviewCtx!.body
-                      : digitalTwin?.statusSummary || ACTION_HINT[primary.key] || getPrimaryAction(dok.typ).sublabel}
+                      : digitalTwin?.statusSummary || (ACTION_HINT[primary.key] ? t(ACTION_HINT[primary.key]!) : getPrimaryAction(dok.typ).sublabel)}
                   </Text>
                   {(primary.key === 'einspruch') && (
                     <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 6, fontStyle: 'italic' }}>

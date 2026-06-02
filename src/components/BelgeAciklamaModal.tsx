@@ -129,7 +129,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
 
   const handleAcikla = async (dilKodu = seciliDil) => {
     if (!dok?.id) {
-      setHata('Kein Dokument geladen. Bitte erneut öffnen.');
+      setHata(t('modal.understand_doc.error.no_document'));
       return;
     }
     const serverDocId = (dok.v4DocId && String(dok.v4DocId).trim()) || '';
@@ -147,14 +147,12 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           return;
         }
         if (finishWithLocalIfPossible()) return;
-        setHata('Kein Internet und keine gespeicherte Erklärung. Mit Verbindung wird die KI-Antwort gecacht.');
+        setHata(t('modal.understand_doc.error.offline_no_cache'));
         return;
       }
       if (!serverDocId) {
         if (finishWithLocalIfPossible()) return;
-        setHata(
-          'Dieses Dokument hat noch keine lesbare Kurzfassung. Bitte warten bis der Text erkannt wurde oder einen Scan mit OCR erneut anlegen.',
-        );
+        setHata(t('modal.understand_doc.error.no_text_ready'));
         return;
       }
       const sonuc = await explainDocument(serverDocId, dilKodu) as unknown as AciklamaResult;
@@ -162,7 +160,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
       const body = explainBody(sonuc);
       if (!body) {
         if (finishWithLocalIfPossible()) return;
-        setHata('Die KI-Antwort enthielt keinen Text. Bitte erneut versuchen oder ein anderes Dokument wählen.');
+        setHata(t('modal.understand_doc.error.empty_response'));
         return;
       }
       setAciklama(sonuc);
@@ -172,17 +170,15 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
       const raw = e instanceof Error ? e.message : String(e);
       if (finishWithLocalIfPossible()) return;
       if (raw.includes(' 404') || raw.includes('404:')) {
-        setHata('Dokument auf dem Server nicht gefunden. Bitte Synchronisierung prüfen.');
+        setHata(t('modal.understand_doc.error.not_found'));
       } else if (raw.includes(' 422') || raw.includes('422:')) {
-        setHata(
-          'Text für dieses Dokument ist noch nicht bereit (OCR läuft oder fehlgeschlagen). Bitte später erneut versuchen.',
-        );
+        setHata(t('modal.understand_doc.error.not_ready'));
       } else if (raw.includes(' 401') || raw.includes('401:')) {
-        setHata('Sitzung abgelaufen. Bitte erneut anmelden.');
+        setHata(t('modal.understand_doc.error.auth'));
       } else if (__DEV__) {
-        setHata(`Erklärung fehlgeschlagen (Dev): ${raw}`);
+        setHata(`${t('modal.understand_doc.error.dev_failed')}: ${raw}`);
       } else {
-        setHata('Erklärung konnte nicht geladen werden. Bitte erneut versuchen.');
+        setHata(t('modal.understand_doc.error.load_failed'));
       }
     } finally {
       if (mountedRef.current) setYukleniyor(false);
@@ -214,7 +210,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           style={StyleSheet.absoluteFillObject}
           activeOpacity={1}
           accessibilityRole="button"
-          accessibilityLabel="Schließen"
+          accessibilityLabel={t('common.close')}
           onPress={onClose}
         />
         <View

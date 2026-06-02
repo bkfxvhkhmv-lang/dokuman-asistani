@@ -13,16 +13,22 @@ import { useT } from '@/hooks/useT';
 
 type Severity = 'fehler' | 'unklar' | 'verbesserung' | 'lob';
 
-const SEVERITY_OPTIONS: { id: Severity; emoji: string; label: string; desc: string }[] = [
-  { id: 'fehler',       emoji: '🔴', label: 'Fehler',       desc: 'Etwas funktioniert nicht' },
-  { id: 'unklar',       emoji: '🟡', label: 'Unklarheit',   desc: 'Ich verstehe etwas nicht' },
-  { id: 'verbesserung', emoji: '🟢', label: 'Verbesserung', desc: 'Könnte besser sein' },
-  { id: 'lob',          emoji: '💙', label: 'Lob',          desc: 'Das finde ich gut' },
+const SEVERITY_OPTIONS: { id: Severity; emoji: string; labelKey: string; descKey: string }[] = [
+  { id: 'fehler',       emoji: '🔴', labelKey: 'feedback.severity.error',       descKey: 'feedback.severity.error_desc' },
+  { id: 'unklar',       emoji: '🟡', labelKey: 'feedback.severity.unclear',     descKey: 'feedback.severity.unclear_desc' },
+  { id: 'verbesserung', emoji: '🟢', labelKey: 'feedback.severity.improvement', descKey: 'feedback.severity.improvement_desc' },
+  { id: 'lob',          emoji: '💙', labelKey: 'feedback.severity.praise',      descKey: 'feedback.severity.praise_desc' },
 ];
 
 const SCREENS = [
-  'Home', 'Kamera', 'Analyse', 'Aktionen',
-  'Dokument', 'Export', 'Einstellungen', 'Sonstiges',
+  'feedback.screen.home',
+  'feedback.screen.camera',
+  'feedback.screen.analysis',
+  'feedback.screen.actions',
+  'feedback.screen.document',
+  'feedback.screen.export',
+  'feedback.screen.settings',
+  'feedback.screen.other',
 ];
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -61,11 +67,11 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
 
   const handleSend = useCallback(async () => {
     if (!severity) {
-      Alert.alert('Bitte wähle eine Kategorie aus.');
+      Alert.alert(t('feedback.error.choose_category'));
       return;
     }
     if (text.trim().length < 10) {
-      Alert.alert('Bitte schreibe mindestens einen kurzen Satz (10 Zeichen).');
+      Alert.alert(t('feedback.error.min_length'));
       return;
     }
 
@@ -74,20 +80,21 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
     const sevOpt  = SEVERITY_OPTIONS.find(s => s.id === severity)!;
     const version = Constants.expoConfig?.version ?? '?';
 
+    const screenLabel = screen.startsWith('feedback.screen.') ? t(screen) : screen;
     const subject = encodeURIComponent(
-      `[BriefPilot ${sevOpt.emoji} ${sevOpt.label}] ${screen || 'Allgemein'} — v${version}`
+      `[BriefPilot ${sevOpt.emoji} ${t(sevOpt.labelKey)}] ${screenLabel || t('feedback.screen.general')} — v${version}`
     );
 
     const body = encodeURIComponent([
-      `Kategorie: ${sevOpt.emoji} ${sevOpt.label}`,
-      `Bildschirm: ${screen || '—'}`,
+      `${t('feedback.field.category')}: ${sevOpt.emoji} ${t(sevOpt.labelKey)}`,
+      `${t('feedback.field.screen')}: ${screenLabel || '—'}`,
       '',
-      'Feedback:',
+      `${t('feedback.field.feedback')}:`,
       text.trim(),
       '',
-      email.trim() ? `Antwort an: ${email.trim()}` : '',
+      email.trim() ? `${t('feedback.field.reply_to')}: ${email.trim()}` : '',
       '',
-      '─── Technische Infos (keine persönlichen Daten) ───',
+      `─── ${t('feedback.technical_info')} ───`,
       summary,
     ].filter(l => l !== null).join('\n'));
 
@@ -101,11 +108,11 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
     } catch {
       setSending(false);
       Alert.alert(
-        'E-Mail-App nicht verfügbar',
-        'Bitte sende dein Feedback direkt an feedback@briefpilot.de',
+        t('feedback.error.mail_app_title'),
+        t('feedback.error.mail_app_body'),
       );
     }
-  }, [severity, screen, text, email, handleClose]);
+  }, [severity, screen, text, email, handleClose, t]);
 
   const C = Colors;
 
@@ -113,8 +120,8 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
     <AppSheet
       visible={visible}
       onClose={handleClose}
-      title="Feedback"
-      subtitle="Deine Meinung hilft uns, BriefPilot besser zu machen."
+      title={t('feedback.title')}
+      subtitle={t('feedback.subtitle')}
     >
       <ScrollView
         style={{ flex: 1 }}
@@ -125,7 +132,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
         {/* Severity */}
         <View>
           <Text style={[st.sectionLabel, { color: C.textSecondary, fontSize: fs(11) }]}>
-            KATEGORIE
+            {t('feedback.field.category').toUpperCase()}
           </Text>
           <View style={st.pills}>
             {SEVERITY_OPTIONS.map(opt => {
@@ -146,9 +153,9 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
                   <Text style={{ fontSize: 16 }}>{opt.emoji}</Text>
                   <View>
                     <Text style={[st.pillLabel, { color: active ? C.primaryDark : C.text, fontSize: fs(13) }]}>
-                      {opt.label}
+                      {t(opt.labelKey)}
                     </Text>
-                    <Text style={{ color: C.textTertiary, fontSize: fs(11) }}>{opt.desc}</Text>
+                    <Text style={{ color: C.textTertiary, fontSize: fs(11) }}>{t(opt.descKey)}</Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -159,7 +166,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
         {/* Screen selector */}
         <View>
           <Text style={[st.sectionLabel, { color: C.textSecondary, fontSize: fs(11) }]}>
-            BILDSCHIRM
+            {t('feedback.field.screen').toUpperCase()}
           </Text>
           <ScrollView
             horizontal
@@ -182,7 +189,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
                   ]}
                 >
                   <Text style={[st.screenChipText, { color: active ? '#fff' : C.text, fontSize: fs(12) }]}>
-                    {s}
+                    {t(s)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -193,12 +200,12 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
         {/* Text input */}
         <View>
           <Text style={[st.sectionLabel, { color: C.textSecondary, fontSize: fs(11) }]}>
-            DEIN FEEDBACK
+            {t('feedback.field.your_feedback').toUpperCase()}
           </Text>
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="Was ist passiert? Was hast du erwartet?"
+            placeholder={t('feedback.placeholder.message')}
             placeholderTextColor={C.textTertiary}
             multiline
             numberOfLines={5}
@@ -215,19 +222,19 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
             ]}
           />
           <Text style={{ color: C.textTertiary, fontSize: fs(11), marginTop: 4, textAlign: 'right' }}>
-            {text.length} Zeichen
+            {t('feedback.character_count', { n: text.length })}
           </Text>
         </View>
 
         {/* Optional email */}
         <View>
           <Text style={[st.sectionLabel, { color: C.textSecondary, fontSize: fs(11) }]}>
-            ANTWORT AN (OPTIONAL)
+            {t('feedback.field.reply_optional').toUpperCase()}
           </Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
-            placeholder="deine@email.de"
+            placeholder={t('feedback.placeholder.email')}
             placeholderTextColor={C.textTertiary}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -241,7 +248,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
 
         {/* Privacy note */}
         <Text style={[st.privacy, { color: C.textTertiary, fontSize: fs(11) }]}>
-          Beim Senden werden technische Infos (App-Version, OS) mitgeschickt — kein Dokumentinhalt, keine persönlichen Daten.
+          {t('feedback.privacy_note')}
         </Text>
 
         {/* CTA */}

@@ -32,12 +32,14 @@ import { safeBack } from '@/navigation/safeBack';
 import { useStore } from '@/store';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
+import { useT } from '@/hooks/useT';
 
 const ENABLE_RELEASE_FLOATING_ACTION_PULSE = false;
 const ENABLE_RELEASE_PROCESS_TRACKER = false;
 const ENABLE_RELEASE_DEADLINE_BANNER = false;
 
 export default function Detailbildschirm() {
+  const { t } = useT();
   const { Colors: C, isSimpleMode } = useTheme();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 49;
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -328,7 +330,7 @@ export default function Detailbildschirm() {
       {ENABLE_RELEASE_FLOATING_ACTION_PULSE && (
         <FloatingActionPulse
           visible={releaseShowPrimaryFab}
-          label={actionPlan?.primary?.label ?? ''}
+          label={actionPlan?.primary ? t(actionPlan.primary.labelKey) : ''}
           sublabel={dok.absender || dok.typ || undefined}
           urgency={pulseUrgency}
           onPress={handlePrimaryAction}

@@ -6,6 +6,7 @@ import PremiumToast from '@/design/components/PremiumToast';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
+import { useT } from '@/hooks/useT';
 
 type Props = {
   smartActions: any;
@@ -21,19 +22,19 @@ type Props = {
 };
 
 // Section definition — order and key membership decide display
-const SECTIONS: { label: string; keys: string[]; primaryKeys?: string[] }[] = [
+const SECTIONS: { labelKey: string; keys: string[]; primaryKeys?: string[] }[] = [
   {
-    label: 'Teilen & Exportieren',
+    labelKey: 'detail.section.share_export',
     keys: ['menu_exportieren', 'menu_vorlage', 'menu_signpdf', 'menu_revert_sig', 'menu_partner'],
     primaryKeys: ['menu_exportieren'],
   },
   {
-    label: 'Bearbeiten',
+    labelKey: 'detail.section.edit',
     keys: ['menu_edit', 'menu_budget', 'menu_chat', 'menu_formular', 'menu_kur'],
     primaryKeys: ['menu_budget'],
   },
   {
-    label: 'Abschließen',
+    labelKey: 'detail.section.close',
     keys: ['menu_erl', 'anon', 'menu_h', 'del'],
     primaryKeys: [],
   },
@@ -120,6 +121,7 @@ export default function DetailActionsTab({
   scrollBottomPadding = 132,
 }: Props) {
   const { Colors: C, R } = useTheme();
+  const { t } = useT();
 
   // Filter out main-group items (shown in ActionsPanel above)
   const visibleItems = moreItems.filter(i => i.group !== 'main');
@@ -161,12 +163,12 @@ export default function DetailActionsTab({
               color: C.textSecondary,
               marginTop: 16, marginBottom: 2, marginLeft: 2,
             }}>
-              Weitere Aktionen
+              {t('detail.panel.more_actions')}
             </Text>
 
             {renderedSections.map(sec => (
-              <View key={sec.label}>
-                <SectionLabel label={sec.label} />
+              <View key={sec.labelKey}>
+                <SectionLabel label={t(sec.labelKey)} />
                 <View style={{
                   borderRadius: R.lg, borderWidth: 0.5,
                   borderColor: C.border, backgroundColor: C.bgCard,
@@ -186,7 +188,7 @@ export default function DetailActionsTab({
 
             {fallback.length > 0 && (
               <View>
-                <SectionLabel label="Weitere" />
+                <SectionLabel label={t('detail.panel.more_actions')} />
                 <View style={{
                   borderRadius: R.lg, borderWidth: 0.5,
                   borderColor: C.border, backgroundColor: C.bgCard,

@@ -12,19 +12,20 @@ import { getReviewIssues, hasCompletePaymentTarget } from '@/utils/documentGuard
 import { getPrimaryAction, NO_LEGAL_ADVICE_DISCLAIMER } from '@/features/detail/constants/actionMapping';
 import { resolveDocumentType } from '@/features/detail/constants/documentTypeUi';
 import { canOfferPaymentAction } from '@/utils/documentGuards';
+import { useT } from '@/hooks/useT';
 
 // ── Action metadata ───────────────────────────────────────────────────────────
 
-const ACTION_META: Record<string, { label: string; shortLabel: string; icon: string; tone: string }> = {
-  zahlen:      { label: 'Zahlung vorbereiten',   shortLabel: 'Bezahlen',   icon: 'currency-eur',     tone: 'primary' },
-  zahlendaten: { label: 'Zahlungsdaten prüfen',  shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
-  gutschrift:  { label: 'Angaben bearbeiten',    shortLabel: 'Bearbeiten', icon: 'receipt',          tone: 'neutral' },
-  einspruch:   { label: 'Einspruch vorbereiten', shortLabel: 'Einspruch',  icon: 'pencil-line',      tone: 'danger' },
-  kalender:    { label: 'Frist eintragen',       shortLabel: 'Kalender',   icon: 'calendar-blank',   tone: 'success' },
-  mail:        { label: 'Per E-Mail antworten',  shortLabel: 'E-Mail',     icon: 'envelope-simple',  tone: 'neutral' },
-  review:      { label: 'Angaben prüfen',        shortLabel: 'Prüfen',     icon: 'magnifying-glass', tone: 'warning' },
-  ai:          { label: 'Dokument verstehen',    shortLabel: 'Verstehen',  icon: 'sparkle',          tone: 'neutral' },
-  erledigt:    { label: 'Als erledigt markieren',shortLabel: 'Erledigt',   icon: 'check-circle',     tone: 'neutral' },
+const ACTION_META: Record<string, { labelKey: string; shortLabelKey: string; icon: string; tone: string }> = {
+  zahlen:      { labelKey: 'detail.more.prepare_payment', shortLabelKey: 'action.short.pay', icon: 'currency-eur',     tone: 'primary' },
+  zahlendaten: { labelKey: 'detail.review.check_payment_data', shortLabelKey: 'field.review', icon: 'magnifying-glass', tone: 'warning' },
+  gutschrift:  { labelKey: 'detail.action.edit', shortLabelKey: 'common.edit', icon: 'receipt',          tone: 'neutral' },
+  einspruch:   { labelKey: 'detail.more.check_objection', shortLabelKey: 'action.short.objection',  icon: 'pencil-line',      tone: 'danger' },
+  kalender:    { labelKey: 'detail.more.add_calendar', shortLabelKey: 'action.short.calendar',   icon: 'calendar-blank',   tone: 'success' },
+  mail:        { labelKey: 'detail.more.reply_mail', shortLabelKey: 'common.email',     icon: 'envelope-simple',  tone: 'neutral' },
+  review:      { labelKey: 'review.label', shortLabelKey: 'field.review',     icon: 'magnifying-glass', tone: 'warning' },
+  ai:          { labelKey: 'detail.action.understand', shortLabelKey: 'action.short.understand',  icon: 'sparkle',          tone: 'neutral' },
+  erledigt:    { labelKey: 'detail.action.mark_done', shortLabelKey: 'doc.done',   icon: 'check-circle',     tone: 'neutral' },
 };
 
 const ACTION_HINT: Partial<Record<string, string>> = {
@@ -139,9 +140,9 @@ function buildPressMap(handlers: Record<string, (() => void) | undefined>) {
 }
 
 export interface ActionPlan {
-  primary: { key: string; label: string; shortLabel?: string; icon: string; tone?: string; onPress?: () => void };
-  secondary: Array<{ key: string; label: string; shortLabel?: string; icon: string; tone?: string; onPress?: () => void }>;
-  hidden: Array<{ key: string; label: string; icon: string; onPress?: () => void }>;
+  primary: { key: string; labelKey: string; shortLabelKey: string; icon: string; tone?: string; onPress?: () => void };
+  secondary: Array<{ key: string; labelKey: string; shortLabelKey: string; icon: string; tone?: string; onPress?: () => void }>;
+  hidden: Array<{ key: string; labelKey?: string; label?: string; icon: string; onPress?: () => void }>;
 }
 
 export function getDetailActionPlan(
@@ -206,9 +207,12 @@ function buildReviewContext(dok: Dokument): { title: string; body: string } | nu
 
 export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPanelProps) {
   const { Colors: C, S, R } = useTheme();
+  const { t } = useT();
   if (!dok || !actionPlan) return null;
 
   const { primary, secondary } = actionPlan;
+  const localizedPrimaryLabel =
+    primary.key === 'review' ? t('detail.review.check_details') : t(primary.labelKey);
 
   const processTone = primary.key === 'review'      ? 'warning'
     : primary.key === 'zahlendaten' ? 'warning'
@@ -223,14 +227,14 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPa
     <View style={{ paddingHorizontal: S.lg, paddingTop: S.lg }}>
       {primary.onPress && (primary.key !== 'review' || reviewCtx) && (
         <>
-          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>Nächster Schritt</Text>
+          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>{t('detail.panel.next_step')}</Text>
           <TouchableOpacity onPress={primary.onPress} activeOpacity={0.8}>
             <AppCard style={{ marginBottom: 12 }} padding={S.md} radius={R.lg} borderColor={processColors.border} backgroundColor={processColors.bg}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <Icon name={primary.icon} size={22} color={processColors.text} />
                 <View style={{ flex: 1 }}>
                   <Text style={[T.title, { color: processColors.text }]}>
-                    {primary.key === 'review' ? reviewCtx!.title : primary.label}
+                    {primary.key === 'review' ? reviewCtx!.title : localizedPrimaryLabel}
                   </Text>
                   <Text style={[T.meta, { color: C.textSecondary, marginTop: 4 }]}>
                     {primary.key === 'review'
@@ -252,7 +256,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPa
 
       {secondary.length > 0 && (
         <>
-          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>Schnelle Aktionen</Text>
+          <Text style={[T.label, { color: C.textSecondary, marginBottom: 10 }]}>{t('detail.panel.quick_actions')}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
             {secondary.map(action => {
               const tone = toneColors(action.tone ?? 'neutral', C);
@@ -263,7 +267,7 @@ export default function ActionsPanel({ dok, digitalTwin, actionPlan }: ActionsPa
                   onPress={action.onPress}
                   disabled={!action.onPress}>
                   <Icon name={action.icon} size={20} color={tone.text} style={{ marginBottom: 4 }} />
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: tone.text }}>{action.shortLabel}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: tone.text }}>{t(action.shortLabelKey)}</Text>
                 </TouchableOpacity>
               );
             })}

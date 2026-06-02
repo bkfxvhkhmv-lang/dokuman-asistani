@@ -6,6 +6,7 @@ import DocumentEntityOverlay from '@/components/DocumentEntityOverlay';
 import DocumentSpotlight from '@/components/DocumentSpotlight';
 import type { Dokument } from '@/store';
 import type { EntityBox } from '@/services/visionApi';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   dok: Dokument;
@@ -14,6 +15,7 @@ interface Props {
 
 export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t } = useT();
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
   const [spotlightBox, setSpotlightBox] = useState<EntityBox | null>(null);
   const [pdfPageCount, setPdfPageCount] = useState<number>(0);
@@ -96,7 +98,7 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
               letterSpacing: 0.8,
             }}
           >
-            DOKUMENT VORSCHAU
+            {t('detail.preview.title')}
           </Text>
           {isPdfDoc && (
             <View style={{ backgroundColor: C.primary + '18', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
@@ -115,9 +117,9 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
             onPress={onOpenFullscreen}
             hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
             accessibilityRole="button"
-            accessibilityLabel="Vollbild"
+            accessibilityLabel={t('detail.preview.fullscreen')}
           >
-            <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary }}>Vollbild</Text>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary }}>{t('detail.preview.fullscreen')}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -126,10 +128,10 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           {inner}
           <View style={{ paddingBottom: S.sm, alignItems: 'center', gap: 2 }}>
             <Text style={{ fontSize: 10, fontWeight: '600', color: C.textTertiary }}>
-              Antippen · Vollbild
+              {t('detail.preview.tap_fullscreen')}
             </Text>
             <Text style={{ fontSize: 9, color: C.textTertiary, opacity: 0.6 }}>
-              Falsch gedreht? Im Vollbild drehen.
+              {t('detail.preview.rotate_hint')}
             </Text>
           </View>
         </TouchableOpacity>

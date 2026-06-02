@@ -226,7 +226,7 @@ function HomeRecentListInner({ data }: { data: any }) {
           accessibilityRole="button"
         >
           <Text style={[st.allLinkLabel, { color: data.Colors.primary }]}>
-            Alle {deduped.length} Dokumente anzeigen
+            {T('home.show_all_documents', { n: deduped.length })}
           </Text>
         </TouchableOpacity>
       )}

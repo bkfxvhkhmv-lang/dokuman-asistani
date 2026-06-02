@@ -4,6 +4,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_LANG } from '@/i18n/langConfig';
+import { useT } from '@/hooks/useT';
 import { useTheme } from '@/ThemeContext';
 import { explainDocument } from '@/services/v4Api';
 import { isOnline } from '@/services/offlineQueue';
@@ -74,6 +75,7 @@ interface BelgeAciklamaModalProps {
 
 export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAciklamaModalProps) {
   const { Colors: C, R } = useTheme();
+  const { t } = useT();
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
@@ -230,8 +232,8 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16, gap: 10 }}>
           <Text style={{ fontSize: 22 }}>🤖</Text>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>Dokument verstehen</Text>
-            <Text style={{ fontSize: 11, color: C.textSecondary }}>KI-gestützt — nur Metadaten werden verwendet</Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>{t('modal.understand_doc.title')}</Text>
+            <Text style={{ fontSize: 11, color: C.textSecondary }}>{t('modal.understand_doc.sub')}</Text>
           </View>
           <TouchableOpacity onPress={() => setDilSec(!dilSec)}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -275,16 +277,16 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
             <View style={{ alignItems: 'center', paddingVertical: 32 }}>
               <Text style={{ fontSize: 48, marginBottom: 16 }}>🤖</Text>
               <Text style={{ fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 8, textAlign: 'center' }}>
-                Was bedeutet dieses Dokument?
+                {t('modal.understand_doc.prompt')}
               </Text>
               <Text style={{ fontSize: 13, color: C.textSecondary, textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
-                Das Dokument wird auf {seciliDilObj.name} erklärt.{'\n'}
-                Der Dokumentinhalt wird niemals übertragen.
+                {t('modal.understand_doc.explain_lang', { language: seciliDilObj.name })}{'\n'}
+                {t('modal.understand_doc.content_local')}
               </Text>
               <TouchableOpacity onPress={() => handleAcikla()}
                 style={{ paddingHorizontal: 28, paddingVertical: 14, borderRadius: R.full, backgroundColor: C.primary }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>
-                  {seciliDilObj.flag}  Auf {seciliDilObj.name} erklären
+                  {seciliDilObj.flag}  {t('modal.understand_doc.explain_action', { language: seciliDilObj.name })}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -293,9 +295,9 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           {yukleniyor && (
             <View style={{ alignItems: 'center', paddingVertical: 48 }}>
               <ActivityIndicator size="large" color={C.primary} />
-              <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>Analysiert …</Text>
+              <Text style={{ fontSize: 14, color: C.textSecondary, marginTop: 16 }}>{t('detail.analysis.recognizing')}</Text>
               <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 6 }}>
-                Dauert in der Regel 3–10 Sekunden
+                {t('modal.understand_doc.loading_eta')}
               </Text>
             </View>
           )}
@@ -305,7 +307,7 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
               padding: 16, borderWidth: 1, borderColor: C.dangerBorder, marginBottom: 16 }}>
               <Text style={{ fontSize: 14, color: C.dangerText }}>{hata}</Text>
               <TouchableOpacity onPress={() => handleAcikla()} style={{ marginTop: 12 }}>
-                <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>Erneut versuchen →</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>{t('common.retry')} →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -333,10 +335,10 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
                   })(),
                   }}>
                   {(aciklama.model_used ?? '').startsWith('local/')
-                    ? 'Hier nur gespeicherter OCR-/Übersichtstext vom Gerät. Formulierte KI-Erklärung („Auf … erklären“ in der gewählten Sprache) nach erfolgreicher Server-Synchronisation.'
+                    ? t('modal.understand_doc.source_local')
                     : (aciklama.model_used ?? '').startsWith('cache/')
-                      ? 'Zuletzt gespeicherter Abruf.'
-                      : 'Cloud-KI — Antwort enthält erklärten Text zum Dokument'}
+                      ? t('modal.understand_doc.source_cache')
+                      : t('modal.understand_doc.source_cloud')}
                 </Text>
               </View>
 
@@ -355,23 +357,23 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
                     borderWidth: 1, borderColor: okuyor ? C.warningBorder : C.successBorder }}>
                   <Text style={{ fontSize: 13, fontWeight: '600',
                     color: okuyor ? C.warningText : C.successText }}>
-                    {okuyor ? '⏹ Dur' : '🔊 Dinle'}
+                    {okuyor ? `⏹ ${t('common.close')}` : `🔊 ${t('detail.listen')}`}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleKopyala}
                   style={{ flex: 1, padding: 12, borderRadius: R.lg, alignItems: 'center',
                     borderWidth: 1.5, borderColor: C.border, backgroundColor: C.bgInput }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>📋 Kopyala</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>📋 {t('reply.copy')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handlePaylas}
                   style={{ flex: 1, padding: 12, borderRadius: R.lg, alignItems: 'center', backgroundColor: C.primary }}>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#fff' }}>⬆ Teilen</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#fff' }}>⬆ {t('reply.share')}</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity onPress={() => setDilSec(true)}
                 style={{ padding: 12, borderRadius: R.lg, alignItems: 'center', borderWidth: 1, borderColor: C.border }}>
-                <Text style={{ fontSize: 13, color: C.textSecondary }}>🌍 Farklı dilde açıkla</Text>
+                <Text style={{ fontSize: 13, color: C.textSecondary }}>🌍 {t('modal.understand_doc.choose_other_language')}</Text>
               </TouchableOpacity>
             </>
           )}

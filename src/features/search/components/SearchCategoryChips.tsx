@@ -5,6 +5,8 @@ import React from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SEARCH_CATEGORY_QUICK_CHIPS } from '@/product/canonicalDocTypes';
 import type { ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import { translateDocumentTypeLabel } from '@/i18n/documentTypeLabels';
 
 type Props = {
   typ: string;
@@ -15,11 +17,13 @@ type Props = {
 };
 
 export default function SearchCategoryChips({ typ, onTyp, C, S }: Props) {
+  const { lang } = useT();
   return (
     <View style={{ marginBottom: S.sm }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: S.md, gap: 8 }}>
         {SEARCH_CATEGORY_QUICK_CHIPS.map(({ filter, label }) => {
           const aktiv = filter === typ;
+          const localizedLabel = translateDocumentTypeLabel(label, lang);
           return (
             <TouchableOpacity
               key={filter}
@@ -34,7 +38,7 @@ export default function SearchCategoryChips({ typ, onTyp, C, S }: Props) {
               }}
             >
               <Text style={{ fontSize: 13, fontWeight: aktiv ? '800' : '500', color: aktiv ? C.primaryDark : C.textSecondary }}>
-                {label}
+                {localizedLabel}
               </Text>
             </TouchableOpacity>
           );

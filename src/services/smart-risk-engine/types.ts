@@ -1,7 +1,7 @@
 import type { VertragRisiko, DarkPattern } from '@/utils';
 
 export type RiskLevel = 'kritisch' | 'hoch' | 'mittel' | 'niedrig' | 'kein';
-export type RiskTrend = 'verschlechtert' | 'stabil' | 'verbessert';
+export type RiskTrend = 'worse' | 'stable' | 'better';
 export type TextParams = Record<string, string | number>;
 
 export interface RiskFactor {

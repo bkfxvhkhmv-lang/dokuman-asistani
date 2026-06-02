@@ -57,7 +57,7 @@ export default function HomeHeaderCluster({
       <Animated.View style={{ opacity: heroOpacity, transform: [{ translateY: heroTranslateY }] }}>
         <View style={st.metaRow}>
           <Text style={{ fontSize: fs(13), color: colors.textSecondary }}>
-            {totalDocs} {T(totalDocs === 1 ? 'home.doc_singular' : 'home.doc_plural')} insgesamt
+            {totalDocs} {T(totalDocs === 1 ? 'home.doc_singular' : 'home.doc_plural')} {T('home.total_suffix')}
           </Text>
           {dringend > 0 && (
             <View style={[st.urgentPill, { backgroundColor: `${colors.danger}14`, borderColor: `${colors.danger}30` }]}>

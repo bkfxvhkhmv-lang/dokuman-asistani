@@ -84,7 +84,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       setPreviewText(text);
       setPreviewVisible(true);
     } catch (e: any) {
-      Alert.alert('Vorschau nicht möglich', e?.message ?? 'Unbekannter Fehler');
+      Alert.alert(T('ocr.result.preview_unavailable_title'), e?.message ?? T('common.unknown_error'));
     } finally {
       setPreviewing(false);
     }
@@ -103,14 +103,14 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         await Sharing.shareAsync(uri, { UTI: uti });
       } else {
         Alert.alert(
-          'Datei gespeichert',
-          'Die Datei wurde lokal zwischengespeichert. Bitte versuche es über die Teilen-Funktion erneut.',
+          T('ocr.result.file_saved_title'),
+          T('ocr.result.file_saved_body'),
         );
       }
     } catch {
       Alert.alert(
-        'Download fehlgeschlagen',
-        'Die Datei konnte nicht heruntergeladen werden. Bitte prüfe die Verbindung und versuche es erneut.',
+        T('ocr.result.download_failed_title'),
+        T('ocr.result.download_failed_body'),
       );
     } finally {
       setDownloading(false);
@@ -125,7 +125,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       <View style={st.statusRow}>
         <View style={st.successChip}>
           <Icon name="checkmark-circle" size={13} color={Colors.success} />
-          <Text style={st.successChipText}>Analyse abgeschlossen</Text>
+          <Text style={st.successChipText}>{T('ocr.result.completed')}</Text>
         </View>
       </View>
 
@@ -134,7 +134,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <View style={st.savedState}>
           <View style={st.savedBadge}>
             <Icon name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={st.savedBadgeText}>Gespeichert</Text>
+            <Text style={st.savedBadgeText}>{T('ocr.result.saved_badge')}</Text>
           </View>
           {onOpenDocument && (
             <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>
@@ -163,7 +163,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       ) : (
         <>
           <View style={st.infoBlock}>
-            <Row label="Dokumenttyp" value={docLabel} colors={Colors} />
+            <Row label={T('field.type')} value={docLabel} colors={Colors} />
           </View>
 
           <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
@@ -171,7 +171,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               ? <ActivityIndicator color={Colors.primary} />
               : <>
                   <Icon name="eye-outline" size={20} color={Colors.primary} />
-                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>Ergebnis anzeigen</Text>
+                  <Text style={[st.downloadLabel, { color: Colors.primary }]}>{T('ocr.result.show_result')}</Text>
                 </>}
           </TouchableOpacity>
 
@@ -191,7 +191,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
         <View style={[st.warnBox, st.warnBoxHigh]}>
           <Icon name="warning-outline" size={18} color="#FF6B6B" />
           <Text style={[st.warnText, st.warnTextHigh]}>
-            Dieses Dokument kann rechtliche oder steuerliche Konsequenzen haben. Bitte holen Sie vor dem Versand eine Expertenmeinung ein.
+            {T('ocr.result.high_risk_notice')}
           </Text>
         </View>
       )}
@@ -200,25 +200,25 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
       {result.needs_review && !isHighRisk && !hasSummary && (
         <View style={st.warnBox}>
           <Icon name="warning-outline" size={18} color="#F59E0B" />
-          <Text style={st.warnText}>Bitte prüfen Sie das Ergebnis, bevor Sie es weiterleiten.</Text>
+          <Text style={st.warnText}>{T('ocr.result.review_notice')}</Text>
         </View>
       )}
 
 
 
       <TouchableOpacity style={st.resetBtn} onPress={onReset} activeOpacity={0.75}>
-        <Text style={st.resetLabel}>Neue Analyse</Text>
+        <Text style={st.resetLabel}>{T('ocr.result.new_analysis')}</Text>
       </TouchableOpacity>
 
       {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
         <SafeAreaView style={st.modalRoot} edges={['bottom']}>
           <View style={[st.modalHeader, { paddingTop: Math.max(insets.top + 12, 28) }]}>
-            <Text style={st.modalTitle}>{isXlsx ? 'Datenvorschau' : 'Ergebnisvorschau'}</Text>
+            <Text style={st.modalTitle}>{isXlsx ? T('ocr.result.data_preview') : T('ocr.result.preview_title')}</Text>
             <HeaderIconButton
               name="close"
               onPress={() => setPreviewVisible(false)}
-              accessibilityLabel="Schließen"
+              accessibilityLabel={T('common.close')}
               color={Colors.text}
               style={{ marginRight: -4 }}
             />
@@ -236,7 +236,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               <View style={{ alignItems: 'center', paddingTop: 48, gap: 12 }}>
                 <Icon name="document-outline" size={48} color={Colors.textSecondary} />
                 <Text style={{ color: Colors.textSecondary, fontSize: 14, textAlign: 'center' }}>
-                  Inhalt konnte nicht geladen werden.
+                  {T('ocr.result.content_unavailable')}
                 </Text>
               </View>
             )}
@@ -275,12 +275,13 @@ function DatenvorschauContent({
   tables?: { rows: number; cols: number; preview: string[][] }[];
   C: ReturnType<typeof useTheme>['Colors'];
 }) {
+  const { t: T } = useT();
   if (!fields?.length && !tables?.length) {
     return (
       <View style={{ alignItems: 'center', paddingTop: 48, gap: 12 }}>
         <Icon name="grid-outline" size={48} color={C.textSecondary} />
         <Text style={{ color: C.textSecondary, fontSize: 14, textAlign: 'center' }}>
-          Keine Vorschaudaten verfügbar.
+          {T('ocr.result.no_preview_data')}
         </Text>
       </View>
     );
@@ -290,7 +291,7 @@ function DatenvorschauContent({
       {fields && fields.length > 0 && (
         <View>
           <Text style={{ color: C.textSecondary, fontSize: 11, fontWeight: '600', letterSpacing: 0.8, marginBottom: 10, textTransform: 'uppercase' }}>
-            Formularfelder
+            {T('ocr.result.form_fields')}
           </Text>
           <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border }}>
             {fields.map((f, i) => (
@@ -302,7 +303,7 @@ function DatenvorschauContent({
                 borderTopColor: C.border,
               }}>
                 <Text style={{ flex: 1, color: C.textSecondary, fontSize: 13 }} numberOfLines={2}>{f.name}</Text>
-                <Text style={{ flex: 1, color: C.text, fontSize: 13, fontWeight: '500', textAlign: 'right' }} numberOfLines={2}>{f.value || '—'}</Text>
+                      <Text style={{ flex: 1, color: C.text, fontSize: 13, fontWeight: '500', textAlign: 'right' }} numberOfLines={2}>{f.value || T('common.none')}</Text>
               </View>
             ))}
           </View>
@@ -311,7 +312,7 @@ function DatenvorschauContent({
       {tables && tables.map((t, ti) => (
         <View key={ti}>
           <Text style={{ color: C.textSecondary, fontSize: 11, fontWeight: '600', letterSpacing: 0.8, marginBottom: 10, textTransform: 'uppercase' }}>
-            {`Tabelle ${ti + 1} · ${t.rows} Zeilen · ${t.cols} Spalten`}
+            {T('ocr.result.table_meta', { index: ti + 1, rows: t.rows, cols: t.cols })}
           </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
             <View style={{ borderRadius: 12, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: C.border }}>
@@ -332,7 +333,7 @@ function DatenvorschauContent({
                         color: ri === 0 ? C.text : C.textSecondary,
                         fontSize: 12,
                         fontWeight: ri === 0 ? '600' : '400',
-                      }} numberOfLines={2}>{cell || '—'}</Text>
+                      }} numberOfLines={2}>{cell || T('common.none')}</Text>
                     </View>
                   ))}
                 </View>
@@ -341,7 +342,7 @@ function DatenvorschauContent({
           </ScrollView>
           {t.rows > 5 && (
             <Text style={{ color: C.textTertiary, fontSize: 11, marginTop: 6, textAlign: 'center' }}>
-              {`Vorschau: 5 von ${t.rows} Zeilen`}
+              {T('ocr.result.preview_rows', { shown: 5, total: t.rows })}
             </Text>
           )}
         </View>

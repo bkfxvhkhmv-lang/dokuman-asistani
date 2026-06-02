@@ -256,7 +256,7 @@ export default function Suchbildschirm() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <Text style={{ fontSize: 12, fontWeight: '700', color: C.text }}>
-                {selectionMode ? t('search.selection_count', { n: selectedIds.size }) : `${displayDocs.length} ${displayDocs.length !== 1 ? 'ERGEBNISSE' : 'ERGEBNIS'}`}
+                {selectionMode ? t('search.selection_count', { n: selectedIds.size }) : t(displayDocs.length !== 1 ? 'search.results_many' : 'search.results_one', { n: displayDocs.length })}
                 {!selectionMode && mitErledigt ? ' (inkl. Erledigt)' : ''}
               </Text>
               <TouchableOpacity onPress={selectionMode ? cancelSelection : () => setSelectionMode(true)} activeOpacity={0.75}>

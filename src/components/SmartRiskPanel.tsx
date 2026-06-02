@@ -12,7 +12,7 @@ interface SmartRiskPanelProps {
 }
 
 const TREND_ICON: Record<RiskTrend, string> = {
-  verschlechtert: 'arrow-up', stabil: 'minus', verbessert: 'arrow-down',
+  worse: 'arrow-up', stable: 'minus', better: 'arrow-down',
 };
 
 function ScoreGauge({ score, color, bg, textColor }: { score: number; color: string; bg: string; textColor: string }) {
@@ -55,7 +55,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
     kritisch: C.dangerText, hoch: C.warningText, mittel: C.warningText, niedrig: C.successText, kein: C.primaryDark,
   };
   const TREND_COLOR: Record<RiskTrend, string> = {
-    verschlechtert: C.danger, stabil: C.warning, verbessert: C.success,
+    worse: C.danger, stable: C.warning, better: C.success,
   };
 
   const bg = LEVEL_BG[displayLevel];

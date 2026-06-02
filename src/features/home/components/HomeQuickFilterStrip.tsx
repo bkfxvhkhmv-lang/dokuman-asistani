@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useT } from '@/hooks/useT';
 
 export type QuickScope = 'alle' | 'offen' | 'ueberfaellig';
 
-const CHIPS: { key: QuickScope; label: string }[] = [
-  { key: 'alle', label: 'Alle' },
-  { key: 'offen', label: 'Offen' },
-  { key: 'ueberfaellig', label: 'Überfällig' },
+const CHIPS: { key: QuickScope; labelKey: string }[] = [
+  { key: 'alle', labelKey: 'common.all' },
+  { key: 'offen', labelKey: 'home.filter.open' },
+  { key: 'ueberfaellig', labelKey: 'doc.overdue' },
 ];
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 };
 
 export default function HomeQuickFilterStrip({ scope, onChange, colors: C }: Props) {
+  const { t } = useT();
   return (
     <View style={[styles.wrap, { backgroundColor: C.bg, borderBottomColor: `${C.border}AA` }]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
@@ -44,7 +46,7 @@ export default function HomeQuickFilterStrip({ scope, onChange, colors: C }: Pro
               ]}
             >
               <Text style={[styles.chipTxt, { color: active ? C.primary : C.text, fontWeight: active ? '800' : '600' }]}>
-                {c.label}
+                {t(c.labelKey)}
               </Text>
             </TouchableOpacity>
           );

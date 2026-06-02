@@ -22,9 +22,9 @@ export function getRiskLevelLabels(lang = getLangSync()): Record<RiskLevel, stri
 
 export function getRiskTrendLabels(lang = getLangSync()): Record<RiskTrend, string> {
   return {
-    verschlechtert: t(lang, 'risk.trend.worse'),
-    stabil:         t(lang, 'risk.trend.stable'),
-    verbessert:     t(lang, 'risk.trend.better'),
+    worse:  t(lang, 'risk.trend.worse'),
+    stable: t(lang, 'risk.trend.stable'),
+    better: t(lang, 'risk.trend.better'),
   };
 }
 

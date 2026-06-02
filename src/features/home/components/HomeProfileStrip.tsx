@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useT } from '@/hooks/useT';
 
 interface Profile {
   id: string;
@@ -19,6 +20,7 @@ interface HomeProfileStripProps {
 }
 
 export default function HomeProfileStrip({ colors, profiles, activeProfileId, onSelect, spacing, radius }: HomeProfileStripProps) {
+  const { t } = useT();
   if (!profiles?.length) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={st.profileStrip}
@@ -28,7 +30,7 @@ export default function HomeProfileStrip({ colors, profiles, activeProfileId, on
           borderColor: !activeProfileId ? colors.text : colors.borderLight,
           backgroundColor: !activeProfileId ? colors.text : 'transparent' }}
         onPress={() => onSelect(null)}>
-        <Text style={{ fontSize: 12, fontWeight: '600', color: !activeProfileId ? colors.bg : colors.textSecondary }}>Alle</Text>
+        <Text style={{ fontSize: 12, fontWeight: '600', color: !activeProfileId ? colors.bg : colors.textSecondary }}>{t('common.all')}</Text>
       </TouchableOpacity>
       {profiles.map(profile => {
         const isActive = activeProfileId === profile.id;

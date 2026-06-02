@@ -7,6 +7,7 @@ import Constants from 'expo-constants';
 import { useTheme } from '@/ThemeContext';
 import AppSheet from '@/design/components/AppSheet';
 import { BetaAnalytics } from '@/services/BetaAnalytics';
+import { useT } from '@/hooks/useT';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ interface FeedbackModalProps {
 
 export default function FeedbackModal({ visible, onClose, initialScreen }: FeedbackModalProps) {
   const { Colors, fs } = useTheme();
+  const { t } = useT();
 
   const [severity,  setSeverity]  = useState<Severity | null>(null);
   const [screen,    setScreen]    = useState<string>(initialScreen ?? '');
@@ -253,7 +255,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
           ]}
         >
           <Text style={[st.sendBtnText, { fontSize: fs(15) }]}>
-            {sending ? 'Öffnet E-Mail-App...' : 'Feedback senden'}
+            {sending ? t('feedback.opening_mail') : t('feedback.send')}
           </Text>
         </TouchableOpacity>
       </ScrollView>

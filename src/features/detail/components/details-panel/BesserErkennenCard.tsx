@@ -46,7 +46,7 @@ export function BesserErkennenCard({ dok }: Props) {
         <Icon name="sparkle" size={16} color={C.primary} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>
-            Dokument besser erkennen
+            {t('detail.recognize_better.title')}
           </Text>
           {!suggestion && !error && !loading && (
             <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>

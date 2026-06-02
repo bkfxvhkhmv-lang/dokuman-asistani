@@ -110,9 +110,9 @@ export default function OcrMvpActionSummary({
       ) && (
         <Text style={[st.techDetails, { color: Colors.textTertiary }]}>
           {[
-            summary.fields_count != null ? `${summary.fields_count} ${summary.fields_count === 1 ? 'Feld' : 'Felder'}` : null,
-            summary.tables_count != null ? `${summary.tables_count} ${summary.tables_count === 1 ? 'Tabelle' : 'Tabellen'}` : null,
-            summary.lines_count  != null ? `${summary.lines_count} ${summary.lines_count === 1 ? 'Zeile' : 'Zeilen'}` : null,
+            summary.fields_count != null ? T(summary.fields_count === 1 ? 'ocr.result.meta.field_one' : 'ocr.result.meta.field_many', { n: summary.fields_count }) : null,
+            summary.tables_count != null ? T(summary.tables_count === 1 ? 'ocr.result.meta.table_one' : 'ocr.result.meta.table_many', { n: summary.tables_count }) : null,
+            summary.lines_count  != null ? T(summary.lines_count === 1 ? 'ocr.result.meta.line_one' : 'ocr.result.meta.line_many', { n: summary.lines_count }) : null,
           ].filter(Boolean).join(' · ')}
         </Text>
       )}
@@ -150,7 +150,7 @@ export default function OcrMvpActionSummary({
             <View style={st.metaLine}>
               <Icon name="calendar-outline" size={14} color="#F59E0B" />
               <Text style={[st.metaLineText, { color: '#F59E0B', fontWeight: '700' }]}>
-                Frist: {summary.deadline}
+                {T('field.deadline')}: {summary.deadline}
               </Text>
             </View>
           )}

@@ -11,6 +11,7 @@ import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
 import Icon from '@/components/Icon';
 import type { Dokument } from '@/store';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   pages: NonNullable<Dokument['pages']>;
@@ -22,6 +23,7 @@ const A4_ASPECT = 210 / 297;
 
 export default function PagesPreviewCard({ pages, onOpen }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t } = useT();
   const { width: winW } = useWindowDimensions();
   const sorted = useMemo(() => [...pages].sort((a, b) => a.order - b.order), [pages]);
   const previews = sorted.slice(0, 4);
@@ -58,7 +60,7 @@ export default function PagesPreviewCard({ pages, onOpen }: Props) {
             letterSpacing: 0.8,
           }}
         >
-          GESCANNTE SEITEN ({sorted.length})
+          {t('detail.pages_preview.title', { n: sorted.length })}
         </Text>
         <TouchableOpacity
           onPress={() => onOpen(0)}
@@ -75,11 +77,11 @@ export default function PagesPreviewCard({ pages, onOpen }: Props) {
             borderColor: `${C.primary}33`,
           }}
           accessibilityRole="button"
-          accessibilityLabel="Vollbild öffnen"
+          accessibilityLabel={t('detail.pages_preview.fullscreen_open')}
         >
           <Icon name="image" size={14} color={C.primary} />
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark }}>
-            Vollbild
+            {t('detail.preview.fullscreen')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -89,7 +91,7 @@ export default function PagesPreviewCard({ pages, onOpen }: Props) {
           onPress={() => onOpen(0)}
           activeOpacity={0.9}
           accessibilityRole="imagebutton"
-          accessibilityLabel="Scan in Vollbild anzeigen"
+          accessibilityLabel={t('detail.pages_preview.image_fullscreen')}
           style={[
             previewSt.heroFrame,
             {
@@ -108,7 +110,7 @@ export default function PagesPreviewCard({ pages, onOpen }: Props) {
             resizeMode="contain"
           />
           <View style={[previewSt.heroHint, { backgroundColor: C.text + 'E6' }]}>
-            <Text style={previewSt.heroHintText}>Antippen · Vollbild</Text>
+            <Text style={previewSt.heroHintText}>{t('detail.preview.tap_fullscreen')}</Text>
           </View>
         </TouchableOpacity>
       ) : (
@@ -158,10 +160,10 @@ export default function PagesPreviewCard({ pages, onOpen }: Props) {
             style={[previewSt.rowFullBleedTap, { marginTop: S.sm }]}
             hitSlop={HIT_SLOP_LG}
             accessibilityRole="button"
-            accessibilityLabel="Alle Seiten in Vollbild"
+            accessibilityLabel={t('detail.pages_preview.all_pages_fullscreen')}
           >
             <Text style={{ fontSize: 11, fontWeight: '600', color: C.primaryDark }}>
-              Tippen · Vollbildansicht ({sorted.length} Seiten)
+              {t('detail.pages_preview.tap_fullscreen_count', { n: sorted.length })}
             </Text>
           </TouchableOpacity>
         </>

@@ -304,7 +304,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
         >
           <Icon name="envelope" size={18} color={C.primary} />
           <Text style={{ color: C.primary, fontSize: fs(14), fontWeight: '700' }}>
-            Feedback senden
+            {T('feedback.send')}
           </Text>
         </TouchableOpacity>
 

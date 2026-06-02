@@ -20,6 +20,7 @@ import { findeOzetQuellen } from '@/utils';
 import type { OzetTabProps } from '@/features/detail/components/ozet-tab/types';
 import { formatFrist, getTageText } from '@/utils/formatters';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
+import { useT } from '@/hooks/useT';
 
 export type { OzetTabProps } from '@/features/detail/components/ozet-tab/types';
 
@@ -42,6 +43,7 @@ export default function OzetTab({
   onRetryPipelineAnalysis,
   onKlassifikationBearbeiten,
 }: OzetTabProps) {
+  const { t } = useT();
   const scrollY = useRef(new Animated.Value(0)).current;
   const parallaxTranslate = scrollY.interpolate({
     inputRange: [0, 220],
@@ -117,13 +119,13 @@ export default function OzetTab({
               subtitle={fristSubtitle}
               primaryAction={
                 actionPlan?.primary?.onPress
-                  ? { label: actionPlan.primary.shortLabel ?? actionPlan.primary.label, onPress: actionPlan.primary.onPress }
+                  ? { label: t(actionPlan.primary.shortLabelKey), onPress: actionPlan.primary.onPress }
                   : undefined
               }
               secondaryAction={
                 actionPlan?.secondary?.[0]?.onPress
                   ? {
-                      label: actionPlan.secondary[0].shortLabel ?? actionPlan.secondary[0].label,
+                      label: t(actionPlan.secondary[0].shortLabelKey),
                       onPress: actionPlan.secondary[0].onPress,
                     }
                   : undefined

@@ -22,6 +22,7 @@ import { PDFDocument } from 'pdf-lib';
 import type { Dokument } from '@/store';
 import { AppSheet } from '@/design/components';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { detailModalStyles as st } from '@/features/detail/detail-modals/styles';
 import { exportierePDFZuDatei } from '@/utils/exporters';
 import { readUriBytes } from '@/core/pdf/js-pdf-generate/bytes';
@@ -97,6 +98,7 @@ function mapBoxToPdf(rect: Rect, box: SignatureBox, page: PageSize) {
 
 export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Props) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const { width: screenW } = useWindowDimensions();
   const padRef = useRef<View>(null);
   const dragStartRef = useRef<SignatureBox | null>(null);
@@ -247,7 +249,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
       console.warn('[SignaturePdfSheet] continue failed', error);
-      Alert.alert('Fehler', 'PDF konnte nicht vorbereitet werden.');
+      Alert.alert(T('common.error'), T('signature.v2.error_prepare'));
     } finally {
       setBusy(false);
     }
@@ -278,7 +280,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       });
 
       if (!stamped?.uri) {
-        Alert.alert('Fehler', 'PDF konnte nicht unterschrieben werden.');
+        Alert.alert(T('common.error'), T('signature.v2.error_save'));
         return;
       }
 
@@ -296,12 +298,12 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
 
       // Ask user: keep saved or also share
       Alert.alert(
-        'PDF unterschrieben',
-        'Das unterschriebene PDF wurde gespeichert.',
+        T('signature.v2.success_title'),
+        T('signature.v2.success_body'),
         [
-          { text: 'Fertig', style: 'cancel' },
+          { text: T('common.done'), style: 'cancel' },
           {
-            text: 'Teilen',
+            text: T('common.share'),
             onPress: async () => {
               if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(savedUri, {
@@ -316,7 +318,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       );
     } catch (error) {
       console.warn('[SignaturePdfSheet] save failed', error);
-      Alert.alert('Fehler', 'PDF konnte nicht unterschrieben werden.');
+      Alert.alert(T('common.error'), T('signature.v2.error_save'));
     } finally {
       setBusy(false);
     }
@@ -334,14 +336,14 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
         disabled={busy || !paths.length}
         style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy || !paths.length ? 0.5 : 1 }]}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Löschen</Text>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('signature.v2.clear')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={onClose}
         disabled={busy}
         style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Abbrechen</Text>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('common.cancel')}</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={handleContinue}
@@ -349,7 +351,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
         style={[st.sheetButton, { backgroundColor: C.primaryLight, borderColor: C.primary, opacity: busy || !canContinue ? 0.5 : 1 }]}
       >
         {busy ? <ActivityIndicator color={C.primaryDark} /> : (
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>Weiter</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>{T('signature.v2.continue')}</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -375,7 +377,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           disabled={busy}
           style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
         >
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>↻ Drehen</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('signature.v2.rotate')}</Text>
         </TouchableOpacity>
       </View>
       <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
@@ -390,14 +392,14 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           disabled={busy}
           style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
         >
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Unterschrift neu zeichnen</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('signature.v2.redraw')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onClose}
           disabled={busy}
           style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy ? 0.5 : 1 }]}
         >
-          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Abbrechen</Text>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('common.cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}
@@ -405,7 +407,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           style={[st.sheetButton, { backgroundColor: C.primaryLight, borderColor: C.primary, opacity: busy || !signatureUri || !pdfUri || !signatureBox ? 0.5 : 1 }]}
         >
           {busy ? <ActivityIndicator color={C.primaryDark} /> : (
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>PDF speichern</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>{T('signature.v2.save')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -416,54 +418,48 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
     <AppSheet
       visible={visible}
       onClose={onClose}
-      title="PDF unterschreiben"
-      subtitle={
-        step === 'draw'
-          ? 'Unterschrift zeichnen'
-          : 'Ziehe die Unterschrift an die richtige Stelle im Dokument.'
-      }
+      title={T('signature.v2.sheet_title')}
+      subtitle={step === 'draw' ? T('signature.v2.draw_subtitle') : T('signature.v2.place_subtitle')}
       footer={footer}
     >
       {step === 'draw' ? (
         <View style={{ gap: 12 }}>
           <Text style={{ fontSize: 13, lineHeight: 19, color: C.textSecondary }}>
-            Zeichne deine Unterschrift einmal sauber. Danach platzierst du sie im Dokument.
+            {T('signature.v2.draw_instruction')}
           </Text>
-          <View
-            ref={padRef}
-            collapsable={false}
-            {...panResponder.panHandlers}
-            style={{
-              width: padWidth,
-              maxWidth: '100%',
-              height: padHeight,
-              alignSelf: 'center',
-              borderRadius: 16,
-              borderWidth: 0.5,
-              borderColor: C.border,
-              backgroundColor: '#FFFFFF',
-              overflow: 'hidden',
-            }}
-          >
-            <Svg width={padWidth} height={padHeight}>
-              {paths.map((pts, idx) => (
-                <Polyline
-                  key={idx}
-                  points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
-                  fill="none"
-                  stroke="#111827"
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ))}
-            </Svg>
+          {/* White border/bg stays visible to user but is NOT the capture target */}
+          <View style={{
+            width: padWidth, maxWidth: '100%', alignSelf: 'center',
+            borderRadius: 16, borderWidth: 0.5, borderColor: C.border,
+            backgroundColor: '#FFFFFF', overflow: 'hidden',
+          }}>
+            {/* Transparent capture target — PNG will have no white background */}
+            <View
+              ref={padRef}
+              collapsable={false}
+              {...panResponder.panHandlers}
+              style={{ width: padWidth, height: padHeight, backgroundColor: 'transparent' }}
+            >
+              <Svg width={padWidth} height={padHeight}>
+                {paths.map((pts, idx) => (
+                  <Polyline
+                    key={idx}
+                    points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
+                    fill="none"
+                    stroke="#111827"
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ))}
+              </Svg>
+            </View>
           </View>
         </View>
       ) : (
         <View style={{ gap: 12 }}>
           <Text style={{ fontSize: 13, lineHeight: 19, color: C.textSecondary }}>
-            Ziehe die Unterschrift an die richtige Stelle im Dokument und passe bei Bedarf die Größe an.
+            {T('signature.v2.place_instruction')}
           </Text>
 
           {pageSizes.length > 1 && (
@@ -473,17 +469,17 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                 disabled={busy || pageIndex === 0}
                 style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy || pageIndex === 0 ? 0.5 : 1 }]}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Zurück</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('common.back')}</Text>
               </TouchableOpacity>
               <Text style={{ fontSize: 12, fontWeight: '700', color: C.textSecondary }}>
-                Seite {pageIndex + 1} / {pageSizes.length}
+                {T('signature.v2.page_counter', { n: pageIndex + 1, total: pageSizes.length })}
               </Text>
               <TouchableOpacity
                 onPress={() => setPageIndex(prev => clamp(prev + 1, 0, pageSizes.length - 1))}
                 disabled={busy || pageIndex === pageSizes.length - 1}
                 style={[st.sheetButton, { backgroundColor: C.bgCard, borderColor: C.border, opacity: busy || pageIndex === pageSizes.length - 1 ? 0.5 : 1 }]}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Weiter</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('signature.v2.continue')}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -559,7 +555,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
 
           {!!pdfError && (
             <Text style={{ fontSize: 12, color: C.danger }}>
-              PDF konnte nicht angezeigt werden: {pdfError}
+              {T('signature.v2.error_preview')}
             </Text>
           )}
         </View>

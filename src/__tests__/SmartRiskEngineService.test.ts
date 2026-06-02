@@ -145,16 +145,16 @@ describe('runSmartRiskEngine — peer comparison', () => {
 });
 
 describe('runSmartRiskEngine — erklaerung', () => {
-  it('includes the document type in the explanation', () => {
+  it('returns a localized explanation key', () => {
     const dok = makeDok({ typ: 'Steuerbescheid' });
     const result = runSmartRiskEngine(dok);
-    expect(result.erklaerung).toContain('Steuerbescheid');
+    expect(result.erklaerungKey).toBeTruthy();
   });
 
-  it('mentions overdue deadline in explanation', () => {
+  it('uses overdue explanation key for overdue deadlines', () => {
     const past = new Date(Date.now() - 86400000 * 3).toISOString();
     const result = runSmartRiskEngine(makeDok({ frist: past }));
-    expect(result.erklaerung).toMatch(/abgelaufen/i);
+    expect(result.erklaerungKey).toBe('risk.explain.deadline_overdue');
   });
 });
 

@@ -14,8 +14,9 @@ export function buildReductionSuggestions(
   if (tage !== null && tage <= 7 && tage >= 0 && dok.betrag) {
     suggestions.push({
       aktion: 'zahlen',
-      beschreibung: 'Zahlung sofort ausführen',
-      wirkung: '−30 Punkte',
+      beschreibungKey: 'risk.reduce.pay_now',
+      wirkungKey: 'risk.reduce.effect_points',
+      wirkungParams: { points: 30 },
       dringlichkeit: 'sofort',
       icon: 'currency-eur',
     });
@@ -24,8 +25,9 @@ export function buildReductionSuggestions(
   if (['Bußgeld', 'Steuerbescheid'].includes(dok.typ) && !dok.erledigt) {
     suggestions.push({
       aktion: 'einspruch',
-      beschreibung: 'Einspruch prüfen und ggf. einlegen',
-      wirkung: '−25 Punkte wenn berechtigt',
+      beschreibungKey: 'risk.reduce.appeal',
+      wirkungKey: 'risk.reduce.effect_points_if_valid',
+      wirkungParams: { points: 25 },
       dringlichkeit: tage !== null && tage <= 5 ? 'sofort' : 'diese_woche',
       icon: 'pencil-simple',
     });
@@ -35,8 +37,9 @@ export function buildReductionSuggestions(
   if (vollFaktor && vollFaktor.score > 30) {
     suggestions.push({
       aktion: 'bearbeiten',
-      beschreibung: 'Fehlende Felder ergänzen (Betrag, Frist)',
-      wirkung: '−15 Punkte',
+      beschreibungKey: 'risk.reduce.complete_fields',
+      wirkungKey: 'risk.reduce.effect_points',
+      wirkungParams: { points: 15 },
       dringlichkeit: 'bald',
       icon: 'pencil-simple',
     });
@@ -45,8 +48,10 @@ export function buildReductionSuggestions(
   if (darkPatterns.length > 0) {
     suggestions.push({
       aktion: 'prüfen',
-      beschreibung: `${darkPatterns.length} rechtliche Auffälligkeit${darkPatterns.length > 1 ? 'en' : ''} prüfen`,
-      wirkung: '−20 Punkte nach Klärung',
+      beschreibungKey: 'risk.reduce.legal_check',
+      beschreibungParams: { n: darkPatterns.length },
+      wirkungKey: 'risk.reduce.effect_points_after_clarify',
+      wirkungParams: { points: 20 },
       dringlichkeit: 'diese_woche',
       icon: 'gavel',
     });
@@ -57,8 +62,9 @@ export function buildReductionSuggestions(
     if (!hasReminder) {
       suggestions.push({
         aktion: 'erinnerung',
-        beschreibung: 'Erinnerung einrichten',
-        wirkung: '−5 Punkte (proaktive Kontrolle)',
+        beschreibungKey: 'risk.reduce.reminder',
+        wirkungKey: 'risk.reduce.effect_points_proactive',
+        wirkungParams: { points: 5 },
         dringlichkeit: 'bald',
         icon: 'bell',
       });

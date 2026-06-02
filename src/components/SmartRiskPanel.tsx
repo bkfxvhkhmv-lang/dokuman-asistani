@@ -39,10 +39,10 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
   const { level, isDataInsufficient } = result;
 
   const displayLevel: typeof level = isDataInsufficient ? 'kein' : level;
-  const displayLabel = isDataInsufficient ? T('risk.incomplete.title') : result.levelLabel;
+  const displayLabel = isDataInsufficient ? T('risk.incomplete.title') : T(result.levelLabelKey);
   const displayErklaerung = isDataInsufficient
     ? T('risk.incomplete.body')
-    : result.erklaerung;
+    : T(result.erklaerungKey, result.erklaerungParams);
   const vorschlaege = result.reduzierungsVorschlaege.filter(v => v.dringlichkeit !== 'bald');
 
   const LEVEL_BG: Record<RiskLevel, string> = {
@@ -84,7 +84,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 }}>
               <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
-              <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], fontWeight: '700' }}>{result.trendLabel}</Text>
+              <Text style={{ fontSize: 10, color: TREND_COLOR[result.trend], fontWeight: '700' }}>{T(result.trendLabelKey)}</Text>
             </View>
           </View>
         </View>
@@ -108,7 +108,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
               <View key={f.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 8,
                 paddingVertical: 6, borderTopWidth: i === 0 ? 0 : 0.5, borderColor: border + '33' }}>
                 <Text style={{ fontSize: 14, width: 22, textAlign: 'center' }}>{f.icon}</Text>
-                <Text style={{ fontSize: 12, color: C.text, flex: 1 }}>{f.beschreibung}</Text>
+                <Text style={{ fontSize: 12, color: C.text, flex: 1 }}>{T(f.beschreibungKey, f.beschreibungParams)}</Text>
                 <View style={{ width: 36, height: 3, backgroundColor: C.border, borderRadius: 2, overflow: 'hidden' }}>
                   <View style={{ height: 3, borderRadius: 2, width: `${f.score}%`, backgroundColor: factorColor(f.score) }} />
                 </View>
@@ -135,7 +135,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
             {!isDataInsufficient && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
                 <Icon name={TREND_ICON[result.trend]} size={11} color={TREND_COLOR[result.trend]} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>{result.trendLabel}</Text>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: TREND_COLOR[result.trend] }}>{T(result.trendLabelKey)}</Text>
               </View>
             )}
           </View>
@@ -159,8 +159,8 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
                 borderTopWidth: i > 0 ? 0.5 : 0, borderColor: border + '33' }}>
               <Icon name={v.icon} size={16} color={textColor} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: C.text }}>{v.beschreibung}</Text>
-                <Text style={{ fontSize: 10, color: C.textTertiary }}>{v.wirkung}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: C.text }}>{T(v.beschreibungKey, v.beschreibungParams)}</Text>
+                <Text style={{ fontSize: 10, color: C.textTertiary }}>{T(v.wirkungKey, v.wirkungParams)}</Text>
               </View>
               <View style={{ backgroundColor: v.dringlichkeit === 'sofort' ? border : C.bgInput,
                 borderRadius: 999, paddingHorizontal: 7, paddingVertical: 3 }}>
@@ -199,7 +199,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                   <Text style={{ fontSize: 13, width: 18, textAlign: 'center' }}>{f.icon}</Text>
-                  <Text style={{ fontSize: 11, color: C.text }}>{f.beschreibung}</Text>
+                  <Text style={{ fontSize: 11, color: C.text }}>{T(f.beschreibungKey, f.beschreibungParams)}</Text>
                 </View>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: factorColor(f.score) }}>
                   {f.score}
@@ -236,7 +236,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
               <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary, marginBottom: 4 }}>
                 {T('risk.peer_compare')}
               </Text>
-              <Text style={{ fontSize: 12, color: C.text }}>{result.peerComparison.beschreibung}</Text>
+              <Text style={{ fontSize: 12, color: C.text }}>{T(result.peerComparison.beschreibungKey, result.peerComparison.beschreibungParams)}</Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
                 {T('risk.peer_stats', {
                   n: result.peerComparison.aehnlicheDokumente,

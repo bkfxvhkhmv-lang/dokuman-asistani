@@ -5,6 +5,7 @@ import { useTheme } from '@/ThemeContext';
 import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { deriveNaechsterSchrittSatz } from '@/utils/detailNextStep';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   dok: Dokument;
@@ -13,10 +14,11 @@ interface Props {
 
 export default function NaechsterSchrittCard({ dok, actionPlan }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t: T } = useT();
   const satz = deriveNaechsterSchrittSatz(dok, actionPlan);
   if (!satz) return null;
   if (actionPlan?.primary?.key === 'review') return null;
-  if (satz === 'Einige Angaben kurz prüfen.' || satz === 'Angaben wurden nicht vollständig erkannt. Bitte prüfen.') {
+  if (satz === T('detail.next.check_some') || satz === T('detail.next.review_incomplete')) {
     return null;
   }
 
@@ -49,7 +51,7 @@ export default function NaechsterSchrittCard({ dok, actionPlan }: Props) {
       <Icon name={iconName} size={18} color={iconColor} />
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 10, fontWeight: '800', color: iconColor, letterSpacing: 0.6, marginBottom: 3 }}>
-          NÄCHSTER SCHRITT
+          {T('detail.section.next_steps').toUpperCase()}
         </Text>
         <Text style={{ fontSize: 14, fontWeight: '700', color: C.text, lineHeight: 19 }}>
           {satz}

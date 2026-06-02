@@ -1,31 +1,31 @@
 /** Qualitäts-Score → Kurzbeschreibung für die Hinweisleiste */
 
 export interface EnhancementRecommendation {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
 }
 
 export function getEnhancementRecommendation(qualityScore?: number): EnhancementRecommendation {
   if (typeof qualityScore !== 'number') {
     return {
-      title: 'Auto Enhance',
-      description: 'Nutze Clean oder Magic für klarere Kanten und stabileres OCR.',
+      titleKey: 'scan.enhance.auto_title',
+      descriptionKey: 'scan.enhance.auto_desc',
     };
   }
   if (qualityScore < 45) {
     return {
-      title: 'Starke Optimierung empfohlen',
-      description: 'Magic oder Clean helfen bei schwachem Kontrast und unruhigem Hintergrund.',
+      titleKey: 'scan.enhance.strong_title',
+      descriptionKey: 'scan.enhance.strong_desc',
     };
   }
   if (qualityScore < 70) {
     return {
-      title: 'Leichte Optimierung empfohlen',
-      description: 'Clean glättet den Scan, ohne zu aggressiv zu wirken.',
+      titleKey: 'scan.enhance.light_title',
+      descriptionKey: 'scan.enhance.light_desc',
     };
   }
   return {
-    title: 'Scan ist bereits stark',
-    description: 'Original oder Color behalten mehr Details, wenn der Scan schon sauber ist.',
+    titleKey: 'scan.enhance.good_title',
+    descriptionKey: 'scan.enhance.good_desc',
   };
 }

@@ -20,8 +20,11 @@ export function buildPeerComparison(dok: Dokument, alleDocs: Dokument[]): PeerCo
     aehnlicheDokumente: similar.length,
     durchschnittRisiko,
     istSchlechterAlsDurchschnitt,
-    beschreibung: istSchlechterAlsDurchschnitt
-      ? `Risiko höher als bei ${similar.length} ähnlichen Dokumenten (Ø: ${durchschnittRisiko})`
-      : `Risiko im normalen Bereich für ${dok.typ}`,
+    beschreibungKey: istSchlechterAlsDurchschnitt
+      ? 'risk.peer.description_higher'
+      : 'risk.peer.description_normal',
+    beschreibungParams: istSchlechterAlsDurchschnitt
+      ? { n: similar.length, risk: durchschnittRisiko }
+      : { type: dok.typ },
   };
 }

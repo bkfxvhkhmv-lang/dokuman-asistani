@@ -10,7 +10,7 @@ import { scoreFristFaktor, scoreBetragFaktor, scoreTypFaktor, scoreVollständigk
 import { calculateTrend } from './trend';
 import { buildReductionSuggestions } from './reductions';
 import { buildPeerComparison } from './peerComparison';
-import { scoreToLevel, LEVEL_LABELS, TREND_LABELS } from './labels';
+import { scoreToLevel } from './labels';
 import { buildErklaerung } from './explanation';
 
 export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): RiskEngineResult {
@@ -29,7 +29,8 @@ export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): Ri
   if (rechtlichScore > 0) {
     faktoren.push({
       id: 'rechtlich', kategorie: 'rechtlich',
-      beschreibung: `${allgemeinRisiken.length + darkPatterns.length} rechtliche Risiken erkannt`,
+      beschreibungKey: 'risk.factor.legal_count',
+      beschreibungParams: { n: allgemeinRisiken.length + darkPatterns.length },
       gewicht: 25, score: Math.min(100, rechtlichScore), icon: 'gavel',
     });
   }
@@ -58,16 +59,17 @@ export function runSmartRiskEngine(dok: Dokument, alleDocs: Dokument[] = []): Ri
   return {
     gesamtScore,
     level,
-    levelLabel:              LEVEL_LABELS[level],
+    levelLabelKey:           `risk.level.${level}`,
     trend,
-    trendLabel:              TREND_LABELS[trend],
+    trendLabelKey:           `risk.trend.${trend}`,
     faktoren,
     reduzierungsVorschlaege,
     darkPatterns,
     allgemeinRisiken:        [...allgemeinRisiken, ...vertragRisiken],
     peerComparison,
     gesundheitsscore,
-    erklaerung,
+    erklaerungKey:           erklaerung.key,
+    erklaerungParams:        erklaerung.params,
     isDataInsufficient,
   };
 }

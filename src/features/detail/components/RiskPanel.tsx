@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface OcrRisikoItem {
   wort: string;
@@ -47,6 +48,7 @@ export default function RiskPanel({
   darkPatterns = [], vertragRisiken = [], dokTyp, rohText,
 }: RiskPanelProps) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t: T } = useT();
 
   return (
     <>
@@ -55,13 +57,13 @@ export default function RiskPanel({
           backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning + '88', ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <Icon name="alert-circle" size={16} color={C.warningText} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>OCR-Risiko erkannt</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('risk_panel.ocr_detected')}</Text>
             <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: C.warning }}>
               <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{ocrRisiken.length}</Text>
             </View>
           </View>
           <Text style={{ fontSize: 11, color: C.textSecondary, marginBottom: 10 }}>
-            Folgende Wörter könnten durch OCR-Fehler entstanden sein:
+            {T('risk_panel.ocr_hint')}
           </Text>
           {ocrRisiken.map((r, i) => (
             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6,
@@ -81,7 +83,7 @@ export default function RiskPanel({
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Icon name="gavel" size={16} color={C.text} />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Rechtliches Risiko</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('risk_panel.legal_risk')}</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <View style={{ width: 70, height: 6, backgroundColor: C.borderLight, borderRadius: 3, overflow: 'hidden' }}>
@@ -111,8 +113,8 @@ export default function RiskPanel({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Icon name="warning-octagon" size={16} color={C.danger} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>Verdächtige Praktiken</Text>
-              <Text style={{ fontSize: 10, color: C.textTertiary }}>Mögliche Gesetzesverstöße erkannt</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: C.danger }}>{T('risk_panel.suspicious')}</Text>
+              <Text style={{ fontSize: 10, color: C.textTertiary }}>{T('risk_panel.suspicious_sub')}</Text>
             </View>
             <View style={{ backgroundColor: C.danger, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
               <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff' }}>{darkPatterns.length}</Text>
@@ -145,11 +147,11 @@ export default function RiskPanel({
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Icon name="file-text" size={16} color={C.text} />
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Vertragsrisiken</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{T('risk_panel.contract_risks')}</Text>
           </View>
           {vertragRisiken.length === 0 ? (
             <Text style={{ fontSize: 13, color: C.textSecondary }}>
-              {rohText ? 'Keine kritischen Klauseln erkannt' : 'Kein OCR-Text — Risiken können nicht analysiert werden'}
+              {rohText ? T('risk_panel.no_critical_clauses') : T('risk_panel.no_ocr')}
             </Text>
           ) : (
             vertragRisiken.map((r, i) => (
@@ -162,7 +164,7 @@ export default function RiskPanel({
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600',
                     color: r.level === 'hoch' ? C.danger : r.level === 'mittel' ? C.warning : C.textSecondary }}>
-                    {r.level === 'hoch' ? 'Hohes Risiko' : r.level === 'mittel' ? 'Mittleres Risiko' : 'Hinweis'}
+                    {r.level === 'hoch' ? T('risk_panel.high') : r.level === 'mittel' ? T('risk_panel.medium') : T('risk_panel.hint')}
                   </Text>
                   <Text style={{ fontSize: 12, color: C.text, marginTop: 2 }}>{r.text}</Text>
                 </View>

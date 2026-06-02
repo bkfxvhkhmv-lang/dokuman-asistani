@@ -2,18 +2,24 @@ import type { Dokument } from '@/store';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 import { formatBetrag, formatFrist, getTageVerbleibend } from '@/utils/formatters';
 import { hasCompletePaymentTarget } from '@/utils/documentGuards';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
+
+function LT(key: string, vars?: Record<string, string | number>) {
+  return t(getLangSync(), key, vars);
+}
 
 function overdueGuidance(dok: Dokument): string {
   const typ = dok.typ?.toLowerCase() ?? '';
   if (typ.includes('rechnung') || typ.includes('mahnung'))
-    return 'Frist ist abgelaufen. Prüfe, ob die Zahlung noch aussteht, und kontaktiere ggf. den Absender.';
+    return LT('detail.next.overdue_payment');
   if (typ.includes('einspruch') || typ.includes('bussgeldbescheid') || typ.includes('bescheid'))
-    return 'Frist ist abgelaufen. Prüfe, ob ein Einspruch noch möglich ist — keine Rechtsberatung.';
+    return LT('detail.next.overdue_appeal');
   if (typ.includes('versicherung') || typ.includes('vertrag'))
-    return 'Frist ist abgelaufen. Prüfe Kündigungsrechte oder kontaktiere den Anbieter.';
+    return LT('detail.next.overdue_contract');
   if (typ.includes('termin'))
-    return 'Termin ist abgelaufen. Neuen Termin vereinbaren oder Anbieter kontaktieren.';
-  return 'Frist ist abgelaufen. Prüfe Zahlung, Antwort oder mögliche nächste Schritte.';
+    return LT('detail.next.overdue_appointment');
+  return LT('detail.next.overdue_generic');
 }
 
 /** Eine Zeile UX: „Was muss ich tun?” — primär Bezahlbetrag, sonst FAB-Label. */
@@ -22,11 +28,11 @@ export function deriveNaechsterSchrittZeile(dok: Dokument, plan: ActionPlan | nu
   if (!key) return null;
   if (key === 'zahlen' && dok.betrag != null) {
     const b = formatBetrag(dok.betrag, dok.waehrung || '€');
-    return b ? `${b} bezahlen` : (plan?.primary?.label ?? null);
+    return b ? LT('detail.next.line.pay', { amount: b }) : (plan?.primary?.label ?? null);
   }
   if (key === 'gutschrift' && dok.betrag != null) {
     const b = formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€');
-    return b ? `Gutschrift: ${b} prüfen` : 'Gutschrift prüfen';
+    return b ? LT('detail.next.line.credit', { amount: b }) : LT('detail.next.credit_check');
   }
   return plan?.primary?.label ?? null;
 }
@@ -40,7 +46,7 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
 
   const conf = dok.confidence ?? null;
   if (conf !== null && conf < 55) {
-    return 'Einige Angaben kurz prüfen.';
+    return LT('detail.next.check_some');
   }
 
   const tage = dok.frist ? getTageVerbleibend(dok.frist) : null;
@@ -57,40 +63,40 @@ export function deriveNaechsterSchrittSatz(dok: Dokument, plan: ActionPlan | nul
   if (key === 'zahlen') {
     if (!hasCompletePaymentTarget(dok)) {
       return dok.betrag != null
-        ? 'Betrag vor Zahlung prüfen.'
-        : 'Zahlungsdaten prüfen.';
+        ? LT('detail.next.check_amount_before_payment')
+        : LT('detail.next.check_payment_data');
     }
-    if (betragStr && fristStr) return `Diese Rechnung bis zum ${fristStr} bezahlen.`;
-    if (betragStr) return `${betragStr} bezahlen.`;
-    return 'Zahlung vorbereiten.';
+    if (betragStr && fristStr) return LT('detail.next.pay_invoice_by', { date: fristStr });
+    if (betragStr) return LT('detail.next.line.pay', { amount: betragStr });
+    return LT('detail.next.prepare_payment');
   }
   if (key === 'gutschrift') {
     const absStr = dok.betrag != null ? formatBetrag(Math.abs(dok.betrag), dok.waehrung || '€') : null;
     return absStr
-      ? `Gutschrift über ${absStr} — keine Zahlung nötig.`
-      : 'Gutschrift oder Guthaben prüfen — keine Zahlung nötig.';
+      ? LT('detail.next.credit_no_payment', { amount: absStr })
+      : LT('detail.next.credit_generic');
   }
   if (key === 'kalender') {
     return fristStr
-      ? `Frist bis zum ${fristStr} in den Kalender eintragen.`
-      : 'Frist in den Kalender eintragen.';
+      ? LT('detail.next.calendar_by', { date: fristStr })
+      : LT('detail.next.calendar_generic');
   }
   if (key === 'einspruch') {
-    return 'Einspruchsfrist prüfen — Mustertext steht bereit.';
+    return LT('detail.next.appeal');
   }
   if (key === 'erledigt') {
-    return 'Keine sofortige Aktion nötig. Dokument archivieren.';
+    return LT('detail.next.done_archive');
   }
   if (key === 'review') {
-    return 'Angaben wurden nicht vollständig erkannt. Bitte prüfen.';
+    return LT('detail.next.review_incomplete');
   }
   if (key === 'mail') {
     return fristStr
-      ? `Antwort per E-Mail vorbereiten — Frist bis ${fristStr}.`
-      : 'Antwort oder Weiterleitung per E-Mail vorbereiten.';
+      ? LT('detail.next.mail_by', { date: fristStr })
+      : LT('detail.next.mail_generic');
   }
   if (key === 'ai') {
-    if (dok.confidence == null) return 'Dokument analysieren lassen — KI erklärt Inhalt und Risiken.';
+    if (dok.confidence == null) return LT('detail.next.ai');
     return null;
   }
 

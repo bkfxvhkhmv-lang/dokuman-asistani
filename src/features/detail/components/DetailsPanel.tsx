@@ -26,10 +26,11 @@ export default function DetailsPanel({
   ocrRisiken = [],
   graph: _graph,
   onOpenFullscreen,
+  suspendPdfPreview = false,
   onEdit,
   onExport,
   onLoeschen,
-}: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
+}: DetailsPanelProps & { onOpenFullscreen?: () => void; suspendPdfPreview?: boolean }) {
   void _graph;
 
   const { S, Colors: C, R } = useTheme();
@@ -81,7 +82,11 @@ export default function DetailsPanel({
     <View style={{ padding: S.md, paddingBottom: 16 }}>
 
       {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
-      <DocumentPreviewSection dok={dok} onOpenFullscreen={onOpenFullscreen} />
+      <DocumentPreviewSection
+        dok={dok}
+        onOpenFullscreen={onOpenFullscreen}
+        suspendPdfPreview={suspendPdfPreview}
+      />
 
       {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
       <SectionCard title={T('detail.section.doc_data')}>

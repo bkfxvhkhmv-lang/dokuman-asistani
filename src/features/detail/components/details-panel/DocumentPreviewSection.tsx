@@ -11,9 +11,10 @@ import { useT } from '@/hooks/useT';
 interface Props {
   dok: Dokument;
   onOpenFullscreen?: () => void;
+  suspendPdfPreview?: boolean;
 }
 
-export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
+export function DocumentPreviewSection({ dok, onOpenFullscreen, suspendPdfPreview = false }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
   const { t } = useT();
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
@@ -32,12 +33,32 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
       }}
     >
       {isPdfDoc ? (
-        <Pdf
-          source={{ uri: dok.uri, cache: true }}
-          style={{ width: imgSize.w || 300, height: imgSize.h || 300 }}
-          singlePage
-          onLoadComplete={(n) => setPdfPageCount(n)}
-        />
+        suspendPdfPreview ? (
+          <View
+            style={{
+              width: imgSize.w || 300,
+              height: imgSize.h || 300,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: C.bg,
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary, letterSpacing: 0.4 }}>
+              {pdfPageCount > 1
+                ? `PDF · ${pdfPageCount} Seiten`
+                : pdfPageCount === 1
+                  ? 'PDF · 1 Seite'
+                  : 'PDF'}
+            </Text>
+          </View>
+        ) : (
+          <Pdf
+            source={{ uri: dok.uri, cache: true }}
+            style={{ width: imgSize.w || 300, height: imgSize.h || 300 }}
+            singlePage
+            onLoadComplete={(n) => setPdfPageCount(n)}
+          />
+        )
       ) : (
         <>
           <Image

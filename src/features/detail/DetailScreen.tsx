@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useEffect, useContext } from 'react';
+import React, { useCallback, useMemo, useEffect, useContext, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { Animated, View, Text } from 'react-native';
@@ -46,6 +46,7 @@ export default function Detailbildschirm() {
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { dispatch } = useStore();
   const L = useDetailBildschirmLogic();
+  const [viewerPreparing, setViewerPreparing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -137,6 +138,28 @@ export default function Detailbildschirm() {
   );
 
   const viewerPages = useMemo(() => pagesForViewer(dok), [dok]);
+  const isPdfViewerSource = useMemo(() => viewerPages.some(page => page.uri.toLowerCase().endsWith('.pdf')), [viewerPages]);
+  const suspendPdfPreview = viewerPreparing || (pagesViewer.visible && isPdfViewerSource);
+  const handleOpenPagesViewer = useCallback((index: number = 0) => {
+    const targetPages = pagesForViewer(dok);
+    const opensPdf = targetPages.some(page => page.uri.toLowerCase().endsWith('.pdf'));
+    if (!opensPdf) {
+      openPagesViewer(index);
+      return;
+    }
+
+    setViewerPreparing(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        openPagesViewer(index);
+        setViewerPreparing(false);
+      });
+    });
+  }, [dok, openPagesViewer]);
+  const handleClosePagesViewer = useCallback(() => {
+    setViewerPreparing(false);
+    closePagesViewer();
+  }, [closePagesViewer]);
   const detailTabs = isSimpleMode ? DETAIL_SIMPLE_SCREEN_TABS : DETAIL_SCREEN_TABS;
   const pipelineCompleted = useMemo(() => getDocumentPipelineInfo(dok).phase === 'completed', [dok]);
   const showDeadlineStrip = useMemo(() => shouldShowDetailDeadlineBanner(dok), [dok]);
@@ -265,7 +288,7 @@ export default function Detailbildschirm() {
             ozetQuellenSichtbar={modal.ozetQuellenSichtbar}
             setOzetQuellenSichtbar={modal.setOzetQuellenSichtbar}
             documentChain={detail.documentChain}
-            onOpenPages={openPagesViewer}
+            onOpenPages={handleOpenPagesViewer}
             scrollBottomPadding={footerPad}
             simpleLayout
             actionPlan={actionPlan}
@@ -287,7 +310,8 @@ export default function Detailbildschirm() {
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}
-            onOpenPages={openPagesViewer}
+            onOpenPages={handleOpenPagesViewer}
+            suspendPdfPreview={suspendPdfPreview}
             scrollBottomPadding={footerPad}
             onEdit={actions.handleEdit}
             onExport={() => modal.open('exportieren')}
@@ -357,7 +381,7 @@ export default function Detailbildschirm() {
         actions={actions}
         beginActionSession={beginActionSession}
         router={router}
-        onOpenFullscreen={() => openPagesViewer(0)}
+        onOpenFullscreen={() => handleOpenPagesViewer(0)}
       />
 
       <BudgetGrafikModal
@@ -370,7 +394,7 @@ export default function Detailbildschirm() {
         visible={pagesViewer.visible}
         pages={viewerPages}
         initialIndex={pagesViewer.index}
-        onClose={closePagesViewer}
+        onClose={handleClosePagesViewer}
       />
 
       </Animated.View>

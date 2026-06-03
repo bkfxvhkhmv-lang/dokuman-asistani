@@ -7,6 +7,8 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppSheet from '@/design/components/AppSheet';
@@ -136,9 +138,14 @@ export default function ReplyAssistantDevPreview({
       <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle}>
         <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
 
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={120}
+        >
         <ScrollView
-          style={{ maxHeight: 460 }}
           keyboardShouldPersistTaps="handled"
+          // @ts-ignore — automaticallyAdjustKeyboardInsets is iOS 14+ RN prop
+          automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
         >
           {step === 'select' && (
@@ -171,6 +178,7 @@ export default function ReplyAssistantDevPreview({
             />
           )}
         </ScrollView>
+        </KeyboardAvoidingView>
       </AppSheet>
 
       <Modal transparent visible={disclaimerVisible} animationType="fade" onRequestClose={() => {}}>

@@ -116,6 +116,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const [signatureBox, setSignatureBox] = useState<SignatureBox | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [rotation, setRotation] = useState<0 | 90 | 180 | 270>(0);
+  const [capturingPreview, setCapturingPreview] = useState(false);
 
   const previewWidth = Math.min(screenW - 48, 420);
   const previewHeight = Math.min(Math.round(previewWidth * 1.38), 560);
@@ -295,6 +296,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
       let savedPreviewUri: string | null = null;
       if (previewRef.current) {
         try {
+          setCapturingPreview(true);
+          await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
           const previewFilename = `${buildPdfExportBasename(dok)}_unterschrieben_vorschau.png`;
           const capturedPreviewUri = await captureRef(previewRef, {
             format: 'png',
@@ -308,6 +311,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           savedPreviewUri = previewDestUri;
         } catch (previewError) {
           console.warn('[SignaturePdfSheet] preview capture failed', previewError);
+        } finally {
+          setCapturingPreview(false);
         }
       }
 
@@ -507,7 +512,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                   scrollEnabled={false}
                   onError={(e) => setPdfError(String((e as any)?.message ?? e))}
                 />
-                {!!signatureUri && !!signatureBox && (
+                {!!signatureUri && !!signatureBox && !capturingPreview && (
                   <View
                     {...placementResponder.panHandlers}
                     hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}

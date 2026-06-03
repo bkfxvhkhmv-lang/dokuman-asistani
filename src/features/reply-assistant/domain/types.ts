@@ -12,7 +12,11 @@ export type ReplyActionType =
   | 'meldung'
   | 'kuendigung'
   | 'ratenzahlung'
-  | 'erinnerung';
+  | 'erinnerung'
+  | 'request'
+  | 'submit'
+  | 'dispute'
+  | 'demand';
 
 export interface ReplyTemplateField {
   key: string;
@@ -38,8 +42,15 @@ export interface ReplyTemplate {
   documentType: string;
   actionType: ReplyActionType;
   title: string;
+  tone?: string;
+  legalRiskNotes?: string;
+  requiredFields?: string[];
+  optionalFields?: string[];
+  sensitiveFields?: string[];
+  attachmentHints?: string[];
   subjectTemplate: string;
   body: string;
+  safetyNote?: string;
   fields: ReplyTemplateField[];
   safety: ReplyTemplateSafety;
   tags?: string[];

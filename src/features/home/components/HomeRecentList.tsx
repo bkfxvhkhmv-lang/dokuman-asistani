@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
@@ -47,6 +47,7 @@ function HomeRecentListInner({ data }: { data: any }) {
   const router = useRouter();
   const { fs } = useTheme();
   const { t: T } = useT();
+  const [showAll, setShowAll] = useState(false);
   const cardRefs = useRef<Map<string, View>>(new Map());
   const queryClient      = useQueryClient();
 
@@ -123,7 +124,8 @@ function HomeRecentListInner({ data }: { data: any }) {
     const fp = `${d.typ}|${d.betrag}|${d.absender}`;
     return allDocs.findIndex((x: any) => `${x.typ}|${x.betrag}|${x.absender}` === fp) === i;
   });
-  const docs = deduped.slice(0, useStacking ? 20 : 6);
+  const INITIAL_LIMIT = useStacking ? 20 : 6;
+  const docs = deduped.slice(0, showAll ? deduped.length : INITIAL_LIMIT);
 
   // Build stacks only for tabs that benefit from grouping
   const stacks = useMemo(
@@ -220,7 +222,7 @@ function HomeRecentListInner({ data }: { data: any }) {
 
       {deduped.length > docs.length && !data.secilenModus && (
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Suche')}
+          onPress={() => setShowAll(true)}
           style={st.allLink}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"

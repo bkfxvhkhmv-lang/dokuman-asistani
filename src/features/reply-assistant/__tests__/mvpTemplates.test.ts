@@ -1,9 +1,21 @@
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 import { renderReplyTemplate, PLACEHOLDER_REGEX } from '@/features/reply-assistant/domain/renderTemplate';
 import type { ReplyTemplate, ReplyTemplateValues } from '@/features/reply-assistant/domain/types';
 import { germanMvpReplyTemplates } from '@/features/reply-assistant/templates/de';
 
 const BANNED_LEAKAGE_REGEX = /\b(for|della|Icha|must|is|ve|yasal|şablon|evrak|gönder|oversandt|Leird|benannt|ancora|befindet)\b/;
 const KNOWN_ATTACHMENT_HINTS = new Set(['optional_id_copy_redacted', 'payment_receipt']);
+const SOURCE_DOC_PATH = path.resolve(process.cwd(), 'docs/reply-assistant/approved-mvp-templates-de.md');
+const INVENTORY_PATH = path.resolve(process.cwd(), 'docs/reply-assistant/approved-inventory-de.yaml');
+const ALLOWED_BODY_ONLY_IDS = new Set([
+  'jobcenter_unterlagen_nachreichung_004',
+  'jobcenter_fristverlaengerung_005',
+  'jobcenter_antrag_vorschuss_006',
+  'nk_belegeinsicht_002',
+]);
 
 function mockValueForField(key: string): string {
   const map: Record<string, string> = {
@@ -66,6 +78,23 @@ function extractPlaceholders(text: string): string[] {
   return Array.from(text.matchAll(PLACEHOLDER_REGEX)).map(match => match[1]);
 }
 
+function loadSourceDocIds(): string[] {
+  const source = readFileSync(SOURCE_DOC_PATH, 'utf8');
+  return Array.from(source.matchAll(/\* \*\*id:\*\* ([a-z0-9_]+)/g)).map(match => match[1]);
+}
+
+function loadInventoryIds(): Set<string> {
+  const python = [
+    'import json, sys, yaml',
+    'from pathlib import Path',
+    `path = Path(${JSON.stringify(INVENTORY_PATH)})`,
+    'data = yaml.safe_load(path.read_text())',
+    'json.dump([item["id"] for item in data], sys.stdout, ensure_ascii=False)',
+  ].join('; ');
+  const raw = execFileSync('python3', ['-c', python], { encoding: 'utf8' });
+  return new Set(JSON.parse(raw) as string[]);
+}
+
 describe('german MVP templates registry', () => {
   it('contains exactly 20 templates', () => {
     expect(germanMvpReplyTemplates).toHaveLength(20);
@@ -74,6 +103,22 @@ describe('german MVP templates registry', () => {
   it('uses unique ids', () => {
     const ids = germanMvpReplyTemplates.map(template => template.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('matches the 20 approved ids from the source doc', () => {
+    const sourceIds = loadSourceDocIds();
+    const registryIds = germanMvpReplyTemplates.map(template => template.id);
+    expect(sourceIds).toHaveLength(20);
+    expect(new Set(sourceIds)).toEqual(new Set(registryIds));
+  });
+
+  it('matches canonical inventory ids except approved body-only exceptions', () => {
+    const inventoryIds = loadInventoryIds();
+    const missingFromInventory = germanMvpReplyTemplates
+      .map(template => template.id)
+      .filter(id => !inventoryIds.has(id));
+
+    expect(new Set(missingFromInventory)).toEqual(ALLOWED_BODY_ONLY_IDS);
   });
 
   it('renders every template with generated mock fields', () => {
@@ -152,5 +197,31 @@ describe('german MVP templates registry', () => {
         }
       }
     }
+  });
+
+  it('is not imported by non-test UI or production modules yet', () => {
+    let output = '';
+    try {
+      output = execFileSync(
+        'rg',
+        [
+          '-n',
+          '@/features/reply-assistant/templates/de|features/reply-assistant/templates/de|germanMvpReplyTemplates',
+          path.resolve(process.cwd(), 'src'),
+          '--glob',
+          '!src/features/reply-assistant/templates/**',
+          '--glob',
+          '!src/features/reply-assistant/__tests__/**',
+          '--glob',
+          '!src/__tests__/**',
+        ],
+        { encoding: 'utf8' },
+      );
+    } catch (error: any) {
+      output = error?.stdout ?? '';
+      expect(error?.status ?? 0).toBe(1);
+    }
+
+    expect(output.trim()).toBe('');
   });
 });

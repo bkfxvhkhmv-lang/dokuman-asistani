@@ -63,7 +63,7 @@ export default function ViewerPageSlide({ uri, isMissing, availableHeight, onPdf
         ) : (
           <Pdf
             source={{ uri, cache: true }}
-            style={{ width: W, flex: 1 }}
+            style={[{ width: W, flex: 1 }, rotation ? { transform: [{ rotate: `${rotation}deg` }] } : null]}
             enablePaging={false}
             horizontal={false}
             renderActivityIndicator={() => <ActivityIndicator color="rgba(255,255,255,0.6)" size="large" />}

@@ -148,7 +148,14 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   }, []);
 
   useEffect(() => {
-    if (!visible) resetAll();
+    if (!visible) {
+      // Delay reset until AppSheet close animation finishes (260ms withTiming).
+      // Unmounting <Pdf> while the sheet is still animating on iOS leaves orphaned
+      // native gesture recognizers that freeze scroll/touch in the parent screen.
+      const t = setTimeout(resetAll, 320);
+      return () => clearTimeout(t);
+    }
+    return undefined;
   }, [visible, resetAll]);
 
   useEffect(() => {

@@ -83,9 +83,9 @@ export default function ReplyAssistantDevPreview({
   }, [selectedTemplate, fieldValues]);
 
   const sheetTitle =
-    step === 'select' ? `[DEV] Aday şablonlar (${candidates.length})` :
+    step === 'select' ? `[DEV] Vorlagenkandidaten (${candidates.length})` :
     step === 'fill'   ? `[DEV] ${selectedTemplate?.title ?? ''}` :
-                        '[DEV] Taslak önizleme';
+                        '[DEV] Entwurfsvorschau';
 
   return (
     <>
@@ -95,7 +95,7 @@ export default function ReplyAssistantDevPreview({
         activeOpacity={0.7}
       >
         <Text style={[st.devButtonText, { color: C.primary }]}>
-          ⚙ Cevap taslağı dene
+          ⚙ Antwortentwurf testen
         </Text>
       </TouchableOpacity>
 
@@ -256,7 +256,7 @@ function FillStep({
         activeOpacity={0.8}
       >
         <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          Taslağı oluştur
+          Entwurf erstellen
         </Text>
       </TouchableOpacity>
     </View>
@@ -340,7 +340,7 @@ function PreviewStep({
       </Text>
 
       <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
-        INHALT — Taslağı düzenle
+        INHALT — Entwurf bearbeiten
       </Text>
       <TextInput
         value={editableBody}

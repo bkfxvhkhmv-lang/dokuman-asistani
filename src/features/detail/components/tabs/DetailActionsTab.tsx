@@ -14,13 +14,13 @@ const ReplyAssistantDevPreview = __DEV__
 
 function inferReplyCategory(typ: string | null | undefined): string | undefined {
   if (!typ) return undefined;
-  const t = typ.toLowerCase();
-  if (/bußgeld|bussgeld|ordnungswidrig/.test(t)) return 'bussgeld';
-  if (/jobcenter|bürgergeld/.test(t))            return 'jobcenter';
-  if (/finanzamt|steuer/.test(t))                return 'finanzamt';
+  const t = typ.toLowerCase().replace(/ß/g, 'ss').replace(/ü/g, 'u').replace(/ä/g, 'a');
+  if (/bussgeld|ordnungswidrig/.test(t))              return 'bussgeld';
+  if (/jobcenter|burgergeld/.test(t))                 return 'jobcenter';
+  if (/finanzamt|steuer/.test(t))                     return 'finanzamt';
   if (/miete|nebenkosten|vermieter|mietvertrag/.test(t)) return 'miete';
-  if (/schufa/.test(t))                          return 'schufa';
-  if (/inkasso|mahnung|pfändung/.test(t))        return 'inkasso';
+  if (/schufa/.test(t))                               return 'schufa';
+  if (/inkasso|mahnung|pfandung/.test(t))             return 'inkasso';
   return undefined;
 }
 

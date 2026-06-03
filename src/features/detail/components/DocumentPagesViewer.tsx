@@ -33,6 +33,17 @@ export default function DocumentPagesViewer({
 }: DocumentPagesViewerProps) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+    } else {
+      const timer = setTimeout(() => setMounted(false), 350);
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
+
   const [active, setActive] = useState(initialIndex);
   const [missingPages, setMissingPages] = useState<Set<string>>(new Set());
   const [verifying, setVerifying] = useState(true);
@@ -112,58 +123,60 @@ export default function DocumentPagesViewer({
   }
 
   return (
-    <Modal visible={visible} animationType="fade" presentationStyle="overFullScreen" transparent>
-      <View style={st.root}>
-        <ViewerTopBar
-          activeIndex={active}
-          pageCount={effectivePageCount}
-          onClose={onClose}
-          onShare={handleShare}
-          onRotate={handleRotate}
-        />
+    <Modal visible={mounted} animationType="fade" presentationStyle="overFullScreen" transparent>
+      {mounted && (
+        <View style={st.root}>
+          <ViewerTopBar
+            activeIndex={active}
+            pageCount={effectivePageCount}
+            onClose={onClose}
+            onShare={handleShare}
+            onRotate={handleRotate}
+          />
 
-        <View
-          style={{ flex: 1 }}
-          onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
-        >
-          {verifying && (
-            <View style={st.verifyOverlay} pointerEvents="none">
-              <ActivityIndicator size="small" color="#fff" />
-            </View>
-          )}
-
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleScroll}
-            style={st.swiper}
-            contentContainerStyle={{ alignItems: 'center' }}
+          <View
+            style={{ flex: 1 }}
+            onLayout={e => setContentHeight(e.nativeEvent.layout.height)}
           >
-            {sortedPages.map((page, idx) => (
-              <ViewerPageSlide
-                key={page.id}
-                uri={page.uri}
-                isMissing={missingPages.has(page.id)}
-                availableHeight={contentHeight}
-                onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
-                rotation={rotations[idx] ?? 0}
-              />
-            ))}
-          </ScrollView>
+            {verifying && (
+              <View style={st.verifyOverlay} pointerEvents="none">
+                <ActivityIndicator size="small" color="#fff" />
+              </View>
+            )}
 
-          {sortedPages.length >= 2 && (
-            <ThumbStrip
-              sortedPages={sortedPages}
-              active={active}
-              missingPages={missingPages}
-              paddingBottom={thumbBottomPad}
-              onPickIndex={goToPage}
-            />
-          )}
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+              style={st.swiper}
+              contentContainerStyle={{ alignItems: 'center' }}
+            >
+              {sortedPages.map((page, idx) => (
+                <ViewerPageSlide
+                  key={page.id}
+                  uri={page.uri}
+                  isMissing={missingPages.has(page.id)}
+                  availableHeight={contentHeight}
+                  onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
+                  rotation={rotations[idx] ?? 0}
+                />
+              ))}
+            </ScrollView>
+
+            {sortedPages.length >= 2 && (
+              <ThumbStrip
+                sortedPages={sortedPages}
+                active={active}
+                missingPages={missingPages}
+                paddingBottom={thumbBottomPad}
+                onPickIndex={goToPage}
+              />
+            )}
+          </View>
         </View>
-      </View>
+      )}
     </Modal>
   );
 }

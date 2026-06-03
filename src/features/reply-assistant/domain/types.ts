@@ -28,6 +28,7 @@ export interface ReplyTemplateField {
 
 export interface ReplyTemplateSafety {
   riskLevel: ReplyRiskLevel;
+  requiresLegalCaution?: boolean;
   safetyNoteKey?: string;
   humanReviewRecommended?: boolean;
   forbiddenClaims?: string[];

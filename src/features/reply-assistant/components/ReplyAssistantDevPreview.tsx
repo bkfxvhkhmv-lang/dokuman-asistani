@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,24 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppSheet from '@/design/components/AppSheet';
 import { useTheme } from '@/ThemeContext';
-import { useT } from '@/hooks/useT';
 import type { ReplyTemplate } from '@/features/reply-assistant/domain/types';
 import { renderReplyTemplate } from '@/features/reply-assistant/domain/renderTemplate';
+import {
+  REPLY_ASSISTANT_DISCLAIMER_STORAGE_KEY,
+  REPLY_ASSISTANT_GLOBAL_BANNER,
+  REPLY_ASSISTANT_HIGH_RISK_BANNER,
+  shouldShowHighRiskWarning,
+} from '@/features/reply-assistant/domain/safety';
 import { getReplyTemplateCandidates } from '@/features/reply-assistant/templates/matchCandidates';
 
 if (!__DEV__) {
   throw new Error('ReplyAssistantDevPreview must only be used in __DEV__ builds');
 }
-
-const DISCLAIMER_KEY = 'reply_assistant_disclaimer_v1';
 
 interface Props {
   category?: string;
@@ -30,10 +34,6 @@ interface Props {
 
 type Step = 'select' | 'fill' | 'preview';
 
-function isHighRisk(template: ReplyTemplate): boolean {
-  return template.safety.riskLevel === 'high';
-}
-
 export default function ReplyAssistantDevPreview({
   category,
   institutionType,
@@ -41,7 +41,6 @@ export default function ReplyAssistantDevPreview({
   actionType,
 }: Props) {
   const { Colors: C, S, R } = useTheme();
-  const { t: T } = useT();
 
   const [disclaimerVisible, setDisclaimerVisible] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -68,26 +67,30 @@ export default function ReplyAssistantDevPreview({
 
   const handleButtonPress = useCallback(async () => {
     try {
-      const seen = await AsyncStorage.getItem(DISCLAIMER_KEY);
-      if (seen === 'true') {
+      const seen = await AsyncStorage.getItem(REPLY_ASSISTANT_DISCLAIMER_STORAGE_KEY);
+      if (seen === '1') {
         openMainSheet();
       } else {
+        openMainSheet();
         setDisclaimerVisible(true);
       }
     } catch {
       openMainSheet();
+      setDisclaimerVisible(true);
     }
   }, [openMainSheet]);
 
   const handleDisclaimerConfirm = useCallback(async () => {
-    try {
-      await AsyncStorage.setItem(DISCLAIMER_KEY, 'true');
-    } catch { /* non-blocking */ }
     setDisclaimerVisible(false);
-    openMainSheet();
-  }, [openMainSheet]);
+    try {
+      await AsyncStorage.setItem(REPLY_ASSISTANT_DISCLAIMER_STORAGE_KEY, '1');
+    } catch { /* non-blocking */ }
+  }, []);
 
-  const close = useCallback(() => setSheetVisible(false), []);
+  const close = useCallback(() => {
+    setDisclaimerVisible(false);
+    setSheetVisible(false);
+  }, []);
 
   const selectTemplate = useCallback((t: ReplyTemplate) => {
     setSelectedTemplate(t);
@@ -130,42 +133,8 @@ export default function ReplyAssistantDevPreview({
         </Text>
       </TouchableOpacity>
 
-      {/* First-use disclaimer */}
-      <AppSheet
-        visible={disclaimerVisible}
-        onClose={() => setDisclaimerVisible(false)}
-        title={T('reply.safety.disclaimer_title')}
-      >
-        <View style={{ paddingBottom: 8 }}>
-          <Text style={{ color: C.text, fontSize: 14, lineHeight: 22 }}>
-            {T('reply.safety.disclaimer_body')}
-          </Text>
-          <TouchableOpacity
-            onPress={handleDisclaimerConfirm}
-            style={{
-              marginTop: 20,
-              borderRadius: R.md,
-              paddingVertical: 14,
-              backgroundColor: C.primary ?? '#005FB8',
-              alignItems: 'center',
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-              {T('reply.safety.disclaimer_cta')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </AppSheet>
-
-      {/* Main reply sheet */}
       <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle}>
-        {/* Global safety banner — always visible */}
-        <View style={[st.globalBanner, { backgroundColor: `${C.warning ?? '#F59E0B'}14`, borderColor: `${C.warning ?? '#F59E0B'}44` }]}>
-          <Text style={{ color: C.text, fontSize: 11, fontWeight: '600' }}>
-            {T('reply.safety.global_banner')}
-          </Text>
-        </View>
+        <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
 
         <ScrollView
           style={{ maxHeight: 460 }}
@@ -188,11 +157,11 @@ export default function ReplyAssistantDevPreview({
               onRender={tryRender}
               error={renderError}
               C={C} S={S} R={R}
-              T={T}
             />
           )}
           {step === 'preview' && (
             <PreviewStep
+              template={selectedTemplate}
               subject={renderedSubject}
               body={renderedBody}
               safetyNote={selectedTemplate?.safetyNote}
@@ -203,7 +172,57 @@ export default function ReplyAssistantDevPreview({
           )}
         </ScrollView>
       </AppSheet>
+
+      <Modal transparent visible={disclaimerVisible} animationType="fade" onRequestClose={() => {}}>
+        <View style={st.disclaimerBackdrop}>
+          <View style={[
+            st.disclaimerCard,
+            { backgroundColor: C.bgCard, borderColor: C.border, shadowColor: '#000' },
+          ]}>
+            <Text style={[st.disclaimerTitle, { color: C.text }]}>⚠ Wichtiger Hinweis</Text>
+            <Text style={[st.disclaimerBody, { color: C.textSecondary }]}>
+              BriefPilot erstellt nur Textvorlagen.{'\n'}
+              Diese sind kein Rechtsrat und keine Rechtsberatung.{'\n\n'}
+              Bei Fristen, Behörden, Jobcenter, Finanzamt oder Gerichtsschreiben kann ein Fehler ernste Folgen haben.{'\n\n'}
+              Ich verstehe, dass ich alle Texte selbst prüfen und bei Bedarf anpassen muss.
+            </Text>
+            <TouchableOpacity
+              onPress={handleDisclaimerConfirm}
+              style={[st.disclaimerButton, { backgroundColor: C.primary ?? '#005FB8' }]}
+              activeOpacity={0.82}
+            >
+              <Text style={st.disclaimerButtonLabel}>Verstanden</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
+  );
+}
+
+function Banner({
+  kind,
+  text,
+  C,
+  R,
+}: {
+  kind: 'global' | 'highRisk';
+  text: string;
+  C: any;
+  R: any;
+}) {
+  const isHighRisk = kind === 'highRisk';
+
+  return (
+    <View style={[st.banner, {
+      borderRadius: R.md,
+      backgroundColor: isHighRisk ? `${C.warning ?? '#F59E0B'}18` : `${C.primary}12`,
+      borderColor: isHighRisk ? `${C.warning ?? '#F59E0B'}55` : `${C.primary}33`,
+    }]}>
+      <Text style={{ color: C.text, fontSize: 12, fontWeight: isHighRisk ? '600' : '500' }}>
+        {text}
+      </Text>
+    </View>
   );
 }
 
@@ -256,7 +275,7 @@ function SelectStep({
 // ── Fill step ─────────────────────────────────────────────────────────────────
 
 function FillStep({
-  template, values, onChange, onRender, error, C, R, T,
+  template, values, onChange, onRender, error, C, R,
 }: {
   template: ReplyTemplate;
   values: Record<string, string>;
@@ -264,28 +283,16 @@ function FillStep({
   onRender: () => void;
   error: string | null;
   C: any; S: any; R: any;
-  T: (key: string) => string;
 }) {
   const requiredKeys = template.fields.filter(f => f.required).map(f => f.key);
   const optionalKeys = template.fields.filter(f => !f.required).map(f => f.key);
   const allMissing = requiredKeys.filter(k => !values[k]?.trim());
-  const highRisk = isHighRisk(template);
+  const highRisk = shouldShowHighRiskWarning(template);
 
   return (
     <View style={{ paddingBottom: 16 }}>
       {highRisk && (
-        <View style={{
-          borderRadius: 8,
-          backgroundColor: 'rgba(251,146,60,0.12)',
-          borderWidth: 1,
-          borderColor: 'rgba(251,146,60,0.45)',
-          padding: 10,
-          marginBottom: 14,
-        }}>
-          <Text style={{ color: '#92400E', fontSize: 12, lineHeight: 18 }}>
-            {T('reply.safety.high_risk')}
-          </Text>
-        </View>
+        <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
       )}
 
       {requiredKeys.length > 0 && (
@@ -341,7 +348,7 @@ function FillStep({
         activeOpacity={0.8}
       >
         <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          Taslağı oluştur
+          Entwurf erstellen
         </Text>
       </TouchableOpacity>
     </View>
@@ -385,8 +392,9 @@ function FieldInput({
 // ── Preview step ──────────────────────────────────────────────────────────────
 
 function PreviewStep({
-  subject, body, safetyNote, onEdit, onClose, C, R,
+  template, subject, body, safetyNote, onEdit, onClose, C, R,
 }: {
+  template: ReplyTemplate | null;
   subject: string;
   body: string;
   safetyNote?: string;
@@ -398,6 +406,9 @@ function PreviewStep({
 
   return (
     <View style={{ paddingBottom: 16 }}>
+      {shouldShowHighRiskWarning(template) && (
+        <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
+      )}
       {!!safetyNote && (
         <View style={{
           borderRadius: R.md,
@@ -425,7 +436,7 @@ function PreviewStep({
       </Text>
 
       <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
-        INHALT — Taslağı düzenle
+        INHALT — Entwurf bearbeiten
       </Text>
       <TextInput
         value={editableBody}
@@ -490,11 +501,49 @@ const st = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
   },
-  globalBanner: {
+  banner: {
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 12,
+  },
+  disclaimerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  disclaimerCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 20,
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 8,
+  },
+  disclaimerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  disclaimerBody: {
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  disclaimerButton: {
+    marginTop: 18,
+    borderRadius: 12,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  disclaimerButtonLabel: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

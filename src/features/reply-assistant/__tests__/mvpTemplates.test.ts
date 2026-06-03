@@ -199,6 +199,12 @@ describe('german MVP templates registry', () => {
     }
   });
 
+  it('carries boolean requiresLegalCaution metadata on every template', () => {
+    for (const template of germanMvpReplyTemplates) {
+      expect(typeof template.safety.requiresLegalCaution).toBe('boolean');
+    }
+  });
+
   it('is not imported by non-test UI or production modules yet', () => {
     let output = '';
     try {

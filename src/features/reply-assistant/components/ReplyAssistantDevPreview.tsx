@@ -9,6 +9,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Clipboard,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppSheet from '@/design/components/AppSheet';
@@ -411,6 +412,13 @@ function PreviewStep({
   C: any; S: any; R: any;
 }) {
   const [editableBody, setEditableBody] = useState(body);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    Clipboard.setString(`${subject}\n\n${editableBody}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [subject, editableBody]);
 
   return (
     <View style={{ paddingBottom: 16 }}>
@@ -464,30 +472,51 @@ function PreviewStep({
         }}
       />
 
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+      {/* Primary CTA: copy to clipboard */}
+      <TouchableOpacity
+        onPress={handleCopy}
+        style={{
+          marginTop: 16,
+          borderRadius: R.md,
+          paddingVertical: 14,
+          backgroundColor: copied ? (C.success ?? '#16A34A') : (C.primary ?? '#005FB8'),
+          alignItems: 'center',
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+          {copied ? '✓ Kopiert' : 'Entwurf kopieren'}
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', marginTop: 8 }}>
+        Text prüfen, anpassen und selbst versenden
+      </Text>
+
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
         <TouchableOpacity
           onPress={onEdit}
           style={{
-            flex: 1, borderRadius: R.md, paddingVertical: 12,
+            flex: 1, borderRadius: R.md, paddingVertical: 11,
             borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
             alignItems: 'center',
           }}
           activeOpacity={0.75}
         >
-          <Text style={{ color: C.textSecondary, fontWeight: '700', fontSize: 14 }}>
+          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>
             Felder bearbeiten
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={onClose}
           style={{
-            flex: 1, borderRadius: R.md, paddingVertical: 12,
+            flex: 1, borderRadius: R.md, paddingVertical: 11,
             borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
             alignItems: 'center',
           }}
           activeOpacity={0.75}
         >
-          <Text style={{ color: C.textSecondary, fontWeight: '700', fontSize: 14 }}>
+          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>
             Schließen
           </Text>
         </TouchableOpacity>

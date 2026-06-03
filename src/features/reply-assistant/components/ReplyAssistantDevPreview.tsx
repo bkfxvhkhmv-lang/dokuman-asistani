@@ -9,8 +9,8 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
-  Clipboard,
 } from 'react-native';
+import * as ExpoClipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppSheet from '@/design/components/AppSheet';
 import { useTheme } from '@/ThemeContext';
@@ -415,7 +415,7 @@ function PreviewStep({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(() => {
-    Clipboard.setString(`${subject}\n\n${editableBody}`);
+    ExpoClipboard.setStringAsync(`Betreff: ${subject}\n\n${editableBody}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [subject, editableBody]);

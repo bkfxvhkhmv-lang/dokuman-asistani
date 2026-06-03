@@ -92,8 +92,9 @@ export default function OnboardingScreen() {
     await setAutoNotificationBlocked(true);
     void BetaAnalytics.trackEvent('demo_opened');
     void BetaAnalytics.trackEvent('onboarding_completed');
+    dispatch({ type: 'RESET_DEMO' });
     router.replace('/(tabs)/');
-  }, [router, selectedLang]);
+  }, [dispatch, router, selectedLang]);
 
   if (step === 'lang') {
     return (

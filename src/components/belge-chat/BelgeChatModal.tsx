@@ -103,7 +103,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
               }]}>
                 <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isLocal ? C.success : isCloud ? C.primary : C.textTertiary }} />
                 <Text style={{ fontSize: 10, fontWeight: '600', color: isLocal ? C.success : isCloud ? C.primary : C.textTertiary }}>
-                  {isLocal ? 'Local AI' : isCloud ? 'Cloud AI' : 'Offline'}
+                  {isLocal ? 'Local AI' : isCloud ? 'Cloud AI' : 'Offline-Modus'}
                 </Text>
               </View>
             )}

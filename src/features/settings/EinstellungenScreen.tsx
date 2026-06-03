@@ -260,7 +260,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
         </FlatGroup>
 
         {/* Beta-Feedback */}
-        {__DEV__ && state.dokumente.some(d => d.isDemo) && (
+        {__DEV__ && (
           <TouchableOpacity
             onPress={() => {
               Alert.alert(

@@ -262,7 +262,7 @@ const st = StyleSheet.create({
 const VALUE_PROPS = [
   '📄  Brief scannen',
   '✦  KI erkennt alles',
-  '✅  Nächster Schritt klar',
+  '✅  Nächste Aktion klar',
 ];
 
 function SplashStep({ colors: C, insets }: { colors: any; insets: any }) {

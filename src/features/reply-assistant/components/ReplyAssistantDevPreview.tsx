@@ -95,7 +95,7 @@ export default function ReplyAssistantDevPreview({
         activeOpacity={0.7}
       >
         <Text style={[st.devButtonText, { color: C.primary }]}>
-          ⚙ Antwortentwurf testen
+          ⚙ Antwortentwurf erstellen
         </Text>
       </TouchableOpacity>
 

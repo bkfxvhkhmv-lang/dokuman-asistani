@@ -86,7 +86,7 @@ export default function Home() {
     // Generate digest in background — updates banner when ready
     generateDigest(data.sichtbareDocs, hotDocs, budget, targets)
       .then(result => setDigest(result))
-      .catch(() => setDigest({ text: 'Analyse abgeschlossen.', source: 'local', severity: 'ok', icon: '✅' }));
+      .catch(() => setDigest({ text: 'Analyse erfolgreich abgeschlossen.', source: 'local', severity: 'ok', icon: '✅' }));
   }, [data, hotDocs, budget, targets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExportierenRoute = useCallback(() => {

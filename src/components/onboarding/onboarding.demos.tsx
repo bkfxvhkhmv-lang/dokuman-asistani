@@ -34,7 +34,7 @@ function DemoScan({ demo }: { demo: ScanDemo }) {
         <TouchableOpacity onPress={() => setAktiv(v => Math.min(v + 1, steps.length - 1))}
           style={{ marginTop: 8, padding: 12, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.15)',
             alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }}>
-          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>Nächster Schritt →</Text>
+          <Text style={{ color: '#fff', fontWeight: '600', fontSize: 13 }}>Nächste Aktion →</Text>
         </TouchableOpacity>
       ) : null}
     </View>

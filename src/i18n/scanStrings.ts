@@ -96,7 +96,7 @@ const tr: Dict = {
 };
 
 const de: Dict = {
-  'scan.next_step': 'Nächster Schritt',
+  'scan.next_step': 'Nächste Aktion',
   'scan.add_page': 'Weitere Seite',
   'scan.pages': 'Seiten',
   'scan.stack': 'Stapel',

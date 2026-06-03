@@ -48,6 +48,16 @@ function detectExpoHost(): string | null {
 }
 
 function resolveDevConfig(): EnvConfig {
+  // === EN YÜKSEK ÖNCELİK: .env.local'daki EXPO_PUBLIC_DEVICE_IP ===
+  const deviceIp = process.env.EXPO_PUBLIC_DEVICE_IP?.trim();
+  if (deviceIp && deviceIp !== '127.0.0.1' && deviceIp !== 'localhost') {
+    console.info(`[Config] EXPO_PUBLIC_DEVICE_IP kullanılıyor: ${deviceIp}`);
+    return {
+      API_BASE: `http://${deviceIp}:8000/api/v4`,
+      OCR_MVP_BASE: `http://${deviceIp}:8000`,
+    };
+  }
+
   const explicitApiBase = process.env.API_BASE?.trim() || '';
   const explicitOcrBase = process.env.OCR_MVP_BASE?.trim() || '';
   const host = detectExpoHost();

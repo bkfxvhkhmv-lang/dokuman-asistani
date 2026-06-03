@@ -512,7 +512,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                   scrollEnabled={false}
                   onError={(e) => setPdfError(String((e as any)?.message ?? e))}
                 />
-                {!!signatureUri && !!signatureBox && !capturingPreview && (
+                {!!signatureUri && !!signatureBox && (
                   <View
                     {...placementResponder.panHandlers}
                     hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
@@ -522,10 +522,10 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                       top: signatureBox.y,
                       width: signatureBox.width,
                       height: signatureBox.height,
-                      borderWidth: 1.5,
+                      borderWidth: capturingPreview ? 0 : 1.5,
                       borderColor: C.primary,
                       borderStyle: 'dashed',
-                      backgroundColor: 'rgba(255,255,255,0.06)',
+                      backgroundColor: capturingPreview ? 'transparent' : 'rgba(255,255,255,0.06)',
                       transform: [{ rotate: `${rotation}deg` }],
                     }}
                   >
@@ -535,7 +535,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
                       resizeMode="contain"
                     />
                     {/* Corner handles for visual feedback */}
-                    {[
+                    {!capturingPreview && [
                       { top: -4, left: -4 },
                       { top: -4, right: -4 },
                       { bottom: -4, left: -4 },

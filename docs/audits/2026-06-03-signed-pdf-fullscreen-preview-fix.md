@@ -1,55 +1,83 @@
-## Metadata
+# Signed PDF Fullscreen / Scroll Freeze — Fix Record
+
 - Date: 2026-06-03
-- Scope: signed PDF fullscreen preview regression in Detail / Dokument tab
-- Commit: `146a98365` `fix(pdf): restore signed document fullscreen preview`
+- Platform: iOS (iPhone)
+- Scope: Dokument tab scroll freeze after signing a PDF and closing fullscreen viewer
 
-## Root cause
-- The failed `pointerEvents="none"` hypothesis was not the real root cause.
-- The preview tap/button wiring already pointed to `openPagesViewer(0)`.
-- The remaining regression path was specific to PDF sources, especially signed PDFs:
-  - Detail preview mounted a `react-native-pdf` instance for the signed file URI.
-  - Fullscreen viewer mounted another `react-native-pdf` instance for the same URI at open time.
-  - On iOS this can leave the detail surface in a stuck/touch-frozen state while fullscreen never completes its presentation.
+---
 
-## Failed hypothesis ruled out
-- Wrapping preview `<Pdf>` in `<View pointerEvents="none">` did not solve the fullscreen freeze.
-- That change was removed from the effective fix path and replaced by a viewer handoff fix.
+## Root Cause
 
-## Fix
-- Added a small fullscreen handoff for PDF viewer opens:
-  - when opening fullscreen for a PDF, suspend the inline preview PDF first
-  - then open fullscreen on the next frame
-- This avoids keeping two `react-native-pdf` views alive against the same signed URI during the transition.
+After signing, `DetailModalsContainer.onDone` calls `openPagesViewer(0)` with a 400 ms delay.
+`DocumentPagesViewer` opens a `Modal` containing `ViewerPageSlide → <Pdf>`.
+On iOS, when the Modal closes (`visible=false`), React Native's `Modal` does not immediately
+unmount its children — the native `react-native-pdf` gesture recognizers remain active and
+intercept touches on the underlying `DetailDetailsTab` `ScrollView`, causing a full scroll freeze.
 
-## Files changed
-- `src/features/detail/components/details-panel/DocumentPreviewSection.tsx`
-- `src/features/detail/components/DetailsPanel.tsx`
-- `src/features/detail/components/tabs/DetailDetailsTab.tsx`
-- `src/features/detail/DetailScreen.tsx`
+---
 
-## Why this avoids invisible overlays / PDF deadlock
-- `DocumentPagesViewer` was not the source of invisible touch interception while hidden.
-- The risk was simultaneous preview/viewer PDF mounting against the same file URI.
-- The new `viewerPreparing` + `suspendPdfPreview` handoff ensures:
-  - the inline preview PDF is unmounted first
-  - fullscreen viewer opens after that handoff
-  - preview remains unchanged for images and non-PDF paths
+## Failed Approaches
 
-## Validation status
+### 1. `pointerEvents="none"` wrapper on inline preview Pdf
+- Wrapped `<Pdf>` in `DocumentPreviewSection` with `<View pointerEvents="none">`.
+- Did not resolve the freeze — the problem was in the fullscreen viewer, not the inline preview.
+- Change was reverted.
+
+### 2. `suspendPdfPreview` / viewer handoff (Codex attempt)
+- Added a `viewerPreparing` + `suspendPdfPreview` prop chain through
+  `DetailScreen → DetailDetailsTab → DetailsPanel → DocumentPreviewSection`.
+- Unmounted the inline preview Pdf before opening fullscreen.
+- Did not fully resolve the post-close gesture leak.
+- Files touched: `DocumentPreviewSection.tsx`, `DetailsPanel.tsx`, `DetailDetailsTab.tsx`, `DetailScreen.tsx`.
+- Rolled back; too many files touched for a narrow problem.
+
+---
+
+## Actual Fix
+
+**File:** `src/features/detail/components/DocumentPagesViewer.tsx`
+**Commit:** `00346b6bb` — `fix(viewer): defer pdf unmount to prevent scroll freeze after close`
+
+Added a `mounted` state with a 350 ms delayed unmount on close:
+
+```ts
+const [mounted, setMounted] = useState(false);
+useEffect(() => {
+  if (visible) { setMounted(true); }
+  else {
+    const timer = setTimeout(() => setMounted(false), 350);
+    return () => clearTimeout(timer);
+  }
+}, [visible]);
+```
+
+`<Modal visible={mounted}>` + `{mounted && <View>...</View>}` ensures the `<Pdf>` native
+component (and its gesture recognizers) are fully unmounted after the fade animation completes.
+
+---
+
+## Related Fixes (same session)
+
+| Commit | File | What |
+|--------|------|------|
+| `7fdc8647b` | `SignaturePdfSheet.tsx` | Exclude edit overlay from saved preview capture (first attempt — broke signature visibility) |
+| `206511e59` | `SignaturePdfSheet.tsx` | Keep signature Image visible; hide only border + handles during capture |
+| `29f56ebbe` | `config.ts` | Read `EXPO_PUBLIC_DEVICE_IP` first in `resolveDevConfig` so physical device IP is honoured |
+
+---
+
+## Validation
+
 - `npx tsc --noEmit`: PASS
-- iOS physical device: PENDING, required before final PASS
-- Android secondary: not tested in this turn
+- iOS physical device:
+  - İmza yerleştirirken mavi çerçeve görünür ✓
+  - Kaydet → Dokument preview'da imza görünür, çerçeve yok ✓
+  - Vollbild açılıyor ✓
+  - Vollbild kapatınca Dokument tab scroll çalışıyor ✓
 
-## Required device checks
-1. Signed PDF in Dokument tab:
-   - tap preview -> fullscreen opens
-   - tap `Vollbild` -> fullscreen opens
-2. Fullscreen shows signed PDF with signature
-3. Close fullscreen returns to Detail without freeze
-4. After close, these still work:
-   - Export
-   - Edit
-   - Revert signature
-   - Delete confirm
-5. Unsigned PDF fullscreen still works
-6. Image document fullscreen still works
+---
+
+## Remaining Notes
+
+- `docs/audits/2026-06-03-smoke-known-issues.md` — iOS signed PDF freeze kaydı bu fix ile kapandı.
+- Android: E-Mail beyaz ekran (intermittent) ayrı oturumda takip edilecek.

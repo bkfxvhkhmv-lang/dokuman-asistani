@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import type { Dokument } from '@/store';
@@ -186,7 +186,7 @@ function HomeRecentListInner({ data }: { data: any }) {
         )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <View>
         {stacks
           ? stacks.map((stack, i) => (
               <StaggeredRow key={stack.id} index={i}>
@@ -218,7 +218,7 @@ function HomeRecentListInner({ data }: { data: any }) {
               </StaggeredRow>
             ))
         }
-      </ScrollView>
+      </View>
 
       {deduped.length > docs.length && !data.secilenModus && (
         <TouchableOpacity

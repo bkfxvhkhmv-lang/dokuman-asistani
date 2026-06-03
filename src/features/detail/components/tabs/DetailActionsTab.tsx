@@ -8,6 +8,22 @@ import { useTheme } from '@/ThemeContext';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import { useT } from '@/hooks/useT';
 
+const ReplyAssistantDevPreview = __DEV__
+  ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
+  : null;
+
+function inferReplyCategory(typ: string | null | undefined): string | undefined {
+  if (!typ) return undefined;
+  const t = typ.toLowerCase();
+  if (/bußgeld|bussgeld|ordnungswidrig/.test(t)) return 'bussgeld';
+  if (/jobcenter|bürgergeld/.test(t))            return 'jobcenter';
+  if (/finanzamt|steuer/.test(t))                return 'finanzamt';
+  if (/miete|nebenkosten|vermieter|mietvertrag/.test(t)) return 'miete';
+  if (/schufa/.test(t))                          return 'schufa';
+  if (/inkasso|mahnung|pfändung/.test(t))        return 'inkasso';
+  return undefined;
+}
+
 type Props = {
   smartActions: any;
   smartReminders: any;
@@ -205,6 +221,14 @@ export default function DetailActionsTab({
                 </View>
               </View>
             )}
+          </View>
+        )}
+
+        {__DEV__ && ReplyAssistantDevPreview && detail?.dok?.typ && (
+          <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
+            <ReplyAssistantDevPreview
+              category={inferReplyCategory(detail.dok.typ)}
+            />
           </View>
         )}
 

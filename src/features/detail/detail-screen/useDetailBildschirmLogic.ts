@@ -126,7 +126,7 @@ export function useDetailBildschirmLogic() {
         const orig = detail.dok!.unsignedUri!;
         detail.dispatch?.({
           type: 'UPDATE_DOKUMENT',
-          payload: { id: detail.dok!.id, uri: orig, fileRelativePath: null, unsignedUri: null },
+          payload: { id: detail.dok!.id, uri: orig, fileRelativePath: null, unsignedUri: null, signedPreviewUri: null },
         });
       }
     : undefined;

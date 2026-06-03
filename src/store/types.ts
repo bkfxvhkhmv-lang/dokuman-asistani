@@ -141,6 +141,8 @@ export interface Dokument {
   fileRelativePath?: string | null;
   /** Original unsigned PDF uri — set when user signs. Allows reverting to unsigned. */
   unsignedUri?: string | null;
+  /** Rastervorschau der signierten PDF-Seite für iOS-Detailansicht ohne Inline-Pdf-Deadlock. */
+  signedPreviewUri?: string | null;
   /** Henuz OCR/analiz tamamlanmamis optimistic placeholder bayragi */
   isOptimistic?: boolean;
   /** Demo modu belgeleri — kullanici verisine karistirilmaz */

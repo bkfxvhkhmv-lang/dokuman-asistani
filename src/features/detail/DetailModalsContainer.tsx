@@ -295,7 +295,7 @@ export default function DetailModalsContainer({
         visible={modal.isOpen('signatur')}
         onClose={modal.close}
         dok={dok}
-        onDone={(signedUri) => {
+        onDone={(signedUri, signedPreviewUri) => {
           dispatch({
             type: 'UPDATE_DOKUMENT',
             payload: {
@@ -304,6 +304,7 @@ export default function DetailModalsContainer({
               fileRelativePath: null,
               // keep original so user can revert
               unsignedUri: dok.unsignedUri ?? dok.uri,
+              signedPreviewUri: signedPreviewUri ?? dok.signedPreviewUri ?? null,
             },
           });
           showToast({

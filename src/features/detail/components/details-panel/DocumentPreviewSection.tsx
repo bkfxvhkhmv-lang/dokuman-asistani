@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Platform } from 'react-native';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import Pdf from 'react-native-pdf';
 import { useTheme } from '@/ThemeContext';
@@ -11,10 +12,9 @@ import { useT } from '@/hooks/useT';
 interface Props {
   dok: Dokument;
   onOpenFullscreen?: () => void;
-  suspendPdfPreview?: boolean;
 }
 
-export function DocumentPreviewSection({ dok, onOpenFullscreen, suspendPdfPreview = false }: Props) {
+export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
   const { Colors: C, S, R, Shadow } = useTheme();
   const { t } = useT();
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
@@ -24,6 +24,7 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen, suspendPdfPrevie
   if (!dok.uri) return null;
 
   const isPdfDoc = dok.uri.toLowerCase().endsWith('.pdf');
+  const useSignedPreviewImage = Platform.OS === 'ios' && !!dok.unsignedUri && !!dok.signedPreviewUri;
 
   const inner = (
     <View
@@ -33,24 +34,12 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen, suspendPdfPrevie
       }}
     >
       {isPdfDoc ? (
-        suspendPdfPreview ? (
-          <View
-            style={{
-              width: imgSize.w || 300,
-              height: imgSize.h || 300,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: C.bg,
-            }}
-          >
-            <Text style={{ fontSize: 11, fontWeight: '700', color: C.primary, letterSpacing: 0.4 }}>
-              {pdfPageCount > 1
-                ? `PDF · ${pdfPageCount} Seiten`
-                : pdfPageCount === 1
-                  ? 'PDF · 1 Seite'
-                  : 'PDF'}
-            </Text>
-          </View>
+        useSignedPreviewImage ? (
+          <Image
+            source={{ uri: dok.signedPreviewUri! }}
+            style={{ width: imgSize.w || '100%', height: imgSize.h || 300 }}
+            resizeMode="contain"
+          />
         ) : (
           <Pdf
             source={{ uri: dok.uri, cache: true }}

@@ -12,7 +12,6 @@ type Props = {
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
   onOpenPages?: (initialIndex?: number) => void;
-  suspendPdfPreview?: boolean;
   scrollBottomPadding?: number;
   onEdit?: () => void;
   onExport?: () => void;
@@ -26,7 +25,6 @@ export default function DetailDetailsTab({
   onScrollContentSize,
   onScrollLayout,
   onOpenPages,
-  suspendPdfPreview = false,
   scrollBottomPadding = 132,
   onEdit,
   onExport,
@@ -50,7 +48,6 @@ export default function DetailDetailsTab({
         ocrRisiken={detail.ocrRisiken}
         graph={detail.graph}
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
-        suspendPdfPreview={suspendPdfPreview}
         onEdit={onEdit}
         onExport={onExport}
         onLoeschen={onLoeschen}

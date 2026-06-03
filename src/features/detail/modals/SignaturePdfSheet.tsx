@@ -32,7 +32,7 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   dok: Dokument;
-  onDone?: (signedUri: string) => void;
+  onDone?: (signedUri: string, signedPreviewUri?: string | null) => void;
 }
 
 type Step = 'draw' | 'place';
@@ -100,6 +100,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const { t: T } = useT();
   const { width: screenW } = useWindowDimensions();
   const padRef = useRef<View>(null);
+  const previewRef = useRef<View>(null);
   const dragStartRef = useRef<SignatureBox | null>(null);
   const signatureBoxRef = useRef<SignatureBox | null>(null);
   const currentPageRectRef = useRef<Rect | null>(null);
@@ -291,8 +292,27 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
         await FileSystem.copyAsync({ from: stamped.uri, to: savedUri });
       }
 
+      let savedPreviewUri: string | null = null;
+      if (previewRef.current) {
+        try {
+          const previewFilename = `${buildPdfExportBasename(dok)}_unterschrieben_vorschau.png`;
+          const capturedPreviewUri = await captureRef(previewRef, {
+            format: 'png',
+            quality: 1,
+            result: 'tmpfile',
+          });
+          const previewDestUri = destDir ? `${destDir}${previewFilename}` : capturedPreviewUri;
+          if (destDir && previewDestUri !== capturedPreviewUri) {
+            await FileSystem.copyAsync({ from: capturedPreviewUri, to: previewDestUri });
+          }
+          savedPreviewUri = previewDestUri;
+        } catch (previewError) {
+          console.warn('[SignaturePdfSheet] preview capture failed', previewError);
+        }
+      }
+
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onDone?.(savedUri);
+      onDone?.(savedUri, savedPreviewUri);
       onClose();
     } catch (error) {
       console.warn('[SignaturePdfSheet] save failed', error);
@@ -463,6 +483,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
           )}
 
           <View
+            ref={previewRef}
+            collapsable={false}
             onLayout={handlePreviewLayout}
             style={{
               width: previewWidth,

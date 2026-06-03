@@ -26,11 +26,10 @@ export default function DetailsPanel({
   ocrRisiken = [],
   graph: _graph,
   onOpenFullscreen,
-  suspendPdfPreview = false,
   onEdit,
   onExport,
   onLoeschen,
-}: DetailsPanelProps & { onOpenFullscreen?: () => void; suspendPdfPreview?: boolean }) {
+}: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
 
   const { S, Colors: C, R } = useTheme();
@@ -85,7 +84,6 @@ export default function DetailsPanel({
       <DocumentPreviewSection
         dok={dok}
         onOpenFullscreen={onOpenFullscreen}
-        suspendPdfPreview={suspendPdfPreview}
       />
 
       {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}

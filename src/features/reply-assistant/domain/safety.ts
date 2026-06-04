@@ -10,7 +10,5 @@ export const REPLY_ASSISTANT_HIGH_RISK_BANNER =
 
 export function shouldShowHighRiskWarning(template?: Pick<ReplyTemplate, 'safety'> | null): boolean {
   if (!template) return false;
-  // Only show amber banner for explicitly high-risk templates.
-  // requiresLegalCaution is informational and covered by per-template safetyNote.
-  return template.safety.riskLevel === 'high';
+  return template.safety.riskLevel === 'high' || template.safety.requiresLegalCaution === true;
 }

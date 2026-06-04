@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { renderReplyTemplate, PLACEHOLDER_REGEX } from '@/features/reply-assistant/domain/renderTemplate';
+import { shouldShowHighRiskWarning } from '@/features/reply-assistant/domain/safety';
 import type { ReplyTemplate, ReplyTemplateValues } from '@/features/reply-assistant/domain/types';
 import { germanMvpReplyTemplates } from '@/features/reply-assistant/templates/de';
 
@@ -203,6 +204,17 @@ describe('german MVP templates registry', () => {
     for (const template of germanMvpReplyTemplates) {
       expect(typeof template.safety.requiresLegalCaution).toBe('boolean');
     }
+  });
+
+  it('matches expected amber-warning behavior for known templates', () => {
+    const byId = new Map(germanMvpReplyTemplates.map(template => [template.id, template]));
+
+    expect(shouldShowHighRiskWarning(byId.get('bussgeld_akten_einsicht_009')!)).toBe(false);
+    expect(shouldShowHighRiskWarning(byId.get('bussgeld_fristverlaengerung_010')!)).toBe(false);
+    expect(shouldShowHighRiskWarning(byId.get('bussgeld_photo_anfordern_013')!)).toBe(false);
+    expect(shouldShowHighRiskWarning(byId.get('bussgeld_general_einspruch_005')!)).toBe(true);
+    expect(shouldShowHighRiskWarning(byId.get('finanzamt_einspruch_fristwahrung_002')!)).toBe(true);
+    expect(shouldShowHighRiskWarning(byId.get('schufa_selbstauskunft_001')!)).toBe(false);
   });
 
   it('is not imported by non-test UI or production modules yet', () => {

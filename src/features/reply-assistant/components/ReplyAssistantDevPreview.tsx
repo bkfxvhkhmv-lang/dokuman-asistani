@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
 import * as ExpoClipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,6 +43,9 @@ export default function ReplyAssistantDevPreview({
   actionType,
 }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { height: screenH } = useWindowDimensions();
+  // AppSheet = 88% screenH. Reserve handle(44) + header(80) + banner(52) + paddingBottom(40) + footer(150)
+  const scrollMaxH = Math.max(200, Math.round(screenH * 0.88) - 366);
 
   const [disclaimerVisible, setDisclaimerVisible] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -185,10 +189,12 @@ export default function ReplyAssistantDevPreview({
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
           // @ts-ignore — iOS 14+ native scroll adjustment when keyboard appears
           automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 16 }}
+          style={{ maxHeight: scrollMaxH }}
+          contentContainerStyle={{ paddingBottom: 8 }}
         >
           {step === 'select' && (
             <SelectStep

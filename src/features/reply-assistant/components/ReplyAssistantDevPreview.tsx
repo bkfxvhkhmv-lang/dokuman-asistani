@@ -52,7 +52,9 @@ export default function ReplyAssistantDevPreview({
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [renderedSubject, setRenderedSubject] = useState('');
   const [renderedBody, setRenderedBody] = useState('');
+  const [editedBody, setEditedBody] = useState('');
   const [renderError, setRenderError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { candidates, reason } = getReplyTemplateCandidates({
     category, institutionType, documentType, actionType,
@@ -116,13 +118,57 @@ export default function ReplyAssistantDevPreview({
     setRenderError(null);
     setRenderedSubject(result.subject ?? '');
     setRenderedBody(result.body ?? '');
+    setEditedBody(result.body ?? '');
     setStep('preview');
   }, [selectedTemplate, fieldValues]);
+
+  const handleCopy = useCallback(() => {
+    ExpoClipboard.setStringAsync(`Betreff: ${renderedSubject}\n\n${editedBody}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [renderedSubject, editedBody]);
 
   const sheetTitle =
     step === 'select' ? `[DEV] Vorlagenkandidaten (${candidates.length})` :
     step === 'fill'   ? `[DEV] ${selectedTemplate?.title ?? ''}` :
                         '[DEV] Entwurfsvorschau';
+
+  const previewFooter = step === 'preview' ? (
+    <View style={{ gap: 8 }}>
+      <TouchableOpacity
+        onPress={handleCopy}
+        style={{
+          borderRadius: R.md, paddingVertical: 14,
+          backgroundColor: copied ? (C.success ?? '#16A34A') : (C.primary ?? '#005FB8'),
+          alignItems: 'center',
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+          {copied ? '✓ Kopiert' : 'Entwurf kopieren'}
+        </Text>
+      </TouchableOpacity>
+      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center' }}>
+        Text prüfen, anpassen und selbst versenden
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 10 }}>
+        <TouchableOpacity
+          onPress={() => setStep('fill')}
+          style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
+          activeOpacity={0.75}
+        >
+          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Felder bearbeiten</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={close}
+          style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
+          activeOpacity={0.75}
+        >
+          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Schließen</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  ) : undefined;
 
   return (
     <>
@@ -136,7 +182,7 @@ export default function ReplyAssistantDevPreview({
         </Text>
       </TouchableOpacity>
 
-      <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle}>
+      <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle} footer={previewFooter}>
         <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
 
         <KeyboardAvoidingView
@@ -172,9 +218,9 @@ export default function ReplyAssistantDevPreview({
               template={selectedTemplate}
               subject={renderedSubject}
               body={renderedBody}
+              editedBody={editedBody}
+              onEditedBodyChange={setEditedBody}
               safetyNote={selectedTemplate?.safetyNote}
-              onEdit={() => setStep('fill')}
-              onClose={close}
               C={C} S={S} R={R}
             />
           )}
@@ -401,42 +447,31 @@ function FieldInput({
 // ── Preview step ──────────────────────────────────────────────────────────────
 
 function PreviewStep({
-  template, subject, body, safetyNote, onEdit, onClose, C, R,
+  template, subject, body, editedBody, onEditedBodyChange, safetyNote, C, R,
 }: {
   template: ReplyTemplate | null;
   subject: string;
   body: string;
+  editedBody: string;
+  onEditedBodyChange: (v: string) => void;
   safetyNote?: string;
-  onEdit: () => void;
-  onClose: () => void;
   C: any; S: any; R: any;
 }) {
-  const [editableBody, setEditableBody] = useState(body);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = useCallback(() => {
-    ExpoClipboard.setStringAsync(`Betreff: ${subject}\n\n${editableBody}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [subject, editableBody]);
-
   return (
-    <View style={{ paddingBottom: 16 }}>
+    <View style={{ paddingBottom: 8 }}>
       {shouldShowHighRiskWarning(template) && (
         <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
       )}
       {!!safetyNote && (
         <View style={{
-          borderRadius: R.md,
+          borderRadius: R.md ?? 10,
           backgroundColor: `${C.warning ?? '#F59E0B'}18`,
           borderWidth: 0.8,
           borderColor: `${C.warning ?? '#F59E0B'}55`,
           padding: 10,
           marginBottom: 14,
         }}>
-          <Text style={{ color: C.text, fontSize: 12 }}>
-            ⚠ {safetyNote}
-          </Text>
+          <Text style={{ color: C.text, fontSize: 12 }}>⚠ {safetyNote}</Text>
         </View>
       )}
 
@@ -445,7 +480,7 @@ function PreviewStep({
       </Text>
       <Text style={{
         color: C.text, fontSize: 13, fontWeight: '600',
-        borderRadius: R.sm, borderWidth: 0.5, borderColor: C.border,
+        borderRadius: R.sm ?? 6, borderWidth: 0.5, borderColor: C.border,
         backgroundColor: C.bgCard, padding: 10, marginBottom: 14,
       }}>
         {subject}
@@ -455,11 +490,11 @@ function PreviewStep({
         INHALT — Entwurf bearbeiten
       </Text>
       <TextInput
-        value={editableBody}
-        onChangeText={setEditableBody}
+        value={editedBody}
+        onChangeText={onEditedBodyChange}
         multiline
         style={{
-          borderRadius: R.sm,
+          borderRadius: R.sm ?? 6,
           borderWidth: 0.8,
           borderColor: C.border,
           backgroundColor: C.bgCard,
@@ -467,60 +502,10 @@ function PreviewStep({
           fontSize: 13,
           lineHeight: 20,
           padding: 10,
-          minHeight: 160,
+          minHeight: 200,
           textAlignVertical: 'top',
         }}
       />
-
-      {/* Primary CTA: copy to clipboard */}
-      <TouchableOpacity
-        onPress={handleCopy}
-        style={{
-          marginTop: 16,
-          borderRadius: R.md,
-          paddingVertical: 14,
-          backgroundColor: copied ? (C.success ?? '#16A34A') : (C.primary ?? '#005FB8'),
-          alignItems: 'center',
-        }}
-        activeOpacity={0.8}
-      >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          {copied ? '✓ Kopiert' : 'Entwurf kopieren'}
-        </Text>
-      </TouchableOpacity>
-
-      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', marginTop: 8 }}>
-        Text prüfen, anpassen und selbst versenden
-      </Text>
-
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-        <TouchableOpacity
-          onPress={onEdit}
-          style={{
-            flex: 1, borderRadius: R.md, paddingVertical: 11,
-            borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
-            alignItems: 'center',
-          }}
-          activeOpacity={0.75}
-        >
-          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>
-            Felder bearbeiten
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={onClose}
-          style={{
-            flex: 1, borderRadius: R.md, paddingVertical: 11,
-            borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
-            alignItems: 'center',
-          }}
-          activeOpacity={0.75}
-        >
-          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>
-            Schließen
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }

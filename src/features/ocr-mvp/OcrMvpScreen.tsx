@@ -284,7 +284,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   }, [status, result, emitTimingSummary, setTiming]);
 
   const st = styles(Colors);
-  const isActive = status !== 'idle';
+  const isActive = status === 'uploading' || status === 'processing';
   const hideIdleChrome = scannerOpen && !isActive;
 
   return (

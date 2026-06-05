@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Dimensions, Modal, TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
+import { Dimensions, Keyboard, Modal, TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, runOnJS, interpolate, Extrapolation,
@@ -32,6 +32,18 @@ export default function AppSheet({
 
   const translateY    = useSharedValue(SCREEN_H);
   const backdropAlpha = useSharedValue(0);
+  const kbHeight      = useSharedValue(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    const show = Keyboard.addListener('keyboardWillShow', (e) => {
+      kbHeight.value = withTiming(e.endCoordinates.height, { duration: e.duration ?? 250 });
+    });
+    const hide = Keyboard.addListener('keyboardWillHide', (e) => {
+      kbHeight.value = withTiming(0, { duration: e.duration ?? 200 });
+    });
+    return () => { show.remove(); hide.remove(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Step 1 — mount the Modal when becoming visible
   useEffect(() => {
@@ -97,6 +109,8 @@ export default function AppSheet({
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
+    bottom: kbHeight.value,
+    maxHeight: Math.max(200, SCREEN_H * 0.88 - kbHeight.value),
   }));
 
   const bgStyle = useAnimatedStyle(() => ({
@@ -177,7 +191,6 @@ const st = StyleSheet.create({
     borderTopWidth:       0.5,
     paddingHorizontal:    20,
     overflow:             'hidden',
-    maxHeight:            '88%',
   },
   handleArea: {
     paddingVertical: 10,

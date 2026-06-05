@@ -190,7 +190,8 @@ export default function ReplyAssistantDevPreview({
       </TouchableOpacity>
       <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
         BriefPilot erstellt nur den Text.{'\n'}
-        Sie prüfen, ergänzen und versenden ihn selbst.
+        Fügen Sie den Entwurf in Ihre E-Mail, ein Online-Formular oder ein Schreiben ein.{'\n'}
+        Sie prüfen und versenden ihn selbst.
       </Text>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity

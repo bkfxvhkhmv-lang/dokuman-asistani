@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
-  ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert, Animated,
+  ScrollView, View, Text, TouchableOpacity, StyleSheet, Alert, Animated, Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -238,10 +238,8 @@ const st = StyleSheet.create({
   langName:     { fontSize: 15, fontWeight: '600', flex: 1 },
   showMoreBtn:  { paddingVertical: 10, alignItems: 'center' },
   showMoreText: { fontSize: 13, fontWeight: '600' },
-  brandMark:  { width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: 16 },
-  brandFrame: { position: 'absolute', width: 24, height: 24, borderRadius: 8, borderWidth: 3, borderColor: '#fff', transform: [{ rotate: '-22deg' }], left: 10, top: 13 },
-  brandPlane: { position: 'absolute', right: 3, top: 1, color: '#fff', fontSize: 22, fontWeight: '800', transform: [{ rotate: '-18deg' }] },
-  brandSpark: { position: 'absolute', left: 17, top: 18, color: '#FFB11A', fontSize: 11, fontWeight: '800' },
+  brandMark:  { width: 52, height: 52, marginBottom: 16 },
+  brandImage: { width: '100%', height: '100%' },
   pulseBrand: { fontSize: 26, fontWeight: '800', letterSpacing: -0.6, marginBottom: 14 },
   pulseLine:  { fontSize: 16, lineHeight: 24, textAlign: 'center', maxWidth: 300 },
   splashHint: { fontSize: 12, fontWeight: '600' },
@@ -286,11 +284,11 @@ function SplashStep({ colors: C, insets }: { colors: any; insets: any }) {
   return (
     <View style={[st.root, { backgroundColor: C.bg, paddingTop: insets.top + 40, paddingBottom: insets.bottom + 28, paddingHorizontal: 28, justifyContent: 'center' }]}>
       <Animated.View style={{ alignItems: 'center', opacity, transform: [{ scale }] }}>
-        <View style={[st.brandMark, { backgroundColor: C.primary }]}>
-          <View style={st.brandFrame} />
-          <Text style={st.brandPlane}>➤</Text>
-          <Text style={st.brandSpark}>✦</Text>
-        </View>
+        <Image
+          source={require('../../../assets/brand/briefpilot-icon-512.png')}
+          style={st.brandMark}
+          resizeMode="contain"
+        />
         <Text style={[st.pulseBrand, { color: C.text }]}>BriefPilot</Text>
         <Text style={[st.pulseLine, { color: C.textSecondary }]}>
           Sagt dir, was du mit deinem Dokument tun sollst — in wenigen Sekunden.

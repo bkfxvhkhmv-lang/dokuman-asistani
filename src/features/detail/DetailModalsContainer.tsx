@@ -34,6 +34,22 @@ import EinspruchSheet from '@/features/detail/detail-modals/EinspruchSheet';
 import LoeschenModal from '@/features/detail/modals/LoeschenModal';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types'; // re-exported for DetailActionsTab
 
+const ReplyAssistantDevPreview = __DEV__
+  ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
+  : null;
+
+function inferReplyCategory(typ: string | null | undefined): string | undefined {
+  if (!typ) return undefined;
+  const t = typ.toLowerCase().replace(/ß/g, 'ss').replace(/ü/g, 'u').replace(/ä/g, 'a');
+  if (/bussgeld|ordnungswidrig/.test(t)) return 'bussgeld';
+  if (/jobcenter|burgergeld/.test(t)) return 'jobcenter';
+  if (/finanzamt|steuer/.test(t)) return 'finanzamt';
+  if (/miete|nebenkosten|vermieter|mietvertrag/.test(t)) return 'miete';
+  if (/schufa/.test(t)) return 'schufa';
+  if (/inkasso|mahnung|pfandung/.test(t)) return 'inkasso';
+  return undefined;
+}
+
 export type { MoreMenuItem };
 
 interface Props {
@@ -64,6 +80,8 @@ export default function DetailModalsContainer({
   }, []);
 
   const { t: T } = useT();
+  const replyAssistantCategory = inferReplyCategory(dok?.typ);
+  const useDevReplyAssistantForAppeal = __DEV__ && !!replyAssistantCategory && !!ReplyAssistantDevPreview;
 
   const handleExcelDownload = useCallback(async () => {
     if (!dok.ocrJobId) return;
@@ -193,13 +211,22 @@ export default function DetailModalsContainer({
         data={modal.activeModal?.data}
       />
 
-      <EinspruchSheet
-        visible={modal.isOpen('einspruch')}
-        onClose={modal.close}
-        einspruchText={modal.einspruchText || ''}
-        onCopy={handleCopyEinspruch}
-        onShare={handleShareEinspruch}
-      />
+      {useDevReplyAssistantForAppeal && modal.isOpen('einspruch') ? (
+        <ReplyAssistantDevPreview
+          autoOpen
+          hideLauncher
+          onClose={modal.close}
+          category={replyAssistantCategory}
+        />
+      ) : (
+        <EinspruchSheet
+          visible={modal.isOpen('einspruch')}
+          onClose={modal.close}
+          einspruchText={modal.einspruchText || ''}
+          onCopy={handleCopyEinspruch}
+          onShare={handleShareEinspruch}
+        />
+      )}
 
       <ActionSimulatorModal
         visible={modal.isOpen('simulator')}

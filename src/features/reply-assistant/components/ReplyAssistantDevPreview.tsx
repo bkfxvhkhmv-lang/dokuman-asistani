@@ -148,11 +148,12 @@ export default function ReplyAssistantDevPreview({
         activeOpacity={0.8}
       >
         <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          {copied ? '✓ Kopiert' : 'Entwurf kopieren'}
+          {copied ? '✓ Kopiert — in E-Mail oder Schreiben einfügen' : 'Entwurf kopieren'}
         </Text>
       </TouchableOpacity>
-      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center' }}>
-        Text prüfen, anpassen und selbst versenden
+      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
+        BriefPilot erstellt nur den Text.{'\n'}
+        Sie prüfen, ergänzen und versenden ihn selbst.
       </Text>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,9 @@ interface Props {
   institutionType?: string;
   documentType?: string;
   actionType?: string;
+  autoOpen?: boolean;
+  hideLauncher?: boolean;
+  onClose?: () => void;
 }
 
 type Step = 'select' | 'fill' | 'preview';
@@ -42,6 +45,9 @@ export default function ReplyAssistantDevPreview({
   institutionType,
   documentType,
   actionType,
+  autoOpen = false,
+  hideLauncher = false,
+  onClose,
 }: Props) {
   const { Colors: C, S, R } = useTheme();
   const { height: screenH } = useWindowDimensions();
@@ -53,11 +59,16 @@ export default function ReplyAssistantDevPreview({
   const [step, setStep] = useState<Step>('select');
   const [selectedTemplate, setSelectedTemplate] = useState<ReplyTemplate | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [senderValues, setSenderValues] = useState({ name: '', adresse: '' });
+  const [empfaengerValues, setEmpfaengerValues] = useState({
+    empfaenger_stelle: '', empfaenger_email: '', empfaenger_adresse: '',
+  });
   const [renderedSubject, setRenderedSubject] = useState('');
   const [renderedBody, setRenderedBody] = useState('');
   const [editedBody, setEditedBody] = useState('');
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const autoOpenedRef = useRef(false);
 
   const { candidates, reason } = getReplyTemplateCandidates({
     category, institutionType, documentType, actionType,
@@ -67,6 +78,8 @@ export default function ReplyAssistantDevPreview({
     setStep('select');
     setSelectedTemplate(null);
     setFieldValues({});
+    setSenderValues({ name: '', adresse: '' });
+    setEmpfaengerValues({ empfaenger_stelle: '', empfaenger_email: '', empfaenger_adresse: '' });
     setRenderedSubject('');
     setRenderedBody('');
     setRenderError(null);
@@ -98,7 +111,14 @@ export default function ReplyAssistantDevPreview({
   const close = useCallback(() => {
     setDisclaimerVisible(false);
     setSheetVisible(false);
-  }, []);
+    onClose?.();
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!autoOpen || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    void handleButtonPress();
+  }, [autoOpen, handleButtonPress]);
 
   const selectTemplate = useCallback((t: ReplyTemplate) => {
     setSelectedTemplate(t);
@@ -109,7 +129,9 @@ export default function ReplyAssistantDevPreview({
 
   const tryRender = useCallback(() => {
     if (!selectedTemplate) return;
-    const result = renderReplyTemplate({ template: selectedTemplate, values: fieldValues });
+    // Merge sender identity so {{name}}/{{adresse}} in template body still substitute correctly.
+    const mergedValues = { ...fieldValues, name: senderValues.name, adresse: senderValues.adresse };
+    const result = renderReplyTemplate({ template: selectedTemplate, values: mergedValues });
     if (!result.ok) {
       setRenderError(
         result.blockedReason === 'missing_required'
@@ -123,7 +145,7 @@ export default function ReplyAssistantDevPreview({
     setRenderedBody(result.body ?? '');
     setEditedBody(result.body ?? '');
     setStep('preview');
-  }, [selectedTemplate, fieldValues]);
+  }, [selectedTemplate, fieldValues, senderValues]);
 
   const handleCopy = useCallback(() => {
     ExpoClipboard.setStringAsync(`Betreff: ${renderedSubject}\n\n${editedBody}`);
@@ -176,15 +198,17 @@ export default function ReplyAssistantDevPreview({
 
   return (
     <>
-      <TouchableOpacity
-        onPress={handleButtonPress}
-        style={[st.devButton, { borderColor: C.border, backgroundColor: `${C.primary}18` }]}
-        activeOpacity={0.7}
-      >
-        <Text style={[st.devButtonText, { color: C.primary }]}>
-          ⚙ Antwortentwurf erstellen
-        </Text>
-      </TouchableOpacity>
+      {!hideLauncher && (
+        <TouchableOpacity
+          onPress={handleButtonPress}
+          style={[st.devButton, { borderColor: C.border, backgroundColor: `${C.primary}18` }]}
+          activeOpacity={0.7}
+        >
+          <Text style={[st.devButtonText, { color: C.primary }]}>
+            ⚙ Antwortentwurf erstellen
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle} footer={previewFooter}>
         <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
@@ -211,6 +235,10 @@ export default function ReplyAssistantDevPreview({
               template={selectedTemplate}
               values={fieldValues}
               onChange={(key, val) => setFieldValues(prev => ({ ...prev, [key]: val }))}
+              senderValues={senderValues}
+              onSenderChange={(field, val) => setSenderValues(prev => ({ ...prev, [field]: val }))}
+              empfaengerValues={empfaengerValues}
+              onEmpfaengerChange={(field, val) => setEmpfaengerValues(prev => ({ ...prev, [field]: val }))}
               onRender={tryRender}
               error={renderError}
               C={C} S={S} R={R}
@@ -329,21 +357,37 @@ function SelectStep({
   );
 }
 
+// Keys sourced from senderValues — excluded from template field rendering to avoid duplication.
+const SENDER_KEYS = new Set(['name', 'adresse']);
+
 // ── Fill step ─────────────────────────────────────────────────────────────────
 
 function FillStep({
-  template, values, onChange, onRender, error, C, R,
+  template, values, onChange,
+  senderValues, onSenderChange,
+  empfaengerValues, onEmpfaengerChange,
+  onRender, error, C, R,
 }: {
   template: ReplyTemplate;
   values: Record<string, string>;
   onChange: (key: string, val: string) => void;
+  senderValues: { name: string; adresse: string };
+  onSenderChange: (field: 'name' | 'adresse', val: string) => void;
+  empfaengerValues: { empfaenger_stelle: string; empfaenger_email: string; empfaenger_adresse: string };
+  onEmpfaengerChange: (field: 'empfaenger_stelle' | 'empfaenger_email' | 'empfaenger_adresse', val: string) => void;
   onRender: () => void;
   error: string | null;
   C: any; S: any; R: any;
 }) {
-  const requiredKeys = template.fields.filter(f => f.required).map(f => f.key);
-  const optionalKeys = template.fields.filter(f => !f.required).map(f => f.key);
-  const allMissing = requiredKeys.filter(k => !values[k]?.trim());
+  // Filter out name/adresse — they're collected in IHRE ANGABEN to avoid duplicate inputs.
+  const requiredKeys = template.fields.filter(f => f.required && !SENDER_KEYS.has(f.key)).map(f => f.key);
+  const optionalKeys = template.fields.filter(f => !f.required && !SENDER_KEYS.has(f.key)).map(f => f.key);
+
+  const templateMissing = requiredKeys.filter(k => !values[k]?.trim());
+  const senderMissing = !senderValues.name.trim() || !senderValues.adresse.trim();
+  const empfaengerMissing = !empfaengerValues.empfaenger_stelle.trim();
+  const cannotRender = templateMissing.length > 0 || senderMissing || empfaengerMissing;
+
   const highRisk = shouldShowHighRiskWarning(template);
 
   return (
@@ -352,40 +396,35 @@ function FillStep({
         <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
       )}
 
-      {requiredKeys.length > 0 && (
-        <>
-          <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>
-            PFLICHTFELDER
-          </Text>
-          {requiredKeys.map(key => (
-            <FieldInput
-              key={key}
-              fieldKey={key}
-              value={values[key] ?? ''}
-              required
-              onChange={val => onChange(key, val)}
-              C={C} R={R}
-            />
-          ))}
-        </>
+      {/* ── IHRE ANGABEN ────────────────────────────────────── */}
+      <SectionHeader label="IHRE ANGABEN" C={C} />
+      <FieldInput fieldKey="name"    value={senderValues.name}    required onChange={v => onSenderChange('name', v)}    C={C} R={R} />
+      <FieldInput fieldKey="adresse" value={senderValues.adresse} required onChange={v => onSenderChange('adresse', v)} C={C} R={R} />
+
+      {/* ── EMPFÄNGER ───────────────────────────────────────── */}
+      <SectionHeader label="EMPFÄNGER" C={C} top />
+      <FieldInput fieldKey="empfaenger_stelle"  value={empfaengerValues.empfaenger_stelle}  required onChange={v => onEmpfaengerChange('empfaenger_stelle', v)}  C={C} R={R} />
+      <FieldInput fieldKey="empfaenger_email"   value={empfaengerValues.empfaenger_email}   required={false} onChange={v => onEmpfaengerChange('empfaenger_email', v)}   C={C} R={R} />
+      <FieldInput fieldKey="empfaenger_adresse" value={empfaengerValues.empfaenger_adresse} required={false} onChange={v => onEmpfaengerChange('empfaenger_adresse', v)} C={C} R={R} />
+
+      {/* ── VORGANG (template-specific) ─────────────────────── */}
+      {(requiredKeys.length > 0 || optionalKeys.length > 0) && (
+        <SectionHeader label="VORGANG" C={C} top />
       )}
+      {requiredKeys.map(key => (
+        <FieldInput key={key} fieldKey={key} value={values[key] ?? ''} required onChange={val => onChange(key, val)} C={C} R={R} />
+      ))}
       {optionalKeys.length > 0 && (
         <>
-          <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginTop: 14, marginBottom: 6 }}>
-            OPTIONALE FELDER
+          <Text style={{ color: C.textTertiary, fontSize: 10, fontWeight: '600', marginTop: 10, marginBottom: 4 }}>
+            OPTIONAL
           </Text>
           {optionalKeys.map(key => (
-            <FieldInput
-              key={key}
-              fieldKey={key}
-              value={values[key] ?? ''}
-              required={false}
-              onChange={val => onChange(key, val)}
-              C={C} R={R}
-            />
+            <FieldInput key={key} fieldKey={key} value={values[key] ?? ''} required={false} onChange={val => onChange(key, val)} C={C} R={R} />
           ))}
         </>
       )}
+
       {!!error && (
         <Text style={{ color: C.danger ?? '#d00', fontSize: 12, marginTop: 10 }}>
           {error}
@@ -393,13 +432,13 @@ function FillStep({
       )}
       <TouchableOpacity
         onPress={onRender}
-        disabled={allMissing.length > 0}
+        disabled={cannotRender}
         style={{
           marginTop: 16,
           borderRadius: R.md,
           paddingVertical: 13,
           paddingHorizontal: 16,
-          backgroundColor: allMissing.length > 0 ? (C.border ?? '#ccc') : (C.primary ?? '#005FB8'),
+          backgroundColor: cannotRender ? (C.border ?? '#ccc') : (C.primary ?? '#005FB8'),
           alignItems: 'center',
         }}
         activeOpacity={0.8}
@@ -409,6 +448,14 @@ function FillStep({
         </Text>
       </TouchableOpacity>
     </View>
+  );
+}
+
+function SectionHeader({ label, C, top = false }: { label: string; C: any; top?: boolean }) {
+  return (
+    <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginTop: top ? 14 : 0, marginBottom: 6 }}>
+      {label}
+    </Text>
   );
 }
 

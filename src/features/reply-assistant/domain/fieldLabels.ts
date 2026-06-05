@@ -52,6 +52,9 @@ const FIELD_LABELS: Record<string, string> = {
   betrag: 'Betrag (€)',
   kundennummer: 'Kundennummer',
   vertragsnummer: 'Vertragsnummer',
+  empfaenger_stelle: 'Behörde / Stelle',
+  empfaenger_email: 'E-Mail der Stelle',
+  empfaenger_adresse: 'Anschrift der Stelle',
 };
 
 function snakeCaseToTitle(key: string): string {

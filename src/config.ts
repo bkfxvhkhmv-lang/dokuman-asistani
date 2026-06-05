@@ -48,41 +48,52 @@ function detectExpoHost(): string | null {
 }
 
 function resolveDevConfig(): EnvConfig {
-  // === EN YÜKSEK ÖNCELİK: .env.local'daki EXPO_PUBLIC_DEVICE_IP ===
+  const explicitOcrBase =
+    process.env.EXPO_PUBLIC_OCR_BASE?.trim()
+    || process.env.OCR_MVP_BASE?.trim()
+    || '';
+  const explicitApiBase = process.env.API_BASE?.trim() || '';
+  const useDeviceIpOverride = process.env.EXPO_PUBLIC_USE_DEVICE_IP?.trim() === 'true';
   const deviceIp = process.env.EXPO_PUBLIC_DEVICE_IP?.trim();
-  if (deviceIp && deviceIp !== '127.0.0.1' && deviceIp !== 'localhost') {
-    console.info(`[Config] EXPO_PUBLIC_DEVICE_IP kullanılıyor: ${deviceIp}`);
+
+  // 1) Explicit OCR base override wins when intentionally provided.
+  if (explicitOcrBase) {
+    const apiBaseFromOcr = explicitApiBase || `${explicitOcrBase.replace(/\/+$/, '')}/api/v4`;
+    console.info(`[Config] explicit OCR base kullanılıyor: ${explicitOcrBase}`);
     return {
-      API_BASE: `http://${deviceIp}:8000/api/v4`,
-      OCR_MVP_BASE: `http://${deviceIp}:8000`,
+      API_BASE: apiBaseFromOcr,
+      OCR_MVP_BASE: explicitOcrBase,
     };
   }
 
-  const explicitApiBase = process.env.API_BASE?.trim() || '';
-  const explicitOcrBase = process.env.OCR_MVP_BASE?.trim() || '';
+  // 2) Expo host auto-detection is the normal dev default for physical devices.
   const host = detectExpoHost();
-
   if (host) {
+    console.info(`[Config] Expo host auto-detect kullanılıyor: ${host}`);
     return {
       API_BASE: `http://${host}:8000/api/v4`,
       OCR_MVP_BASE: `http://${host}:8000`,
     };
   }
 
-  if (explicitApiBase) {
-    const origin = (() => {
-      try { return new URL(explicitApiBase).origin; } catch { return ''; }
-    })();
+  // 3) Manual device IP remains available, but only as explicit override or fallback.
+  if (deviceIp && deviceIp !== '127.0.0.1' && deviceIp !== 'localhost') {
+    console.info(
+      useDeviceIpOverride
+        ? `[Config] EXPO_PUBLIC_USE_DEVICE_IP=true, device IP override kullanılıyor: ${deviceIp}`
+        : `[Config] Auto-detect yok, EXPO_PUBLIC_DEVICE_IP fallback kullanılıyor: ${deviceIp}`,
+    );
     return {
-      API_BASE: explicitApiBase,
-      OCR_MVP_BASE: explicitOcrBase || origin,
+      API_BASE: `http://${deviceIp}:8000/api/v4`,
+      OCR_MVP_BASE: `http://${deviceIp}:8000`,
     };
   }
 
+  // 4) Final fallback: simulator/local dev defaults.
   const isAndroidEmulator = Platform.OS === 'android';
   const simulatorHost = isAndroidEmulator ? '10.0.2.2' : '127.0.0.1';
   return {
-    API_BASE: `http://${simulatorHost}:8000/api/v4`,
+    API_BASE: explicitApiBase || `http://${simulatorHost}:8000/api/v4`,
     OCR_MVP_BASE: `http://${simulatorHost}:8000`,
   };
 }

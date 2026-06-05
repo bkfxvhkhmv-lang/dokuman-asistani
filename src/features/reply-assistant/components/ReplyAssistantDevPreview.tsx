@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
   shouldShowHighRiskWarning,
 } from '@/features/reply-assistant/domain/safety';
 import { getFieldLabel } from '@/features/reply-assistant/domain/fieldLabels';
+import { renderBriefkopf } from '@/features/reply-assistant/domain/renderBriefkopf';
 import { getReplyTemplateCandidates } from '@/features/reply-assistant/templates/matchCandidates';
 
 if (!__DEV__) {
@@ -63,12 +64,18 @@ export default function ReplyAssistantDevPreview({
   const [empfaengerValues, setEmpfaengerValues] = useState({
     empfaenger_stelle: '', empfaenger_email: '', empfaenger_adresse: '',
   });
+  const [renderedBriefkopf, setRenderedBriefkopf] = useState('');
   const [renderedSubject, setRenderedSubject] = useState('');
   const [renderedBody, setRenderedBody] = useState('');
   const [editedBody, setEditedBody] = useState('');
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const autoOpenedRef = useRef(false);
+
+  const todayDate = useMemo(() => {
+    const d = new Date();
+    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+  }, []);
 
   const { candidates, reason } = getReplyTemplateCandidates({
     category, institutionType, documentType, actionType,
@@ -80,6 +87,7 @@ export default function ReplyAssistantDevPreview({
     setFieldValues({});
     setSenderValues({ name: '', adresse: '' });
     setEmpfaengerValues({ empfaenger_stelle: '', empfaenger_email: '', empfaenger_adresse: '' });
+    setRenderedBriefkopf('');
     setRenderedSubject('');
     setRenderedBody('');
     setRenderError(null);
@@ -141,17 +149,24 @@ export default function ReplyAssistantDevPreview({
       return;
     }
     setRenderError(null);
+    setRenderedBriefkopf(renderBriefkopf({
+      senderName: senderValues.name,
+      senderAdresse: senderValues.adresse,
+      empfaengerStelle: empfaengerValues.empfaenger_stelle,
+      empfaengerAdresse: empfaengerValues.empfaenger_adresse || undefined,
+      datum: todayDate,
+    }));
     setRenderedSubject(result.subject ?? '');
     setRenderedBody(result.body ?? '');
     setEditedBody(result.body ?? '');
     setStep('preview');
-  }, [selectedTemplate, fieldValues, senderValues]);
+  }, [selectedTemplate, fieldValues, senderValues, empfaengerValues, todayDate]);
 
   const handleCopy = useCallback(() => {
-    ExpoClipboard.setStringAsync(`Betreff: ${renderedSubject}\n\n${editedBody}`);
+    ExpoClipboard.setStringAsync(`${renderedBriefkopf}Betreff: ${renderedSubject}\n\n${editedBody}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [renderedSubject, editedBody]);
+  }, [renderedBriefkopf, renderedSubject, editedBody]);
 
   const sheetTitle =
     step === 'select' ? `[DEV] Vorlagenkandidaten (${candidates.length})` :
@@ -247,6 +262,7 @@ export default function ReplyAssistantDevPreview({
           {step === 'preview' && (
             <PreviewStep
               template={selectedTemplate}
+              briefkopf={renderedBriefkopf}
               subject={renderedSubject}
               body={renderedBody}
               editedBody={editedBody}
@@ -496,9 +512,10 @@ function FieldInput({
 // ── Preview step ──────────────────────────────────────────────────────────────
 
 function PreviewStep({
-  template, subject, body, editedBody, onEditedBodyChange, safetyNote, C, R,
+  template, briefkopf, subject, body, editedBody, onEditedBodyChange, safetyNote, C, R,
 }: {
   template: ReplyTemplate | null;
+  briefkopf: string;
   subject: string;
   body: string;
   editedBody: string;
@@ -522,6 +539,22 @@ function PreviewStep({
         }}>
           <Text style={{ color: C.text, fontSize: 12 }}>⚠ {safetyNote}</Text>
         </View>
+      )}
+
+      {!!briefkopf && (
+        <>
+          <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
+            ABSENDER & EMPFÄNGER
+          </Text>
+          <Text style={{
+            color: C.textSecondary, fontSize: 12, lineHeight: 18,
+            borderRadius: R.sm ?? 6, borderWidth: 0.5, borderColor: C.border,
+            backgroundColor: C.bgCard, padding: 10, marginBottom: 14,
+            fontFamily: 'monospace',
+          }}>
+            {briefkopf.trimEnd()}
+          </Text>
+        </>
       )}
 
       <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>

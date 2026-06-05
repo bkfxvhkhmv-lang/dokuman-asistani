@@ -1,4 +1,4 @@
-import { OCR_MVP_BASE } from '@/config';
+import { getCachedOcrBase } from '@/features/ocr-mvp/domain/ocrBackend';
 
 export interface OcrMvpFile {
   uri: string;
@@ -123,7 +123,7 @@ export async function analyzeDocument(
     form.append('page_count', String(meta.pageCount));
   }
 
-  const res = await fetch(`${OCR_MVP_BASE}/documents/analyze`, {
+  const res = await fetch(`${getCachedOcrBase()}/documents/analyze`, {
     method: 'POST',
     body: form,
     signal,
@@ -143,7 +143,7 @@ export async function postAcceptedSnapshot(
 ): Promise<void> {
   const id = jobId ?? 'unknown';
   try {
-    await fetch(`${OCR_MVP_BASE}/documents/${id}/accepted`, {
+    await fetch(`${getCachedOcrBase()}/documents/${id}/accepted`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -165,7 +165,7 @@ export async function postCorrectionEvent(
   },
 ): Promise<void> {
   try {
-    await fetch(`${OCR_MVP_BASE}/documents/${jobId}/corrections`, {
+    await fetch(`${getCachedOcrBase()}/documents/${jobId}/corrections`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -177,7 +177,7 @@ export async function postCorrectionEvent(
 
 // GET /documents/{job_id}/result
 export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
-  const res = await fetch(`${OCR_MVP_BASE}/documents/${jobId}/result`);
+  const res = await fetch(`${getCachedOcrBase()}/documents/${jobId}/result`);
   if (res.status === 404) throw new Error('Job bulunamadı');
   return parseJsonResponse<OcrMvpJobStatus>(res, 'OCR Ergebnisfehler');
 }
@@ -191,7 +191,7 @@ export interface AiLabelRequest {
 }
 
 export async function labelDocumentViaOcrMvp(req: AiLabelRequest): Promise<unknown> {
-  const res = await fetch(`${OCR_MVP_BASE}/ai/label`, {
+  const res = await fetch(`${getCachedOcrBase()}/ai/label`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
@@ -211,7 +211,7 @@ export async function downloadOcrResult(
   const destUri = (FileSystem.cacheDirectory ?? '') + filename;
 
   const result = await FileSystem.downloadAsync(
-    `${OCR_MVP_BASE}/documents/${jobId}/download`,
+    `${getCachedOcrBase()}/documents/${jobId}/download`,
     destUri,
   );
 

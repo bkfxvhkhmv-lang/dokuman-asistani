@@ -111,3 +111,4 @@ if (__DEV__) {
 
 export const API_BASE: string = cfg.API_BASE;
 export const OCR_MVP_BASE: string = cfg.OCR_MVP_BASE;
+export const EXPO_DETECTED_HOST: string | null = __DEV__ ? detectExpoHost() : null;

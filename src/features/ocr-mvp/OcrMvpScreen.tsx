@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
-import { OCR_MVP_BASE } from '@/config';
+import { resolveOcrBackend, resetOcrBackendCache } from './domain/ocrBackend';
 import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import { useStore } from '@/store';
 import { generateId } from '@/utils';
@@ -139,17 +139,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');
-    try {
-      const res = await Promise.race([
-        fetch(`${OCR_MVP_BASE}/health`),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('timeout')), 5000),
-        ),
-      ]);
-      setHealth((res as Response).ok ? 'online' : 'offline');
-    } catch {
-      setHealth('offline');
-    }
+    const { healthy } = await resolveOcrBackend();
+    setHealth(healthy ? 'online' : 'offline');
   }, []);
 
   useEffect(() => { checkHealth(); }, [checkHealth]);
@@ -363,7 +354,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
                 <Text style={st.errorMsg}>
                   Sie können trotzdem ein Foto oder Dokument auswählen. Die Analyse startet, sobald der Dienst erreichbar ist.
                 </Text>
-                <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
+                <TouchableOpacity style={st.retryBtn} onPress={() => { resetOcrBackendCache(); checkHealth(); }} activeOpacity={0.8}>
                   <Text style={st.retryLabel}>{T('ocr.error.cta.retry')}</Text>
                 </TouchableOpacity>
               </View>

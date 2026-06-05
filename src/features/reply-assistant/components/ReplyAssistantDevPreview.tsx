@@ -71,6 +71,7 @@ export default function ReplyAssistantDevPreview({
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const autoOpenedRef = useRef(false);
+  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
 
   const todayDate = useMemo(() => {
     const d = new Date();
@@ -127,6 +128,10 @@ export default function ReplyAssistantDevPreview({
     autoOpenedRef.current = true;
     void handleButtonPress();
   }, [autoOpen, handleButtonPress]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [step]);
 
   const selectTemplate = useCallback((t: ReplyTemplate) => {
     setSelectedTemplate(t);
@@ -189,9 +194,11 @@ export default function ReplyAssistantDevPreview({
         </Text>
       </TouchableOpacity>
       <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
-        BriefPilot erstellt nur den Text.{'\n'}
-        Fügen Sie den Entwurf in Ihre E-Mail, ein Online-Formular oder ein Schreiben ein.{'\n'}
-        Sie prüfen und versenden ihn selbst.
+        BriefPilot erstellt nur einen Textentwurf.{'\n'}
+        Prüfen Sie Inhalt, Frist, Empfänger und Aktenzeichen selbst.{'\n'}
+        Fügen Sie den Entwurf in Ihre E-Mail, in ein Online-Formular oder Schreiben ein.{'\n'}
+        BriefPilot sendet nichts und ersetzt keine Rechtsberatung.{'\n'}
+        Bei Unsicherheit konsultieren Sie einen Anwalt oder die Verbraucherzentrale.
       </Text>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <TouchableOpacity
@@ -230,6 +237,7 @@ export default function ReplyAssistantDevPreview({
         <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
 
         <ScrollView
+          ref={scrollRef}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           // @ts-ignore — iOS 14+ native scroll adjustment when keyboard appears

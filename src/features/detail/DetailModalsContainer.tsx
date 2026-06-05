@@ -38,15 +38,21 @@ const ReplyAssistantDevPreview = __DEV__
   ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
   : null;
 
-function inferReplyCategory(typ: string | null | undefined): string | undefined {
-  if (!typ) return undefined;
-  const t = typ.toLowerCase().replace(/ß/g, 'ss').replace(/ü/g, 'u').replace(/ä/g, 'a');
-  if (/bussgeld|ordnungswidrig/.test(t)) return 'bussgeld';
-  if (/jobcenter|burgergeld/.test(t)) return 'jobcenter';
-  if (/finanzamt|steuer/.test(t)) return 'finanzamt';
-  if (/miete|nebenkosten|vermieter|mietvertrag/.test(t)) return 'miete';
-  if (/schufa/.test(t)) return 'schufa';
-  if (/inkasso|mahnung|pfandung/.test(t)) return 'inkasso';
+function inferReplyCategory(
+  typ: string | null | undefined,
+  absender?: string | null,
+  titel?: string | null,
+): string | undefined {
+  const norm = (s?: string | null) =>
+    (s ?? '').toLowerCase().replace(/ß/g, 'ss').replace(/[üÜ]/g, 'u').replace(/[äÄ]/g, 'a').replace(/[öÖ]/g, 'o');
+  const all = `${norm(typ)} ${norm(absender)} ${norm(titel)}`.trim();
+  if (!all) return undefined;
+  if (/bussgeld|ordnungswidrig|ordnungsamt/.test(all)) return 'bussgeld';
+  if (/jobcenter|burgergeld/.test(all))                return 'jobcenter';
+  if (/finanzamt|steuer/.test(all))                    return 'finanzamt';
+  if (/miete|nebenkosten|vermieter|mietvertrag/.test(all)) return 'miete';
+  if (/schufa/.test(all))                              return 'schufa';
+  if (/inkasso|mahnung|pfandung/.test(all))            return 'inkasso';
   return undefined;
 }
 
@@ -80,7 +86,7 @@ export default function DetailModalsContainer({
   }, []);
 
   const { t: T } = useT();
-  const replyAssistantCategory = inferReplyCategory(dok?.typ);
+  const replyAssistantCategory = inferReplyCategory(dok?.typ, dok?.absender, dok?.titel);
   const useDevReplyAssistantForAppeal = __DEV__ && !!replyAssistantCategory && !!ReplyAssistantDevPreview;
 
   const handleExcelDownload = useCallback(async () => {

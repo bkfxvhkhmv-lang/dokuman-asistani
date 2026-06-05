@@ -359,17 +359,17 @@ export default function OcrMvpScreen({ onClose }: Props) {
             {health === 'offline' && (
               <View style={st.errorCard}>
                 <Icon name="cloud-offline-outline" size={24} color="#F59E0B" />
-                <Text style={st.errorTitle}>{T('ocr.offline.title')}</Text>
-                <Text style={st.errorMsg}>{T('ocr.offline.body')}</Text>
+                <Text style={st.errorTitle}>Analyse aktuell nicht verfügbar</Text>
+                <Text style={st.errorMsg}>
+                  Sie können trotzdem ein Foto oder Dokument auswählen. Die Analyse startet, sobald der Dienst erreichbar ist.
+                </Text>
                 <TouchableOpacity style={st.retryBtn} onPress={checkHealth} activeOpacity={0.8}>
                   <Text style={st.retryLabel}>{T('ocr.error.cta.retry')}</Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            {health === 'online' && (
-              <OcrMvpUploadBox onSubmit={handleSubmit} onScannerPresentingChange={setScannerOpen} />
-            )}
+            <OcrMvpUploadBox onSubmit={handleSubmit} onScannerPresentingChange={setScannerOpen} />
           </View>
         )}
       </ScrollView>

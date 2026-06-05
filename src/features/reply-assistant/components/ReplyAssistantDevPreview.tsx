@@ -21,6 +21,7 @@ import {
   REPLY_ASSISTANT_HIGH_RISK_BANNER,
   shouldShowHighRiskWarning,
 } from '@/features/reply-assistant/domain/safety';
+import { getFieldLabel } from '@/features/reply-assistant/domain/fieldLabels';
 import { getReplyTemplateCandidates } from '@/features/reply-assistant/templates/matchCandidates';
 
 if (!__DEV__) {
@@ -422,12 +423,12 @@ function FieldInput({
   return (
     <View style={{ marginBottom: 10 }}>
       <Text style={{ color: C.textSecondary, fontSize: 12, marginBottom: 4 }}>
-        {fieldKey}{required ? ' *' : ''}
+        {getFieldLabel(fieldKey)}{required ? ' *' : ''}
       </Text>
       <TextInput
         value={value}
         onChangeText={onChange}
-        placeholder={fieldKey}
+        placeholder={getFieldLabel(fieldKey)}
         placeholderTextColor={C.textTertiary}
         style={{
           borderRadius: R.sm,

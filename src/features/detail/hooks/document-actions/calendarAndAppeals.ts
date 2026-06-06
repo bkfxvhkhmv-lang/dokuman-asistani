@@ -3,9 +3,10 @@ import type { Dokument } from '@/store';
 import type { StoreAction } from '@/store/actions';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 import {
-  buildEinspruchSheetText,
   composeInstitutionMailWithAttachment,
 } from '@/features/detail/services/documentActionFlows';
+import { getBilgiler } from '@/services/kisiselBilgi';
+import { genEinspruchText } from '@/utils/exporters';
 import { getLangSync } from '@/i18n/langStore';
 import { t } from '@/i18n/translations';
 import { addToCalendar, scheduleFristLocalNotifications, exportierePDF } from '@/utils';
@@ -38,10 +39,11 @@ export async function runHandleKalender(params: {
   openNotice(t(lang, 'calendar.notice.success_title'), t(lang, 'calendar.notice.success_body'));
 }
 
-export function runHandleEinspruch(dok: Dokument | undefined, modal: ModalController): void {
+export async function runHandleEinspruch(dok: Dokument | undefined, modal: ModalController): Promise<void> {
   if (!dok) return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-  modal.setEinspruchText(buildEinspruchSheetText(dok));
+  const bilgiler = await getBilgiler();
+  modal.setEinspruchText(genEinspruchText(dok, bilgiler));
   modal.open('einspruch');
 }
 

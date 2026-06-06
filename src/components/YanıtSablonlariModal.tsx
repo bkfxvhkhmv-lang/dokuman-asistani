@@ -9,7 +9,7 @@
  *   2. Klärung anfordern  — clarification request, no LLM
  *   3. Begründeter Entwurf — detailed draft with up to 3 questions, no LLM in v1
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View, Text, Modal, ScrollView, TouchableOpacity,
   TextInput, Share, StyleSheet,
@@ -30,6 +30,8 @@ import {
   type FinanzamtAnalysis,
 } from '@/features/detail/services/finanzamtAnalysis';
 import { useT } from '@/hooks/useT';
+import { getBilgiler, type Bilgiler } from '@/services/kisiselBilgi';
+import { finalizeLetterTextForExport } from '@/features/detail/services/productionLetterhead';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -105,6 +107,14 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
   const [answers, setAnswers] = useState<BegruendetAnswers>({});
   const [draft, setDraft] = useState<{ empfaenger: string; betreff: string; text: string } | null>(null);
   const [editText, setEditText] = useState('');
+  const [bilgiler, setBilgiler] = useState<Bilgiler>({});
+
+  useEffect(() => {
+    if (!visible) return;
+    void getBilgiler().then(setBilgiler);
+  }, [visible]);
+
+  const exportText = (text: string) => finalizeLetterTextForExport(text, bilgiler);
 
   const reset = () => {
     setScreen('mode_selection');
@@ -121,12 +131,12 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
     if (!analysis) return;
 
     if (m === 'frist_wahren') {
-      const d = buildFristWahrenDraft(analysis);
+      const d = buildFristWahrenDraft(analysis, bilgiler);
       setDraft(d);
       setEditText(d.text);
       setScreen('draft');
     } else if (m === 'klaerung') {
-      const d = buildKlaerungDraft(analysis);
+      const d = buildKlaerungDraft(analysis, bilgiler);
       setDraft(d);
       setEditText(d.text);
       setScreen('draft');
@@ -138,18 +148,18 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
 
   const handleQuestionsComplete = () => {
     if (!analysis) return;
-    const d = buildBegruendetDraft(analysis, answers);
+    const d = buildBegruendetDraft(analysis, answers, bilgiler);
     setDraft(d);
     setEditText(d.text);
     setScreen('draft');
   };
 
   const handleKopieren = async () => {
-    await Clipboard.setStringAsync(editText);
+    await Clipboard.setStringAsync(exportText(editText));
   };
 
   const handleTeilen = async () => {
-    await Share.share({ message: editText, title: draft?.betreff ?? 'Entwurf' });
+    await Share.share({ message: exportText(editText), title: draft?.betreff ?? 'Entwurf' });
   };
 
   const handleSavePdf = async () => {
@@ -181,7 +191,7 @@ export default function YanıtSablonlariModal({ visible, onClose, dok }: Props) 
       <div class="disclaimer">Entwurf · Keine Rechtsberatung</div>
       <div class="section">
         <div class="section-title">Entwurf</div>
-        <div class="section-body">${escapeHtml(editText).replace(/\n/g, '<br/>')}</div>
+        <div class="section-body">${escapeHtml(exportText(editText)).replace(/\n/g, '<br/>')}</div>
       </div>
     </div></body></html>`;
 

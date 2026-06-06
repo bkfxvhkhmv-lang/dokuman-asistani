@@ -7,6 +7,13 @@ import { pdfRenderService } from '@/pdf';
 import { buildHumanExportBasename, buildPdfExportBasename } from '@/utils/exportFilename';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
 import { safeDisplayDocumentTitleForExport, safeDisplayTitel } from '@/utils/displaySanitizer';
+import {
+  buildProductionBriefkopf,
+  finalizeLetterTextForExport,
+  RECIPIENT_FALLBACK_GENERIC,
+  SENDER_NAME_PLACEHOLDER,
+  type LetterProfile,
+} from '@/features/detail/services/productionLetterhead';
 
 /** Leere/fehlerhafte PDFs filtern (~nur Artefakte). */
 const MIN_REASONABLE_PDF_BYTES = 400;
@@ -30,10 +37,36 @@ export async function shareDokument(dok: Dokument): Promise<void> {
   await Share.share({ message: lines, title: displayTitle });
 }
 
-export function genEinspruchText(dok: Dokument): string {
-  const heute = new Date().toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+export function genEinspruchText(dok: Dokument, bilgiler?: LetterProfile): string {
+  const heute = new Date().toLocaleDateString('de-DE');
   const displayTitle = safeDisplayTitel(dok.titel, dok.typ, (dok as any).confidence);
-  return `Sehr geehrte Damen und Herren,\n\nhiermit lege ich fristgerecht Einspruch gegen folgenden Bescheid ein:\n\nBetreff: ${displayTitle}\nAbsender: ${dok.absender}\n${dok.betrag ? `Betrag: ${formatBetrag(dok.betrag as number)}` : ''}\n\nBegründung:\n[Bitte hier Ihre Begründung einfügen]\n\nIch bitte um schriftliche Eingangsbestätigung und Aussetzung der Vollziehung bis zur Entscheidung.\n\nMit freundlichen Grüßen,\n\n[Ihr Name]\n[Ihre Adresse]\n${heute}`;
+  const briefkopf = buildProductionBriefkopf({
+    recipientSource: {
+      absender: dok.absender,
+      confidence: (dok as { confidence?: number | null }).confidence,
+      rohText: (dok as { rohText?: string | null }).rohText,
+      aiSender: (dok as { aiSender?: string }).aiSender,
+    },
+    recipientFallback: RECIPIENT_FALLBACK_GENERIC,
+    bilgiler,
+    datum: heute,
+  });
+  const betragLine = dok.betrag ? `Betrag: ${formatBetrag(dok.betrag as number)}\n\n` : '';
+  const raw = `${briefkopf}Betreff: ${displayTitle}
+
+Sehr geehrte Damen und Herren,
+
+hiermit lege ich fristgerecht Einspruch gegen folgenden Bescheid ein:
+
+${betragLine}Begründung:
+[Bitte hier Ihre Begründung einfügen]
+
+Ich bitte um schriftliche Eingangsbestätigung und Aussetzung der Vollziehung bis zur Entscheidung.
+
+Mit freundlichen Grüßen
+
+${SENDER_NAME_PLACEHOLDER}`;
+  return finalizeLetterTextForExport(raw, bilgiler);
 }
 
 export async function sendEinspruchMail(dok: Dokument): Promise<boolean> {

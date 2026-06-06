@@ -3,6 +3,11 @@
  * Extracts fields relevant for reply generation from OCR text + document fields.
  */
 import type { Dokument } from '@/store';
+import {
+  buildProductionBriefkopf,
+  RECIPIENT_FALLBACK_FINANZAMT,
+  type LetterProfile,
+} from '@/features/detail/services/productionLetterhead';
 
 export interface FinanzamtAnalysis {
   isFinanzamt: boolean;
@@ -176,17 +181,27 @@ export function analyzeFinanzamt(dok: Dokument): FinanzamtAnalysis {
 
 const _HEUTE = () => new Date().toLocaleDateString('de-DE');
 
-function _header(a: FinanzamtAnalysis): string {
-  const empfaenger = a.absender ?? 'Finanzamt';
+function _header(a: FinanzamtAnalysis, bilgiler?: LetterProfile): string {
+  const briefkopf = buildProductionBriefkopf({
+    recipientSource: { absender: a.absender },
+    recipientFallback: RECIPIENT_FALLBACK_FINANZAMT,
+    bilgiler,
+    datum: _HEUTE(),
+  });
   const az = a.aktenzeichen ? `Aktenzeichen: ${a.aktenzeichen}\n` : '';
   const stNr = a.steuernummer ? `Steuernummer: ${a.steuernummer}\n` : '';
-  return `[Ihr Name]\n[Ihre Adresse]\n[PLZ Ort]\n\n${empfaenger}\n[Adresse]\n\n${_HEUTE()}\n\n${az}${stNr}`;
+  const meta = `${az}${stNr}`;
+  return meta ? `${briefkopf}${meta}` : briefkopf;
 }
 
-export function buildFristWahrenDraft(a: FinanzamtAnalysis): {
+function _empfaengerLabel(a: FinanzamtAnalysis): string {
+  return a.absender?.trim() || RECIPIENT_FALLBACK_FINANZAMT;
+}
+
+export function buildFristWahrenDraft(a: FinanzamtAnalysis, bilgiler?: LetterProfile): {
   empfaenger: string; betreff: string; text: string;
 } {
-  const empfaenger = a.absender ?? 'Finanzamt';
+  const empfaenger = _empfaengerLabel(a);
   const bescheildbez = a.bescheiddatum
     ? `Bescheid vom ${a.bescheiddatum}`
     : 'oben genannten Bescheid';
@@ -194,8 +209,7 @@ export function buildFristWahrenDraft(a: FinanzamtAnalysis): {
 
   const betreff = `Fristwahrung — Einspruch gegen ${bescheildbez}`;
 
-  const text = `${_header(a)}
-Betreff: ${betreff}
+  const text = `${_header(a, bilgiler)}Betreff: ${betreff}
 
 Sehr geehrte Damen und Herren,
 
@@ -214,10 +228,10 @@ Entwurf · Keine Rechtsberatung`;
   return { empfaenger, betreff, text };
 }
 
-export function buildKlaerungDraft(a: FinanzamtAnalysis): {
+export function buildKlaerungDraft(a: FinanzamtAnalysis, bilgiler?: LetterProfile): {
   empfaenger: string; betreff: string; text: string;
 } {
-  const empfaenger = a.absender ?? 'Finanzamt';
+  const empfaenger = _empfaengerLabel(a);
   const bescheildbez = a.bescheiddatum
     ? `Bescheid vom ${a.bescheiddatum}`
     : 'oben genannten Bescheid';
@@ -229,8 +243,7 @@ export function buildKlaerungDraft(a: FinanzamtAnalysis): {
     ? `die Nichtanerkennung von ${a.abgelehnterPosten}`
     : 'die Abweichung von meiner Steuererklärung';
 
-  const text = `${_header(a)}
-Betreff: ${betreff}
+  const text = `${_header(a, bilgiler)}Betreff: ${betreff}
 
 Sehr geehrte Damen und Herren,
 
@@ -255,8 +268,9 @@ Entwurf · Keine Rechtsberatung`;
 export function buildBegruendetDraft(
   a: FinanzamtAnalysis,
   answers: { hasNachweis?: boolean; istBeruflich?: boolean; zusatzinfo?: string },
+  bilgiler?: LetterProfile,
 ): { empfaenger: string; betreff: string; text: string } {
-  const empfaenger = a.absender ?? 'Finanzamt';
+  const empfaenger = _empfaengerLabel(a);
   const bescheildbez = a.bescheiddatum
     ? `Bescheid vom ${a.bescheiddatum}`
     : 'oben genannten Bescheid';
@@ -284,8 +298,7 @@ export function buildBegruendetDraft(
     ? `die Nichtanerkennung von ${a.abgelehnterPosten}`
     : 'die im Bescheid vorgenommene Abweichung';
 
-  const text = `${_header(a)}
-Betreff: ${betreff}
+  const text = `${_header(a, bilgiler)}Betreff: ${betreff}
 
 Sehr geehrte Damen und Herren,
 

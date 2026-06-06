@@ -180,14 +180,14 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
 }
 
 const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
-  container:        { padding: 20, gap: 20 },
-  headline:         { fontSize: 22, fontWeight: '800', letterSpacing: -0.4 },
-  subline:          { fontSize: 14, lineHeight: 21, marginTop: -8 },
+  container:        { padding: 20, gap: 12 },
+  headline:         { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
+  subline:          { fontSize: 13, lineHeight: 19, marginTop: -4 },
   primaryCard: {
-    borderWidth: 1.5, borderRadius: 20, paddingVertical: 36, alignItems: 'center', gap: 12,
+    borderWidth: 1.5, borderRadius: 20, paddingVertical: 22, alignItems: 'center', gap: 10,
   },
   iconCircle: {
-    width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center',
+    width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center',
   },
   cardTitle:        { fontSize: 17, fontWeight: '700' },
   cardSub:          { fontSize: 13 },

@@ -97,14 +97,21 @@ export default function OnboardingScreen() {
   }, [dispatch, router, selectedLang]);
 
   if (step === 'lang') {
+    const langFooterPad = insets.bottom + 16;
+
     return (
-      <View style={[st.root, { backgroundColor: C.bg, paddingBottom: insets.bottom + 24, paddingTop: insets.top + 24 }]}>
+      <View style={[st.root, { backgroundColor: C.bg, paddingTop: insets.top + 24 }]}>
         <View style={st.langHeader}>
           <Text style={[st.langTitle, { color: C.text }]}>🌍  Sprache wählen</Text>
           <Text style={[st.langSub, { color: C.textSecondary }]}>Dil Seçin · Select Language</Text>
         </View>
 
-        <ScrollView contentContainerStyle={st.langGrid} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={st.langScroll}
+          contentContainerStyle={[st.langGrid, { paddingBottom: 12 }]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {PRIORITY_LANGS.map(l => (
             <TouchableOpacity
               key={l.code}
@@ -115,7 +122,10 @@ export default function OnboardingScreen() {
               activeOpacity={0.8}
             >
               <Text style={st.langFlag}>{l.flag}</Text>
-              <Text style={[st.langName, { color: selectedLang === l.code ? C.primaryDark : C.text }]}>
+              <Text
+                style={[st.langName, { color: selectedLang === l.code ? C.primaryDark : C.text }]}
+                numberOfLines={1}
+              >
                 {l.name}
               </Text>
               {selectedLang === l.code && (
@@ -140,7 +150,10 @@ export default function OnboardingScreen() {
               activeOpacity={0.8}
             >
               <Text style={st.langFlag}>{l.flag}</Text>
-              <Text style={[st.langName, { color: selectedLang === l.code ? C.primaryDark : C.text }]}>
+              <Text
+                style={[st.langName, { color: selectedLang === l.code ? C.primaryDark : C.text }]}
+                numberOfLines={1}
+              >
                 {l.name}
               </Text>
               {selectedLang === l.code && (
@@ -150,11 +163,13 @@ export default function OnboardingScreen() {
           ))}
         </ScrollView>
 
-        <View style={{ paddingHorizontal: 24 }}>
+        <View style={[st.langFooter, { paddingBottom: langFooterPad }]}>
           <TouchableOpacity
             style={[st.primaryBtn, { backgroundColor: C.primary }]}
             onPress={confirmLang}
             activeOpacity={0.88}
+            accessibilityRole="button"
+            accessibilityLabel="Weiter"
           >
             <Text style={st.primaryBtnText}>Weiter →</Text>
           </TouchableOpacity>
@@ -229,13 +244,15 @@ export default function OnboardingScreen() {
 
 const st = StyleSheet.create({
   root:         { flex: 1 },
-  langHeader:   { paddingHorizontal: 24, marginBottom: 20 },
+  langHeader:   { paddingHorizontal: 24, marginBottom: 16 },
   langTitle:    { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
   langSub:      { fontSize: 13, marginTop: 6 },
-  langGrid:     { paddingHorizontal: 24, gap: 8, paddingBottom: 16 },
-  langChip:     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, borderWidth: 1.5 },
+  langScroll:   { flex: 1 },
+  langGrid:     { paddingHorizontal: 24, gap: 8 },
+  langFooter:   { paddingHorizontal: 24, paddingTop: 12, flexShrink: 0 },
+  langChip:     { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1.5, minHeight: 48 },
+  langName:     { fontSize: 15, fontWeight: '600', flex: 1, flexShrink: 1 },
   langFlag:     { fontSize: 22 },
-  langName:     { fontSize: 15, fontWeight: '600', flex: 1 },
   showMoreBtn:  { paddingVertical: 10, alignItems: 'center' },
   showMoreText: { fontSize: 13, fontWeight: '600' },
   brandMark:  { width: 52, height: 52, marginBottom: 16 },

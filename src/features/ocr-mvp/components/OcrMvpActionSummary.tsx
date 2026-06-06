@@ -20,7 +20,7 @@ type ActionHandler = 'preview' | 'download';
 interface ActionCfg { labelKey: string; icon: string; handler: ActionHandler }
 
 const ACTION_MAP: Record<string, ActionCfg> = {
-  export_excel:       { labelKey: 'ocr.result.excel',        icon: 'download-outline',      handler: 'download' },
+  export_excel:       { labelKey: 'ocr.result.excel_export', icon: 'download-outline',      handler: 'download' },
   export_share:       { labelKey: 'common.share',            icon: 'share-outline',         handler: 'download' },
   show_fields:        { labelKey: 'ocr.result.show_fields_label', icon: 'list-outline',     handler: 'preview'  },
   show_summary:       { labelKey: 'ocr.result.show_summary', icon: 'document-text-outline', handler: 'preview'  },
@@ -34,10 +34,11 @@ interface Props {
   isPreviewing: boolean;
   isDownloading: boolean;
   actionsSecondary?: boolean;
+  compactSecondary?: boolean;
 }
 
 export default function OcrMvpActionSummary({
-  summary, onPreview, onDownload, isPreviewing, isDownloading, actionsSecondary,
+  summary, onPreview, onDownload, isPreviewing, isDownloading, actionsSecondary, compactSecondary,
 }: Props) {
   const { Colors } = useTheme();
   const { t: T } = useT();
@@ -171,21 +172,22 @@ export default function OcrMvpActionSummary({
             const isLoading = (cfg.handler === 'preview'  && isPreviewing) ||
                               (cfg.handler === 'download' && isDownloading);
             const isPrimary = !actionsSecondary && idx === 0;
-            const iconColor = isPrimary ? '#fff' : Colors.primary;
+            const compact = !!compactSecondary;
+            const iconColor = isPrimary && !compact ? '#fff' : Colors.primary;
 
             return (
               <TouchableOpacity
                 key={key}
-                style={[st.btn, isPrimary ? st.btnPrimary : st.btnOutline]}
+                style={[st.btn, compact ? st.btnCompact : (isPrimary ? st.btnPrimary : st.btnOutline)]}
                 onPress={() => !isLoading && handlePress(cfg.handler)}
                 activeOpacity={0.8}
                 disabled={isLoading}
               >
                 {isLoading
-                  ? <ActivityIndicator size="small" color={isPrimary ? '#fff' : Colors.primary} />
+                  ? <ActivityIndicator size="small" color={iconColor} />
                   : <Icon name={cfg.icon} size={18} color={iconColor} />
                 }
-                <Text style={[st.btnLabel, isPrimary ? st.btnLabelPrimary : st.btnLabelOutline]}>
+                <Text style={[st.btnLabel, compact ? st.btnLabelCompact : (isPrimary ? st.btnLabelPrimary : st.btnLabelOutline)]}>
                   {key === 'show_fields' ? previewLabel() : T(cfg.labelKey)}
                 </Text>
               </TouchableOpacity>
@@ -228,7 +230,15 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   btnPrimary:      { backgroundColor: C.primary },
   btnOutline:      { borderWidth: 1.5, borderColor: C.primary, backgroundColor: (C as any).primaryLight ?? C.bgCard },
+  btnCompact:      {
+    borderWidth: 1.5,
+    borderColor: C.primary,
+    backgroundColor: (C as any).primaryLight ?? C.bgCard,
+    paddingVertical: 11,
+    borderRadius: 12,
+  },
   btnLabel:        { fontSize: 15, fontWeight: '700' },
   btnLabelPrimary: { color: '#fff' },
   btnLabelOutline: { color: C.primary },
+  btnLabelCompact: { color: C.primary, fontSize: 14, fontWeight: '700' },
 });

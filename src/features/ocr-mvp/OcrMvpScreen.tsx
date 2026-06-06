@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, AppState, type AppStateStatus,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
@@ -15,6 +16,7 @@ import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import type { ScannedPage } from '@/store';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
+import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
@@ -22,6 +24,8 @@ import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 import { postAcceptedSnapshot } from '@/services/ocrMvpApi';
 import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 import { useT } from '@/hooks/useT';
+import { ExpoScannerProvider } from './scanner/ExpoScannerProvider';
+import type { ScannedAsset } from './scanner/types';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -79,6 +83,8 @@ type TimingMarks = Partial<Record<
   number
 >>;
 
+const OCR_KEEP_AWAKE_TAG = 'briefpilot-ocr-mvp';
+
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
   const { t: T } = useT();
@@ -94,6 +100,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [scannerOpen, setScannerOpen] = useState(false);
   const { setSuppressBanner } = useOfflineBannerSuppression();
   const timingRef = useRef<TimingMarks>({});
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const scannerSessionRef = useRef(false);
+  const submissionStartingRef = useRef(false);
 
   const setTiming = useCallback((key: keyof TimingMarks, value = Date.now()) => {
     timingRef.current[key] = value;
@@ -192,6 +201,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
     );
   };
 
+  useEffect(() => {
+    if (status === 'uploading' || status === 'processing') {
+      submissionStartingRef.current = false;
+    }
+  }, [status]);
+
   const handleSaveToDocuments = useCallback(async () => {
     if (!result || savedDocId) return;
     try {
@@ -267,12 +282,89 @@ export default function OcrMvpScreen({ onClose }: Props) {
     reset();
   }, [reset]);
 
+  const runNewAnalysisPick = useCallback(async (pick: () => Promise<ScannedAsset | null>) => {
+    scannerSessionRef.current = true;
+    submissionStartingRef.current = false;
+    setScannerOpen(true);
+    try {
+      const asset = await pick();
+      if (!asset) return;
+      submissionStartingRef.current = true;
+      handleReset();
+      await handleSubmit(
+        asset.uri,
+        asset.name,
+        asset.mimeType,
+        undefined,
+        asset.previewUri,
+        asset.source,
+        asset.pageCount,
+      );
+    } catch (e: any) {
+      Alert.alert(T('ocr.upload.scan_error_title'), e?.message ?? T('ocr.upload.scan_error_body'));
+    } finally {
+      scannerSessionRef.current = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => setScannerOpen(false)));
+    }
+  }, [handleReset, handleSubmit, T]);
+
+  const handleNewAnalysisScan = useCallback(
+    () => runNewAnalysisPick(() => ExpoScannerProvider.takePhotoWithScanner()),
+    [runNewAnalysisPick],
+  );
+  const handleNewAnalysisFile = useCallback(
+    () => runNewAnalysisPick(() => ExpoScannerProvider.pickFile()),
+    [runNewAnalysisPick],
+  );
+  const handleNewAnalysisPhoto = useCallback(
+    () => runNewAnalysisPick(() => ExpoScannerProvider.pickFromLibrary()),
+    [runNewAnalysisPick],
+  );
+
   useEffect(() => {
     if (status === 'done' && result) {
       setTiming('resultVisible');
       emitTimingSummary('resultVisible');
     }
   }, [status, result, emitTimingSummary, setTiming]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      const prev = appStateRef.current;
+      appStateRef.current = nextState;
+      if (prev.match(/inactive|background/) && nextState === 'active') {
+        if (scannerSessionRef.current && !submissionStartingRef.current && status !== 'uploading' && status !== 'processing') {
+          scannerSessionRef.current = false;
+          setScannerOpen(false);
+        }
+      }
+    });
+    return () => sub.remove();
+  }, [status]);
+
+  useEffect(() => {
+    const shouldKeepAwake = scannerOpen || status === 'uploading' || status === 'processing';
+    if (!shouldKeepAwake) {
+      void deactivateKeepAwake(OCR_KEEP_AWAKE_TAG).catch(() => {});
+      return;
+    }
+
+    void activateKeepAwakeAsync(OCR_KEEP_AWAKE_TAG).catch((e) => {
+      if (__DEV__) {
+        console.warn('[OcrMvpScreen] keep-awake activation failed', e);
+      }
+    });
+
+    return () => {
+      void deactivateKeepAwake(OCR_KEEP_AWAKE_TAG).catch(() => {});
+    };
+  }, [scannerOpen, status]);
+
+  useEffect(() => {
+    const suppressPrivacyGate = scannerOpen || status === 'uploading' || status === 'processing';
+    setPrivacyGateBypassed(suppressPrivacyGate);
+    return () => setPrivacyGateBypassed(false);
+  }, [scannerOpen, status]);
 
   const st = styles(Colors);
   const isActive = status === 'uploading' || status === 'processing';
@@ -293,6 +385,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
       {(status === 'uploading' || status === 'processing') && (
         <View style={st.centeredState}>
           <OcrMvpStatusCard status={status} previewUri={selectedPreviewUri ?? undefined} />
+          <TouchableOpacity style={st.cancelAnalysisBtn} onPress={handleReset} activeOpacity={0.8}>
+            <Text style={st.cancelAnalysisLabel}>{T('ocr.status.cancel_analysis')}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -314,6 +409,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
             onSaveToDocuments={handleSaveToDocuments}
             isSavedToDocuments={!!savedDocId}
             onOpenDocument={savedDocId ? handleOpenDocument : undefined}
+            onPickScan={handleNewAnalysisScan}
+            onPickFile={handleNewAnalysisFile}
+            onPickPhoto={handleNewAnalysisPhoto}
+            entryBusy={scannerOpen}
           />
         )}
 
@@ -335,8 +434,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
           );
         })()}
 
-        {/* Idle durumda: health check + upload box */}
-        {!isActive && (
+        {/* Idle durumda: health check + upload box — done state'de gizle */}
+        {!isActive && status !== 'done' && (
           <View style={hideIdleChrome ? st.idleChromeHidden : undefined} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
             {health === 'checking' && (
               <View style={st.checkingBox}>
@@ -378,7 +477,19 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   headerHidden:  { opacity: 0 },
   idleChromeHidden: { opacity: 0 },
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
-  centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 24 },
+  centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20 },
+  cancelAnalysisBtn: {
+    marginTop: 18,
+    minWidth: 220,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.bgCard,
+    alignItems: 'center',
+  },
+  cancelAnalysisLabel: { color: C.textSecondary, fontSize: 15, fontWeight: '600' },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },

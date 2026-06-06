@@ -49,9 +49,23 @@ interface Props {
   onSaveToDocuments?: () => void;
   isSavedToDocuments?: boolean;
   onOpenDocument?: () => void;
+  onPickScan?: () => void;
+  onPickFile?: () => void;
+  onPickPhoto?: () => void;
+  entryBusy?: boolean;
 }
 
-export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, isSavedToDocuments, onOpenDocument }: Props) {
+export default function OcrMvpResultCard({
+  result,
+  onReset,
+  onSaveToDocuments,
+  isSavedToDocuments,
+  onOpenDocument,
+  onPickScan,
+  onPickFile,
+  onPickPhoto,
+  entryBusy,
+}: Props) {
   const { Colors } = useTheme();
   const { t: T } = useT();
   const insets = useSafeAreaInsets();
@@ -121,38 +135,34 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
   return (
     <View style={st.container}>
-      {/* Status chip — sakin, küçük */}
-      <View style={st.statusRow}>
-        <View style={st.successChip}>
-          <Icon name="checkmark-circle" size={13} color={Colors.success} />
-          <Text style={st.successChipText}>{T('ocr.result.completed')}</Text>
-        </View>
+      {/* Compact combined status line */}
+      <View style={st.compactStatusLine}>
+        <Icon name="checkmark-circle" size={13} color={Colors.success} />
+        <Text style={st.compactStatusText}>
+          {isSavedToDocuments ? T('ocr.result.completed_saved_compact') : T('ocr.result.completed')}
+        </Text>
       </View>
 
-      {/* PRIMARY CTA — kaydet veya aç */}
+      {/* PRIMARY CTA */}
       {isSavedToDocuments ? (
-        <View style={st.savedState}>
-          <View style={st.savedBadge}>
-            <Icon name="checkmark-circle" size={14} color={Colors.success} />
-            <Text style={st.savedBadgeText}>{T('ocr.result.saved')}</Text>
-          </View>
-          {onOpenDocument && (
-            <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>
-              <Icon name="arrow-forward-circle-outline" size={18} color="#fff" />
-              <Text style={st.savePrimaryLabel}>{T('ocr.result.open')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      ) : onSaveToDocuments && (
-        <TouchableOpacity style={st.savePrimaryBtn} onPress={onSaveToDocuments} activeOpacity={0.8}>
-          <Icon name="folder-open-outline" size={18} color="#fff" />
-          <Text style={st.savePrimaryLabel}>{T('ocr.result.save')}</Text>
-        </TouchableOpacity>
+        onOpenDocument && (
+          <TouchableOpacity style={st.savePrimaryBtn} onPress={onOpenDocument} activeOpacity={0.8}>
+            <Icon name="arrow-forward-circle-outline" size={18} color="#fff" />
+            <Text style={st.savePrimaryLabel}>{T('ocr.result.open')}</Text>
+          </TouchableOpacity>
+        )
+      ) : (
+        onSaveToDocuments && (
+          <TouchableOpacity style={st.savePrimaryBtn} onPress={onSaveToDocuments} activeOpacity={0.8}>
+            <Icon name="folder-open-outline" size={18} color="#fff" />
+            <Text style={st.savePrimaryLabel}>{T('ocr.result.save')}</Text>
+          </TouchableOpacity>
+        )
       )}
 
-      {/* Action summary paneli oder fallback — nach dem Speichern visuell sekundär */}
-      <View style={isSavedToDocuments ? st.secondaryZone : undefined}>
-        {isSavedToDocuments && <View style={st.secondaryDivider} />}
+      {/* Action summary — always secondary */}
+      <View style={st.secondaryZone}>
+        <View style={st.secondaryDivider} />
         {hasSummary ? (
           <OcrMvpActionSummary
             summary={result.action_summary!}
@@ -161,6 +171,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
             isPreviewing={previewing}
             isDownloading={downloading}
             actionsSecondary
+            compactSecondary={isSavedToDocuments}
           />
         ) : (
           <>
@@ -168,21 +179,21 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               <Row label={T('field.type')} value={docLabel} colors={Colors} />
             </View>
 
-            <TouchableOpacity style={st.previewBtn} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
+            <TouchableOpacity style={st.previewBtnSmall} onPress={handlePreview} disabled={previewing} activeOpacity={0.8}>
               {previewing
-                ? <ActivityIndicator color={Colors.primary} />
+                ? <ActivityIndicator color={Colors.primary} size="small" />
                 : <>
-                    <Icon name="eye-outline" size={20} color={Colors.primary} />
-                    <Text style={[st.downloadLabel, { color: Colors.primary }]}>{T('ocr.result.show_result')}</Text>
+                    <Icon name="eye-outline" size={16} color={Colors.primary} />
+                    <Text style={st.secondaryActionLabel}>{T('ocr.result.show_result')}</Text>
                   </>}
             </TouchableOpacity>
 
-            <TouchableOpacity style={st.downloadBtn} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
+            <TouchableOpacity style={st.downloadBtnSmall} onPress={handleDownload} disabled={downloading} activeOpacity={0.8}>
               {downloading
-                ? <ActivityIndicator color={Colors.primary} />
+                ? <ActivityIndicator color={Colors.textSecondary} size="small" />
                 : <>
-                    <Icon name="download-outline" size={20} color={Colors.primary} />
-                    <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
+                    <Icon name="download-outline" size={16} color={Colors.textSecondary} />
+                    <Text style={st.secondaryActionLabelMuted}>{isXlsx ? T('ocr.result.excel_export') : T('ocr.result.download')}</Text>
                   </>}
             </TouchableOpacity>
           </>
@@ -209,15 +220,47 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
 
 
 
-      <TouchableOpacity
-        style={[st.resetBtn, isSavedToDocuments && st.resetBtnSaved]}
-        onPress={onReset}
-        activeOpacity={0.75}
-      >
-        <Text style={[st.resetLabel, isSavedToDocuments && st.resetLabelSaved]}>
-          {T('ocr.result.new_analysis')}
-        </Text>
-      </TouchableOpacity>
+      {/* Compact new-analysis block */}
+      <View style={st.newAnalysisBlock}>
+        <View style={st.newAnalysisDivider} />
+        <Text style={[st.newAnalysisHeading, { color: Colors.text }]}>{T('ocr.upload.headline')}</Text>
+        <Text style={[st.newAnalysisHelper, { color: Colors.textSecondary }]}>{T('ocr.result.new_analysis_helper')}</Text>
+        <View style={st.newAnalysisRow}>
+          <TouchableOpacity
+            style={[st.newAnalysisBtn, { borderColor: Colors.border, backgroundColor: Colors.bgCard }]}
+            onPress={onPickScan ?? onReset}
+            disabled={entryBusy}
+            activeOpacity={0.8}
+          >
+            <Icon name="camera-outline" size={16} color={Colors.primary} />
+            <Text style={[st.newAnalysisBtnLabel, { color: Colors.text }]} numberOfLines={1}>
+              {T('ocr.upload.scan_title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[st.newAnalysisBtn, { borderColor: Colors.border, backgroundColor: Colors.bgCard }]}
+            onPress={onPickFile ?? onReset}
+            disabled={entryBusy}
+            activeOpacity={0.8}
+          >
+            <Icon name="document-outline" size={16} color={Colors.primary} />
+            <Text style={[st.newAnalysisBtnLabel, { color: Colors.text }]} numberOfLines={1}>
+              {T('ocr.upload.file_label')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[st.newAnalysisBtn, { borderColor: Colors.border, backgroundColor: Colors.bgCard }]}
+            onPress={onPickPhoto ?? onReset}
+            disabled={entryBusy}
+            activeOpacity={0.8}
+          >
+            <Icon name="images-outline" size={16} color={Colors.primary} />
+            <Text style={[st.newAnalysisBtnLabel, { color: Colors.text }]} numberOfLines={1}>
+              {T('ocr.result.pick_photos')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {/* Önizleme / Export modal */}
       <Modal visible={previewVisible} animationType="slide" onRequestClose={() => setPreviewVisible(false)}>
@@ -257,7 +300,7 @@ export default function OcrMvpResultCard({ result, onReset, onSaveToDocuments, i
               activeOpacity={0.8}
             >
               <Icon name="download-outline" size={20} color={Colors.primary} />
-              <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel') : T('ocr.result.download')}</Text>
+              <Text style={st.downloadLabel}>{isXlsx ? T('ocr.result.excel_export') : T('ocr.result.download')}</Text>
             </TouchableOpacity>
           </StickyBottomCTA>
         </SafeAreaView>
@@ -362,13 +405,8 @@ function DatenvorschauContent({
 
 const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   container:       { padding: 20, gap: 16 },
-  statusRow:       { flexDirection: 'row' },
-  successChip:     {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20,
-    backgroundColor: C.successLight, borderWidth: 1, borderColor: C.successBorder,
-  },
-  successChipText: { color: C.success, fontSize: 12, fontWeight: '600' },
+  compactStatusLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  compactStatusText: { color: C.success, fontSize: 12, fontWeight: '600', flex: 1 },
   infoBlock:    {
     backgroundColor: C.bgCard, borderRadius: 14, paddingHorizontal: 16,
     borderWidth: 1, borderColor: C.border,
@@ -381,39 +419,42 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   warnBoxHigh:  { backgroundColor: '#F59E0B0E', borderColor: '#F59E0B30' },
   warnText:     { flex: 1, color: '#B45309', fontSize: 12, lineHeight: 17 },
   warnTextHigh: { color: '#B45309' },
-  previewBtn:   {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderRadius: 14, paddingVertical: 15,
-    borderWidth: 1.5, borderColor: C.primary, backgroundColor: (C as any).primaryLight ?? C.bgCard,
+  previewBtnSmall: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    borderRadius: 12, paddingVertical: 11,
+    borderWidth: 1, borderColor: C.primary, backgroundColor: (C as any).primaryLight ?? C.bgCard,
   },
-  downloadBtn:  {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    borderRadius: 14, paddingVertical: 15,
-    marginHorizontal: 16, marginBottom: 16,
+  downloadBtnSmall: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    borderRadius: 12, paddingVertical: 10,
     borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard,
   },
+  secondaryActionLabel:     { color: C.primary, fontSize: 14, fontWeight: '600' },
+  secondaryActionLabelMuted: { color: C.textSecondary, fontSize: 14, fontWeight: '600' },
   downloadLabel: { color: C.primary, fontSize: 16, fontWeight: '700' },
-  techLine:      { fontSize: 11, textAlign: 'center' },
   savePrimaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     backgroundColor: C.primary, borderRadius: 14, paddingVertical: 15,
   },
   savePrimaryLabel: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  savedState:    { gap: 12 },
-  savedBadge:    {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
-    paddingVertical: 8,
-  },
-  savedBadgeText: { color: C.success, fontSize: 13, fontWeight: '600' },
-  resetBtn:        { alignItems: 'center', paddingVertical: 12 },
-  resetBtnSaved:   { opacity: 0.45 },
-  resetLabel:      { color: C.textSecondary, fontSize: 14 },
-  resetLabelSaved: { fontSize: 12 },
-  secondaryZone:   { opacity: 0.7 },
+  secondaryZone:   { gap: 10, opacity: 0.85 },
   secondaryDivider: {
     height: StyleSheet.hairlineWidth, backgroundColor: C.border,
-    marginHorizontal: 8, marginBottom: 4,
+    marginHorizontal: 8, marginBottom: 2,
   },
+  newAnalysisBlock:   { gap: 10, marginTop: 4 },
+  newAnalysisDivider: {
+    height: StyleSheet.hairlineWidth, backgroundColor: C.border,
+    marginHorizontal: 4, marginBottom: 2,
+  },
+  newAnalysisHeading: { fontSize: 15, fontWeight: '700' },
+  newAnalysisHelper:  { fontSize: 12, lineHeight: 17 },
+  newAnalysisRow:     { flexDirection: 'row', gap: 8 },
+  newAnalysisBtn:     {
+    flex: 1, borderWidth: 1, borderRadius: 12,
+    paddingVertical: 12, alignItems: 'center', gap: 5,
+  },
+  newAnalysisBtnLabel: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
   modalRoot:     { flex: 1, backgroundColor: C.bg },
   modalHeader:   {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

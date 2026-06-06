@@ -12,7 +12,7 @@ export function PrivacyLegalExtras() {
   const { Colors: C, fs } = useTheme();
   const { t: T } = useT();
   const onPrivacyInfo = () => {
-    Alert.alert(T('settings.privacy_info'), T('settings.privacy_mode_sub'));
+    Alert.alert(T('settings.privacy_info'), T('profile.privacy_body'));
   };
   return (
     <>

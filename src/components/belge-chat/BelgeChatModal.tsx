@@ -14,6 +14,7 @@ import { belgeChatStyles as st } from './belgeChatStyles';
 import type { ChatMessage } from './chatTypes';
 import { TypingIndicator } from './TypingIndicator';
 import { getChipsForTyp } from './typChips';
+import { useT } from '@/hooks/useT';
 
 interface BelgeChatModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ interface BelgeChatModalProps {
 
 export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', initialText }: BelgeChatModalProps) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -114,7 +116,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
 
           <View style={[st.dsgvo, { backgroundColor: C.bgInput, borderColor: C.border }]}>
             <Text style={{ fontSize: 10, color: C.textTertiary, textAlign: 'center' }}>
-              Nur Metadaten werden verarbeitet — kein Dokumentinhalt (DSGVO-konform)
+              {T('chat.privacy.notice')}
             </Text>
           </View>
 

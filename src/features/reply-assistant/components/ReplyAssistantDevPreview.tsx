@@ -78,7 +78,7 @@ export default function ReplyAssistantDevPreview({
     return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
   }, []);
 
-  const { candidates, reason } = getReplyTemplateCandidates({
+  const { candidates } = getReplyTemplateCandidates({
     category, institutionType, documentType, actionType,
   });
 
@@ -148,8 +148,8 @@ export default function ReplyAssistantDevPreview({
     if (!result.ok) {
       setRenderError(
         result.blockedReason === 'missing_required'
-          ? `Pflichtfelder fehlen: ${result.missingRequiredFields.join(', ')}`
-          : `Render-Fehler: ${result.blockedReason}`,
+          ? `Bitte füllen Sie alle Pflichtfelder aus: ${result.missingRequiredFields.map(getFieldLabel).join(', ')}.`
+          : 'Der Entwurf konnte nicht erstellt werden. Bitte prüfen Sie Ihre Angaben.',
       );
       return;
     }
@@ -174,9 +174,9 @@ export default function ReplyAssistantDevPreview({
   }, [renderedBriefkopf, renderedSubject, editedBody]);
 
   const sheetTitle =
-    step === 'select' ? `[DEV] Vorlagenkandidaten (${candidates.length})` :
-    step === 'fill'   ? `[DEV] ${selectedTemplate?.title ?? ''}` :
-                        '[DEV] Entwurfsvorschau';
+    step === 'select' ? 'Antwortentwurf wählen' :
+    step === 'fill'   ? 'Angaben ergänzen' :
+                        'Entwurf prüfen';
 
   const previewFooter = step === 'preview' ? (
     <View style={{ gap: 8 }}>
@@ -224,11 +224,13 @@ export default function ReplyAssistantDevPreview({
       {!hideLauncher && (
         <TouchableOpacity
           onPress={handleButtonPress}
-          style={[st.devButton, { borderColor: C.border, backgroundColor: `${C.primary}18` }]}
+          style={[st.launcherButton, { borderColor: `${C.primary}55`, backgroundColor: C.primaryLight }]}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Antwortentwurf erstellen"
         >
-          <Text style={[st.devButtonText, { color: C.primary }]}>
-            ⚙ Antwortentwurf erstellen
+          <Text style={[st.launcherButtonText, { color: C.primaryDark }]}>
+            Antwortentwurf erstellen
           </Text>
         </TouchableOpacity>
       )}
@@ -249,7 +251,6 @@ export default function ReplyAssistantDevPreview({
           {step === 'select' && (
             <SelectStep
               candidates={candidates}
-              reason={reason}
               onSelect={selectTemplate}
               C={C} S={S} R={R}
             />
@@ -339,43 +340,43 @@ function Banner({
 // ── Select step ───────────────────────────────────────────────────────────────
 
 function SelectStep({
-  candidates, reason, onSelect, C, R,
+  candidates, onSelect, C, R,
 }: {
   candidates: ReplyTemplate[];
-  reason: string;
   onSelect: (t: ReplyTemplate) => void;
   C: any; S: any; R: any;
 }) {
   if (candidates.length === 0) {
     return (
-      <Text style={{ color: C.textSecondary, fontSize: 13, padding: 12 }}>
-        Keine Kandidaten für dieses Dokument. (reason: {reason})
-      </Text>
+      <View style={{ padding: 12 }}>
+        <Text style={{ color: C.textSecondary, fontSize: 13, lineHeight: 20 }}>
+          Für dieses Dokument ist aktuell keine Antwortvorlage verfügbar.
+        </Text>
+      </View>
     );
   }
   return (
     <View style={{ paddingBottom: 16 }}>
-      <Text style={{ color: C.textTertiary, fontSize: 11, marginBottom: 10 }}>
-        match: {reason}
+      <Text style={{ color: C.textSecondary, fontSize: 13, marginBottom: 12, lineHeight: 19 }}>
+        Wählen Sie eine passende Vorlage für Ihren Antwortentwurf.
       </Text>
       {candidates.map(t => (
         <TouchableOpacity
           key={t.id}
           onPress={() => onSelect(t)}
           activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel={t.title}
           style={{
             borderRadius: R.md,
             borderWidth: 0.6,
-            borderColor: t.safety.riskLevel === 'high' ? `${C.warning ?? '#F59E0B'}88` : C.border,
+            borderColor: C.border,
             backgroundColor: C.bgCard,
             padding: 12,
             marginBottom: 8,
           }}
         >
           <Text style={{ color: C.text, fontSize: 14, fontWeight: '700' }}>{t.title}</Text>
-          <Text style={{ color: C.textSecondary, fontSize: 11, marginTop: 3 }}>
-            {t.id} · risk: {t.safety.riskLevel}
-          </Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -602,16 +603,16 @@ function PreviewStep({
 }
 
 const st = StyleSheet.create({
-  devButton: {
+  launcherButton: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     alignSelf: 'flex-start',
     marginTop: 8,
   },
-  devButtonText: {
-    fontSize: 13,
+  launcherButtonText: {
+    fontSize: 14,
     fontWeight: '700',
   },
   banner: {

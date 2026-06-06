@@ -74,6 +74,10 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
       }
     };
 
+    const handleDiscardSelection = () => {
+      setSelectedAsset(null);
+    };
+
     return (
       <View style={st.container}>
         <View style={st.selectedCard}>
@@ -121,6 +125,14 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           activeOpacity={0.75}
         >
           <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>{T('ocr.upload.change')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[st.discardBtn, { borderColor: C.border }]}
+          onPress={handleDiscardSelection}
+          activeOpacity={0.75}
+        >
+          <Text style={[st.discardBtnLabel, { color: C.textSecondary }]}>{T('ocr.upload.discard_selection')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -221,4 +233,8 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     borderWidth: 1, borderRadius: 14, paddingVertical: 13, alignItems: 'center', marginTop: -8,
   },
   changeBtnLabel:   { fontSize: 14, fontWeight: '600' },
+  discardBtn: {
+    borderWidth: 1, borderRadius: 14, paddingVertical: 12, alignItems: 'center', marginTop: -4,
+  },
+  discardBtnLabel:  { fontSize: 13, fontWeight: '600' },
 });

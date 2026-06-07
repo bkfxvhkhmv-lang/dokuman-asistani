@@ -7,7 +7,8 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
-  useWindowDimensions,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import * as ExpoClipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,7 @@ import {
 import { getFieldLabel } from '@/features/reply-assistant/domain/fieldLabels';
 import { renderBriefkopf } from '@/features/reply-assistant/domain/renderBriefkopf';
 import { getReplyTemplateCandidates } from '@/features/reply-assistant/templates/matchCandidates';
+import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
 
 if (!__DEV__) {
   throw new Error('ReplyAssistantDevPreview must only be used in __DEV__ builds');
@@ -41,6 +43,25 @@ interface Props {
 
 type Step = 'select' | 'fill' | 'preview';
 
+const SENDER_KEYS = new Set(['name', 'adresse']);
+/** Android clipboard overlay can briefly background the app; suppress privacy lock. */
+const COPY_PRIVACY_BYPASS_MS = 2500;
+
+function computeFillCannotRender(
+  template: ReplyTemplate,
+  values: Record<string, string>,
+  senderValues: { name: string; adresse: string },
+  empfaengerValues: { empfaenger_stelle: string },
+): boolean {
+  const requiredKeys = template.fields
+    .filter(f => f.required && !SENDER_KEYS.has(f.key))
+    .map(f => f.key);
+  const templateMissing = requiredKeys.filter(k => !values[k]?.trim());
+  const senderMissing = !senderValues.name.trim() || !senderValues.adresse.trim();
+  const empfaengerMissing = !empfaengerValues.empfaenger_stelle.trim();
+  return templateMissing.length > 0 || senderMissing || empfaengerMissing;
+}
+
 export default function ReplyAssistantDevPreview({
   category,
   institutionType,
@@ -51,9 +72,6 @@ export default function ReplyAssistantDevPreview({
   onClose,
 }: Props) {
   const { Colors: C, S, R } = useTheme();
-  const { height: screenH } = useWindowDimensions();
-  // AppSheet = 88% screenH. Reserve handle(44) + header(80) + banner(52) + paddingBottom(40) + footer(150)
-  const scrollMaxH = Math.max(200, Math.round(screenH * 0.88) - 366);
 
   const [disclaimerVisible, setDisclaimerVisible] = useState(false);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -72,6 +90,28 @@ export default function ReplyAssistantDevPreview({
   const [copied, setCopied] = useState(false);
   const autoOpenedRef = useRef(false);
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const copyBypassTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyBypassHeldRef = useRef(false);
+
+  const releaseCopyPrivacyBypass = useCallback(() => {
+    if (copyBypassTimerRef.current) {
+      clearTimeout(copyBypassTimerRef.current);
+      copyBypassTimerRef.current = null;
+    }
+    if (copyBypassHeldRef.current) {
+      copyBypassHeldRef.current = false;
+      setPrivacyGateBypassed(false);
+    }
+  }, []);
+
+  const holdCopyPrivacyBypass = useCallback((durationMs: number) => {
+    releaseCopyPrivacyBypass();
+    copyBypassHeldRef.current = true;
+    setPrivacyGateBypassed(true);
+    copyBypassTimerRef.current = setTimeout(releaseCopyPrivacyBypass, durationMs);
+  }, [releaseCopyPrivacyBypass]);
+
+  useEffect(() => () => releaseCopyPrivacyBypass(), [releaseCopyPrivacyBypass]);
 
   const todayDate = useMemo(() => {
     const d = new Date();
@@ -101,11 +141,11 @@ export default function ReplyAssistantDevPreview({
       if (seen === '1') {
         openMainSheet();
       } else {
-        openMainSheet();
+        setSheetVisible(false);
         setDisclaimerVisible(true);
       }
     } catch {
-      openMainSheet();
+      setSheetVisible(false);
       setDisclaimerVisible(true);
     }
   }, [openMainSheet]);
@@ -115,13 +155,16 @@ export default function ReplyAssistantDevPreview({
     try {
       await AsyncStorage.setItem(REPLY_ASSISTANT_DISCLAIMER_STORAGE_KEY, '1');
     } catch { /* non-blocking */ }
-  }, []);
+    openMainSheet();
+  }, [openMainSheet]);
 
   const close = useCallback(() => {
+    releaseCopyPrivacyBypass();
+    Keyboard.dismiss();
     setDisclaimerVisible(false);
     setSheetVisible(false);
     onClose?.();
-  }, [onClose]);
+  }, [onClose, releaseCopyPrivacyBypass]);
 
   useEffect(() => {
     if (!autoOpen || autoOpenedRef.current) return;
@@ -142,7 +185,6 @@ export default function ReplyAssistantDevPreview({
 
   const tryRender = useCallback(() => {
     if (!selectedTemplate) return;
-    // Merge sender identity so {{name}}/{{adresse}} in template body still substitute correctly.
     const mergedValues = { ...fieldValues, name: senderValues.name, adresse: senderValues.adresse };
     const result = renderReplyTemplate({ template: selectedTemplate, values: mergedValues });
     if (!result.ok) {
@@ -164,60 +206,100 @@ export default function ReplyAssistantDevPreview({
     setRenderedSubject(result.subject ?? '');
     setRenderedBody(result.body ?? '');
     setEditedBody(result.body ?? '');
+    Keyboard.dismiss();
     setStep('preview');
   }, [selectedTemplate, fieldValues, senderValues, empfaengerValues, todayDate]);
 
-  const handleCopy = useCallback(() => {
-    ExpoClipboard.setStringAsync(`${renderedBriefkopf}Betreff: ${renderedSubject}\n\n${editedBody}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [renderedBriefkopf, renderedSubject, editedBody]);
+  const fillCannotRender = useMemo(() => {
+    if (!selectedTemplate) return true;
+    return computeFillCannotRender(selectedTemplate, fieldValues, senderValues, empfaengerValues);
+  }, [selectedTemplate, fieldValues, senderValues, empfaengerValues]);
+
+  const goToFillFromPreview = useCallback(() => {
+    Keyboard.dismiss();
+    setStep('fill');
+  }, []);
+
+  const handleCopy = useCallback(async () => {
+    holdCopyPrivacyBypass(COPY_PRIVACY_BYPASS_MS);
+    try {
+      await ExpoClipboard.setStringAsync(`${renderedBriefkopf}Betreff: ${renderedSubject}\n\n${editedBody}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      releaseCopyPrivacyBypass();
+    }
+  }, [renderedBriefkopf, renderedSubject, editedBody, holdCopyPrivacyBypass, releaseCopyPrivacyBypass]);
 
   const sheetTitle =
     step === 'select' ? 'Antwortentwurf wählen' :
     step === 'fill'   ? 'Angaben ergänzen' :
                         'Entwurf prüfen';
 
-  const previewFooter = step === 'preview' ? (
-    <View style={{ gap: 8 }}>
-      <TouchableOpacity
-        onPress={handleCopy}
-        style={{
-          borderRadius: R.md, paddingVertical: 14,
-          backgroundColor: copied ? (C.success ?? '#16A34A') : (C.primary ?? '#005FB8'),
-          alignItems: 'center',
-        }}
-        activeOpacity={0.8}
-      >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          {copied ? '✓ Kopiert — in E-Mail oder Schreiben einfügen' : 'Entwurf kopieren'}
-        </Text>
-      </TouchableOpacity>
-      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16 }}>
-        BriefPilot erstellt nur einen Textentwurf.{'\n'}
-        Prüfen Sie Inhalt, Frist, Empfänger und Aktenzeichen selbst.{'\n'}
-        Fügen Sie den Entwurf in Ihre E-Mail, in ein Online-Formular oder Schreiben ein.{'\n'}
-        BriefPilot sendet nichts und ersetzt keine Rechtsberatung.{'\n'}
-        Bei Unsicherheit konsultieren Sie einen Anwalt oder die Verbraucherzentrale.
+  const fillCreateButton = (
+    <TouchableOpacity
+      onPress={tryRender}
+      disabled={fillCannotRender}
+      accessibilityRole="button"
+      accessibilityLabel="Entwurf erstellen"
+      style={{
+        borderRadius: R.md,
+        paddingVertical: 14,
+        backgroundColor: fillCannotRender ? (C.border ?? '#ccc') : (C.primary ?? '#005FB8'),
+        alignItems: 'center',
+      }}
+      activeOpacity={0.8}
+    >
+      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+        Entwurf erstellen
       </Text>
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        <TouchableOpacity
-          onPress={() => setStep('fill')}
-          style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
-          activeOpacity={0.75}
-        >
-          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Felder bearbeiten</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={close}
-          style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
-          activeOpacity={0.75}
-        >
-          <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Schließen</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  ) : undefined;
+    </TouchableOpacity>
+  );
+
+  const previewCopyButton = (
+    <TouchableOpacity
+      onPress={handleCopy}
+      accessibilityRole="button"
+      accessibilityLabel="Entwurf kopieren"
+      style={{
+        borderRadius: R.md,
+        paddingVertical: 14,
+        backgroundColor: copied ? (C.success ?? '#16A34A') : (C.primary ?? '#005FB8'),
+        alignItems: 'center',
+      }}
+      activeOpacity={0.8}
+    >
+      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+        {copied ? '✓ Kopiert — in E-Mail oder Schreiben einfügen' : 'Entwurf kopieren'}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const sheetFooter = step === 'fill'
+    ? fillCreateButton
+    : step === 'preview'
+      ? (
+        <View style={{ gap: 8 }}>
+          {previewCopyButton}
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <TouchableOpacity
+              onPress={goToFillFromPreview}
+              style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
+              activeOpacity={0.75}
+            >
+              <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Felder bearbeiten</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={close}
+              style={{ flex: 1, borderRadius: R.md, paddingVertical: 11, borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard, alignItems: 'center' }}
+              activeOpacity={0.75}
+            >
+              <Text style={{ color: C.textSecondary, fontWeight: '600', fontSize: 13 }}>Schließen</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )
+      : undefined;
 
   return (
     <>
@@ -235,18 +317,17 @@ export default function ReplyAssistantDevPreview({
         </TouchableOpacity>
       )}
 
-      <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle} footer={previewFooter}>
+      <AppSheet visible={sheetVisible} onClose={close} title={sheetTitle} footer={sheetFooter}>
         <Banner kind="global" text={REPLY_ASSISTANT_GLOBAL_BANNER} C={C} R={R} />
 
         <ScrollView
           ref={scrollRef}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
           // @ts-ignore — iOS 14+ native scroll adjustment when keyboard appears
-          automaticallyAdjustKeyboardInsets
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           showsVerticalScrollIndicator={false}
-          style={{ maxHeight: scrollMaxH }}
-          contentContainerStyle={{ paddingBottom: 8 }}
+          contentContainerStyle={{ paddingBottom: 12 }}
         >
           {step === 'select' && (
             <SelectStep
@@ -264,7 +345,6 @@ export default function ReplyAssistantDevPreview({
               onSenderChange={(field, val) => setSenderValues(prev => ({ ...prev, [field]: val }))}
               empfaengerValues={empfaengerValues}
               onEmpfaengerChange={(field, val) => setEmpfaengerValues(prev => ({ ...prev, [field]: val }))}
-              onRender={tryRender}
               error={renderError}
               C={C} S={S} R={R}
             />
@@ -323,7 +403,6 @@ function Banner({
   R: any;
 }) {
   const isHighRisk = kind === 'highRisk';
-
   return (
     <View style={[st.banner, {
       borderRadius: R.md,
@@ -356,7 +435,7 @@ function SelectStep({
     );
   }
   return (
-    <View style={{ paddingBottom: 16 }}>
+    <View style={{ paddingBottom: 8 }}>
       <Text style={{ color: C.textSecondary, fontSize: 13, marginBottom: 12, lineHeight: 19 }}>
         Wählen Sie eine passende Vorlage für Ihren Antwortentwurf.
       </Text>
@@ -383,16 +462,13 @@ function SelectStep({
   );
 }
 
-// Keys sourced from senderValues — excluded from template field rendering to avoid duplication.
-const SENDER_KEYS = new Set(['name', 'adresse']);
-
 // ── Fill step ─────────────────────────────────────────────────────────────────
 
 function FillStep({
   template, values, onChange,
   senderValues, onSenderChange,
   empfaengerValues, onEmpfaengerChange,
-  onRender, error, C, R,
+  error, C, R,
 }: {
   template: ReplyTemplate;
   values: Record<string, string>;
@@ -401,19 +477,11 @@ function FillStep({
   onSenderChange: (field: 'name' | 'adresse', val: string) => void;
   empfaengerValues: { empfaenger_stelle: string; empfaenger_email: string; empfaenger_adresse: string };
   onEmpfaengerChange: (field: 'empfaenger_stelle' | 'empfaenger_email' | 'empfaenger_adresse', val: string) => void;
-  onRender: () => void;
   error: string | null;
   C: any; S: any; R: any;
 }) {
-  // Filter out name/adresse — they're collected in IHRE ANGABEN to avoid duplicate inputs.
   const requiredKeys = template.fields.filter(f => f.required && !SENDER_KEYS.has(f.key)).map(f => f.key);
   const optionalKeys = template.fields.filter(f => !f.required && !SENDER_KEYS.has(f.key)).map(f => f.key);
-
-  const templateMissing = requiredKeys.filter(k => !values[k]?.trim());
-  const senderMissing = !senderValues.name.trim() || !senderValues.adresse.trim();
-  const empfaengerMissing = !empfaengerValues.empfaenger_stelle.trim();
-  const cannotRender = templateMissing.length > 0 || senderMissing || empfaengerMissing;
-
   const highRisk = shouldShowHighRiskWarning(template);
 
   return (
@@ -422,18 +490,15 @@ function FillStep({
         <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
       )}
 
-      {/* ── IHRE ANGABEN ────────────────────────────────────── */}
       <SectionHeader label="IHRE ANGABEN" C={C} />
       <FieldInput fieldKey="name"    value={senderValues.name}    required onChange={v => onSenderChange('name', v)}    C={C} R={R} />
       <FieldInput fieldKey="adresse" value={senderValues.adresse} required onChange={v => onSenderChange('adresse', v)} C={C} R={R} />
 
-      {/* ── EMPFÄNGER ───────────────────────────────────────── */}
       <SectionHeader label="EMPFÄNGER" C={C} top />
       <FieldInput fieldKey="empfaenger_stelle"  value={empfaengerValues.empfaenger_stelle}  required onChange={v => onEmpfaengerChange('empfaenger_stelle', v)}  C={C} R={R} />
       <FieldInput fieldKey="empfaenger_email"   value={empfaengerValues.empfaenger_email}   required={false} onChange={v => onEmpfaengerChange('empfaenger_email', v)}   C={C} R={R} />
       <FieldInput fieldKey="empfaenger_adresse" value={empfaengerValues.empfaenger_adresse} required={false} onChange={v => onEmpfaengerChange('empfaenger_adresse', v)} C={C} R={R} />
 
-      {/* ── VORGANG (template-specific) ─────────────────────── */}
       {(requiredKeys.length > 0 || optionalKeys.length > 0) && (
         <SectionHeader label="VORGANG" C={C} top />
       )}
@@ -456,23 +521,6 @@ function FillStep({
           {error}
         </Text>
       )}
-      <TouchableOpacity
-        onPress={onRender}
-        disabled={cannotRender}
-        style={{
-          marginTop: 16,
-          borderRadius: R.md,
-          paddingVertical: 13,
-          paddingHorizontal: 16,
-          backgroundColor: cannotRender ? (C.border ?? '#ccc') : (C.primary ?? '#005FB8'),
-          alignItems: 'center',
-        }}
-        activeOpacity={0.8}
-      >
-        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-          Entwurf erstellen
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -502,6 +550,7 @@ function FieldInput({
       <TextInput
         value={value}
         onChangeText={onChange}
+        blurOnSubmit={false}
         placeholder={getFieldLabel(fieldKey)}
         placeholderTextColor={C.textTertiary}
         style={{
@@ -519,6 +568,13 @@ function FieldInput({
   );
 }
 
+const PREVIEW_COPY_DISCLAIMER =
+  'BriefPilot erstellt nur einen Textentwurf.\n' +
+  'Prüfen Sie Inhalt, Frist, Empfänger und Aktenzeichen selbst.\n' +
+  'Fügen Sie den Entwurf in Ihre E-Mail, in ein Online-Formular oder Schreiben ein.\n' +
+  'BriefPilot sendet nichts und ersetzt keine Rechtsberatung.\n' +
+  'Bei Unsicherheit konsultieren Sie einen Anwalt oder die Verbraucherzentrale.';
+
 // ── Preview step ──────────────────────────────────────────────────────────────
 
 function PreviewStep({
@@ -534,7 +590,7 @@ function PreviewStep({
   C: any; S: any; R: any;
 }) {
   return (
-    <View style={{ paddingBottom: 8 }}>
+    <View style={{ paddingBottom: 4 }}>
       {shouldShowHighRiskWarning(template) && (
         <Banner kind="highRisk" text={REPLY_ASSISTANT_HIGH_RISK_BANNER} C={C} R={R} />
       )}
@@ -584,7 +640,9 @@ function PreviewStep({
       <TextInput
         value={editedBody}
         onChangeText={onEditedBodyChange}
+        blurOnSubmit={false}
         multiline
+        scrollEnabled
         style={{
           borderRadius: R.sm ?? 6,
           borderWidth: 0.8,
@@ -594,10 +652,14 @@ function PreviewStep({
           fontSize: 13,
           lineHeight: 20,
           padding: 10,
-          minHeight: 200,
+          minHeight: 72,
+          maxHeight: 96,
           textAlignVertical: 'top',
         }}
       />
+      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16, marginTop: 10 }}>
+        {PREVIEW_COPY_DISCLAIMER}
+      </Text>
     </View>
   );
 }

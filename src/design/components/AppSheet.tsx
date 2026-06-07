@@ -35,12 +35,16 @@ export default function AppSheet({
   const kbHeight      = useSharedValue(0);
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-    const show = Keyboard.addListener('keyboardWillShow', (e) => {
-      kbHeight.value = withTiming(e.endCoordinates.height, { duration: e.duration ?? 250 });
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, (e) => {
+      const h   = e.endCoordinates?.height ?? (Platform.OS === 'android' ? SCREEN_H * 0.38 : 0);
+      const dur = Platform.OS === 'ios' ? (e.duration ?? 250) : 200;
+      kbHeight.value = withTiming(h, { duration: dur });
     });
-    const hide = Keyboard.addListener('keyboardWillHide', (e) => {
-      kbHeight.value = withTiming(0, { duration: e.duration ?? 200 });
+    const hide = Keyboard.addListener(hideEvent, (e) => {
+      const dur = Platform.OS === 'ios' ? (e.duration ?? 200) : 180;
+      kbHeight.value = withTiming(0, { duration: dur });
     });
     return () => { show.remove(); hide.remove(); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -110,7 +114,7 @@ export default function AppSheet({
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     bottom: kbHeight.value,
-    maxHeight: Math.max(200, SCREEN_H * 0.88 - kbHeight.value),
+    height: Math.max(200, SCREEN_H * 0.88 - kbHeight.value),
   }));
 
   const bgStyle = useAnimatedStyle(() => ({
@@ -211,6 +215,6 @@ const st = StyleSheet.create({
   subtitle:    { fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 18 },
   closeButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
   closeLabel:  { fontSize: 12, fontWeight: '700' },
-  body:        {},
-  footer:      { marginTop: 12 },
+  body:        { flex: 1 },
+  footer:      { flexShrink: 0, marginTop: 12 },
 });

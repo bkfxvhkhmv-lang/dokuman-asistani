@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { AppInput } from '@/design/components';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 
@@ -20,6 +21,7 @@ function formatLocalDate(date: Date): string {
 
 export default function AufgabenModal({ visible, onClose, onAdd, modal }: AufgabenModalProps) {
   const { Colors: C, S, R } = useTheme();
+  const { t } = useT();
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dueDatePlaceholder = formatLocalDate(tomorrow);
@@ -32,7 +34,7 @@ export default function AufgabenModal({ visible, onClose, onAdd, modal }: Aufgab
           <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>Neue Aufgabe</Text>
           <AppInput label="Aufgabe" icon="check" placeholder="z.B. Zahlung überweisen"
             value={modal.neueAufgabeTitel} onChangeText={modal.setNeueAufgabeTitel} style={{ marginBottom: 14 }} returnKeyType="next" />
-          <AppInput label="Fällig am (JJJJ-MM-TT)" icon="calendar" placeholder={dueDatePlaceholder}
+          <AppInput label={t('detail.aufgaben.due_date_label')} icon="calendar" placeholder={dueDatePlaceholder}
             value={modal.neueAufgabeFrist} onChangeText={modal.setNeueAufgabeFrist} style={{ marginBottom: 14 }} returnKeyType="next" />
           <AppInput label="Verantwortlich" icon="user" placeholder="z.B. Steuerberater"
             value={modal.neueAufgabeVerantwortlich} onChangeText={modal.setNeueAufgabeVerantwortlich} style={{ marginBottom: 14 }} returnKeyType="done" />

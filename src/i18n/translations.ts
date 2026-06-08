@@ -1484,6 +1484,12 @@ const de: Dict = {
   'scan.adjust_shadow': 'Schatten reduzieren',
   'scan.adjust_saturation': 'Sättigung',
   'scan.adjust_apply': 'Anwenden',
+  'auth.reset_token_placeholder':         'Token eingeben',
+  'budget.all_paid':                      'Alles bezahlt ✓',
+  'detail.aufgaben.due_date_label':       'Fällig am (JJJJ-MM-TT)',
+  'detail.aufgaben.due_date_placeholder': 'JJJJ-MM-TT',
+  'detail.twin.summary_loading':          'Kurzfassung wird ermittelt…',
+  'market.search_placeholder':            'Regel suchen…',
 };
 
 const tr: Dict = {
@@ -2529,6 +2535,12 @@ const tr: Dict = {
   'ocr.result.show_summary': 'Özeti göster',
   'ocr.result.show_draft': 'Taslağı göster',
   'ocr.result.meta.position_many': '{n} kalem',
+  'auth.reset_token_placeholder':         'Kodu girin',
+  'budget.all_paid':                      'Tümü ödendi ✓',
+  'detail.aufgaben.due_date_label':       'Tarih (YYYY-AA-GG)',
+  'detail.aufgaben.due_date_placeholder': 'YYYY-AA-GG',
+  'detail.twin.summary_loading':          'Özet hazırlanıyor…',
+  'market.search_placeholder':            'Kural ara…',
 };
 
 const en: Dict = {
@@ -3186,6 +3198,12 @@ const en: Dict = {
   'ocr.result.show_summary': 'Show summary',
   'ocr.result.show_draft': 'Show draft',
   'ocr.result.meta.position_many': '{n} items',
+  'auth.reset_token_placeholder':         'Enter token',
+  'budget.all_paid':                      'All paid ✓',
+  'detail.aufgaben.due_date_label':       'Due date (YYYY-MM-DD)',
+  'detail.aufgaben.due_date_placeholder': 'YYYY-MM-DD',
+  'detail.twin.summary_loading':          'Loading summary…',
+  'market.search_placeholder':            'Search rules…',
 
   ...RUNTIME_SWEEP_FALLBACK,
 };
@@ -3847,6 +3865,12 @@ const fr: Dict = {
   'ocr.result.show_summary': 'Afficher le résumé',
   'ocr.result.show_draft': 'Afficher le brouillon',
   'ocr.result.meta.position_many': '{n} postes',
+  'auth.reset_token_placeholder':         'Saisir le jeton',
+  'budget.all_paid':                      'Tout payé ✓',
+  'detail.aufgaben.due_date_label':       'Échéance (AAAA-MM-JJ)',
+  'detail.aufgaben.due_date_placeholder': 'AAAA-MM-JJ',
+  'detail.twin.summary_loading':          'Chargement du résumé…',
+  'market.search_placeholder':            'Rechercher une règle…',
 
 };
 
@@ -4508,6 +4532,12 @@ const es: Dict = {
   'ocr.result.show_summary': 'Mostrar resumen',
   'ocr.result.show_draft': 'Mostrar borrador',
   'ocr.result.meta.position_many': '{n} elementos',
+  'auth.reset_token_placeholder':         'Ingresar token',
+  'budget.all_paid':                      'Todo pagado ✓',
+  'detail.aufgaben.due_date_label':       'Fecha límite (AAAA-MM-DD)',
+  'detail.aufgaben.due_date_placeholder': 'AAAA-MM-DD',
+  'detail.twin.summary_loading':          'Cargando resumen…',
+  'market.search_placeholder':            'Buscar regla…',
 
 };
 
@@ -5169,6 +5199,12 @@ const ru: Dict = {
   'ocr.result.show_summary': 'Показать сводку',
   'ocr.result.show_draft': 'Показать черновик',
   'ocr.result.meta.position_many': '{n} позиций',
+  'auth.reset_token_placeholder':         'Введите токен',
+  'budget.all_paid':                      'Всё оплачено ✓',
+  'detail.aufgaben.due_date_label':       'Срок (ГГГГ-ММ-ДД)',
+  'detail.aufgaben.due_date_placeholder': 'ГГГГ-ММ-ДД',
+  'detail.twin.summary_loading':          'Загрузка резюме…',
+  'market.search_placeholder':            'Поиск правил…',
 
 };
 
@@ -5830,6 +5866,12 @@ const ar: Dict = {
   'ocr.result.show_summary': 'عرض الملخص',
   'ocr.result.show_draft': 'عرض المسودة',
   'ocr.result.meta.position_many': '{n} بنود',
+  'auth.reset_token_placeholder':         'أدخل الرمز',
+  'budget.all_paid':                      'تم دفع الكل ✓',
+  'detail.aufgaben.due_date_label':       'تاريخ الاستحقاق (YYYY-MM-DD)',
+  'detail.aufgaben.due_date_placeholder': 'YYYY-MM-DD',
+  'detail.twin.summary_loading':          'جارٍ تحميل الملخص…',
+  'market.search_placeholder':            'البحث في القواعد…',
 
 };
 

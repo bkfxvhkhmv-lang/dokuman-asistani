@@ -1490,6 +1490,9 @@ const de: Dict = {
   'detail.aufgaben.due_date_placeholder': 'JJJJ-MM-TT',
   'detail.twin.summary_loading':          'Kurzfassung wird ermittelt…',
   'market.search_placeholder':            'Regel suchen…',
+  'home.list_search.placeholder':         'Dokumente durchsuchen…',
+  'home.list_search.no_results':          'Keine Dokumente gefunden',
+  'home.list_search.clear_a11y':          'Suche löschen',
 };
 
 const tr: Dict = {
@@ -2541,6 +2544,9 @@ const tr: Dict = {
   'detail.aufgaben.due_date_placeholder': 'YYYY-AA-GG',
   'detail.twin.summary_loading':          'Özet hazırlanıyor…',
   'market.search_placeholder':            'Kural ara…',
+  'home.list_search.placeholder':         'Belgeleri ara…',
+  'home.list_search.no_results':          'Belge bulunamadı',
+  'home.list_search.clear_a11y':          'Aramayı temizle',
 };
 
 const en: Dict = {
@@ -3204,6 +3210,9 @@ const en: Dict = {
   'detail.aufgaben.due_date_placeholder': 'YYYY-MM-DD',
   'detail.twin.summary_loading':          'Loading summary…',
   'market.search_placeholder':            'Search rules…',
+  'home.list_search.placeholder':         'Search documents…',
+  'home.list_search.no_results':          'No documents found',
+  'home.list_search.clear_a11y':          'Clear search',
 
   ...RUNTIME_SWEEP_FALLBACK,
 };
@@ -3871,6 +3880,9 @@ const fr: Dict = {
   'detail.aufgaben.due_date_placeholder': 'AAAA-MM-JJ',
   'detail.twin.summary_loading':          'Chargement du résumé…',
   'market.search_placeholder':            'Rechercher une règle…',
+  'home.list_search.placeholder':         'Rechercher des documents…',
+  'home.list_search.no_results':          'Aucun document trouvé',
+  'home.list_search.clear_a11y':          'Effacer la recherche',
 
 };
 
@@ -4538,6 +4550,9 @@ const es: Dict = {
   'detail.aufgaben.due_date_placeholder': 'AAAA-MM-DD',
   'detail.twin.summary_loading':          'Cargando resumen…',
   'market.search_placeholder':            'Buscar regla…',
+  'home.list_search.placeholder':         'Buscar documentos…',
+  'home.list_search.no_results':          'No se encontraron documentos',
+  'home.list_search.clear_a11y':          'Borrar búsqueda',
 
 };
 
@@ -5205,6 +5220,9 @@ const ru: Dict = {
   'detail.aufgaben.due_date_placeholder': 'ГГГГ-ММ-ДД',
   'detail.twin.summary_loading':          'Загрузка резюме…',
   'market.search_placeholder':            'Поиск правил…',
+  'home.list_search.placeholder':         'Поиск документов…',
+  'home.list_search.no_results':          'Документы не найдены',
+  'home.list_search.clear_a11y':          'Очистить поиск',
 
 };
 
@@ -5872,6 +5890,9 @@ const ar: Dict = {
   'detail.aufgaben.due_date_placeholder': 'YYYY-MM-DD',
   'detail.twin.summary_loading':          'جارٍ تحميل الملخص…',
   'market.search_placeholder':            'البحث في القواعد…',
+  'home.list_search.placeholder':         'البحث في المستندات…',
+  'home.list_search.no_results':          'لم يتم العثور على مستندات',
+  'home.list_search.clear_a11y':          'مسح البحث',
 
 };
 

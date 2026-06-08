@@ -83,7 +83,7 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
 
         <TouchableOpacity style={st.btn} onPress={handleWeiter} activeOpacity={0.85}>
           <Text style={st.btnText}>
-            {aktiv === slides.length - 1 ? '🚀  Jetzt starten' : 'Weiter  →'}
+            {aktiv === slides.length - 1 ? t('onboarding.start_now') : t('onboarding.next_cta')}
           </Text>
         </TouchableOpacity>
 

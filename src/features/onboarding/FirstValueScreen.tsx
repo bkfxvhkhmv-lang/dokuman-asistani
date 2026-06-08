@@ -104,7 +104,7 @@ export default function FirstValueScreen() {
     return (
       <View style={[st.center, { backgroundColor: C.bg, paddingTop: insets.top }]}>
         <ActivityIndicator color={C.primary} />
-        <Text style={{ color: C.textSecondary, marginTop: 12 }}>Lädt …</Text>
+        <Text style={{ color: C.textSecondary, marginTop: 12 }}>{t('onboarding.first_value.loading')}</Text>
       </View>
     );
   }
@@ -130,10 +130,10 @@ export default function FirstValueScreen() {
         }}
         keyboardShouldPersistTaps="handled"
       >
-      <Text style={[st.kicker, { color: C.primary }]}>JETZT BIST DU DRAN</Text>
-      <Text style={[st.headline, { color: C.text }]}>Dein nächster Schritt</Text>
+      <Text style={[st.kicker, { color: C.primary }]}>{t('onboarding.first_value.kicker')}</Text>
+      <Text style={[st.headline, { color: C.text }]}>{t('onboarding.first_value.title')}</Text>
       <Text style={[st.subhead, { color: C.textSecondary }]}>
-        Kurz gesagt, was diese Unterlage für dich bedeutet:
+        {t('onboarding.first_value.subtitle')}
       </Text>
 
       <ActionCard
@@ -159,21 +159,21 @@ export default function FirstValueScreen() {
       {!!summary && <SummaryCard text={summary} maxLines={6} />}
 
       <Text style={[st.hint, { color: C.textTertiary }]}>
-        Du kannst das später jederzeit im Dokument ändern.
+        {t('onboarding.first_value.edit_later_hint')}
       </Text>
 
       {!notifAsked ? (
         <View style={[st.noteBox, { backgroundColor: C.primaryLight, borderColor: `${C.primary}44` }]}>
-          <Text style={[st.noteTitle, { color: C.primaryDark }]}>Erinnerungen erlauben?</Text>
+          <Text style={[st.noteTitle, { color: C.primaryDark }]}>{t('onboarding.first_value.notifications_title')}</Text>
           <Text style={[st.noteBody, { color: C.textSecondary }]}>
-            Dann können wir dich an Fristen und offene Beträge erinnern — jederzeit in den Einstellungen wieder aus.
+            {t('onboarding.first_value.notifications_body')}
           </Text>
           <TouchableOpacity
             style={[st.primary, { backgroundColor: C.primaryDark, marginTop: 12 }]}
             onPress={handleEnableNotifAndFinish}
             disabled={busy === 'done'}
           >
-            <Text style={st.primaryTxt}>Ja, Benachrichtigungen</Text>
+            <Text style={st.primaryTxt}>{t('onboarding.first_value.enable_notifications')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={{ alignItems: 'center', paddingVertical: 12 }} onPress={finishActivation} disabled={busy === 'done'}>
             <Text style={{ fontSize: 14, fontWeight: '700', color: C.textSecondary }}>{t('onboarding.decide_later')}</Text>
@@ -185,7 +185,7 @@ export default function FirstValueScreen() {
           onPress={finishActivation}
           disabled={busy === 'done'}
         >
-          <Text style={st.primaryTxt}>Weiter zur Übersicht</Text>
+          <Text style={st.primaryTxt}>{t('onboarding.first_value.finish_cta')}</Text>
         </TouchableOpacity>
       )}
       </ScrollView>

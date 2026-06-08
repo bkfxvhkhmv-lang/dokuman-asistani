@@ -109,7 +109,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
                 </Text>
               </View>
             )}
-            <TouchableOpacity onPress={handleClose} style={{ padding: 10 }} hitSlop={HIT_SLOP_LG} accessibilityRole="button" accessibilityLabel="Schließen">
+            <TouchableOpacity onPress={handleClose} style={{ padding: 10 }} hitSlop={HIT_SLOP_LG} accessibilityRole="button" accessibilityLabel={T('common.close')}>
               <Icon name="close" size={20} color={C.textSecondary} />
             </TouchableOpacity>
           </View>

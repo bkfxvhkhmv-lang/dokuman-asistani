@@ -45,3 +45,8 @@ ios/opencv2.framework/
 
 # Local device build script — hardcoded device UUID + Team ID, machine-specific
 build_device.sh
+
+# Android Metro-bundler generated image assets (build-time output, NOT splash logos)
+android/app/src/main/res/drawable-*/node_modules_*
+android/app/src/main/res/drawable-*/assets_brand_*
+android/app/src/main/res/raw/

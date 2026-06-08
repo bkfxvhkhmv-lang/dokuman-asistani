@@ -2,9 +2,9 @@ import { useState, useRef, useCallback } from 'react';
 import { analyzeDocument, getOcrResult } from '@/services/ocrMvpApi';
 import type { OcrMvpFile, OcrMvpForceType, OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
-const POLL_INTERVAL_MS  = 1000;
-const POLL_TIMEOUT_MS   = 30_000;
-const UPLOAD_TIMEOUT_MS = 20_000;
+const POLL_INTERVAL_MS  = 1_000;
+const POLL_TIMEOUT_MS   = 90_000;   // poll_timeout: genel polling süresi
+const UPLOAD_TIMEOUT_MS = 20_000;   // upload_timeout: upload AbortController
 
 export type OcrMvpStatus = 'idle' | 'uploading' | 'processing' | 'done' | 'error' | 'timeout';
 
@@ -79,6 +79,11 @@ export function useOcrMvpJob(): UseOcrMvpJobReturn {
           setStatus('error');
         }
       } catch (e) {
+        // poll_request_timeout: getOcrResult'ın 15 s AbortController'ı tetiklendi.
+        // Tek attempt başarısız — job fail etme, inFlight finally'de temizlenir, loop devam eder.
+        if (e instanceof Error && e.name === 'AbortError') {
+          return;
+        }
         clearTimer();
         setError(e instanceof Error ? e.message : null);
         setErrorKind('network');

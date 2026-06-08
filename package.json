@@ -11,7 +11,9 @@
     "test:watch": "node node_modules/jest-expo/bin/jest.js --watch",
     "test:coverage": "node node_modules/jest-expo/bin/jest.js --coverage",
     "doctor": "npx expo-doctor",
-    "verify:supabase-extra": "node scripts/verifySupabaseExpoExtra.cjs"
+    "verify:supabase-extra": "node scripts/verifySupabaseExpoExtra.cjs",
+    "android:bundle": "expo export:embed --platform android --entry-file node_modules/expo-router/entry.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res",
+    "android:verify-bundle": "bash scripts/verify-android-apk-bundle.sh"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

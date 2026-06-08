@@ -9,6 +9,7 @@ import {
   Modal, View, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 
@@ -52,14 +53,17 @@ export default function DocumentPagesViewer({
     () => [...pages].sort((a, b) => a.order - b.order),
     [pages],
   );
+  const isSinglePage = sortedPages.length === 1;
 
   useEffect(() => {
     if (!visible) return;
     const idx = Math.min(initialIndex, Math.max(0, sortedPages.length - 1));
     setActive(idx);
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({ x: idx * SCREEN_W, animated: false });
-    });
+    if (!isSinglePage) {
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ x: idx * SCREEN_W, animated: false });
+      });
+    }
 
     let cancelled = false;
     setVerifying(true);
@@ -80,7 +84,7 @@ export default function DocumentPagesViewer({
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, sortedPages.length]);
+  }, [visible, sortedPages.length, isSinglePage, initialIndex]);
 
   const handleScroll = useCallback((e: { nativeEvent: { contentOffset: { x: number } } }) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
@@ -89,8 +93,10 @@ export default function DocumentPagesViewer({
 
   const goToPage = useCallback((idx: number) => {
     setActive(idx);
-    scrollRef.current?.scrollTo({ x: idx * SCREEN_W, animated: true });
-  }, []);
+    if (!isSinglePage) {
+      scrollRef.current?.scrollTo({ x: idx * SCREEN_W, animated: true });
+    }
+  }, [isSinglePage]);
 
   const handleShare = useCallback(async () => {
     if (onShare) { onShare(); return; }
@@ -125,6 +131,7 @@ export default function DocumentPagesViewer({
   return (
     <Modal visible={mounted} animationType="fade" presentationStyle="overFullScreen" transparent>
       {mounted && (
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={st.root}>
           <ViewerTopBar
             activeIndex={active}
@@ -144,28 +151,41 @@ export default function DocumentPagesViewer({
               </View>
             )}
 
-            <ScrollView
-              ref={scrollRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={handleScroll}
-              style={st.swiper}
-              contentContainerStyle={{ alignItems: 'center' }}
-            >
-              {sortedPages.map((page, idx) => (
+            {isSinglePage ? (
+              <View style={[st.swiper, { flex: 1 }]}>
                 <ViewerPageSlide
-                  key={page.id}
-                  uri={page.uri}
-                  isMissing={missingPages.has(page.id)}
+                  key={sortedPages[0].id}
+                  uri={sortedPages[0].uri}
+                  isMissing={missingPages.has(sortedPages[0].id)}
                   availableHeight={contentHeight}
-                  onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
-                  rotation={rotations[idx] ?? 0}
+                  onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [0]: n }))}
+                  rotation={rotations[0] ?? 0}
                 />
-              ))}
-            </ScrollView>
+              </View>
+            ) : (
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleScroll}
+                style={st.swiper}
+                contentContainerStyle={{ alignItems: 'center' }}
+              >
+                {sortedPages.map((page, idx) => (
+                  <ViewerPageSlide
+                    key={page.id}
+                    uri={page.uri}
+                    isMissing={missingPages.has(page.id)}
+                    availableHeight={contentHeight}
+                    onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
+                    rotation={rotations[idx] ?? 0}
+                  />
+                ))}
+              </ScrollView>
+            )}
 
-            {sortedPages.length >= 2 && (
+            {!isSinglePage && (
               <ThumbStrip
                 sortedPages={sortedPages}
                 active={active}
@@ -176,6 +196,7 @@ export default function DocumentPagesViewer({
             )}
           </View>
         </View>
+        </GestureHandlerRootView>
       )}
     </Modal>
   );

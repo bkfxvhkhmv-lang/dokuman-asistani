@@ -175,11 +175,21 @@ export async function postCorrectionEvent(
   }
 }
 
+const POLL_REQUEST_TIMEOUT_MS = 15_000; // poll_request_timeout: tek fetch limiti
+
 // GET /documents/{job_id}/result
 export async function getOcrResult(jobId: string): Promise<OcrMvpJobStatus> {
-  const res = await fetch(`${getCachedOcrBase()}/documents/${jobId}/result`);
-  if (res.status === 404) throw new Error('Job bulunamadı');
-  return parseJsonResponse<OcrMvpJobStatus>(res, 'OCR Ergebnisfehler');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), POLL_REQUEST_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${getCachedOcrBase()}/documents/${jobId}/result`, {
+      signal: ctrl.signal,
+    });
+    if (res.status === 404) throw new Error('Job bulunamadı');
+    return parseJsonResponse<OcrMvpJobStatus>(res, 'OCR Ergebnisfehler');
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // POST /ai/label → Claude Haiku document classification from raw OCR text

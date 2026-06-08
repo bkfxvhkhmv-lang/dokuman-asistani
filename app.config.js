@@ -27,6 +27,9 @@ module.exports = ({ config }) => {
       ...config.extra,
       supabaseUrl: url,
       APP_ENV: process.env.APP_ENV ?? 'device',
+      API_BASE: process.env.API_BASE ?? '',
+      OCR_MVP_BASE: process.env.OCR_MVP_BASE ?? process.env.EXPO_PUBLIC_OCR_BASE ?? '',
+      EXPO_PUBLIC_DEVICE_IP: process.env.EXPO_PUBLIC_DEVICE_IP ?? '',
     },
   };
 };

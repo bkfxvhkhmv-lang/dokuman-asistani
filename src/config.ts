@@ -6,10 +6,26 @@ interface EnvConfig {
   OCR_MVP_BASE: string;
 }
 
-const PROD_API_BASE = process.env.API_BASE?.trim() || 'https://api.briefpilot.de/api/v4';
-const PROD_OCR_MVP_BASE = process.env.OCR_MVP_BASE?.trim() || 'https://api.briefpilot.app';
+type ConfigSource = 'extra' | 'env' | 'fallback' | 'auto-detect' | 'none';
+const LOOPBACK_HOST = '127.0.0.1';
 
-const appEnv = (Constants.expoConfig?.extra?.APP_ENV as string | undefined) ?? 'development';
+const extra = (Constants.expoConfig?.extra ?? {}) as {
+  APP_ENV?: string;
+  API_BASE?: string;
+  OCR_MVP_BASE?: string;
+  EXPO_PUBLIC_DEVICE_IP?: string;
+};
+
+const extraApiBase = typeof extra.API_BASE === 'string' ? extra.API_BASE.trim() : '';
+const extraOcrBase = typeof extra.OCR_MVP_BASE === 'string' ? extra.OCR_MVP_BASE.trim() : '';
+const extraDeviceIp = typeof extra.EXPO_PUBLIC_DEVICE_IP === 'string'
+  ? extra.EXPO_PUBLIC_DEVICE_IP.trim()
+  : '';
+
+const PROD_API_BASE = extraApiBase || process.env.API_BASE?.trim() || 'https://api.briefpilot.de/api/v4';
+const PROD_OCR_MVP_BASE = extraOcrBase || process.env.OCR_MVP_BASE?.trim() || 'https://api.briefpilot.app';
+
+const appEnv = extra.APP_ENV ?? 'development';
 
 function stripScheme(hostUri: string): string {
   return hostUri.replace(/^https?:\/\//, '').split('/')[0] ?? '';
@@ -21,6 +37,19 @@ function extractHost(candidate: string | undefined | null): string | null {
   if (!cleaned) return null;
   const host = cleaned.split(':')[0]?.trim();
   return host || null;
+}
+
+function getSourceTag(extraValue: string, envValue: string): Exclude<ConfigSource, 'auto-detect' | 'none'> {
+  if (extraValue) return 'extra';
+  if (envValue) return 'env';
+  return 'fallback';
+}
+
+function normalizeDeviceIp(candidate: string | undefined): string {
+  if (!candidate) return '';
+  const trimmed = candidate.trim();
+  if (!trimmed) return '';
+  return trimmed === 'localhost' ? LOOPBACK_HOST : trimmed;
 }
 
 function detectExpoHost(): string | null {
@@ -49,12 +78,13 @@ function detectExpoHost(): string | null {
 
 function resolveDevConfig(): EnvConfig {
   const explicitOcrBase =
-    process.env.EXPO_PUBLIC_OCR_BASE?.trim()
+    extraOcrBase
+    || process.env.EXPO_PUBLIC_OCR_BASE?.trim()
     || process.env.OCR_MVP_BASE?.trim()
     || '';
-  const explicitApiBase = process.env.API_BASE?.trim() || '';
+  const explicitApiBase = extraApiBase || process.env.API_BASE?.trim() || '';
   const useDeviceIpOverride = process.env.EXPO_PUBLIC_USE_DEVICE_IP?.trim() === 'true';
-  const deviceIp = process.env.EXPO_PUBLIC_DEVICE_IP?.trim();
+  const deviceIp = normalizeDeviceIp(extraDeviceIp || process.env.EXPO_PUBLIC_DEVICE_IP?.trim());
 
   // 1) Explicit OCR base override wins when intentionally provided.
   if (explicitOcrBase) {
@@ -76,8 +106,9 @@ function resolveDevConfig(): EnvConfig {
     };
   }
 
-  // 3) Manual device IP remains available, but only as explicit override or fallback.
-  if (deviceIp && deviceIp !== '127.0.0.1' && deviceIp !== 'localhost') {
+  // 3) Manual device IP remains available as explicit override/fallback, including
+  // 127.0.0.1 for physical-device smoke via adb reverse.
+  if (deviceIp) {
     console.info(
       useDeviceIpOverride
         ? `[Config] EXPO_PUBLIC_USE_DEVICE_IP=true, device IP override kullanılıyor: ${deviceIp}`
@@ -89,12 +120,12 @@ function resolveDevConfig(): EnvConfig {
     };
   }
 
-  // 4) Final fallback: simulator/local dev defaults.
-  const isAndroidEmulator = Platform.OS === 'android';
-  const simulatorHost = isAndroidEmulator ? '10.0.2.2' : '127.0.0.1';
+  // 4) Final fallback: 127.0.0.1 works for both physical device and emulator via
+  // `adb reverse tcp:8000 tcp:8000`. For emulator without adb reverse, set
+  // OCR_MVP_BASE explicitly so this branch is never reached.
   return {
-    API_BASE: explicitApiBase || `http://${simulatorHost}:8000/api/v4`,
-    OCR_MVP_BASE: `http://${simulatorHost}:8000`,
+    API_BASE: explicitApiBase || `http://${LOOPBACK_HOST}:8000/api/v4`,
+    OCR_MVP_BASE: `http://${LOOPBACK_HOST}:8000`,
   };
 }
 
@@ -108,6 +139,57 @@ const cfg: EnvConfig = appEnv === 'beta' || appEnv === 'production'
 if (__DEV__) {
   console.info('[Config] API_BASE', cfg.API_BASE);
 }
+
+const apiSource: ConfigSource = appEnv === 'beta' || appEnv === 'production'
+  ? getSourceTag(extraApiBase, process.env.API_BASE?.trim() || '')
+  : extraApiBase
+    ? 'extra'
+    : process.env.API_BASE?.trim()
+      ? 'env'
+      : detectExpoHost()
+        ? 'auto-detect'
+        : (extraDeviceIp || process.env.EXPO_PUBLIC_DEVICE_IP?.trim())
+          ? ((normalizeDeviceIp(extraDeviceIp) ? 'extra'
+            : process.env.EXPO_PUBLIC_DEVICE_IP?.trim()
+              ? 'env'
+              : 'fallback'))
+          : 'fallback';
+
+const ocrSource: ConfigSource = appEnv === 'beta' || appEnv === 'production'
+  ? getSourceTag(extraOcrBase, process.env.OCR_MVP_BASE?.trim() || '')
+  : extraOcrBase
+    ? 'extra'
+    : (process.env.EXPO_PUBLIC_OCR_BASE?.trim() || process.env.OCR_MVP_BASE?.trim())
+      ? 'env'
+      : detectExpoHost()
+        ? 'auto-detect'
+        : (extraDeviceIp || process.env.EXPO_PUBLIC_DEVICE_IP?.trim())
+          ? ((normalizeDeviceIp(extraDeviceIp) ? 'extra'
+            : process.env.EXPO_PUBLIC_DEVICE_IP?.trim()
+              ? 'env'
+              : 'fallback'))
+          : 'fallback';
+
+const deviceIpSource: ConfigSource = extraDeviceIp
+  ? 'extra'
+  : process.env.EXPO_PUBLIC_DEVICE_IP?.trim()
+    ? 'env'
+    : detectExpoHost()
+      ? 'auto-detect'
+      : 'none';
+
+console.info(
+  '[ConfigGate]',
+  {
+    appEnv,
+    apiSource,
+    ocrSource,
+    deviceIpSource,
+    apiHost: extractHost(cfg.API_BASE),
+    ocrHost: extractHost(cfg.OCR_MVP_BASE),
+    deviceIp: normalizeDeviceIp(extraDeviceIp || process.env.EXPO_PUBLIC_DEVICE_IP?.trim()) || null,
+  },
+);
 
 export const API_BASE: string = cfg.API_BASE;
 export const OCR_MVP_BASE: string = cfg.OCR_MVP_BASE;

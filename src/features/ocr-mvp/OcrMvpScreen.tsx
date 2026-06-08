@@ -13,7 +13,7 @@ import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import { useStore } from '@/store';
 import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
-import type { ScannedPage, Dokument } from '@/store';
+import type { ScannedPage } from '@/store';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
@@ -26,6 +26,11 @@ import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 import { useT } from '@/hooks/useT';
 import { ExpoScannerProvider } from './scanner/ExpoScannerProvider';
 import type { ScannedAsset } from './scanner/types';
+import {
+  buildDraftDocument,
+  findDuplicateImportByFileSize,
+  persistImportSource,
+} from './domain/saveImportDraft';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -99,6 +104,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [earlyPersistedDocId, setEarlyPersistedDocId] = useState<string | null>(null);
   const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [saveWithoutAnalysisBusy, setSaveWithoutAnalysisBusy] = useState(false);
   const { setSuppressBanner } = useOfflineBannerSuppression();
   const timingRef = useRef<TimingMarks>({});
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -160,6 +166,90 @@ export default function OcrMvpScreen({ onClose }: Props) {
       console.warn('[OcrMvpScreen] Analysefehler (intern, nicht im UI):', error);
     }
   }, [status, error]);
+
+  const persistDraftAndSave = useCallback(async (
+    sourceUri: string,
+    fileName: string | null,
+    opts?: { existingDocId?: string | null; existingPages?: ScannedPage[] | null },
+  ): Promise<string> => {
+    if (savedDocId) return savedDocId;
+
+    let docId = opts?.existingDocId ?? earlyPersistedDocId;
+    let persistedPages = opts?.existingPages ?? earlyPersistedPages;
+
+    if (!docId || !persistedPages?.length) {
+      const persisted = await persistImportSource(docId, sourceUri);
+      docId = persisted.docId;
+      persistedPages = persisted.pages;
+      setEarlyPersistedDocId(docId);
+      setEarlyPersistedPages(persistedPages);
+    }
+
+    const duplicate = await findDuplicateImportByFileSize(state.dokumente, persistedPages);
+    if (duplicate) {
+      setSavedDocId(duplicate.id);
+      return duplicate.id;
+    }
+
+    const doc = buildDraftDocument(docId, persistedPages, fileName, sourceUri);
+    dispatch({ type: 'ADD_DOKUMENT', payload: doc });
+    setSavedDocId(doc.id);
+    return doc.id;
+  }, [
+    savedDocId,
+    earlyPersistedDocId,
+    earlyPersistedPages,
+    state.dokumente,
+    dispatch,
+  ]);
+
+  const handleSaveWithoutAnalysisFromAsset = useCallback(async (asset: ScannedAsset) => {
+    if (saveWithoutAnalysisBusy) return;
+    // Same file already saved — just open it.
+    if (savedDocId && asset.uri === selectedUri) {
+      router.push({ pathname: '/detail', params: { dokId: savedDocId, tab: 'ozet' } });
+      return;
+    }
+    setSaveWithoutAnalysisBusy(true);
+    // Replace any previous asset/draft state before persisting the new file.
+    setSelectedUri(asset.uri);
+    setSelectedFileName(asset.name ?? null);
+    setSelectedPreviewUri(asset.previewUri ?? null);
+    setSavedDocId(null);
+    setEarlyPersistedDocId(null);
+    setEarlyPersistedPages(null);
+    try {
+      // Inline persist — avoids stale-closure issue with persistDraftAndSave.
+      const persisted = await persistImportSource(null, asset.uri);
+      setEarlyPersistedDocId(persisted.docId);
+      setEarlyPersistedPages(persisted.pages);
+      const duplicate = await findDuplicateImportByFileSize(state.dokumente, persisted.pages);
+      let finalDocId: string;
+      if (duplicate) {
+        finalDocId = duplicate.id;
+      } else {
+        const doc = buildDraftDocument(persisted.docId, persisted.pages, asset.name ?? null, asset.uri);
+        dispatch({ type: 'ADD_DOKUMENT', payload: doc });
+        finalDocId = doc.id;
+      }
+      setSavedDocId(finalDocId);
+      setTiming('saveDone');
+      router.push({ pathname: '/detail', params: { dokId: finalDocId, tab: 'ozet' } });
+    } catch (e: any) {
+      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
+    } finally {
+      setSaveWithoutAnalysisBusy(false);
+    }
+  }, [
+    saveWithoutAnalysisBusy,
+    savedDocId,
+    selectedUri,
+    state.dokumente,
+    dispatch,
+    router,
+    T,
+    setTiming,
+  ]);
 
   const handleSubmit = async (
     fileUri: string,
@@ -286,51 +376,15 @@ export default function OcrMvpScreen({ onClose }: Props) {
   }, [reset]);
 
   // Fallback: OCR failed/offline — save imported file as a minimal draft document.
-  // earlyPersistedDocId/Pages are set in handleSubmit before OCR starts, so the
-  // source file is already in documentDirectory regardless of analysis outcome.
   const handleSaveAsDraft = useCallback(async () => {
-    if (savedDocId) return;
+    if (savedDocId || !selectedUri) return;
     try {
-      let docId = earlyPersistedDocId;
-      let persistedPages = earlyPersistedPages;
-
-      if (!docId || !persistedPages?.length) {
-        if (!selectedUri) return;
-        docId = generateId();
-        persistedPages = await persistScanFiles(docId, [selectedUri]);
-      }
-
-      const rawTitle = (selectedFileName ?? selectedUri?.split('/').pop() ?? 'Dokument')
-        .replace(/\.(pdf|jpe?g|png|heic|webp)$/i, '');
-
-      const doc: Dokument = {
-        id:              docId,
-        titel:           rawTitle,
-        typ:             'Sonstiges',
-        absender:        'Unbekannt',
-        zusammenfassung: null,
-        warnung:         null,
-        betrag:          null,
-        waehrung:        '€',
-        frist:           null,
-        risiko:          'niedrig',
-        aktionen:        [],
-        datum:           new Date().toISOString(),
-        gelesen:         false,
-        erledigt:        false,
-        uri:             persistedPages[0]?.uri ?? null,
-        fileRelativePath:persistedPages[0]?.relativePath ?? null,
-        pages:           persistedPages,
-        rohText:         null,
-        confidence:      null,
-      };
-
-      dispatch({ type: 'ADD_DOKUMENT', payload: doc });
+      const docId = await persistDraftAndSave(selectedUri, selectedFileName);
       setSavedDocId(docId);
     } catch (e: any) {
       Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
     }
-  }, [savedDocId, earlyPersistedDocId, earlyPersistedPages, selectedUri, selectedFileName, dispatch, T]);
+  }, [savedDocId, selectedUri, selectedFileName, persistDraftAndSave, T]);
 
   const runNewAnalysisPick = useCallback(async (pick: () => Promise<ScannedAsset | null>) => {
     scannerSessionRef.current = true;
@@ -423,7 +477,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
       <View style={[st.header, hideIdleChrome && st.headerHidden]} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
-        <Text style={st.title}>{T('ocr.upload.analyze')}</Text>
+        <Text style={st.title}>{T('ocr.upload.screen_title')}</Text>
         {onClose && (
           <IconButton onPress={onClose} accessibilityLabel={T('common.close')}>
             <Icon name="close" size={22} color={Colors.textSecondary} />
@@ -482,12 +536,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
               </TouchableOpacity>
               {(earlyPersistedDocId || selectedUri) && !savedDocId && (
                 <TouchableOpacity style={st.draftBtn} onPress={handleSaveAsDraft} activeOpacity={0.8}>
-                  <Text style={st.draftLabel}>Ohne Analyse speichern</Text>
+                  <Text style={st.draftLabel}>{T('ocr.upload.save_without_analysis')}</Text>
                 </TouchableOpacity>
               )}
               {savedDocId && (
                 <TouchableOpacity style={st.draftBtn} onPress={handleOpenDocument} activeOpacity={0.8}>
-                  <Text style={st.draftLabel}>Dokument öffnen →</Text>
+                  <Text style={st.draftLabel}>{T('ocr.upload.open_document')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -506,20 +560,23 @@ export default function OcrMvpScreen({ onClose }: Props) {
               </View>
             )}
 
-            {health === 'offline' && (
+            {health === 'offline' && status !== 'error' && status !== 'timeout' && (
               <View style={st.errorCard}>
                 <Icon name="cloud-offline-outline" size={24} color="#F59E0B" />
-                <Text style={st.errorTitle}>Analyse aktuell nicht verfügbar</Text>
-                <Text style={st.errorMsg}>
-                  Sie können trotzdem ein Foto oder Dokument auswählen. Die Analyse startet, sobald der Dienst erreichbar ist.
-                </Text>
+                <Text style={st.errorTitle}>{T('ocr.upload.offline_title')}</Text>
+                <Text style={st.errorMsg}>{T('ocr.upload.offline_body')}</Text>
                 <TouchableOpacity style={st.retryBtn} onPress={() => { resetOcrBackendCache(); checkHealth(); }} activeOpacity={0.8}>
                   <Text style={st.retryLabel}>{T('ocr.error.cta.retry')}</Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            <OcrMvpUploadBox onSubmit={handleSubmit} onScannerPresentingChange={setScannerOpen} />
+            <OcrMvpUploadBox
+              onSubmit={handleSubmit}
+              onSaveWithoutAnalysis={handleSaveWithoutAnalysisFromAsset}
+              saveWithoutAnalysisBusy={saveWithoutAnalysisBusy}
+              onScannerPresentingChange={setScannerOpen}
+            />
           </View>
         )}
       </ScrollView>
@@ -571,6 +628,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   draftBtn:      {
     marginTop: 6, paddingVertical: 10, paddingHorizontal: 28,
     backgroundColor: 'transparent', borderRadius: 12,
+    borderWidth: 1, borderColor: C.primary + '50',
   },
-  draftLabel:    { color: C.textSecondary, fontSize: 13, fontWeight: '500', textAlign: 'center' },
+  draftLabel:    { color: C.primary, fontSize: 13, fontWeight: '600', textAlign: 'center' },
 });

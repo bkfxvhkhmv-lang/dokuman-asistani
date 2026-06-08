@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
+    "android:jdk17": "bash scripts/android-jdk17.sh",
     "ios": "expo run:ios",
     "test": "node node_modules/jest-expo/bin/jest.js",
     "test:scan-core": "node node_modules/jest-expo/bin/jest.js --runInBand src/__tests__/scanStrings.test.ts src/__tests__/scanQualityProfiles.test.ts src/__tests__/scanActions.test.ts src/__tests__/useScanFlowController.test.tsx src/__tests__/useScanSessionSelection.test.tsx src/__tests__/AdvancedBatchView.test.tsx src/__tests__/SkiaManualAdjuster.test.ts src/__tests__/scanFileStorage.test.ts src/__tests__/archiveDocument.test.ts src/__tests__/storeReducers.test.ts src/__tests__/pdfManifest.test.ts",

@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
+import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
 
 import EmptyPagesModal from '@/features/detail/components/document-pages-viewer/EmptyPagesModal';
 import ViewerTopBar from '@/features/detail/components/document-pages-viewer/ViewerTopBar';
@@ -102,6 +103,8 @@ export default function DocumentPagesViewer({
     if (onShare) { onShare(); return; }
     const page = sortedPages[active];
     if (!page) return;
+    // Android share sheet pushes app to background → privacy gate arms without this bypass.
+    setPrivacyGateBypassed(true);
     try {
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
@@ -111,6 +114,8 @@ export default function DocumentPagesViewer({
       }
     } catch {
       // sessizce yut — sheet zaten kapanir
+    } finally {
+      setPrivacyGateBypassed(false);
     }
   }, [onShare, sortedPages, active]);
 

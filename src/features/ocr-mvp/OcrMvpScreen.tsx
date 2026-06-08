@@ -13,7 +13,7 @@ import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
 import { useStore } from '@/store';
 import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
-import type { ScannedPage } from '@/store';
+import type { ScannedPage, Dokument } from '@/store';
 import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
@@ -94,6 +94,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [selectedPreviewUri, setSelectedPreviewUri] = useState<string | null>(null);
   const [earlyPersistedDocId, setEarlyPersistedDocId] = useState<string | null>(null);
   const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
@@ -171,6 +172,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   ) => {
     setTiming('scanReceived');
     setSelectedUri(fileUri);
+    setSelectedFileName(fileName ?? null);
     setSelectedPreviewUri(previewUri ?? null);
     setEarlyPersistedDocId(null);
     setEarlyPersistedPages(null);
@@ -275,12 +277,60 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const handleReset = useCallback(() => {
     setSavedDocId(null);
     setSelectedUri(null);
+    setSelectedFileName(null);
     setSelectedPreviewUri(null);
     setEarlyPersistedDocId(null);
     setEarlyPersistedPages(null);
     timingRef.current = {};
     reset();
   }, [reset]);
+
+  // Fallback: OCR failed/offline — save imported file as a minimal draft document.
+  // earlyPersistedDocId/Pages are set in handleSubmit before OCR starts, so the
+  // source file is already in documentDirectory regardless of analysis outcome.
+  const handleSaveAsDraft = useCallback(async () => {
+    if (savedDocId) return;
+    try {
+      let docId = earlyPersistedDocId;
+      let persistedPages = earlyPersistedPages;
+
+      if (!docId || !persistedPages?.length) {
+        if (!selectedUri) return;
+        docId = generateId();
+        persistedPages = await persistScanFiles(docId, [selectedUri]);
+      }
+
+      const rawTitle = (selectedFileName ?? selectedUri?.split('/').pop() ?? 'Dokument')
+        .replace(/\.(pdf|jpe?g|png|heic|webp)$/i, '');
+
+      const doc: Dokument = {
+        id:              docId,
+        titel:           rawTitle,
+        typ:             'Sonstiges',
+        absender:        'Unbekannt',
+        zusammenfassung: null,
+        warnung:         null,
+        betrag:          null,
+        waehrung:        '€',
+        frist:           null,
+        risiko:          'niedrig',
+        aktionen:        [],
+        datum:           new Date().toISOString(),
+        gelesen:         false,
+        erledigt:        false,
+        uri:             persistedPages[0]?.uri ?? null,
+        fileRelativePath:persistedPages[0]?.relativePath ?? null,
+        pages:           persistedPages,
+        rohText:         null,
+        confidence:      null,
+      };
+
+      dispatch({ type: 'ADD_DOKUMENT', payload: doc });
+      setSavedDocId(docId);
+    } catch (e: any) {
+      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
+    }
+  }, [savedDocId, earlyPersistedDocId, earlyPersistedPages, selectedUri, selectedFileName, dispatch, T]);
 
   const runNewAnalysisPick = useCallback(async (pick: () => Promise<ScannedAsset | null>) => {
     scannerSessionRef.current = true;
@@ -430,6 +480,16 @@ export default function OcrMvpScreen({ onClose }: Props) {
               <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
                 <Text style={st.retryLabel}>{safeErr.ctaLabel}</Text>
               </TouchableOpacity>
+              {(earlyPersistedDocId || selectedUri) && !savedDocId && (
+                <TouchableOpacity style={st.draftBtn} onPress={handleSaveAsDraft} activeOpacity={0.8}>
+                  <Text style={st.draftLabel}>Ohne Analyse speichern</Text>
+                </TouchableOpacity>
+              )}
+              {savedDocId && (
+                <TouchableOpacity style={st.draftBtn} onPress={handleOpenDocument} activeOpacity={0.8}>
+                  <Text style={st.draftLabel}>Dokument öffnen →</Text>
+                </TouchableOpacity>
+              )}
             </View>
           );
         })()}
@@ -508,4 +568,9 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     backgroundColor: C.bgCard, borderRadius: 12, borderWidth: 1, borderColor: C.border,
   },
   retryLabel:    { color: C.text, fontSize: 14, fontWeight: '600' },
+  draftBtn:      {
+    marginTop: 6, paddingVertical: 10, paddingHorizontal: 28,
+    backgroundColor: 'transparent', borderRadius: 12,
+  },
+  draftLabel:    { color: C.textSecondary, fontSize: 13, fontWeight: '500', textAlign: 'center' },
 });

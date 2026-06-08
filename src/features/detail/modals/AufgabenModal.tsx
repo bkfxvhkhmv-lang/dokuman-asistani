@@ -31,12 +31,12 @@ export default function AufgabenModal({ visible, onClose, onAdd, modal }: Aufgab
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} activeOpacity={1} />
         <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
           <View style={{ width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20, backgroundColor: C.border }} />
-          <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>Neue Aufgabe</Text>
-          <AppInput label="Aufgabe" icon="check" placeholder="z.B. Zahlung überweisen"
+          <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>{t('detail.aufgaben.modal_title')}</Text>
+          <AppInput label={t('detail.aufgaben.title_label')} icon="check" placeholder={t('detail.aufgaben.title_placeholder')}
             value={modal.neueAufgabeTitel} onChangeText={modal.setNeueAufgabeTitel} style={{ marginBottom: 14 }} returnKeyType="next" />
           <AppInput label={t('detail.aufgaben.due_date_label')} icon="calendar" placeholder={dueDatePlaceholder}
             value={modal.neueAufgabeFrist} onChangeText={modal.setNeueAufgabeFrist} style={{ marginBottom: 14 }} returnKeyType="next" />
-          <AppInput label="Verantwortlich" icon="user" placeholder="z.B. Steuerberater"
+          <AppInput label={t('detail.aufgaben.owner_label')} icon="user" placeholder={t('detail.aufgaben.owner_placeholder')}
             value={modal.neueAufgabeVerantwortlich} onChangeText={modal.setNeueAufgabeVerantwortlich} style={{ marginBottom: 14 }} returnKeyType="done" />
           <TouchableOpacity onPress={onAdd}
             style={{ borderRadius: R.lg, padding: S.md, alignItems: 'center',
@@ -44,7 +44,7 @@ export default function AufgabenModal({ visible, onClose, onAdd, modal }: Aufgab
             accessibilityRole="button"
             accessibilityLabel={t('detail.aufgaben.add_task_a11y')}
             accessibilityState={{ disabled: !modal.neueAufgabeTitel.trim() }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Hinzufügen</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>{t('common.add')}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -64,9 +64,9 @@ export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
       >
         <Icon name="calendar-blank" size={18} color="#fff" />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>Frist ins Kalender</Text>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#fff' }}>{t('detail.deadline.banner_title')}</Text>
           <Text style={{ fontSize: 11, color: 'rgba(255,255,255,0.88)', marginTop: 2 }} numberOfLines={2}>
-            {fristStr} — Tippen zum Eintragen und lokale Erinnerungen aktivieren
+            {fristStr} — {t('detail.deadline.banner_body')}
           </Text>
         </View>
         <Icon name="caret-right" size={18} color="rgba(255,255,255,0.9)" />

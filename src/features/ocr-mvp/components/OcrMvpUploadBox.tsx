@@ -11,10 +11,17 @@ import type { OcrMvpForceType } from '@/services/ocrMvpApi';
 
 interface Props {
   onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
+  onSaveWithoutAnalysis?: (asset: ScannedAsset) => void | Promise<void>;
   onScannerPresentingChange?: (presenting: boolean) => void;
+  saveWithoutAnalysisBusy?: boolean;
 }
 
-export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }: Props) {
+export default function OcrMvpUploadBox({
+  onSubmit,
+  onSaveWithoutAnalysis,
+  onScannerPresentingChange,
+  saveWithoutAnalysisBusy = false,
+}: Props) {
   const { Colors: C } = useTheme();
   const { t: T } = useT();
   const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
@@ -96,6 +103,26 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           <Text style={[st.selectedSub, { color: C.textSecondary }]}>{T('ocr.upload.ready')}</Text>
         </View>
 
+        {onSaveWithoutAnalysis && (
+          <TouchableOpacity
+            style={[st.saveWithoutBtn, { borderColor: C.primary, backgroundColor: C.primary + '12' }]}
+            onPress={() => void onSaveWithoutAnalysis(selectedAsset)}
+            activeOpacity={0.85}
+            disabled={picking || saveWithoutAnalysisBusy}
+          >
+            {saveWithoutAnalysisBusy ? (
+              <ActivityIndicator color={C.primary} />
+            ) : (
+              <>
+                <Icon name="archive" size={18} color={C.primary} />
+                <Text style={[st.saveWithoutBtnLabel, { color: C.primary }]}>
+                  {T('ocr.upload.save_without_analysis')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={[st.primaryBtn, { backgroundColor: C.primary }]}
           onPress={() => onSubmit(
@@ -108,6 +135,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
             selectedAsset.pageCount,
           )}
           activeOpacity={0.85}
+          disabled={picking || saveWithoutAnalysisBusy}
         >
           {picking ? (
             <ActivityIndicator color="#fff" />
@@ -123,6 +151,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           style={[st.changeBtn, { borderColor: C.border }]}
           onPress={handleÄndern}
           activeOpacity={0.75}
+          disabled={saveWithoutAnalysisBusy}
         >
           <Text style={[st.changeBtnLabel, { color: C.textSecondary }]}>{T('ocr.upload.change')}</Text>
         </TouchableOpacity>
@@ -131,6 +160,7 @@ export default function OcrMvpUploadBox({ onSubmit, onScannerPresentingChange }:
           style={[st.discardBtn, { borderColor: C.border }]}
           onPress={handleDiscardSelection}
           activeOpacity={0.75}
+          disabled={saveWithoutAnalysisBusy}
         >
           <Text style={[st.discardBtnLabel, { color: C.textSecondary }]}>{T('ocr.upload.discard_selection')}</Text>
         </TouchableOpacity>
@@ -224,6 +254,11 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   thumbImage:       { width: '100%', height: '100%' },
   selectedTitle:    { fontSize: 16, fontWeight: '700', textAlign: 'center' },
   selectedSub:      { fontSize: 13 },
+  saveWithoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderRadius: 14, paddingVertical: 15, borderWidth: 1.5,
+  },
+  saveWithoutBtnLabel: { fontSize: 15, fontWeight: '700' },
   primaryBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderRadius: 14, paddingVertical: 16,

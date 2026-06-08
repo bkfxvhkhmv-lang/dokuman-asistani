@@ -64,7 +64,7 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
         onPress={onPress}
         style={[st.errorBadge, { backgroundColor: bg, borderColor: border }]}
         accessibilityRole="button"
-        accessibilityLabel="Synchronisierung fehlgeschlagen. Tippen zum Wiederholen."
+        accessibilityLabel={T('home.sync_failed_retry_a11y')}
         activeOpacity={0.75}
       >
         <Icon name="alert-circle" size={15} color={textColor} />

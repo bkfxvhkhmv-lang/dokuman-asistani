@@ -9,6 +9,7 @@ try {
 import * as Haptics from 'expo-haptics';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface SperrBildschirmProps {
   visible: boolean;
@@ -17,6 +18,7 @@ interface SperrBildschirmProps {
 
 export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschirmProps) {
   const { Colors: C } = useTheme();
+  const { t } = useT();
   const [fehler, setFehler] = useState(false);
   const [unterstuetzt, setUnterstuetzt] = useState(true);
 
@@ -82,7 +84,7 @@ export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschir
           style={st.btn}
           onPress={authentifizieren}
           accessibilityRole="button"
-          accessibilityLabel={unterstuetzt ? 'BriefPilot entsperren' : 'Erneut versuchen'}
+          accessibilityLabel={unterstuetzt ? t('lockscreen.unlock_a11y') : t('common.retry')}
         >
           <Text style={st.btnText}>
             {unterstuetzt ? '🔓  Entsperren' : '↩  Erneut versuchen'}

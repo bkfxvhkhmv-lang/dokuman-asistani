@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { Dokument } from '@/store';
 import { getTageVerbleibend, formatFrist } from '@/utils/formatters';
 
@@ -22,6 +23,7 @@ type Props = {
 
 export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
   const { Colors: C, S, R } = useTheme();
+  const { t } = useT();
   const insets = useSafeAreaInsets();
 
   if (!shouldShowDetailDeadlineBanner(dok) || !dok.frist) return null;
@@ -43,7 +45,7 @@ export default function DetailDeadlineBanner({ dok, onCalendarPress }: Props) {
         onPress={onCalendarPress}
         activeOpacity={0.92}
         accessibilityRole="button"
-        accessibilityLabel="Frist ins Kalender übernehmen"
+        accessibilityLabel={t('detail.deadline.add_to_calendar_a11y')}
         style={{
           flexDirection: 'row',
           alignItems: 'center',

@@ -114,7 +114,7 @@ export default function FirstValueScreen() {
       <TouchableOpacity
         onPress={finishActivation}
         disabled={busy === 'done'}
-        accessibilityLabel="Überspringen"
+        accessibilityLabel={t('onboarding.skip')}
         accessibilityRole="button"
         hitSlop={{ top: 8, bottom: 8, left: 16, right: 8 }}
         style={{ position: 'absolute', top: insets.top + 12, right: 22, zIndex: 10, padding: 8 }}

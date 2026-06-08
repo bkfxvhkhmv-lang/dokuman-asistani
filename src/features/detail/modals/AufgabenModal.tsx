@@ -42,7 +42,7 @@ export default function AufgabenModal({ visible, onClose, onAdd, modal }: Aufgab
             style={{ borderRadius: R.lg, padding: S.md, alignItems: 'center',
               backgroundColor: modal.neueAufgabeTitel.trim() ? C.primary : C.border }}
             accessibilityRole="button"
-            accessibilityLabel="Aufgabe hinzufügen"
+            accessibilityLabel={t('detail.aufgaben.add_task_a11y')}
             accessibilityState={{ disabled: !modal.neueAufgabeTitel.trim() }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Hinzufügen</Text>
           </TouchableOpacity>

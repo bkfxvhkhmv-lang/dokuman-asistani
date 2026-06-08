@@ -171,7 +171,7 @@ export default function OnboardingScreen() {
             onPress={confirmLang}
             activeOpacity={0.88}
             accessibilityRole="button"
-            accessibilityLabel="Weiter"
+            accessibilityLabel={T('onboarding.next_a11y')}
           >
             <Text style={st.primaryBtnText}>Weiter →</Text>
           </TouchableOpacity>

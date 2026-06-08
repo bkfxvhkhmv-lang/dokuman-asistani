@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import { useStore } from '@/store';
 import { BetaAnalytics } from '@/services/BetaAnalytics';
 import { PRIORITY_LANGS, OTHER_LANGS, DEFAULT_LANG } from '@/i18n/langConfig';
@@ -25,6 +26,7 @@ import { processSharedFile, normaliseSharedUri } from '@/services/ShareUploadSer
  */
 export default function OnboardingScreen() {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { state, dispatch } = useStore();
@@ -224,7 +226,7 @@ export default function OnboardingScreen() {
           disabled={picking}
         >
           <Text style={{ fontSize: 13, color: C.textTertiary }}>
-            Demo ansehen — <Text style={{ color: C.primary, fontWeight: '700' }}>ohne Scan</Text>
+            {T('onboarding.demo_link')}<Text style={{ color: C.primary, fontWeight: '700' }}>{T('onboarding.demo_link_highlight')}</Text>
           </Text>
         </TouchableOpacity>
 
@@ -235,7 +237,7 @@ export default function OnboardingScreen() {
 
       <TouchableOpacity onPress={finishToLoginOnly} style={{ alignItems: 'center', paddingTop: 6 }} disabled={picking}>
         <Text style={{ fontSize: 13, color: C.textTertiary }}>
-          Ich habe schon ein Konto — <Text style={{ color: C.primary, fontWeight: '800' }}>Anmelden</Text>
+          {T('onboarding.have_account_prefix')}<Text style={{ color: C.primary, fontWeight: '800' }}>{T('auth.login')}</Text>
         </Text>
       </TouchableOpacity>
     </View>

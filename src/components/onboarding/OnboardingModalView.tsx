@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { useT } from '@/hooks/useT';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_SLIDE_WIDTH } from '@/components/onboarding/onboarding.constants';
 import { ONBOARDING_SLIDES } from '@/components/onboarding/onboarding.slides';
@@ -11,6 +12,7 @@ import { OnboardingSlideDemo } from '@/components/onboarding/onboarding.demos';
 const W = ONBOARDING_SLIDE_WIDTH;
 
 export default function OnboardingModalView({ visible, onFertig }: OnboardingModalProps) {
+  const { t } = useT();
   const [aktiv, setAktiv] = useState(0);
   const scrollRef = useRef<ScrollView | null>(null);
   const insets = useSafeAreaInsets();
@@ -46,7 +48,7 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
       <View style={[st.container, { backgroundColor: slide.farbe }]}>
         {aktiv < slides.length - 1 ? (
           <TouchableOpacity style={[st.atla, { top: topOffset }]} onPress={handleUeberspringen}>
-            <Text style={st.atlaText}>Überspringen</Text>
+            <Text style={st.atlaText}>{t('onboarding.skip')}</Text>
           </TouchableOpacity>
         ) : null}
         <View style={[st.counter, { top: topOffset }]}>

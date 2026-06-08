@@ -92,7 +92,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
 
           <View style={[st.header, { borderColor: C.border }]}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>Dokument fragen</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>{T('chat.document_title')}</Text>
               {dok?.absender ? (
                 <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 1 }} numberOfLines={1}>
                   {dok.absender} · {dok.typ}

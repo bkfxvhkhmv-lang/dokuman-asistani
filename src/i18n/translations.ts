@@ -1493,6 +1493,12 @@ const de: Dict = {
   'home.list_search.placeholder':         'Dokumente durchsuchen…',
   'home.list_search.no_results':          'Keine Dokumente gefunden',
   'home.list_search.clear_a11y':          'Suche löschen',
+  'onboarding.skip':                      'Überspringen',
+  'onboarding.decide_later':              'Später entscheiden',
+  'onboarding.demo_link':                 'Demo ansehen — ',
+  'onboarding.demo_link_highlight':       'ohne Scan',
+  'onboarding.have_account_prefix':       'Ich habe schon ein Konto — ',
+  'chat.document_title':                  'Dokument fragen',
 };
 
 const tr: Dict = {
@@ -2547,6 +2553,12 @@ const tr: Dict = {
   'home.list_search.placeholder':         'Belgeleri ara…',
   'home.list_search.no_results':          'Belge bulunamadı',
   'home.list_search.clear_a11y':          'Aramayı temizle',
+  'onboarding.skip':                      'Atla',
+  'onboarding.decide_later':              'Sonra karar ver',
+  'onboarding.demo_link':                 'Demoyu görüntüle — ',
+  'onboarding.demo_link_highlight':       'tarama yapmadan',
+  'onboarding.have_account_prefix':       'Zaten hesabım var — ',
+  'chat.document_title':                  'Belgeye sor',
 };
 
 const en: Dict = {
@@ -3213,6 +3225,12 @@ const en: Dict = {
   'home.list_search.placeholder':         'Search documents…',
   'home.list_search.no_results':          'No documents found',
   'home.list_search.clear_a11y':          'Clear search',
+  'onboarding.skip':                      'Skip',
+  'onboarding.decide_later':              'Decide later',
+  'onboarding.demo_link':                 'View demo — ',
+  'onboarding.demo_link_highlight':       'no scan',
+  'onboarding.have_account_prefix':       'Already have an account — ',
+  'chat.document_title':                  'Ask document',
 
   ...RUNTIME_SWEEP_FALLBACK,
 };
@@ -3883,6 +3901,12 @@ const fr: Dict = {
   'home.list_search.placeholder':         'Rechercher des documents…',
   'home.list_search.no_results':          'Aucun document trouvé',
   'home.list_search.clear_a11y':          'Effacer la recherche',
+  'onboarding.skip':                      'Passer',
+  'onboarding.decide_later':              'Décider plus tard',
+  'onboarding.demo_link':                 'Voir la démo — ',
+  'onboarding.demo_link_highlight':       'sans scanner',
+  'onboarding.have_account_prefix':       "J'ai déjà un compte — ",
+  'chat.document_title':                  'Interroger le document',
 
 };
 
@@ -4553,6 +4577,12 @@ const es: Dict = {
   'home.list_search.placeholder':         'Buscar documentos…',
   'home.list_search.no_results':          'No se encontraron documentos',
   'home.list_search.clear_a11y':          'Borrar búsqueda',
+  'onboarding.skip':                      'Omitir',
+  'onboarding.decide_later':              'Decidir luego',
+  'onboarding.demo_link':                 'Ver demo — ',
+  'onboarding.demo_link_highlight':       'sin escanear',
+  'onboarding.have_account_prefix':       'Ya tengo una cuenta — ',
+  'chat.document_title':                  'Consultar documento',
 
 };
 
@@ -5223,6 +5253,12 @@ const ru: Dict = {
   'home.list_search.placeholder':         'Поиск документов…',
   'home.list_search.no_results':          'Документы не найдены',
   'home.list_search.clear_a11y':          'Очистить поиск',
+  'onboarding.skip':                      'Пропустить',
+  'onboarding.decide_later':              'Решить позже',
+  'onboarding.demo_link':                 'Смотреть демо — ',
+  'onboarding.demo_link_highlight':       'без сканирования',
+  'onboarding.have_account_prefix':       'Уже есть аккаунт — ',
+  'chat.document_title':                  'Спросить документ',
 
 };
 
@@ -5893,6 +5929,12 @@ const ar: Dict = {
   'home.list_search.placeholder':         'البحث في المستندات…',
   'home.list_search.no_results':          'لم يتم العثور على مستندات',
   'home.list_search.clear_a11y':          'مسح البحث',
+  'onboarding.skip':                      'تخطي',
+  'onboarding.decide_later':              'تقرر لاحقاً',
+  'onboarding.demo_link':                 'مشاهدة العرض — ',
+  'onboarding.demo_link_highlight':       'بدون مسح',
+  'onboarding.have_account_prefix':       'لدي حساب بالفعل — ',
+  'chat.document_title':                  'اسأل المستند',
 
 };
 

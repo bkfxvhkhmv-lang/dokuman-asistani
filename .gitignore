@@ -1,5 +1,7 @@
 .expo/
 .env
+.env.*
+!.env.example
 .env.local
 .DS_Store
 
@@ -11,7 +13,9 @@ node_modules/
 
 # Yerel araç çıktıları (EPS vb. yanlış adla köke düşmesin diye ayırılmış varlıklar)
 _artifacts/
+_audit/
 _backup/
+_legacy_backups/
 
 # ── OCR / ML Binary Artifacts (Git'e GİRMEZ) ──────────────────────────────
 *.tar.gz
@@ -45,6 +49,10 @@ ios/opencv2.framework/
 
 # Local device build script — hardcoded device UUID + Team ID, machine-specific
 build_device.sh
+
+# Android build outputs
+android/app/build/
+android/app/src/main/assets/index.android.bundle
 
 # Android Metro-bundler generated image assets (build-time output, NOT splash logos)
 android/app/src/main/res/drawable-*/node_modules_*

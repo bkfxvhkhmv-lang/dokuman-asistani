@@ -15,7 +15,10 @@
     "plugins": [
       [
         "expo-notifications",
-        { "defaultChannel": "briefpilot_default", "color": "#2563eb" }
+        {
+          "defaultChannel": "briefpilot_default",
+          "color": "#2563eb"
+        }
       ],
       "expo-router",
       "expo-font",
@@ -54,7 +57,16 @@
       "APP_ENV": "device",
       "googleAndroidClientId": "",
       "googleWebClientId": "",
-      "googleIosClientId": ""
-    }
+      "googleIosClientId": "",
+      "supabaseUrl": "",
+      "API_BASE": "",
+      "OCR_MVP_BASE": "",
+      "EXPO_PUBLIC_DEVICE_IP": "",
+      "router": {},
+      "eas": {
+        "projectId": "bd277d62-9b5d-41cf-a595-bfedf21b769e"
+      }
+    },
+    "owner": "baygul73"
   }
 }

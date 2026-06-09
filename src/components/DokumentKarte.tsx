@@ -13,6 +13,7 @@ import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
 import { useT } from '@/hooks/useT';
 import { needsManualReview } from '@/utils/documentGuards';
 import { resolveDisplayDocumentType } from '@/constants/docTypeConfig';
+import DemoTrustLabel from '@/components/DemoTrustLabel';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const isDone      = dok.erledigt;
   const a11yLabel = [
     localizedType, displayTitel, displayAbsender || dok.absender,
+    dok.isDemo ? T('demo.trust_label') : null,
     isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
     typeof dok.betrag === 'number' && dok.betrag > 0 ? `${dok.betrag.toFixed(2)} Euro` : null,
   ].filter(Boolean).join(', ');
@@ -183,6 +185,12 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
         </Text>
       )}
 
+      {dok.isDemo ? (
+        <View style={styles.demoTrustRow}>
+          <DemoTrustLabel />
+        </View>
+      ) : null}
+
       {/* Footer */}
       <View style={styles.footer}>
         {typeof dok.betrag === 'number' && dok.betrag !== 0 ? (
@@ -194,11 +202,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
           </View>
         ) : <View />}
 
-        {dok.isDemo ? (
-          <View style={[styles.demoBadge, { backgroundColor: Colors.primaryLight, borderColor: Colors.primary + '33' }]}>
-            <Text style={[styles.demoBadgeText, { color: Colors.primaryDark }]}>DEMO</Text>
-          </View>
-        ) : !!dok.workflowStamp && workflowTone ? (
+        {!dok.isDemo && !!dok.workflowStamp && workflowTone ? (
           <View style={[styles.workflowBox, { backgroundColor: workflowTone.bg }]}>
             <View style={[styles.workflowDot, { backgroundColor: workflowTone.text }]} />
             <Text style={[styles.workflowStamp, { color: workflowTone.text }]}>
@@ -241,8 +245,7 @@ const styles = StyleSheet.create({
   workflowBox:   { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '60%', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
   workflowDot:   { width: 6, height: 6, borderRadius: 3 },
   workflowStamp: { fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
-  demoBadge:     { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
-  demoBadgeText: { fontSize: 9, fontWeight: '600', letterSpacing: 0.3 },
+  demoTrustRow:  { marginBottom: 8 },
   nextStepBox:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
   nextStepText:  { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
   urgencyBox:    { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },

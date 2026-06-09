@@ -88,3 +88,36 @@ export function buildPdfExportBasename(dok: Dokument): string {
     dueDate: dok.frist,
   });
 }
+
+const SHARE_FALLBACK_BASENAME = 'Dokument';
+
+/** Extension from stored page URI (query string stripped). */
+export function inferShareFileExtension(sourceUri: string): string {
+  const path = (sourceUri || '').split('?')[0].toLowerCase();
+  if (path.endsWith('.pdf')) return '.pdf';
+  if (path.endsWith('.jpeg')) return '.jpeg';
+  if (path.endsWith('.jpg')) return '.jpg';
+  if (path.endsWith('.png')) return '.png';
+  if (path.endsWith('.webp')) return '.webp';
+  return '.pdf';
+}
+
+export interface PageShareFilenameInput {
+  dok?: Pick<Dokument, 'absender' | 'titel' | 'typ' | 'datum' | 'frist'> | null;
+  pageIndex: number;
+  pageCount: number;
+  sourceUri: string;
+}
+
+/** Human-readable share filename for a document page (preserves source extension). */
+export function buildPageShareFilename(input: PageShareFilenameInput): string {
+  const ext = inferShareFileExtension(input.sourceUri);
+  const base = input.dok
+    ? buildPdfExportBasename(input.dok as Dokument)
+    : SHARE_FALLBACK_BASENAME;
+  const stem =
+    input.pageCount > 1
+      ? `${base}_Seite_${input.pageIndex + 1}`
+      : base;
+  return `${stem}${ext}`;
+}

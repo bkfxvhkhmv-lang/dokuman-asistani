@@ -20,7 +20,7 @@ export interface SucheDemo {
 
 export interface PrivatDemo {
   type: 'privat';
-  punkte: { icon: string; text: string }[];
+  punkte: { icon: string; text?: string; textKey?: string }[];
 }
 
 export type SlideDemo = ScanDemo | RisikoDemo | FristenDemo | SucheDemo | PrivatDemo;
@@ -29,7 +29,8 @@ export interface Slide {
   id: string;
   emoji: string;
   titel: string;
-  text: string;
+  text?: string;
+  textKey?: string;
   farbe: string;
   demo: SlideDemo | null;
 }

@@ -51,14 +51,12 @@ export const ONBOARDING_SLIDES: Slide[] = [
   },
   {
     id: 'privat', emoji: '🔒', titel: 'Sicher & privat', farbe: '#2C6FAC',
-    text: 'Alle Daten bleiben auf Ihrem Gerät. Face ID Schutz, automatische Sicherung, kein Cloud-Zwang.',
+    textKey: 'onboarding.privacy.body',
     demo: {
       type: 'privat',
       punkte: [
-        { icon: '📱', text: 'Alle Daten lokal auf Ihrem Gerät' },
-        { icon: '🔐', text: 'Face ID / PIN App-Sperre' },
-        { icon: '💾', text: 'Automatische JSON-Sicherung' },
-        { icon: '🇩🇪', text: 'OCR nur über EU-konforme API' },
+        { icon: '⚠️', textKey: 'onboarding.privacy.device_loss' },
+        { icon: '☁️', textKey: 'onboarding.privacy.cloud_optional' },
       ],
     },
   },

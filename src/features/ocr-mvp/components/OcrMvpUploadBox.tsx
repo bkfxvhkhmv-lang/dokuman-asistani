@@ -8,6 +8,7 @@ import { useT } from '@/hooks/useT';
 import { ExpoScannerProvider } from '../scanner/ExpoScannerProvider';
 import type { ScannedAsset } from '../scanner/types';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
+import { toUserFacingOcrMessage } from '../domain/userFacingErrors';
 
 interface Props {
   onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
@@ -35,7 +36,7 @@ export default function OcrMvpUploadBox({
       if (!asset) return;
       setSelectedAsset(asset);
     } catch (e: any) {
-      Alert.alert(T('ocr.upload.scan_error_title'), e?.message ?? T('ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
+      Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(e?.message, T, 'ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
     } finally {
       setPicking(false);
       requestAnimationFrame(() => {

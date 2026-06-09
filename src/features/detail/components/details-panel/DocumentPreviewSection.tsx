@@ -44,7 +44,8 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           <Pdf
             source={{ uri: dok.uri, cache: true }}
             style={{ width: imgSize.w || 300, height: imgSize.h || 300 }}
-            singlePage
+            page={1}
+            fitPolicy={2}
             onLoadComplete={(n) => setPdfPageCount(n)}
           />
         )
@@ -113,9 +114,9 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           {isPdfDoc && (
             <View style={{ backgroundColor: C.primary + '18', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 }}>
               <Text style={{ fontSize: 9, fontWeight: '700', color: C.primary, letterSpacing: 0.4 }}>
-                {pdfPageCount > 1
+                {Platform.OS !== 'android' && pdfPageCount > 1
                   ? `PDF · ${pdfPageCount} Seiten`
-                  : pdfPageCount === 1
+                  : Platform.OS !== 'android' && pdfPageCount === 1
                     ? 'PDF · 1 Seite'
                     : 'PDF'}
               </Text>

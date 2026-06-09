@@ -13,11 +13,11 @@ import { useT } from '@/hooks/useT';
 
 type Severity = 'fehler' | 'unklar' | 'verbesserung' | 'lob';
 
-const SEVERITY_OPTIONS: { id: Severity; emoji: string; labelKey: string; descKey: string }[] = [
-  { id: 'fehler',       emoji: '🔴', labelKey: 'feedback.severity.error',       descKey: 'feedback.severity.error_desc' },
-  { id: 'unklar',       emoji: '🟡', labelKey: 'feedback.severity.unclear',     descKey: 'feedback.severity.unclear_desc' },
-  { id: 'verbesserung', emoji: '🟢', labelKey: 'feedback.severity.improvement', descKey: 'feedback.severity.improvement_desc' },
-  { id: 'lob',          emoji: '💙', labelKey: 'feedback.severity.praise',      descKey: 'feedback.severity.praise_desc' },
+const SEVERITY_OPTIONS: { id: Severity; color: string; labelKey: string; descKey: string }[] = [
+  { id: 'fehler',       color: '#EE6055', labelKey: 'feedback.severity.error',       descKey: 'feedback.severity.error_desc' },
+  { id: 'unklar',       color: '#FFB703', labelKey: 'feedback.severity.unclear',     descKey: 'feedback.severity.unclear_desc' },
+  { id: 'verbesserung', color: '#1D9E75', labelKey: 'feedback.severity.improvement', descKey: 'feedback.severity.improvement_desc' },
+  { id: 'lob',          color: '#4361EE', labelKey: 'feedback.severity.praise',      descKey: 'feedback.severity.praise_desc' },
 ];
 
 const SCREENS = [
@@ -82,11 +82,11 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
 
     const screenLabel = screen.startsWith('feedback.screen.') ? t(screen) : screen;
     const subject = encodeURIComponent(
-      `[BriefPilot ${sevOpt.emoji} ${t(sevOpt.labelKey)}] ${screenLabel || t('feedback.screen.general')} — v${version}`
+      `[BriefPilot ${t(sevOpt.labelKey)}] ${screenLabel || t('feedback.screen.general')} — v${version}`
     );
 
     const body = encodeURIComponent([
-      `${t('feedback.field.category')}: ${sevOpt.emoji} ${t(sevOpt.labelKey)}`,
+      `${t('feedback.field.category')}: ${t(sevOpt.labelKey)}`,
       `${t('feedback.field.screen')}: ${screenLabel || '—'}`,
       '',
       `${t('feedback.field.feedback')}:`,
@@ -150,7 +150,7 @@ export default function FeedbackModal({ visible, onClose, initialScreen }: Feedb
                     },
                   ]}
                 >
-                  <Text style={{ fontSize: 16 }}>{opt.emoji}</Text>
+                  <View style={{ width: 10, height: 10, borderRadius: 999, backgroundColor: opt.color }} />
                   <View>
                     <Text style={[st.pillLabel, { color: active ? C.primaryDark : C.text, fontSize: fs(13) }]}>
                       {t(opt.labelKey)}

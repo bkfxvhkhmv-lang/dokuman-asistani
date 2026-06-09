@@ -138,7 +138,7 @@ export default function Suchbildschirm() {
     cancelSelection();
 
     let undone = false;
-    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 3000);
+    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 5000);
 
     showSheet({
       title:   t('modal.delete.pending_title'),

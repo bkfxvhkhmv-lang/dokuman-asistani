@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE } from '@/config';
-import { clearSupabaseAccessToken, getSupabaseAccessToken } from '@/services/supabaseJwtBridge';
+import { clearSupabaseAccessToken, getSupabaseAccessToken, setSupabaseAccessToken } from '@/services/supabaseJwtBridge';
+import { supabase } from '@/lib/supabase';
 
 const BASE         = API_BASE;
 const ACCESS_KEY   = 'bp_access_token';
@@ -106,15 +107,32 @@ async function post<T>(path: string, body: Record<string, unknown>): Promise<T> 
 }
 
 export async function registerUser(email: string, password: string): Promise<AuthTokens> {
-  const data = await post<AuthTokens>('/auth/register', { email, password });
-  await saveTokens(data);
-  return data;
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw new Error(error.message);
+  if (!data.session) throw new Error('E-Mail-Bestätigung erforderlich');
+  const tokens: AuthTokens = {
+    access_token:  data.session.access_token,
+    refresh_token: data.session.refresh_token,
+    user_id:       data.session.user.id,
+    email:         data.session.user.email,
+  };
+  await saveTokens(tokens);
+  await setSupabaseAccessToken(data.session.access_token);
+  return tokens;
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthTokens> {
-  const data = await post<AuthTokens>('/auth/login', { email, password });
-  await saveTokens(data);
-  return data;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error(error.message);
+  const tokens: AuthTokens = {
+    access_token:  data.session.access_token,
+    refresh_token: data.session.refresh_token,
+    user_id:       data.session.user.id,
+    email:         data.session.user.email,
+  };
+  await saveTokens(tokens);
+  await setSupabaseAccessToken(data.session.access_token);
+  return tokens;
 }
 
 // Mutex: a single in-flight refresh promise shared across all concurrent callers.
@@ -151,13 +169,7 @@ export async function resetPassword(reset_token: string, new_password: string): 
 }
 
 export async function logoutUser(): Promise<void> {
-  const token = await getAccessToken();
-  if (token) {
-    fetch(`${BASE}/auth/logout`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-    }).catch(() => null);
-  }
+  await supabase.auth.signOut().catch(() => null);
   await clearTokens();
 }
 

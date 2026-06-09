@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, AppState, Animated, type AppStateStatus, Easing } from 'react-native';
+import { View, Text, StyleSheet, AppState, Animated, BackHandler, Platform, type AppStateStatus, Easing } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { LiveScannerView } from '@/modules/scanner/engine/LiveScannerView';
 import PermissionView from '@/features/scan/components/PermissionView';
@@ -14,6 +14,7 @@ import type { CameraViewProps } from '@/features/scan/components/camera-view/typ
 import { runQualityGateFromCorners } from '@/modules/scanner/engine/camera-quality-gate';
 import { getStatusText } from '@/modules/scanner/engine/camera-overlay-color';
 import { useT } from '@/hooks/useT';
+import { confirmCameraClose } from '@/features/scan/components/camera-view/confirmCameraClose';
 
 export type {
   StabilityState,
@@ -135,6 +136,18 @@ export default function CameraView(props: CameraViewProps) {
       if (captureToastTimerRef.current) clearTimeout(captureToastTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (pageCount > 0) {
+        confirmCameraClose(pageCount, onClose, T);
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [pageCount, onClose, T]);
 
   // Guide pulse — breathes while searching (no corners detected)
   const guidePulse = useRef(new Animated.Value(1)).current;

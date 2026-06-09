@@ -40,14 +40,14 @@
       "ios": {
         "appleId": "zeynepguel1977@gmail.com",
         "ascAppId": "com.briefpilot.app",
-        "appleTeamId": "FILL_IN"
+        "appleTeamId": "4ZJBLHHFL6"
       }
     },
     "production": {
       "ios": {
         "appleId": "zeynepguel1977@gmail.com",
         "ascAppId": "com.briefpilot.app",
-        "appleTeamId": "FILL_IN"
+        "appleTeamId": "4ZJBLHHFL6"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",

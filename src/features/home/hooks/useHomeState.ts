@@ -237,7 +237,7 @@ export function useHomeState() {
     setSecilenIds(new Set());
 
     let undone = false;
-    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 3000);
+    const undoTimer = setTimeout(() => { if (!undone) hideSheet(); }, 5000);
 
     showSheet({
       title:   `${snapshots.length} Dokument${snapshots.length !== 1 ? 'e' : ''} gelöscht`,

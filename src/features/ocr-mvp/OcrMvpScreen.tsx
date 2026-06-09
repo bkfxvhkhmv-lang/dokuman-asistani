@@ -31,6 +31,7 @@ import {
   findDuplicateImportByFileSize,
   persistImportSource,
 } from './domain/saveImportDraft';
+import { toUserFacingOcrMessage } from './domain/userFacingErrors';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -236,7 +237,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       setTiming('saveDone');
       router.push({ pathname: '/detail', params: { dokId: finalDocId, tab: 'ozet' } });
     } catch (e: any) {
-      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
+      Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     } finally {
       setSaveWithoutAnalysisBusy(false);
     }
@@ -353,7 +354,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
         },
       }).catch((e) => console.warn('[learning] accepted snapshot failed', e));
     } catch (e: any) {
-      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
+      Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
   }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
 
@@ -382,7 +383,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       const docId = await persistDraftAndSave(selectedUri, selectedFileName);
       setSavedDocId(docId);
     } catch (e: any) {
-      Alert.alert(T('ocr.save.error.title'), e?.message ?? T('ocr.save.error.generic'));
+      Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
   }, [savedDocId, selectedUri, selectedFileName, persistDraftAndSave, T]);
 
@@ -405,7 +406,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
         asset.pageCount,
       );
     } catch (e: any) {
-      Alert.alert(T('ocr.upload.scan_error_title'), e?.message ?? T('ocr.upload.scan_error_body'));
+      Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(e?.message, T, 'ocr.upload.scan_error_body'));
     } finally {
       scannerSessionRef.current = false;
       requestAnimationFrame(() => requestAnimationFrame(() => setScannerOpen(false)));
@@ -528,9 +529,6 @@ export default function OcrMvpScreen({ onClose }: Props) {
               <Icon name={safeErr.icon} size={24} color="#F59E0B" />
               <Text style={st.errorTitle}>{safeErr.title}</Text>
               <Text style={st.errorMsg}>{safeErr.body}</Text>
-              {__DEV__ && error && (
-                <Text style={st.errorDebug}>{error}</Text>
-              )}
               <TouchableOpacity style={st.retryBtn} onPress={handleReset} activeOpacity={0.8}>
                 <Text style={st.retryLabel}>{safeErr.ctaLabel}</Text>
               </TouchableOpacity>
@@ -619,7 +617,6 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
   },
   errorTitle:    { color: C.text, fontSize: 16, fontWeight: '700', textAlign: 'center' },
   errorMsg:      { color: C.textSecondary, fontSize: 13, textAlign: 'center', lineHeight: 20 },
-  errorDebug:    { color: C.textTertiary, fontSize: 11, textAlign: 'center', fontFamily: 'monospace', marginTop: 4 },
   retryBtn:      {
     marginTop: 8, paddingVertical: 10, paddingHorizontal: 28,
     backgroundColor: C.bgCard, borderRadius: 12, borderWidth: 1, borderColor: C.border,

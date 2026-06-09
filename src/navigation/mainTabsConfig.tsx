@@ -21,7 +21,7 @@ interface TabIconProps {
 
 export interface MainTabDefinition {
   name: string;
-  options: (colors: TabColors) => Record<string, unknown>;
+  options: (colors: TabColors, t: (key: string) => string) => Record<string, unknown>;
 }
 
 function TabIcon({ name, focused, color, colors }: TabIconProps) {
@@ -172,8 +172,8 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
 export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'index',
-    options: (colors: TabColors) => ({
-      tabBarLabel: 'Dokumente',
+    options: (colors, t) => ({
+      tabBarLabel: t('tab.documents'),
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="files" focused={focused} color={color} colors={colors} />
       ),
@@ -181,8 +181,8 @@ export const MAIN_TABS: MainTabDefinition[] = [
   },
   {
     name: 'Suche',
-    options: (colors: TabColors) => ({
-      tabBarLabel: 'Suche',
+    options: (colors, t) => ({
+      tabBarLabel: t('tab.search'),
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="magnifying-glass" focused={focused} color={color} colors={colors} />
       ),
@@ -190,8 +190,8 @@ export const MAIN_TABS: MainTabDefinition[] = [
   },
   {
     name: 'Kamera',
-    options: (colors: TabColors) => ({
-      tabBarLabel: 'Scan',
+    options: (colors, t) => ({
+      tabBarLabel: t('tab.scan'),
       tabBarStyle: { display: 'none' },
       tabBarIcon: ({ focused }: { focused: boolean; color: string }) => (
         <ScanTabIcon focused={focused} colors={colors} />
@@ -212,8 +212,8 @@ export const MAIN_TABS: MainTabDefinition[] = [
   },
   {
     name: 'Profil',
-    options: (colors: TabColors) => ({
-      tabBarLabel: 'Einstellungen',
+    options: (colors, t) => ({
+      tabBarLabel: t('tab.settings'),
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="gear" focused={focused} color={color} colors={colors} />
       ),

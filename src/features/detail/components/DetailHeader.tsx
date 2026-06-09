@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
 import { useT } from '@/hooks/useT';
+import DemoTrustLabel from '@/components/DemoTrustLabel';
 
 interface DetailHeaderProps {
   onBack: () => void;
   anonModus?: boolean;
+  isDemo?: boolean;
   /** Mindestens eine lokale Erinnerung für dieses Dokument aktiv (Session) */
   erinnerungAktiv?: boolean;
 }
@@ -14,6 +16,7 @@ interface DetailHeaderProps {
 export default function DetailHeader({
   onBack,
   anonModus,
+  isDemo = false,
   erinnerungAktiv = false,
 }: DetailHeaderProps) {
   const { Colors: C, S } = useTheme();
@@ -55,6 +58,8 @@ export default function DetailHeader({
         ) : null}
         <View style={{ flex: 1 }} />
       </View>
+
+      {isDemo ? <DemoTrustLabel variant="banner" /> : null}
 
       {anonModus && (
         <View style={{

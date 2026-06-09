@@ -1,8 +1,8 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { useTheme } from '../ThemeContext';
-import { MAIN_TABS } from './mainTabsConfig';
-import CustomBottomTab from './CustomBottomTab';
+import { useTheme } from '@/ThemeContext';
+import { MAIN_TABS } from '@/navigation/mainTabsConfig';
+import CustomBottomTab from '@/navigation/CustomBottomTab';
 
 export default function MainTabs() {
   const { Colors } = useTheme();
@@ -14,6 +14,7 @@ export default function MainTabs() {
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textTertiary,
         headerShown: false,
+        lazy: true,
       }}
     >
       {MAIN_TABS.map(tab => (

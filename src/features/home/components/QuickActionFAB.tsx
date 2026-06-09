@@ -7,7 +7,7 @@ import Animated, {
   interpolate,
   Extrapolation,
 } from 'react-native-reanimated';
-import { useTheme } from '../../../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 import * as Haptics from 'expo-haptics';
 
 export interface FABAction {

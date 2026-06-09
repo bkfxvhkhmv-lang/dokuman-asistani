@@ -3,9 +3,9 @@ import {
   TouchableOpacity, Text, StyleSheet,
   ActivityIndicator, Animated, View,
 } from 'react-native';
-import { useTheme } from '../../ThemeContext';
-import Icon from '../../components/Icon';
-import { Motion } from '../motion';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import { Motion } from '@/design/motion';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 

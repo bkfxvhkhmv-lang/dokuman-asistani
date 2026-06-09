@@ -1,5 +1,5 @@
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-import type { ProfileSpec } from './compressionProfiles';
+import type { ProfileSpec } from '@/core/pdf/compressionProfiles';
 
 export interface NormalizeResult {
   uri: string;

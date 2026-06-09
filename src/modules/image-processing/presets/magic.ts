@@ -1,5 +1,5 @@
-import { BasePresetFilter } from './base';
-import { getSharedFilterPipeline } from '../engine/FilterPipeline';
+import { BasePresetFilter } from '@/modules/image-processing/presets/base';
+import { getSharedFilterPipeline } from '@/modules/image-processing/engine/FilterPipeline';
 
 export class MagicFilter extends BasePresetFilter {
   id = 'magic';

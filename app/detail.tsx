@@ -1,3 +1,1 @@
-import DetailScreen from '../src/features/detail';
-
-export default DetailScreen;
+export { default } from '@/features/detail/detail-screen/DetailRouteGate';

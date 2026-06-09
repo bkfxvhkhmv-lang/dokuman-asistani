@@ -1,3 +1,3 @@
-export { SensitiveDataDetector } from './engine/SensitiveDataDetector';
-export { BlurEngine } from './engine/BlurEngine';
-export * from './types';
+export { SensitiveDataDetector } from '@/modules/security/engine/SensitiveDataDetector';
+export { BlurEngine } from '@/modules/security/engine/BlurEngine';
+export * from '@/modules/security/types';

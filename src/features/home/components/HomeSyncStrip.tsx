@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View, Text, StyleSheet, Animated } from 'react-native';
-import Icon from '../../../components/Icon';
-import { Shadow } from '../../../theme';
-import type { ThemeColors } from '../../../ThemeContext';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import Icon from '@/components/Icon';
+import { Shadow } from '@/theme';
+import { useT } from '@/hooks/useT';
+import type { ThemeColors } from '@/ThemeContext';
 
 interface HomeSyncStripProps {
   colors: ThemeColors;
@@ -11,7 +12,20 @@ interface HomeSyncStripProps {
   onPress: () => void;
 }
 
+function formatSyncTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const now = Date.now();
+    const diff = Math.floor((now - d.getTime()) / 60000);
+    if (diff < 1)  return 'gerade eben';
+    if (diff < 60) return `vor ${diff} Min.`;
+    if (diff < 120) return 'vor 1 Std.';
+    return d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  } catch { return ''; }
+}
+
 export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress }: HomeSyncStripProps) {
+  const { t: T } = useT();
   const pulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -29,63 +43,59 @@ export default function HomeSyncStrip({ colors, syncStatus, letzterSync, onPress
     }
   }, [syncStatus]);
 
-  if (syncStatus === 'idle') return null;
+  if (!syncStatus || syncStatus === 'idle' || syncStatus === 'ok' || syncStatus === 'success' || syncStatus === 'synced') return null;
 
-  const isError  = syncStatus === 'error';
-  const isOk     = syncStatus === 'ok';
+  const isError   = syncStatus === 'error';
+  // Don't alarm on first-ever sync failure — only meaningful after a prior success.
+  if (isError && !letzterSync) return null;
   const isSyncing = syncStatus === 'syncing';
 
-  const accent = isError ? colors.danger : isOk ? colors.success : colors.primary;
-  const bg     = isError ? colors.dangerLight : isOk ? colors.successLight : colors.primaryLight;
-  const border = isError ? colors.dangerBorder : isOk ? `${colors.success}44` : `${colors.primary}33`;
-  const textColor = isError ? colors.danger : isOk ? colors.successText || colors.success : colors.primaryDark;
+  const accent    = isError ? colors.danger : colors.primary;
+  const bg        = isError ? colors.dangerLight : colors.primaryLight;
+  const border    = isError ? colors.dangerBorder : `${colors.primary}33`;
+  const textColor = isError ? colors.danger : colors.primaryDark;
 
-  const iconName = isSyncing ? 'sync-outline' : isOk ? 'checkmark' : 'warning-outline';
-  const label = isSyncing
-    ? 'Synchronisierung läuft…'
-    : isOk
-    ? `Synchronisiert${letzterSync ? '  ·  ' + letzterSync : ''}`
-    : 'Synchronisierung fehlgeschlagen — tippen zum Wiederholen';
-
-  const strip = (
-    <View style={[st.pill, { backgroundColor: bg, borderColor: border }]}>
-      <Animated.View style={[st.dot, { backgroundColor: accent, opacity: isSyncing ? pulse : 1 }]} />
-      <Icon name={iconName} size={11} color={textColor} />
-      <Text style={[st.label, { color: textColor }]} numberOfLines={1}>{label}</Text>
-    </View>
-  );
+  const syncedAt = letzterSync ? `  ·  ${formatSyncTime(letzterSync)}` : '';
+  const label    = isSyncing ? T('home.sync.running') : `${T('home.sync.error')}${syncedAt}`;
 
   if (isError) {
     return (
       <TouchableOpacity
         onPress={onPress}
-        style={[st.errorStrip, { backgroundColor: bg, borderColor: border }]}
+        style={[st.errorBadge, { backgroundColor: bg, borderColor: border }]}
         accessibilityRole="button"
         accessibilityLabel="Synchronisierung fehlgeschlagen. Tippen zum Wiederholen."
+        activeOpacity={0.75}
       >
-        {strip}
+        <Icon name="alert-circle" size={15} color={textColor} />
+        <Text style={[st.errorLabel, { color: textColor }]} numberOfLines={1}>{label}</Text>
+        <Text style={[st.retryHint, { color: textColor }]}>{T('home.sync.retry')}</Text>
       </TouchableOpacity>
     );
   }
 
   return (
-    <TouchableOpacity
-      onPress={isSyncing ? undefined : onPress}
-      activeOpacity={isSyncing ? 1 : 0.75}
+    <View
       style={st.wrap}
-      accessibilityRole="button"
+      accessibilityRole="progressbar"
       accessibilityLabel={label}
-      accessibilityState={{ busy: isSyncing }}
+      accessibilityState={{ busy: true }}
     >
-      {strip}
-    </TouchableOpacity>
+      <View style={[st.pill, { backgroundColor: bg, borderColor: border }]}>
+        <Animated.View style={[st.dot, { backgroundColor: accent, opacity: pulse }]} />
+        <Icon name="sync-outline" size={12} color={textColor} />
+        <Text style={[st.label, { color: textColor, fontSize: 11 }]} numberOfLines={1}>{label}</Text>
+      </View>
+    </View>
   );
 }
 
 const st = StyleSheet.create({
-  wrap:       { marginHorizontal: 16, marginTop: 6, marginBottom: 2 },
-  pill:       { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, alignSelf: 'flex-start' },
-  dot:        { width: 6, height: 6, borderRadius: 3 },
-  label:      { fontSize: 11, fontWeight: '600', letterSpacing: 0.1 },
-  errorStrip: { marginHorizontal: 16, marginTop: 6, marginBottom: 2, borderRadius: 14, borderWidth: 1, ...Shadow.md },
+  wrap:        { marginHorizontal: 16, marginTop: 6, marginBottom: 2 },
+  pill:        { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, alignSelf: 'flex-start' },
+  dot:         { width: 6, height: 6, borderRadius: 3 },
+  label:       { fontWeight: '700', letterSpacing: 0.1 },
+  retryHint:   { fontSize: 11, fontWeight: '600', opacity: 0.7 },
+  errorBadge:  { flexDirection: 'row', alignItems: 'center', gap: 7, marginHorizontal: 16, marginTop: 6, marginBottom: 2, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1.5, alignSelf: 'flex-start', ...Shadow.sm },
+  errorLabel:  { fontSize: 13, fontWeight: '700', letterSpacing: 0.1 },
 });

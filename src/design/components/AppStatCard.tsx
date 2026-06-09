@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, ViewStyle } from 'react-native';
-import AppCard from './AppCard';
+import AppCard from '@/design/components/AppCard';
 
 interface AppStatCardProps {
   value: string | number;

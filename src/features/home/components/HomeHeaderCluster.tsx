@@ -1,95 +1,114 @@
 import React from 'react';
-import { Platform, View, Text, ScrollView, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppChip, AppIconButton } from '../../../design/components';
+import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface HomeHeaderClusterProps {
   colors: any;
-  tabs: readonly string[];
-  activeTab: string;
-  onTabPress: (tab: string) => void;
-  onSearchPress: () => void;
-  onFilterPress: () => void;
-  filterActive?: boolean;
-  filterOpen?: boolean;
-  unreadCount?: number;
+  dringend: number;
+  totalOpen: number;
+  totalDocs: number;
+  quickScope: 'offen' | 'alle';
+  onScopeChange: (s: 'offen' | 'alle') => void;
+  scrollY?: Animated.Value;
 }
 
 export default function HomeHeaderCluster({
-  colors, tabs, activeTab, onTabPress, onSearchPress, onFilterPress, filterActive, filterOpen = false, unreadCount = 0,
+  colors, dringend, totalOpen, totalDocs, quickScope, onScopeChange, scrollY,
 }: HomeHeaderClusterProps) {
   const insets = useSafeAreaInsets();
-  const hasUnread = unreadCount > 0;
+  const { fs } = useTheme();
+  const { t: T, lang } = useT();
+
+  // Hero fades out as user scrolls (0→60px)
+  const heroOpacity = scrollY
+    ? scrollY.interpolate({ inputRange: [0, 60], outputRange: [1, 0], extrapolate: 'clamp' })
+    : 1;
+
+  // Hero translates up slightly on scroll (parallax)
+  const heroTranslateY = scrollY
+    ? scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -16], extrapolate: 'clamp' })
+    : 0;
+
+  // Compact sticky title fades in (scroll 50→100px)
+  const stickyOpacity = scrollY
+    ? scrollY.interpolate({ inputRange: [50, 100], outputRange: [0, 1], extrapolate: 'clamp' })
+    : 0;
 
   return (
-    <LinearGradient
-      colors={Platform.OS === 'android'
-        ? [colors.primaryLight, `${colors.primaryLight}CC`, colors.bg]
-        : [colors.primaryLight, colors.bg]}
-      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-      style={[st.headerCluster, { borderBottomColor: `${colors.border}88`, paddingTop: Math.max(insets.top, 12) }]}
-    >
-      <View style={st.headerRow}>
-        {/* Brand */}
-        <View style={st.brandBlock}>
-          <View style={[st.brandMark, { backgroundColor: colors.primary }]}>
-            <View style={st.brandFrame} />
-            <Text style={st.brandPlane}>➤</Text>
-            <Text style={st.brandSpark}>✦</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[st.appname, { color: colors.text }]}>BriefPilot</Text>
-            <Text style={[st.gruss, { color: hasUnread ? colors.primary : colors.textSecondary }]}>
-              {hasUnread
-                ? `${unreadCount} neue${unreadCount > 1 ? '' : 's'} Dokument${unreadCount > 1 ? 'e' : ''}`
-                : 'Alles im Griff'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Actions */}
-        <View style={st.headerActions}>
-          <AppIconButton name="options-outline" onPress={onFilterPress} active={filterOpen} badge={filterActive && !filterOpen} accessibilityLabel={filterOpen ? 'Filter schließen' : 'Filter öffnen'} />
-          <AppIconButton name="search-outline"  onPress={onSearchPress} size={19} accessibilityLabel="Suche" />
+    <View style={[st.wrap, { paddingTop: Math.max(insets.top + 12, 24), backgroundColor: colors.bg }]}>
+      {/* Top row — sticky compact title */}
+      <View style={st.topRow}>
+        <View style={st.titleArea}>
+          <Text style={[st.greeting, { color: colors.textSecondary, fontSize: fs(13) }]}>
+            {T('home.title')}
+          </Text>
+          {/* Sticky compact title — fades in on scroll */}
+          <Animated.Text
+            style={[st.stickyTitle, { color: colors.text, fontSize: fs(17), opacity: stickyOpacity }]}
+            numberOfLines={1}
+          >
+            {T('home.title')}
+          </Animated.Text>
         </View>
       </View>
 
-      {/* Tab strip */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={st.tabsWrap}
-        contentContainerStyle={st.tabs}
-      >
-        {tabs.map(tab => (
-          <AppChip
-            key={tab}
-            label={tab}
-            selected={activeTab === tab}
-            onPress={() => onTabPress(tab)}
-            selectedColor={colors.primaryLight}
-            selectedTextColor={colors.primaryDark}
-            style={st.tab}
-          />
-        ))}
-      </ScrollView>
-    </LinearGradient>
+      <Animated.View style={{ opacity: heroOpacity, transform: [{ translateY: heroTranslateY }] }}>
+        <View style={st.metaRow}>
+          <Text style={{ fontSize: fs(13), color: colors.textSecondary }}>
+            {totalDocs} {T(totalDocs === 1 ? 'home.doc_singular' : 'home.doc_plural')} {T('home.total_suffix')}
+          </Text>
+          {dringend > 0 && (
+            <View style={[st.urgentPill, { backgroundColor: `${colors.danger}14`, borderColor: `${colors.danger}30` }]}>
+              <View style={[st.urgentDot, { backgroundColor: colors.danger }]} />
+              <Text style={[st.urgentText, { color: colors.danger, fontSize: fs(12) }]}>
+                {dringend} {T('home.urgent')}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={st.scopeRow}>
+          {(['offen', 'alle'] as const).map(s => (
+            <TouchableOpacity
+              key={s}
+              style={[
+                st.scopeChip,
+                quickScope === s
+                  ? { backgroundColor: colors.text }
+                  : { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.borderLight },
+              ]}
+              onPress={() => onScopeChange(s)}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                st.scopeLabel,
+                { color: quickScope === s ? colors.bg : colors.textSecondary, fontSize: fs(13) },
+              ]}>
+                {s === 'offen'
+                  ? `${T('home.filter.open')} ${totalOpen}`
+                  : `${T('home.filter.all')} ${totalDocs}`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Animated.View>
+    </View>
   );
 }
 
 const st = StyleSheet.create({
-  headerCluster: { paddingBottom: 10, borderBottomWidth: 0.5, zIndex: 20 },
-  headerRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18 },
-  brandBlock:    { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14, paddingRight: 12 },
-  brandMark:     { width: 44, height: 44, borderRadius: 16, alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
-  brandFrame:    { position: 'absolute', width: 21, height: 21, borderRadius: 7, borderWidth: 2.5, borderColor: '#fff', transform: [{ rotate: '-22deg' }], left: 9, top: 11 },
-  brandPlane:    { position: 'absolute', right: 3, top: 1, color: '#fff', fontSize: 20, fontWeight: '800', transform: [{ rotate: '-18deg' }] },
-  brandSpark:    { position: 'absolute', left: 15, top: 16, color: '#FFB11A', fontSize: 10, fontWeight: '800' },
-  appname:       { fontSize: 26, fontWeight: '800', letterSpacing: -0.8 },
-  gruss:         { fontSize: 12, fontWeight: '500', marginTop: 3, letterSpacing: 0.1 },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  tabsWrap:      { marginTop: 12 },
-  tabs:          { flexDirection: 'row', gap: 6, paddingHorizontal: 16, paddingVertical: 2 },
-  tab:           { borderWidth: 0 },
+  wrap:        { paddingHorizontal: 20, paddingBottom: 10 },
+  topRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
+  titleArea:   { flex: 1 },
+  greeting:    { fontWeight: '600', letterSpacing: 0.1 },
+  stickyTitle: { fontWeight: '800', letterSpacing: -0.4, marginTop: 2 },
+  metaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 },
+  urgentPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },
+  urgentDot:   { width: 6, height: 6, borderRadius: 3 },
+  urgentText:  { fontWeight: '700' },
+  scopeRow:    { flexDirection: 'row', gap: 6 },
+  scopeChip:   { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999 },
+  scopeLabel:  { fontWeight: '600' },
 });

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { hybridSearch, smartSearch } from '../services/v4Api';
-import { filterBySearch, parseNatuerlicheAbfrage } from '../utils';
+import { hybridSearch, smartSearch } from '@/services/v4Api';
+import { filterBySearch, parseNatuerlicheAbfrage } from '@/utils';
 
 export function useSearch() {
   const [results, setResults] = useState<any[]>([]);

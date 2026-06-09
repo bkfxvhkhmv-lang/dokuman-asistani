@@ -1,64 +1,61 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { SummaryResult, SummaryMode } from '../services/SmartSummaryService';
+import AiSparkle from '@/components/AiSparkle';
+import { useTheme } from '@/ThemeContext';
+import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
+import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
+import { useT } from '@/hooks/useT';
 
-// ── TypewriterText ────────────────────────────────────────────────────────────
+// ── Simple inline markdown renderer (bold only) ───────────────────────────────
 
-function TypewriterText({ text, speed = 18, style }: { text: string; speed?: number; style?: any }) {
-  const [displayed, setDisplayed] = useState('');
-  const indexRef  = useRef(0);
-  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    setDisplayed('');
-    indexRef.current = 0;
-
-    const tick = () => {
-      if (indexRef.current < text.length) {
-        indexRef.current += 1;
-        setDisplayed(text.slice(0, indexRef.current));
-        timerRef.current = setTimeout(tick, speed);
-      }
-    };
-
-    timerRef.current = setTimeout(tick, speed);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [text, speed]);
-
-  return <Text style={style}>{displayed}</Text>;
+function MarkdownText({ text, style }: { text: string; style?: object }) {
+  const lines = text.split('\n');
+  return (
+    <View style={{ gap: 2 }}>
+      {lines.map((line, li) => {
+        const parts = line.split(/(\*\*[^*]+\*\*)/g);
+        return (
+          <Text key={li} style={style}>
+            {parts.map((part, i) =>
+              part.startsWith('**') && part.endsWith('**')
+                ? <Text key={i} style={{ fontWeight: '700' }}>{part.slice(2, -2)}</Text>
+                : part,
+            )}
+          </Text>
+        );
+      })}
+    </View>
+  );
 }
-
-// ── Main component ────────────────────────────────────────────────────────────
 
 interface SmartSummaryCardProps {
   result: SummaryResult | null;
   loading?: boolean;
-  onLoadDetailed?: (lang?: string) => void;
+  onLoadDetailed?: () => void;
   currentMode: SummaryMode;
   onModeChange: (mode: SummaryMode) => void;
 }
 
-const MODE_LABEL: Record<SummaryMode, string> = {
-  kurz:        '1 Satz',
-  mittel:      '3 Punkte',
-  detailliert: 'KI-Detail',
-};
-
-
-const QUELLE_LABEL: Record<string, string> = {
-  lokal:    'Lokal · Offline',
-  ki_cloud: 'KI-Analyse',
-  ki_cache: 'KI · Gecacht',
-};
+function normalizeDetailSingularCopy(text: string): string {
+  return text.replace(/\bRechnungen\b/g, 'Rechnung');
+}
 
 export default function SmartSummaryCard({
   result, loading = false, onLoadDetailed, currentMode, onModeChange,
 }: SmartSummaryCardProps) {
-  const { Colors: C, R } = useTheme();
-  const [lang, setLang] = useState('de');
-
+  const { Colors: C, R, S } = useTheme();
+  const { t: T } = useT();
   if (!result && !loading) return null;
+  const modeLabel: Record<SummaryMode, string> = {
+    kurz: T('summary.mode_brief'),
+    mittel: T('summary.mode_brief'),
+    detailliert: T('summary.mode_detailed'),
+  };
+  const sourceLabel: Record<string, string> = {
+    lokal: T('summary.source.offline'),
+    ki_cloud: T('summary.source.cloud'),
+    ki_cache: T('summary.source.cached'),
+  };
 
   const QUELLE_COLOR: Record<string, string> = {
     lokal:    C.success,
@@ -68,14 +65,15 @@ export default function SmartSummaryCard({
   const sourceColor = result ? QUELLE_COLOR[result.quelle] || C.primary : C.primary;
 
   return (
-    <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: 14,
+    <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: S.lg,
       borderWidth: 0.5, borderColor: C.border, marginBottom: 12 }}>
 
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-        <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, flex: 1 }}>
-          🤖 Zusammenfassung
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>{T('summary.title')}</Text>
+          <AiSparkle size={10} />
+        </View>
         {result && (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4,
             backgroundColor: sourceColor + '18', borderRadius: 999,
@@ -83,7 +81,7 @@ export default function SmartSummaryCard({
             borderWidth: 1, borderColor: sourceColor + '44' }}>
             <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: sourceColor }} />
             <Text style={{ fontSize: 9, fontWeight: '700', color: sourceColor }}>
-              {QUELLE_LABEL[result.quelle]}
+              {sourceLabel[result.quelle] ?? result.quelle}
             </Text>
           </View>
         )}
@@ -91,19 +89,19 @@ export default function SmartSummaryCard({
 
       {/* Mode selector */}
       <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12 }}>
-        {(['kurz', 'mittel', 'detailliert'] as SummaryMode[]).map(m => (
+        {(['mittel', 'detailliert'] as SummaryMode[]).map(m => (
           <TouchableOpacity
             key={m}
             onPress={() => {
               onModeChange(m);
-              if (m === 'detailliert' && onLoadDetailed) onLoadDetailed(lang);
+              if (m === 'detailliert' && onLoadDetailed) onLoadDetailed();
             }}
-            style={{ flex: 1, alignItems: 'center', paddingVertical: 6, borderRadius: R.md,
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingVertical: 6, borderRadius: R.md,
               backgroundColor: currentMode === m ? C.primary : C.bgCard,
               borderWidth: 1, borderColor: currentMode === m ? C.primary : C.border }}>
             <Text style={{ fontSize: 11, fontWeight: '700',
               color: currentMode === m ? '#fff' : C.textSecondary }}>
-              {MODE_LABEL[m]}
+              {modeLabel[m]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -114,46 +112,36 @@ export default function SmartSummaryCard({
         <View style={{ alignItems: 'center', paddingVertical: 20 }}>
           <ActivityIndicator color={C.primary} />
           <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 8 }}>
-            KI analysiert…
+            {T('summary.loading')}
           </Text>
         </View>
       ) : result ? (
         <>
-          {currentMode === 'kurz' && (
-            <TypewriterText
-              text={result.kurzSatz}
-              speed={14}
-              style={{ fontSize: 14, color: C.text, lineHeight: 22 }}
-            />
-          )}
-
-          {currentMode === 'mittel' && (
+          {(currentMode === 'mittel' || currentMode === 'kurz') && (
             <View style={{ gap: 6 }}>
               {result.kernPunkte.map((p, i) => (
-                <TypewriterText
-                  key={i}
-                  text={p}
-                  speed={10}
-                  style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
-                />
+                <Text key={i} style={{ fontSize: 14, lineHeight: 21, color: C.text }}>
+                  {normalizeDetailSingularCopy(p.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
+                </Text>
               ))}
             </View>
           )}
 
           {currentMode === 'detailliert' && result.detailText && (
             <>
-              <TypewriterText
-                text={result.detailText}
-                speed={8}
-                style={{ fontSize: 13, color: C.text, lineHeight: 20 }}
+              <MarkdownText
+                text={normalizeDetailSingularCopy(stripLlmLanguageMetaLines(result.detailText))}
+                style={{ fontSize: 13, lineHeight: 20, color: C.text }}
               />
               {result.handlungsempfehlungen.length > 0 && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: C.textTertiary, marginBottom: 6 }}>
-                    EMPFEHLUNGEN
+                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 6 }}>
+                    {T('summary.recommendations').toUpperCase()}
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 12, color: C.text, marginBottom: 3 }}>{e}</Text>
+                    <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.text, marginBottom: 3 }}>
+                      {normalizeDetailSingularCopy(e.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
+                    </Text>
                   ))}
                 </View>
               )}
@@ -162,23 +150,18 @@ export default function SmartSummaryCard({
 
           {currentMode === 'detailliert' && !result.detailText && onLoadDetailed && (
             <TouchableOpacity
-              onPress={() => onLoadDetailed(lang)}
+              onPress={() => onLoadDetailed()}
               style={{ backgroundColor: C.primary, borderRadius: R.md,
                 padding: 12, alignItems: 'center' }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
-                🤖 KI-Analyse laden
+                Analyse laden
               </Text>
             </TouchableOpacity>
           )}
         </>
       ) : null}
 
-      {/* Processing time */}
-      {result && result.verarbeitungMs > 0 && (
-        <Text style={{ fontSize: 9, color: C.textTertiary, marginTop: 8, textAlign: 'right' }}>
-          {result.verarbeitungMs}ms
-        </Text>
-      )}
+      {/* Processing time removed from release UI */}
     </View>
   );
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import Icon from '../../../components/Icon';
-import type { Dokument } from '../../../store';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import type { Dokument } from '@/store';
 
 const TYP_TEASER: Record<string, string> = {
   Rechnung:         'Betrag korrekt? Ratenzahlung möglich?',

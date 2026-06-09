@@ -1,5 +1,5 @@
-import { getTimeline } from '../../services/v4Api';
-import { EventLogger, EventName, LoggedEvent } from './EventLogger';
+import { getTimeline } from '@/services/v4Api';
+import { EventLogger, EventName, LoggedEvent } from '@/core/events/EventLogger';
 
 export interface TimelineEntry {
   id: string;

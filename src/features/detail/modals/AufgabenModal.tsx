@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { AppInput } from '../../../design/components';
-import type { ModalController } from '../hooks/useModalController';
+import { useTheme } from '@/ThemeContext';
+import { AppInput } from '@/design/components';
+import type { ModalController } from '@/features/detail/hooks/useModalController';
 
 interface AufgabenModalProps {
   visible: boolean;
@@ -11,10 +11,20 @@ interface AufgabenModalProps {
   modal: ModalController;
 }
 
+function formatLocalDate(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm   = String(date.getMonth() + 1).padStart(2, '0');
+  const dd   = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function AufgabenModal({ visible, onClose, onAdd, modal }: AufgabenModalProps) {
   const { Colors: C, S, R } = useTheme();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dueDatePlaceholder = formatLocalDate(tomorrow);
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} activeOpacity={1} />
         <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
@@ -22,7 +32,7 @@ export default function AufgabenModal({ visible, onClose, onAdd, modal }: Aufgab
           <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>Neue Aufgabe</Text>
           <AppInput label="Aufgabe" icon="check" placeholder="z.B. Zahlung überweisen"
             value={modal.neueAufgabeTitel} onChangeText={modal.setNeueAufgabeTitel} style={{ marginBottom: 14 }} returnKeyType="next" />
-          <AppInput label="Fällig am (JJJJ-MM-TT)" icon="calendar" placeholder="2026-05-01"
+          <AppInput label="Fällig am (JJJJ-MM-TT)" icon="calendar" placeholder={dueDatePlaceholder}
             value={modal.neueAufgabeFrist} onChangeText={modal.setNeueAufgabeFrist} style={{ marginBottom: 14 }} returnKeyType="next" />
           <AppInput label="Verantwortlich" icon="user" placeholder="z.B. Steuerberater"
             value={modal.neueAufgabeVerantwortlich} onChangeText={modal.setNeueAufgabeVerantwortlich} style={{ marginBottom: 14 }} returnKeyType="done" />

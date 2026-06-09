@@ -5,7 +5,7 @@ import {
   LightColors, DarkColors, LightRisk, DarkRisk, S, R,
   type ColorPalette, type RiskPalette, type ShadowTokens,
   type SpacingTokens, type RadiusTokens,
-} from './theme';
+} from '@/theme';
 
 const THEME_KEY       = '@briefpilot_theme';
 const SIMPLE_MODE_KEY = '@briefpilot_simple_mode';
@@ -27,7 +27,8 @@ export interface Theme {
   text: string;
   textSecondary: string;
   border: string;
-  // #103 Simple Mode
+  // #103 Einfacher Modus — typografische Skala (fs()), Home-Liste/-Header, Unterleiste,
+  // Dokument‑Detail wird auf Übersicht reduziert (keine Tabs, weniger KPI).
   isSimpleMode:     boolean;
   toggleSimpleMode: () => void;
   /** Scale a font size: ×1.0 normal, ×1.2 simple mode */
@@ -76,7 +77,7 @@ const _defaultTheme: Theme = {
   hitSlopScale:      1,
   animationsEnabled: true,
 };
-const ThemeContext = createContext<Theme>(_defaultTheme);
+export const ThemeContext = createContext<Theme>(_defaultTheme);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme  = useColorScheme();
@@ -110,8 +111,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // #103 helpers derived from isSimpleMode
-  const FONT_SCALE    = isSimpleMode ? 1.2 : 1.0;
+  // #103 helpers derived from isSimpleMode — merklicher als 1.0/1.1, aber nicht „Zugriffs­hilfen“‑Level
+  const FONT_SCALE    = isSimpleMode ? 1.22 : 1.0;
   const fs            = useCallback((size: number) => Math.round(size * FONT_SCALE), [FONT_SCALE]);
   const hitSlopScale  = isSimpleMode ? 1.6 : 1.0;
   const animationsEnabled = !isSimpleMode;

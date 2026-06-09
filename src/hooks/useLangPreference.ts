@@ -1,33 +1,31 @@
-import { useEffect, useState, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DEFAULT_LANG } from '../i18n/langConfig';
+import { useCallback, useEffect, useReducer } from 'react';
+import { getLangSync, setLangGlobal, subscribeLang, DEFAULT_LANG } from '@/i18n/langStore';
 
-export const LANG_KEY = '@briefpilot_lang';
+export { LANG_KEY, DEFAULT_LANG } from '@/i18n/langStore';
 
+/** One-shot async read (for non-component code) */
 export async function getLang(): Promise<string> {
-  const val = await AsyncStorage.getItem(LANG_KEY);
-  return val ?? DEFAULT_LANG;
+  return getLangSync();
 }
 
+/** One-shot async write (for non-component code) */
 export async function setLang(code: string): Promise<void> {
-  await AsyncStorage.setItem(LANG_KEY, code);
+  setLangGlobal(code);
 }
 
+/** Hook — same API as before, now backed by module-level store */
 export function useLangPreference() {
-  const [lang, setLangState] = useState<string>(DEFAULT_LANG);
-  const [loaded, setLoaded] = useState(false);
+  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   useEffect(() => {
-    getLang()
-      .then(l => setLangState(l))
-      .catch(() => {})
-      .finally(() => setLoaded(true));
+    const unsub = subscribeLang(forceUpdate);
+    return unsub;
   }, []);
 
-  const changeLang = useCallback(async (code: string) => {
-    await setLang(code);
-    setLangState(code);
+  const changeLang = useCallback((code: string) => {
+    setLangGlobal(code);
+    return Promise.resolve();
   }, []);
 
-  return { lang, changeLang, loaded };
+  return { lang: getLangSync(), changeLang, loaded: true };
 }

@@ -1,15 +1,15 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { AppInput } from '../../../design/components';
-import type { ModalController } from '../hooks/useModalController';
-import type { StoreState } from '../../../store';
-
-const TYPEN = ['Rechnung','Mahnung','Bußgeld','Behörde','Termin','Versicherung','Vertrag','Sonstiges'];
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import { AppInput } from '@/design/components';
+import type { ModalController } from '@/features/detail/hooks/useModalController';
+import type { StoreState } from '@/store';
+import { CANONICAL_DOCUMENT_TYPES } from '@/product/canonicalDocTypes';
 const RISIKEN = [
-  { id: 'hoch',    label: '🔴 Dringend' },
-  { id: 'mittel',  label: '🟡 Diese Woche' },
-  { id: 'niedrig', label: '🟢 Kein Handlungsbedarf' },
+  { id: 'hoch',    label: 'Dringend' },
+  { id: 'mittel',  label: 'Diese Woche' },
+  { id: 'niedrig', label: 'Kein Handlungsbedarf' },
 ];
 
 interface EditDocumentModalProps {
@@ -22,10 +22,64 @@ interface EditDocumentModalProps {
 
 export default function EditDocumentModal({ visible, onClose, onSave, state, modal }: EditDocumentModalProps) {
   const { Colors: C, S, R } = useTheme();
+
+  const initialRef = useRef({
+    titel: '', absender: '', betrag: '', frist: '', dokumentDatum: '',
+    iban: '', zahlungszweck: '', aktenzeichen: '', kundennr: '',
+    typ: '', risiko: '', profilId: null as string | null, userOrdner: '',
+  });
+
+  useEffect(() => {
+    if (visible) {
+      initialRef.current = {
+        titel: modal.editTitel,
+        absender: modal.editAbsender,
+        betrag: modal.editBetrag,
+        frist: modal.editFrist,
+        dokumentDatum: modal.editDokumentDatum,
+        iban: modal.editIban,
+        zahlungszweck: modal.editZahlungszweck,
+        aktenzeichen: modal.editAktenzeichen,
+        kundennr: modal.editKundennr,
+        typ: modal.editTyp,
+        risiko: modal.editRisiko,
+        profilId: modal.editProfilId,
+        userOrdner: modal.editUserOrdner,
+      };
+    }
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isDirty =
+    modal.editTitel !== initialRef.current.titel ||
+    modal.editAbsender !== initialRef.current.absender ||
+    modal.editBetrag !== initialRef.current.betrag ||
+    modal.editFrist !== initialRef.current.frist ||
+    modal.editDokumentDatum !== initialRef.current.dokumentDatum ||
+    modal.editIban !== initialRef.current.iban ||
+    modal.editZahlungszweck !== initialRef.current.zahlungszweck ||
+    modal.editAktenzeichen !== initialRef.current.aktenzeichen ||
+    modal.editKundennr !== initialRef.current.kundennr ||
+    modal.editTyp !== initialRef.current.typ ||
+    modal.editRisiko !== initialRef.current.risiko ||
+    modal.editProfilId !== initialRef.current.profilId ||
+    modal.editUserOrdner !== initialRef.current.userOrdner;
+
+  const handleBackdropPress = useCallback(() => {
+    if (!isDirty) { onClose(); return; }
+    Alert.alert(
+      'Änderungen verwerfen?',
+      'Nicht gespeicherte Änderungen gehen verloren.',
+      [
+        { text: 'Weiter bearbeiten', style: 'cancel' },
+        { text: 'Verwerfen', style: 'destructive', onPress: onClose },
+      ],
+    );
+  }, [isDirty, onClose]);
+
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} activeOpacity={1} />
+        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={handleBackdropPress} activeOpacity={1} />
       <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: '85%' }}>
         <View style={{ width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20, backgroundColor: C.border }} />
         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 16 }}>Dokument bearbeiten</Text>
@@ -45,14 +99,36 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ marginBottom: 16 }}>
           {modal.editTab === 'info' ? (
             <>
+              {/* Dokument */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>DOKUMENT</Text>
               <AppInput label="Titel" icon="file-text" placeholder="Dokumenttitel"
-                value={modal.editTitel} onChangeText={modal.setEditTitel} style={{ marginBottom: 14 }} />
+                value={modal.editTitel} onChangeText={modal.setEditTitel} style={{ marginBottom: 10 }} />
+              <AppInput label="Belegdatum (JJJJ-MM-TT)" icon="calendar-blank" placeholder="z.B. 2026-04-30"
+                value={modal.editDokumentDatum} onChangeText={modal.setEditDokumentDatum} style={{ marginBottom: 10 }} />
+              <AppInput label="Frist (JJJJ-MM-TT)" icon="clock" placeholder="z.B. 2026-05-01"
+                value={modal.editFrist} onChangeText={modal.setEditFrist} style={{ marginBottom: 18 }} />
+
+              {/* Beteiligte */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>BETEILIGTE</Text>
               <AppInput label="Absender" icon="buildings" placeholder="Behörde / Unternehmen"
-                value={modal.editAbsender} onChangeText={modal.setEditAbsender} style={{ marginBottom: 14 }} />
-              <AppInput label="Betrag (€)" icon="receipt" placeholder="0.00"
-                value={modal.editBetrag} onChangeText={modal.setEditBetrag} keyboardType="decimal-pad" style={{ marginBottom: 14 }} />
-              <AppInput label="Frist (JJJJ-MM-TT)" icon="calendar" placeholder="z.B. 2026-05-01"
-                value={modal.editFrist} onChangeText={modal.setEditFrist} style={{ marginBottom: 14 }} />
+                value={modal.editAbsender} onChangeText={modal.setEditAbsender} style={{ marginBottom: 18 }} />
+
+              {/* Zahlung */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>ZAHLUNG</Text>
+              <AppInput label="Betrag (€)" icon="currency-eur" placeholder="0.00"
+                value={modal.editBetrag} onChangeText={modal.setEditBetrag} keyboardType="decimal-pad" style={{ marginBottom: 10 }} />
+              <AppInput label="IBAN" icon="bank" placeholder="DE00 0000 0000 0000 0000 00"
+                value={modal.editIban} onChangeText={modal.setEditIban}
+                autoCapitalize="characters" style={{ marginBottom: 10 }} />
+              <AppInput label="Verwendungszweck" icon="chat-circle" placeholder="Referenz / Betreff"
+                value={modal.editZahlungszweck} onChangeText={modal.setEditZahlungszweck} style={{ marginBottom: 18 }} />
+
+              {/* Referenz */}
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>REFERENZ</Text>
+              <AppInput label="Aktenzeichen" icon="clipboard-text" placeholder="Az. oder Ref.-Nr."
+                value={modal.editAktenzeichen} onChangeText={modal.setEditAktenzeichen} style={{ marginBottom: 10 }} />
+              <AppInput label="Kundennummer" icon="identification-badge" placeholder="Kunden-Nr."
+                value={modal.editKundennr} onChangeText={modal.setEditKundennr} style={{ marginBottom: 14 }} />
 
               {(state.einstellungen?.profile || []).length > 0 && (
                 <View style={{ marginBottom: 14 }}>
@@ -62,7 +138,10 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
                       style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5,
                         borderColor: !modal.editProfilId ? C.primary : C.border,
                         backgroundColor: !modal.editProfilId ? C.primaryLight : 'transparent' }}>
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: !modal.editProfilId ? C.primaryDark : C.textSecondary }}>👥 Alle</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Icon name="people-outline" size={12} color={!modal.editProfilId ? C.primaryDark : C.textSecondary} />
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: !modal.editProfilId ? C.primaryDark : C.textSecondary }}>Alle</Text>
+                      </View>
                     </TouchableOpacity>
                     {(state.einstellungen?.profile || []).map((p: any) => (
                       <TouchableOpacity key={p.id} onPress={() => modal.setEditProfilId(p.id)}
@@ -79,14 +158,22 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
             </>
           ) : (
             <>
-              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>DOKUMENTTYP</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
-                {TYPEN.map(t => (
+              <AppInput
+                label="Dein Ordner"
+                icon="folder"
+                placeholder='z. B. Firma 2026 / Auto'
+                value={modal.editUserOrdner}
+                onChangeText={modal.setEditUserOrdner}
+                style={{ marginBottom: 18 }}
+              />
+              <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 10 }}>AUTOMATISCHE KATEGORIE</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+                {CANONICAL_DOCUMENT_TYPES.map(t => (
                   <TouchableOpacity key={t} onPress={() => modal.setEditTyp(t)}
-                    style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1,
+                    style={{ paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1,
                       borderColor: modal.editTyp === t ? C.primary : C.border,
                       backgroundColor: modal.editTyp === t ? C.primaryLight : 'transparent' }}>
-                    <Text style={{ fontSize: 13, fontWeight: modal.editTyp === t ? '700' : '400',
+                    <Text style={{ fontSize: 12, fontWeight: modal.editTyp === t ? '700' : '400',
                       color: modal.editTyp === t ? C.primaryDark : C.textSecondary }}>{t}</Text>
                   </TouchableOpacity>
                 ))}
@@ -101,7 +188,7 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
                       backgroundColor: modal.editRisiko === r.id ? C.primaryLight : C.bgCard }}>
                     <Text style={{ fontSize: 14, fontWeight: modal.editRisiko === r.id ? '700' : '400',
                       color: modal.editRisiko === r.id ? C.primaryDark : C.text }}>{r.label}</Text>
-                    {modal.editRisiko === r.id && <Text style={{ color: C.primary }}>✓</Text>}
+                    {modal.editRisiko === r.id && <Icon name="check" size={16} color={C.primary} />}
                   </TouchableOpacity>
                 ))}
               </View>

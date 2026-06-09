@@ -1,4 +1,4 @@
-export * from '../scanner/types';
+export * from '@/modules/scanner/types';
 
 export interface ImageFilter {
   id: string;

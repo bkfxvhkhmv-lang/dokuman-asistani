@@ -1,6 +1,6 @@
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import type { VoiceEngineConfig } from '../types';
+import type { VoiceEngineConfig } from '@/modules/voice/types';
 
 export interface RecognitionResult {
   transcript: string;

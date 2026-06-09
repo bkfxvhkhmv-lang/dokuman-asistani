@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native
 import Animated, { FadeInDown, FadeOutDown, Layout } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../../ThemeContext';
-import Icon from '../../../components/Icon';
-import { formatBetrag } from '../../../utils';
-import type { HotDoc } from '../../../services/PriorityService';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import { formatBetrag } from '@/utils';
+import type { HotDoc } from '@/services/PriorityService';
 
 // ── CTA — outcome-focused labels, betrag included when available ───────────
 
@@ -120,7 +120,7 @@ export default function ContextualActionStrip({
 
       {/* ── Left: info ── */}
       <View style={st.left}>
-        <Text style={st.emoji}>{hotDoc.emoji}</Text>
+        <Icon name={hotDoc.icon} size={18} color={palette.text} />
         <View style={st.textBlock}>
           <Text style={[st.label, { color: palette.text }]} numberOfLines={1}>
             {hotDoc.label}
@@ -174,7 +174,6 @@ const st = StyleSheet.create({
     gap:           8,
     overflow:      'hidden',
   },
-  emoji:     { fontSize: 18 },
   textBlock: { flex: 1 },
   label: {
     fontSize:      12,

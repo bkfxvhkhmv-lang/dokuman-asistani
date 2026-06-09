@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { StatusBar, View, StyleSheet } from 'react-native';
+import { StatusBar, View, StyleSheet, Platform } from 'react-native';
+import { initNativeScannerBridge } from '../src/modules/scanner/engine/NativeScannerBridge';
 import HeroTransitionOverlay from '../src/navigation/HeroTransitionOverlay';
-import OfflineBanner from '../src/components/OfflineBanner';
 import SperrBildschirm from '../src/components/SperrBildschirm';
 import { usePrivacyGate } from '../src/hooks/usePrivacyGate';
 import { Stack, SplashScreen } from 'expo-router';
@@ -14,6 +14,10 @@ import ErrorBoundary from '../src/components/ErrorBoundary';
 import { useSmartNotifications } from '../src/hooks/useSmartNotifications';
 import { useShareHandler } from '../src/hooks/useShareHandler';
 import { useWidgetSync } from '../src/hooks/useWidgetSync';
+import { useSpeechStopOnBackground } from '../src/hooks/useSpeechStopOnBackground';
+import BackendHealthBootstrap from '../src/providers/BackendHealthBootstrap';
+import { LanguageProvider } from '@/providers/LanguageProvider';
+import { OfflineBannerProvider } from '@/contexts/OfflineBannerContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,10 +49,44 @@ function ThemedNavigator() {
   const { Colors } = useTheme();
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.bg } }}>
+      <Stack.Screen name="onboarding" />
+      <Stack.Screen
+        name="first-value"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_bottom',
+          gestureEnabled: false,
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
       <Stack.Screen name="index" />
       <Stack.Screen name="login"   options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)"  options={{ headerShown: false }} />
-      <Stack.Screen name="detail"  options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen
+        name="detail"
+        options={{
+          headerShown: false,
+          animation: Platform.OS === 'ios' ? 'ios_from_right' : 'fade_from_bottom',
+          animationDuration: 320,
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
+      <Stack.Screen
+        name="einstellungen"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
+      <Stack.Screen
+        name="profil"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
     </Stack>
   );
 }
@@ -67,6 +105,16 @@ function ShareExtensionProvider() {
 function WidgetSyncProvider() {
   useWidgetSync();
   return null;
+}
+
+function SpeechKillOnBackground() {
+  useSpeechStopOnBackground();
+  return null;
+}
+
+function ThemedRootSurface({ children }: { children: React.ReactNode }) {
+  const { Colors } = useTheme();
+  return <View style={{ flex: 1, backgroundColor: Colors.bg }}>{children}</View>;
 }
 
 function PrivacyGateProvider() {
@@ -95,12 +143,14 @@ const priv = StyleSheet.create({
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+    initNativeScannerBridge();
   }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
+          <LanguageProvider>
           <ThemeProvider>
             <ThemedStatusBar />
             <AuthProvider>
@@ -108,21 +158,24 @@ export default function RootLayout() {
                 <SmartNotificationsProvider />
                 <ShareExtensionProvider />
                 <WidgetSyncProvider />
-                <View style={{ flex: 1 }}>
-                  <ThemedNavigator />
+                <SpeechKillOnBackground />
+                <BackendHealthBootstrap />
+                {/* Keep root surface aligned with active theme */}
+                <ThemedRootSurface>
+                  <OfflineBannerProvider>
+                    <ThemedNavigator />
 
-                  {/* Floating hero expansion overlay — above all screens */}
-                  <HeroTransitionOverlay />
+                    {/* Floating hero expansion overlay — above all screens */}
+                    <HeroTransitionOverlay />
 
-                  {/* Offline banner — slides down from top when server unreachable */}
-                  <OfflineBanner />
-
-                  {/* #101/#102 — privacy overlay + biometric gate */}
-                  <PrivacyGateProvider />
-                </View>
+                    {/* #101/#102 — privacy overlay + biometric gate */}
+                    <PrivacyGateProvider />
+                  </OfflineBannerProvider>
+                </ThemedRootSurface>
               </StoreProvider>
             </AuthProvider>
           </ThemeProvider>
+          </LanguageProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </GestureHandlerRootView>

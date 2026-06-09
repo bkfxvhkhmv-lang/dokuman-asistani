@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { filterBySearch, parseNatuerlicheAbfrage } from '../../utils';
-import { useSearch } from '../../hooks/useSearch';
-import type { Dokument } from '../../store';
+import { filterBySearch, parseNatuerlicheAbfrage } from '@/utils';
+import { useSearch } from '@/hooks/useSearch';
+import type { Dokument } from '@/store';
 
 const MAX_VERLAUF = 8;
 
@@ -28,6 +28,7 @@ export function useSearchState(docs: Dokument[]) {
   const [suchVerlauf, setSuchVerlauf] = useState<string[]>([]);
   const [v4Modus, setV4Modus]         = useState(false);
   const [ftsWeight, setFtsWeight]     = useState(0.5);
+  const [chipTapped, setChipTapped]   = useState(true);
   const v4Timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export function useSearchState(docs: Dokument[]) {
 
   const { results: v4Ergebnisse, loading: v4Laden, error: v4FehlerRaw, searchRemote, clear: clearV4 } = useSearch();
 
-  const v4Fehler = v4FehlerRaw ? 'V4-Suche nicht erreichbar — lokale Ergebnisse werden angezeigt' : null;
+  const v4Fehler = v4FehlerRaw ? 'search.mode.smart_error' : null;
 
   const filterAktiv = !!(
     minBetrag || maxBetrag || vonDatum || bisDatum ||
@@ -61,7 +62,12 @@ export function useSearchState(docs: Dokument[]) {
     [docs, query, minBetrag, maxBetrag, vonDatum, bisDatum, typ, risiko, mitErledigt]
   );
 
-  const zeigeSuche = query.length >= 2 || filterAktiv;
+  const handleTyp = useCallback((value: string) => {
+    setTyp(value);
+    setChipTapped(true);
+  }, []);
+
+  const zeigeSuche = query.length >= 1 || filterAktiv || chipTapped;
 
   const triggerV4Search = useCallback((text: string) => {
     if (!v4Modus || text.trim().length < 3) { clearV4(); return; }
@@ -100,6 +106,7 @@ export function useSearchState(docs: Dokument[]) {
     setRisiko('alle');
     setMitErledigt(false);
     setFilterOffen(false);
+    setChipTapped(false);
   }, []);
 
   return {
@@ -110,7 +117,7 @@ export function useSearchState(docs: Dokument[]) {
     maxBetrag, setMaxBetrag,
     vonDatum, setVonDatum,
     bisDatum, setBisDatum,
-    typ, setTyp,
+    typ, setTyp, handleTyp,
     risiko, setRisiko,
     mitErledigt, setMitErledigt,
     suchVerlauf, setSuchVerlauf,

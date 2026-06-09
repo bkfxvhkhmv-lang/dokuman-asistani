@@ -1,5 +1,5 @@
-import { db } from './client';
-import { documents, documentMetadata, documentEvents } from './schema';
+import { db } from '@/core/database/client';
+import { documents, documentMetadata, documentEvents } from '@/core/database/schema';
 
 export async function initDatabase(): Promise<void> {
   // drizzle-orm with expo-sqlite handles table creation via migrations

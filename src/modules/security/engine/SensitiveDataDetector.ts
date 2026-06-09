@@ -1,4 +1,4 @@
-import type { SensitiveRegion, DetectionResult, SensitiveDataType } from '../types';
+import type { SensitiveRegion, DetectionResult, SensitiveDataType } from '@/modules/security/types';
 
 interface TextPattern {
   type: SensitiveDataType;

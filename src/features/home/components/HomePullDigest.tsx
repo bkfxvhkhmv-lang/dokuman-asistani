@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated, type DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../../../ThemeContext';
-import type { DigestResult } from '../../../services/DigestAIService';
+import { useTheme } from '@/ThemeContext';
+import type { DigestResult } from '@/services/DigestAIService';
 
 interface Props {
   digest:    DigestResult | null;  // null = loading
@@ -121,7 +121,7 @@ export default function HomePullDigest({ digest, visible, onDismiss }: Props) {
               <View style={st.footer}>
                 <View style={[st.sourceBadge, { backgroundColor: `${severityColor}18` }]}>
                   <Text style={[st.sourceText, { color: severityColor }]}>
-                    {digest.source === 'ai' ? '🤖 KI-Analyse' : '⚡ Sofort-Analyse'}
+                    {digest.source === 'ai' ? 'KI-Analyse' : 'Sofort-Analyse'}
                   </Text>
                 </View>
               </View>

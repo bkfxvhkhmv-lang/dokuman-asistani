@@ -1,6 +1,4 @@
 import React from 'react';
-import DetailScreen from './DetailScreen';
+import DetailRouteGate from '@/features/detail/detail-screen/DetailRouteGate';
 
-export default function Detail() {
-  return <DetailScreen />;
-}
+export default DetailRouteGate;

@@ -1,19 +1,22 @@
-import { Accelerometer } from 'expo-sensors';
+import { Gyroscope } from 'expo-sensors';
 import * as Haptics from 'expo-haptics';
 import { Platform, Vibration } from 'react-native';
-import { AutoCaptureReadiness, StabilityState, ScannerListener, ScannerEvent } from '../types';
+import { AutoCaptureReadiness, StabilityState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
 
 export class AutoCaptureEngine {
   private subscription: any = null;
-  private lastAccel = { x: 0, y: 0, z: 0 };
   private stabilityStart: number | null = null;
   private isStable = false;
   private listeners: ScannerListener[] = [];
   private config = {
+    // rad/s — normal el titremesi 0.10-0.20 rad/s; 0.15 makul eşik
     threshold: 0.15,
-    requiredDuration: 800,
-    autoTriggerDelay: 1200,
-    readinessThreshold: 0.78,
+    // 500ms sabit kaldıktan sonra "stable" olur.
+    requiredDuration: 500,
+    // Ready olduktan sonra kısa bir bekleme veriyoruz; kullanıcı isterse
+    // bu sırada manuel çekim yapabilir.
+    autoTriggerDelay: 1400,
+    readinessThreshold: 0.74,
   };
   private enabled = false;
 
@@ -24,6 +27,15 @@ export class AutoCaptureEngine {
   private brightnessScore = 1.0;  // 0 = too dark/bright, 1 = optimal
   private distortionScore = 1.0;  // 0 = heavy distortion, 1 = flat
 
+  private capturedAt: number | null = null;
+  private readySince: number | null = null;
+  private readonly COOLDOWN_MS = 1500;
+
+  // One-shot lock: nach einer Auto-Aufnahme gesperrt, bis Edge-Confidence
+  // unter EDGE_RESET_THRESHOLD fällt (Dokument verlässt Kader).
+  private lockedAfterCapture = false;
+  private readonly EDGE_RESET_THRESHOLD = 0.25;
+
   private lastReadiness: AutoCaptureReadiness = {
     score: 0,
     motionConfidence: 0,
@@ -33,6 +45,7 @@ export class AutoCaptureEngine {
     distortionScore: 1,
     stable: false,
     ready: false,
+    countdownProgress: 0,
   };
 
   constructor(config?: Partial<typeof AutoCaptureEngine.prototype.config>) {
@@ -56,15 +69,16 @@ export class AutoCaptureEngine {
     if (this.enabled) return;
     this.enabled = true;
     try {
-      const permission = await Accelerometer.requestPermissionsAsync();
+      const permission = await Gyroscope.requestPermissionsAsync();
       if (!permission.granted) {
-        this.emit({ type: 'error', error: { code: 'ACCEL_PERM_DENIED', message: 'Accelerometer permission denied', recoverable: true } });
+        this.emit({ type: 'error', error: { code: 'GYRO_PERM_DENIED', message: 'Gyroscope permission denied', recoverable: true } });
         return;
       }
-      Accelerometer.setUpdateInterval(80);
-      this.subscription = Accelerometer.addListener(({ x, y, z }) => this.processAccelerometer(x, y, z));
+      // 50ms = 20fps — kullanıcının deviceMotionUpdateInterval: 0.05 ile aynı
+      Gyroscope.setUpdateInterval(50);
+      this.subscription = Gyroscope.addListener(({ x, y, z }) => this.processGyroscope(x, y, z));
     } catch (e) {
-      this.emit({ type: 'error', error: { code: 'ACCEL_INIT_FAILED', message: 'Failed to initialize accelerometer', recoverable: true } });
+      this.emit({ type: 'error', error: { code: 'GYRO_INIT_FAILED', message: 'Failed to initialize gyroscope', recoverable: true } });
     }
   }
 
@@ -76,6 +90,15 @@ export class AutoCaptureEngine {
     this.isStable = false;
     this.edgeConfidence = 0;
     this.lastMotionConfidence = 0;
+    this.capturedAt = null;
+    this.readySince = null;
+    this.lockedAfterCapture = false;
+  }
+
+  /** Sperrt Auto-Capture nach manuellem Auslösen (same lock as auto). */
+  lockAfterManualCapture() {
+    this.lockedAfterCapture = true;
+    this.readySince = null;
   }
 
   updateEdgeConfidence(confidence: number) {
@@ -119,16 +142,11 @@ export class AutoCaptureEngine {
     this.updateQualityScores(blur, brightness, distortion);
   }
 
-  private processAccelerometer(x: number, y: number, z: number) {
-    const last = this.lastAccel;
-    const delta = Math.sqrt(
-      Math.pow(x - last.x, 2) +
-      Math.pow(y - last.y, 2) +
-      Math.pow(z - last.z, 2)
-    );
-    this.lastAccel = { x, y, z };
+  private processGyroscope(x: number, y: number, z: number) {
+    // Angular velocity magnitude (rad/s) — kullanıcının speed hesabıyla aynı
+    const speed = Math.sqrt(x * x + y * y + z * z);
 
-    if (delta < this.config.threshold) {
+    if (speed < this.config.threshold) {
       if (!this.stabilityStart) {
         this.stabilityStart = Date.now();
       } else {
@@ -179,16 +197,62 @@ export class AutoCaptureEngine {
       brightnessScore: this.brightnessScore,
       distortionScore: this.distortionScore,
       stable: this.isStable,
-      ready: this.isStable && score >= this.config.readinessThreshold,
+      // isStable is a display hint; score alone gates capture so partial
+      // stability (motionConf building up) is sufficient. edgeConf absence
+      // keeps max achievable score at 0.70, safely below 0.74 threshold.
+      ready: score >= this.config.readinessThreshold,
+      countdownProgress: 0, // wird unten befüllt, sobald readySince gesetzt ist
     };
 
+    if (!readiness.ready) {
+      this.readySince = null;
+      this.lastReadiness = readiness;
+      this.emit({ type: 'auto_capture_ready', readiness });
+      return;
+    }
+
+    // One-shot lock: Entsperren sobald Dokument den Kader verlässt (edgeConf sinkt).
+    if (this.lockedAfterCapture) {
+      if (this.edgeConfidence < this.EDGE_RESET_THRESHOLD) {
+        this.lockedAfterCapture = false;
+        this.readySince = null;
+        if (__DEV__) console.log('[AutoCapture] lock released — edge dropped below reset threshold');
+      } else {
+        // Noch gesperrt: keine Auto-Capture, Countdown nicht zeigen
+        readiness.countdownProgress = 0;
+        this.lastReadiness = readiness;
+        this.emit({ type: 'auto_capture_ready', readiness });
+        return;
+      }
+    }
+
+    const now = Date.now();
+    if (this.readySince === null) {
+      this.readySince = now;
+    }
+
+    // Countdown-Fortschritt (0 → 1) für die UI
+    readiness.countdownProgress = Math.min(1, (now - this.readySince) / this.config.autoTriggerDelay);
+
     this.lastReadiness = readiness;
+    if (__DEV__) console.log('[AutoCapture] score=' + score.toFixed(3) + ' threshold=' + this.config.readinessThreshold + ' edgeConf=' + this.edgeConfidence.toFixed(3) + ' stable=' + this.isStable + ' ready=' + readiness.ready + ' countdown=' + readiness.countdownProgress.toFixed(2));
     this.emit({ type: 'auto_capture_ready', readiness });
-    if (readiness.ready) this.emit({ type: 'capture_ready' });
+
+    if (now - this.readySince < this.config.autoTriggerDelay) {
+      return;
+    }
+
+    if (this.capturedAt === null || now - this.capturedAt >= this.COOLDOWN_MS) {
+      this.capturedAt = now;
+      this.readySince = null;
+      this.lockedAfterCapture = true;  // one-shot lock nach Auto-Capture
+      if (__DEV__) console.log('[AutoCapture] captured + locked — warte auf edge-drop');
+      this.emit({ type: 'capture_ready' });
+    }
   }
 
   triggerFeedback() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (Platform.OS === 'android') Vibration.vibrate(50);
   }
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
-import { deltaSync, getHealthStatus } from '../services/v4Api';
-import { queueVerarbeiten } from '../services/offlineQueue';
+import { deltaSync, getHealthStatus } from '@/services/v4Api';
+import { queueVerarbeiten } from '@/services/offlineQueue';
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'error';
 

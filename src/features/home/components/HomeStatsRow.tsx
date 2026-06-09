@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme, type ThemeColors } from '../../../ThemeContext';
-import type { ShadowTokens, SpacingTokens } from '../../../theme';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import type { ShadowTokens, SpacingTokens } from '@/theme';
 
 interface StatItem { n: number; label: string; color: string; tabId?: string }
 interface HomeStatsRowProps {
@@ -15,11 +16,12 @@ interface HomeStatsRowProps {
 
 export default function HomeStatsRow({ colors: C, shadow, stats, spacing: S, onStatPress }: HomeStatsRowProps) {
   const { RiskColors, Colors, isDark } = useTheme();
+  const { t: T } = useT();
 
   const items: StatItem[] = Array.isArray(stats) ? stats : [
-    { n: (stats as any)?.diesenMonat ?? 0, label: 'Diesen Monat', color: C.primary,              tabId: 'Dokumente' },
-    { n: (stats as any)?.wichtig     ?? 0, label: 'Wichtig',      color: RiskColors.hoch.color,  tabId: 'Aufgaben'  },
-    { n: (stats as any)?.mitDeadline ?? 0, label: 'Fristen',      color: RiskColors.mittel.color, tabId: 'Kalender' },
+    { n: (stats as any)?.diesenMonat ?? 0, label: T('home.this_month'),        color: C.primary,              tabId: 'Dokumente' },
+    { n: (stats as any)?.wichtig     ?? 0, label: T('doc.urgent_label'),       color: RiskColors.hoch.color,  tabId: 'Aufgaben'  },
+    { n: (stats as any)?.mitDeadline ?? 0, label: T('field.deadline'),         color: RiskColors.mittel.color, tabId: 'Kalender' },
   ];
 
   return (

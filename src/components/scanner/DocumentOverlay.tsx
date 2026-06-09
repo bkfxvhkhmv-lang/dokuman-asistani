@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import Svg, { Polygon, Circle } from 'react-native-svg';
+import { getOverlayColor } from '@/modules/scanner/engine/camera-overlay-color';
+import { runQualityGateFromCorners } from '@/modules/scanner/engine/camera-quality-gate';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const DEFAULT_FRAME_W = Math.round(SCREEN_W * 0.95);
+const DEFAULT_FRAME_W = Math.round(SCREEN_W * 0.72);
 const DEFAULT_FRAME_H = Math.round(DEFAULT_FRAME_W * 1.414); // A4
-import { DocumentCorners } from '../../modules/scanner';
+import { DocumentCorners } from '@/modules/scanner';
 
 type Props = {
   corners?: DocumentCorners | null;
@@ -37,24 +39,27 @@ export const DocumentOverlay: React.FC<Props> = ({
   const resolvedColor = cornerColor || color || (mode === 'qr' ? '#7C6EF8' : 'rgba(255,255,255,0.85)');
 
   if (corners) {
-    const { topLeft, topRight, bottomRight, bottomLeft, confidence } = corners;
-    const edgeColor = confidence > 0.7 ? '#22C55E' : confidence > 0.4 ? '#EAB308' : '#EF4444';
+    const { topLeft, topRight, bottomRight, bottomLeft } = corners;
+    const { width: W, height: H } = Dimensions.get('window');
+    const quality = runQualityGateFromCorners(corners);
+    const edgeColor = color || getOverlayColor(quality, true);
+
+    // Corners are normalized 0-1 — multiply by screen dimensions for SVG pixel coords
+    const pts = [topLeft, topRight, bottomRight, bottomLeft].map(p => ({
+      x: p.x * W,
+      y: p.y * H,
+    }));
 
     return (
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <Svg style={StyleSheet.absoluteFill}>
+        <Svg style={StyleSheet.absoluteFill} width={W} height={H}>
           <Polygon
-            points={`
-              ${topLeft.x},${topLeft.y}
-              ${topRight.x},${topRight.y}
-              ${bottomRight.x},${bottomRight.y}
-              ${bottomLeft.x},${bottomLeft.y}
-            `}
+            points={pts.map(p => `${p.x},${p.y}`).join(' ')}
             fill={`${edgeColor}15`}
             stroke={edgeColor}
             strokeWidth="2.5"
           />
-          {[topLeft, topRight, bottomRight, bottomLeft].map((point, index) => (
+          {pts.map((point, index) => (
             <Circle
               key={index}
               cx={point.x}

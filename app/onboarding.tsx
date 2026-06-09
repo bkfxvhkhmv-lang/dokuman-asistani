@@ -1,2 +1,2 @@
-import OnboardingBildschirm from '../src/screens/OnboardingBildschirm';
-export default OnboardingBildschirm;
+import OnboardingScreen from '@features/onboarding';
+export default OnboardingScreen;

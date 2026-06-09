@@ -12,12 +12,14 @@
  */
 
 import { useCallback, useState } from 'react';
-import { analysiereText } from '../services/visionApi';
-import { runSmartAutoFill, mergeAutoFillIntoDokument, type AutoFillResult, type ExtractedFields } from '../services/SmartAutoFillService';
-import { runSmartCategorization, applyCategoryToVisionResult, type CategoryResult } from '../services/SmartCategorizationService';
-import { uploadDocumentV4 } from '../services/v4Api';
-import { generateId, scheduleDeadlineNotification } from '../utils';
-import type { Dokument } from '../store';
+import { analysiereText } from '@/services/visionApi';
+import { runSmartAutoFill, mergeAutoFillIntoDokument, type AutoFillResult, type ExtractedFields } from '@/services/SmartAutoFillService';
+import { runSmartCategorization, applyCategoryToVisionResult, type CategoryResult } from '@/services/SmartCategorizationService';
+import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
+import { generateId, scheduleDeadlineNotification } from '@/utils';
+import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
+import { erstelleKurzfassung } from '@/services/vision-api/summarizeText';
+import type { Dokument, ScannedPage } from '@/store';
 
 export interface SmartPipelineState {
   isAnalyzing: boolean;
@@ -103,8 +105,24 @@ export function useSmartDocumentPipeline(dispatch: (action: any) => void) {
     try {
       // Merge AI result + user edits
       const merged = mergeAutoFillIntoDokument(autoFillResult, userEdits);
-      const leadPage = pendingPages[0];
       const documentId = generateId();
+
+      // Tarama dosyalarini cacheDirectory'den documentDirectory'ye persist
+      // et — yoksa bir suredir kullanilmayan belge OS tarafindan silinebilir.
+      let persistedPages: ScannedPage[];
+      try {
+        persistedPages = await persistScanFiles(documentId, pendingPages.map(p => p.uri));
+      } catch (e) {
+        console.warn('[useSmartDocumentPipeline] persistScanFiles failed', e);
+        persistedPages = pendingPages.map((p, i) => ({
+          id:        generateId(),
+          uri:       p.uri,
+          order:     i + 1,
+          rotation:  0 as const,
+          createdAt: new Date().toISOString(),
+        }));
+      }
+      const leadPage = persistedPages[0];
 
       const documentPayload: Dokument = {
         id:             documentId,
@@ -112,7 +130,12 @@ export function useSmartDocumentPipeline(dispatch: (action: any) => void) {
         typ:            String(merged.typ || 'Sonstiges'),
         absender:       String(merged.absender || 'Unbekannt'),
         zusammenfassung:buildZusammenfassung(merged, pendingRawText),
-        kurzfassung:    buildKurzfassung(merged),
+        kurzfassung:    erstelleKurzfassung(
+          String(merged.typ || 'Sonstiges'),
+          merged.betrag ?? null,
+          merged.frist ?? null,
+          String(merged.absender || 'Unbekannt'),
+        ),
         warnung:        merged.risiko === 'hoch' ? 'Bitte reagieren Sie innerhalb der Frist.' : null,
         betrag:         merged.betrag ?? null,
         waehrung:       '€',
@@ -123,7 +146,7 @@ export function useSmartDocumentPipeline(dispatch: (action: any) => void) {
         gelesen:        false,
         erledigt:       false,
         uri:            leadPage?.uri || null,
-        pages:          pendingPages,
+        pages:          persistedPages,
         rohText:        pendingRawText,
         confidence:     pendingConfidence ?? null,
         versionen:      [],
@@ -147,11 +170,7 @@ export function useSmartDocumentPipeline(dispatch: (action: any) => void) {
 
       // Backend enrichment — non-blocking (hybrid: online-only)
       if (leadPage?.uri) {
-        uploadDocumentV4(leadPage.uri, `${documentId}.jpg`)
-          .then(result => {
-            if (result?.id) dispatch({ type: 'UPDATE_DOKUMENT', payload: { id: documentId, v4DocId: result.id } });
-          })
-          .catch(() => null);
+        enqueueV4Upload(dispatch, documentId, leadPage.uri, `${documentId}.jpg`);
       }
 
       setState(INITIAL);
@@ -187,24 +206,4 @@ function buildZusammenfassung(merged: Partial<ExtractedFields>, rohText: string)
   if (merged.aktenzeichen) s += `📎 Aktenzeichen: ${merged.aktenzeichen}\n\n`;
   if (merged.iban) s += `🏦 IBAN: ${merged.iban}\n\n`;
   return s.trim();
-}
-
-function buildKurzfassung(merged: Partial<ExtractedFields>): string {
-  const typ      = merged.typ      || 'Sonstiges';
-  const absender = merged.absender || 'Unbekannt';
-  const betrag   = merged.betrag   ? `${(merged.betrag as number).toFixed(2).replace('.', ',')} €` : null;
-  const frist    = merged.frist    ? new Date(merged.frist).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' }) : null;
-
-  if (typ === 'Rechnung') {
-    if (betrag && frist) return `${betrag} bis ${frist} an ${absender} zahlen.`;
-    if (betrag) return `Rechnung über ${betrag} von ${absender}.`;
-  }
-  if (typ === 'Mahnung') {
-    return betrag ? `Mahnung: ${betrag} sofort begleichen.` : `Mahnung von ${absender}.`;
-  }
-  if (typ === 'Bußgeld') {
-    return betrag ? `Bußgeld ${betrag} — zahlen oder Einspruch.` : `Bußgeldbescheid von ${absender}.`;
-  }
-  if (frist) return `${typ} von ${absender} — Frist ${frist}.`;
-  return `${typ} von ${absender}.`;
 }

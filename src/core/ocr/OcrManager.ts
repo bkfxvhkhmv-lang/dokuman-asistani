@@ -1,5 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import type { OcrResult, OcrBatchResult, OcrCaptureInput } from '../../modules/ocr/types';
+import type { OcrResult, OcrBatchResult, OcrCaptureInput } from '@/modules/ocr/types';
 export type { OcrBatchResult };
 
 const VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';

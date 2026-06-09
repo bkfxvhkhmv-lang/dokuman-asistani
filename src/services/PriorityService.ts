@@ -1,5 +1,5 @@
-import { getTageVerbleibend, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
+import { getTageVerbleibend, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -11,7 +11,7 @@ export interface HotDoc {
   dok:       Dokument;
   reason:    HotReason;
   priority:  HotPriority;
-  emoji:     string;
+  icon:      string;
   label:     string;   // short reason shown on card
   sublabel:  string;   // e.g. "Heute fällig · €89"
   action:    HotAction;
@@ -40,11 +40,11 @@ function buildFristHot(d: Dokument): HotDoc | null {
     dok:        d,
     reason:     'frist',
     priority:   tage <= 0 ? 'kritisch' : 'warnung',
-    emoji:      tage <= 0 ? '🚨' : '⏰',
+    icon:       tage <= 0 ? 'warning-circle' : 'clock',
     label:      `${dayStr} fällig`,
     sublabel:   `${d.absender}${betragStr}`,
-    action:     d.betrag ? 'bezahlen' : 'ansehen',
-    actionLabel: d.betrag ? 'Jetzt zahlen' : 'Ansehen',
+    action:     (d.betrag ?? 0) > 0 ? 'bezahlen' : 'ansehen',
+    actionLabel: (d.betrag ?? 0) > 0 ? 'Jetzt zahlen' : 'Ansehen',
   };
 }
 
@@ -61,7 +61,7 @@ function buildAnomalieHot(d: Dokument, avgBySender: Record<string, number>): Hot
     dok:         d,
     reason:      'anomalie',
     priority:    pct >= 0.40 ? 'kritisch' : 'warnung',
-    emoji:       '📈',
+    icon:        'chart-bar',
     label:       `${Math.round(pct * 100)}% über Durchschnitt`,
     sublabel:    `${d.absender} · Ø ${formatBetrag(avg) ?? '–'} → ${formatBetrag(d.betrag as number) ?? '–'}`,
     action:      'pruefen',
@@ -80,7 +80,7 @@ function buildNeuHot(d: Dokument): HotDoc | null {
     dok:         d,
     reason:      'neu',
     priority:    'info',
-    emoji:       '✨',
+    icon:        'sparkle',
     label:       'Neu analysiert',
     sublabel:    `${d.typ} · ${d.absender}`,
     action:      'ansehen',

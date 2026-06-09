@@ -1,4 +1,4 @@
-import type { SensitiveRegion } from '../types';
+import type { SensitiveRegion } from '@/modules/security/types';
 
 /**
  * BlurEngine — manages redaction regions for sensitive data.

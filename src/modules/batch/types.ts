@@ -1,6 +1,6 @@
-import type { CaptureResult } from '../scanner/types';
-import type { OcrResult } from '../ocr/types';
-import type { ImageSession } from '../image-processing/types';
+import type { CaptureResult } from '@/modules/scanner/types';
+import type { OcrResult } from '@/modules/ocr/types';
+import type { ImageSession } from '@/modules/image-processing/types';
 
 export interface BatchPage {
   id: string;

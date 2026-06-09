@@ -6,14 +6,16 @@ import {
   cacheSummary,
   type SummaryResult,
   type SummaryMode,
-} from '../services/SmartSummaryService';
-import type { Dokument } from '../store';
+} from '@/services/SmartSummaryService';
+import type { Dokument } from '@/store';
+import { useLangPreference } from '@/hooks/useLangPreference';
 
 export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode = 'mittel') {
   const [mode, setMode] = useState<SummaryMode>(defaultMode);
   const [result, setResult] = useState<SummaryResult | null>(null);
   const [loading, setLoading] = useState(false);
   const mountedRef = { current: true };
+  const { lang: appLang } = useLangPreference();
 
   // Build local summary instantly on mount
   useEffect(() => {
@@ -21,7 +23,7 @@ export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode =
     setResult(buildLocalSummary(dok, mode));
   }, [dok, mode]);
 
-  const loadDetailed = useCallback(async (lang = 'de') => {
+  const loadDetailed = useCallback(async () => {
     if (!dok) return;
     setLoading(true);
     try {
@@ -29,7 +31,7 @@ export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode =
       const cached = await getCachedSummary(dok.id, 'detailliert');
       if (cached) { setResult(cached); return; }
 
-      const hybrid = await buildSmartSummary(dok, 'detailliert', lang);
+      const hybrid = await buildSmartSummary(dok, 'detailliert', appLang);
       setResult(hybrid);
       if (hybrid.quelle === 'ki_cloud') {
         await cacheSummary(dok.id, 'detailliert', hybrid);
@@ -37,7 +39,7 @@ export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode =
     } finally {
       setLoading(false);
     }
-  }, [dok]);
+  }, [dok, appLang]);
 
   return { result, mode, setMode, loading, loadDetailed };
 }

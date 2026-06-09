@@ -1,14 +1,64 @@
 import type { RefObject } from 'react';
 import { CameraView } from 'expo-camera';
-import { Dimensions } from 'react-native';
-import { AutoCaptureReadiness, CaptureConfig, CaptureResult, EdgeDetectionState, ScannerListener, ScannerEvent } from '../types';
-import { EdgeDetector } from './EdgeDetector';
-import { AutoCaptureEngine } from './AutoCapture';
-import { PerspectiveCorrector } from './PerspectiveCorrector';
-import { Enhancer } from '../../image-processing/core/Enhancer';
-import { QualityAnalyzer } from '../../image-processing/core/QualityAnalyzer';
+import { AutoCaptureReadiness, CaptureConfig, CaptureResult, DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
+import { EdgeDetector } from '@/modules/scanner/engine/EdgeDetector';
+import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
+import { PerspectiveCorrector } from '@/modules/scanner/engine/PerspectiveCorrector';
+import { Enhancer } from '@/modules/image-processing/core/Enhancer';
+import { QualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
+import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
+import { decideCapture, STRICT_FALLBACK_POLICY } from '@/modules/scanner/engine/camera-capture-decision';
+import { PreviewGeometryMapper } from '@/modules/scanner/engine/PreviewGeometryMapper';
+import { checkLiveScanGate, checkDisplayGeometry } from '@/modules/scanner/engine/LiveScanGate';
+import { LiveScanBridge } from '@/modules/scanner/engine/LiveScanBridge';
+import type { LiveScanPayload } from '@/modules/scanner/engine/LiveScanBridge';
+import { CornerCache } from '@/modules/scanner/engine/CornerCache';
+import { CAPTURE_GATE, LIVE_GATE } from '@/modules/scanner/engine/scanner-thresholds';
+
+const aspectForAutoCapture = (aspect?: number | null) => {
+  if (typeof aspect !== 'number' || !Number.isFinite(aspect) || aspect <= 0.05) return 1;
+  return Math.max(0, Math.min(aspect, 1));
+};
+
+const clamp01 = (value?: number | null, fallback = 0) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return fallback;
+  return Math.max(0, Math.min(value, 1));
+};
+
+function captureQualityScore(corners: DocumentCorners | null | undefined): number {
+  if (!corners) return 0;
+  return (
+    clamp01(corners.confidence) * 0.45
+    + clamp01(corners.areaScore) * 0.15
+    + clamp01(corners.angleScore) * 0.15
+    + clamp01(corners.aspectScore) * 0.1
+    + clamp01(corners.centerScore) * 0.15
+  );
+}
+
+function isMeaningfullyWorseCapture(
+  candidate: DocumentCorners | null | undefined,
+  baseline: DocumentCorners | null | undefined,
+): boolean {
+  if (!candidate || !baseline) return false;
+  const candidateScore = captureQualityScore(candidate);
+  const baselineScore = captureQualityScore(baseline);
+  const confidenceDrop = clamp01(baseline.confidence) - clamp01(candidate.confidence);
+  return baselineScore - candidateScore > 0.12 || confidenceDrop > 0.15;
+}
+
+function checkCommitGate(corners: DocumentCorners, motionStability: number): { pass: true } | { pass: false; reason: string } {
+  if (corners.confidence < CAPTURE_GATE.CONFIDENCE_MIN) return { pass: false, reason: 'confidence too low' };
+  if ((corners.areaScore ?? 0) < LIVE_GATE.AREA_MIN) return { pass: false, reason: 'area too small' };
+  if ((corners.angleScore ?? 0) < LIVE_GATE.ANGLE_MIN) return { pass: false, reason: 'angle too low' };
+  if ((corners.aspectScore ?? 0) < LIVE_GATE.ASPECT_MIN) return { pass: false, reason: 'aspect too low' };
+  if ((corners.centerScore ?? 0) < LIVE_GATE.CENTER_MIN) return { pass: false, reason: 'center too low' };
+  if (motionStability < 0.72) return { pass: false, reason: 'device moving' };
+  return { pass: true };
+}
 
 export class CameraEngine {
+
   private cameraRef: RefObject<CameraView> | null = null;
   private edgeDetector: EdgeDetector;
   private autoCapture: AutoCaptureEngine;
@@ -16,12 +66,16 @@ export class CameraEngine {
   private enhancer: Enhancer;
   private qualityAnalyzer: QualityAnalyzer;
   private listeners: ScannerListener[] = [];
+
   private lastEdgeState: EdgeDetectionState = {
     corners: null,
     confidence: 0,
     stabilityScore: 0,
     detected: false,
   };
+
+  private cornerCache = new CornerCache();
+
   private lastAutoCaptureReadiness: AutoCaptureReadiness = {
     score: 0,
     motionConfidence: 0,
@@ -31,7 +85,9 @@ export class CameraEngine {
     distortionScore: 1,
     stable: false,
     ready: false,
+    countdownProgress: 0,
   };
+
   private config: CaptureConfig = {
     autoCapture: false,
     flash: 'off',
@@ -40,7 +96,18 @@ export class CameraEngine {
     enableEdgeDetection: false,
     enablePerspectiveCorrection: false,
   };
+
   private isCapturing = false;
+  private prevRawCorners: DocumentCorners | null = null;
+  private geometry = new PreviewGeometryMapper();
+  private bridge = new LiveScanBridge();
+  private lastCommitGatePassed = false;
+  private lastCommitGateTs = 0;
+  private lastCommittedCorners: DocumentCorners | null = null;
+  private lastCommittedCornersTs = 0;
+  // Require consecutive passes before emitting edges_detected to prevent isolated ghost frames
+  // (single PASS frames surrounded by FAILs) from briefly re-opening the polygon overlay.
+  private consecutiveLivePassCount = 0;
 
   constructor() {
     this.edgeDetector = new EdgeDetector();
@@ -51,16 +118,21 @@ export class CameraEngine {
 
     this.edgeDetector.addListener((e) => {
       if (e.type === 'edge_state_changed') {
-        this.lastEdgeState = e.state;
-        this.autoCapture.updateEdgeConfidence(e.state.confidence * e.state.stabilityScore);
+        this.autoCapture.updateEdgeConfidence(e.state.confidence);
+        return;
       }
+
+      if (e.type === 'edges_detected') return;
       this.emit(e);
     });
+
     this.autoCapture.addListener((e) => {
       if (e.type === 'auto_capture_ready') {
         this.lastAutoCaptureReadiness = e.readiness;
       }
+
       this.emit(e);
+
       if (e.type === 'capture_ready' && this.config.autoCapture) {
         this.autoCapturePhoto();
       }
@@ -69,6 +141,10 @@ export class CameraEngine {
 
   setCameraRef(ref: RefObject<CameraView>) {
     this.cameraRef = ref;
+  }
+
+  setViewDimensions(w: number, h: number) {
+    this.geometry.setViewDimensions(w, h);
   }
 
   addListener(listener: ScannerListener) {
@@ -80,7 +156,11 @@ export class CameraEngine {
 
   private emit(event: ScannerEvent) {
     this.listeners.forEach(l => {
-      try { l(event); } catch (e) { console.error('Camera engine listener error:', e); }
+      try {
+        l(event);
+      } catch (e) {
+        console.error('Camera engine listener error:', e);
+      }
     });
   }
 
@@ -92,25 +172,31 @@ export class CameraEngine {
     }
 
     if (config.autoCapture !== undefined) {
-      if (config.autoCapture) {
-        this.autoCapture.start();
-      } else {
-        this.autoCapture.stop();
-      }
+      config.autoCapture ? this.autoCapture.start() : this.autoCapture.stop();
     }
   }
 
   async capture(): Promise<CaptureResult | null> {
-    if (!this.cameraRef?.current || this.isCapturing) return null;
-
+    if (this.isCapturing) return null;
     this.isCapturing = true;
+
+    if (__DEV__) console.log('[ScannerCapture] start');
+
     try {
       this.autoCapture.triggerFeedback();
 
-      const photo = await this.cameraRef.current.takePictureAsync({
-        quality: 1,
-        skipProcessing: false,
-      });
+      let photo: { uri: string; width: number; height: number };
+
+      const nativePhoto = this.bridge.isAvailable ? await this.bridge.takePhoto() : null;
+      if (nativePhoto) {
+        if (__DEV__) console.log('[ScannerCapture] using native takePhoto');
+        photo = nativePhoto;
+      } else {
+        if (!this.cameraRef?.current) return null;
+        if (__DEV__) console.log('[ScannerCapture] using ExpoCameraRef takePhoto');
+        const p = await (this.cameraRef.current as any).takePictureAsync({ quality: 1 });
+        photo = { uri: p.uri, width: p.width, height: p.height };
+      }
 
       const originalUri = photo.uri;
       let correctedUri: string | undefined;
@@ -118,34 +204,104 @@ export class CameraEngine {
       let finalUri = originalUri;
       let corrected = false;
 
-      // Crop to the guide frame region (accounts for preview-vs-sensor aspect difference).
-      // analyzeCapture uses a blind 5% inset that ignores background — replaced here.
-      const captureCorners = this.computeGuideCropCorners(photo.width, photo.height);
+      const committedBaseline = this.getRecentCommittedCorners();
+      let captureCornersSource: 'photo' | 'video' = 'photo';
+      let captureCorners = await nativeDetectDocumentEdges({ uri: originalUri }).catch(() => null);
+      let hasRealDetection = captureCorners !== null;
+
+      if (!captureCorners || captureCorners.confidence < STRICT_FALLBACK_POLICY.minConfidence) {
+        const cached = this.cornerCache.captureCorners;
+        if (cached) {
+          captureCorners = cached.corners;
+          hasRealDetection = true;
+          captureCornersSource = 'video';
+        }
+      }
+
+      if (committedBaseline && isMeaningfullyWorseCapture(captureCorners, committedBaseline)) {
+        if (__DEV__) console.log('[ScannerCapture] using committed baseline instead of weaker still detection');
+        captureCorners = committedBaseline;
+        hasRealDetection = true;
+        captureCornersSource = 'video';
+      }
+
+      const captureDecision = decideCapture(hasRealDetection, captureCorners, STRICT_FALLBACK_POLICY);
+
+      if (__DEV__) {
+        const fmt = (n: number) => n.toFixed(3);
+        const pt = (p: { x: number; y: number }) => `(${p.x.toFixed(2)},${p.y.toFixed(2)})`;
+        console.log(
+          '[ScannerCapture] decision=' + captureDecision.reason
+          + ' source=' + captureCornersSource
+          + ' conf=' + fmt(captureDecision.quality.confidence)
+          + ' area=' + fmt(captureDecision.quality.areaScore)
+          + ' angle=' + fmt(captureDecision.quality.angleScore)
+          + ' aspect=' + fmt(captureDecision.quality.aspectScore)
+          + ' center=' + fmt(captureDecision.quality.centerScore)
+          + ' edgeSupp=' + (captureCorners?.edgeSupportScore?.toFixed(3) ?? '-'),
+        );
+        if (captureCorners) {
+          console.log(
+            '[ScannerCapture] corners'
+            + ' TL=' + pt(captureCorners.topLeft)
+            + ' TR=' + pt(captureCorners.topRight)
+            + ' BR=' + pt(captureCorners.bottomRight)
+            + ' BL=' + pt(captureCorners.bottomLeft),
+          );
+        }
+      }
+
+      if (!captureDecision.shouldCapture || !captureCorners) {
+        this.emit({
+          type: 'error',
+          error: {
+            code: 'DOCUMENT_NOT_READY',
+            message: 'Dokument nicht stabil erkannt.',
+            recoverable: true,
+          },
+        });
+        return null;
+      }
 
       if (this.config.enablePerspectiveCorrection && captureCorners.confidence >= 0.4) {
-        correctedUri = await this.perspectiveCorrector.correct(originalUri, captureCorners, photo.width, photo.height);
+        if (captureCornersSource === 'video') {
+          // Live-stream corners are normalized against the preview/video frame,
+          // so they must be remapped into still-photo space before correction.
+          const VIDEO_FRAME_W = 1080;
+          const VIDEO_FRAME_H = 1920;
+          if (__DEV__) console.log(`[ScannerCapture] warp=video photoSize=${photo.width}×${photo.height} videoFrame=${VIDEO_FRAME_W}×${VIDEO_FRAME_H}`);
+          correctedUri = await this.perspectiveCorrector.correct(
+            originalUri, captureCorners, photo.width, photo.height,
+          );
+        } else {
+          // Still-photo detection already runs on the captured image itself.
+          // Passing video dimensions here would double-remap otherwise-correct corners.
+          if (__DEV__) console.log(`[ScannerCapture] warp=still photoSize=${photo.width}×${photo.height}`);
+          correctedUri = await this.perspectiveCorrector.correct(
+            originalUri, captureCorners, photo.width, photo.height,
+          );
+        }
         corrected = correctedUri !== originalUri;
         finalUri = correctedUri;
       }
 
-      // Always enhance with 'clean' so native contrast/brightness boost runs automatically.
-      // If the user has explicitly chosen a filter, honour it; 'original' is never used
-      // as the auto-preset because it skips all enhancement steps.
       const enhancePreset = this.config.filter === 'original' ? 'clean' : this.config.filter;
       const enhancementResult = await this.enhancer.enhance(finalUri, enhancePreset);
       enhancedUri = enhancementResult.applied ? enhancementResult.uri : undefined;
       finalUri = enhancementResult.uri;
 
-      // Pass the A4 output dimensions (from PerspectiveCorrector) to the quality
-      // analyser so it can use the bytes/megapixel metric instead of raw file size.
-      const A4_W = 2480, A4_H = 3508;
+      const A4_W = 2480;
+      const A4_H = 3508;
       const qualityMetrics = await this.qualityAnalyzer.analyze(finalUri, A4_W, A4_H);
 
-      // Feed quality data back into AutoCapture scoring
       const blurNorm = Math.min(1, qualityMetrics.blurScore / 100);
       const brightnessNorm = Math.min(1, qualityMetrics.brightnessScore / 100);
-      const distortionNorm = captureCorners.confidence;
-      this.autoCapture.updateQualityScores(blurNorm, brightnessNorm, distortionNorm);
+
+      this.autoCapture.updateQualityScores(
+        blurNorm,
+        brightnessNorm,
+        1.0,                                   // distortion — no real metric available
+      );
 
       const result: CaptureResult = {
         uri: finalUri,
@@ -171,13 +327,13 @@ export class CameraEngine {
       this.emit({ type: 'capture_complete', result });
       return result;
     } catch (e: any) {
+      if (__DEV__) console.log('[ScannerCapture] failureReason=' + (e?.message ?? 'unknown'));
       this.emit({
         type: 'error',
         error: {
           code: 'CAPTURE_FAILED',
           message: e.message || 'Failed to capture photo',
           recoverable: true,
-          retry: async () => { await this.capture(); },
         },
       });
       return null;
@@ -188,7 +344,25 @@ export class CameraEngine {
 
   async autoCapturePhoto() {
     if (!this.config.autoCapture) return;
+    // Guard: last live frame must have passed commit gate AND been recent (< 800ms ago).
+    // Prevents stale-trigger: countdown filled on good frame, capture fires after scene changed.
+    const commitAge = Date.now() - this.lastCommitGateTs;
+    if (!this.lastCommitGatePassed || commitAge > 800) {
+      if (__DEV__) console.log('[AutoCapture] aborted — commit gate stale (passed=' + String(this.lastCommitGatePassed) + ' age=' + commitAge + 'ms)');
+      this.autoCapture.updateEdgeConfidence(0);
+      return;
+    }
     await this.capture();
+  }
+
+  private getRecentCommittedCorners(maxAgeMs = 1200): DocumentCorners | null {
+    if (!this.lastCommittedCorners || this.lastCommittedCornersTs === 0) return null;
+    const age = Date.now() - this.lastCommittedCornersTs;
+    return age <= maxAgeMs ? this.lastCommittedCorners : null;
+  }
+
+  lockManualCapture() {
+    this.autoCapture.lockAfterManualCapture();
   }
 
   processFrame(frame: any) {
@@ -205,65 +379,177 @@ export class CameraEngine {
     return this.lastAutoCaptureReadiness;
   }
 
-  /**
-   * Maps the guide frame (visual overlay on preview) into normalized capture-image
-   * coordinates, accounting for the preview-to-sensor crop difference.
-   *
-   * The preview shows a center-crop of the capture: portrait phones typically use
-   * a 9:16 preview while the sensor captures at 3:4, so ~21% of the capture width
-   * falls outside the visible preview area on each side.
-   *
-   * Guide frame constants must match styles.ts / DocumentOverlay.tsx:
-   *   width = 95% of screen, centered; top = 10%; height = width × 1.414 (A4).
-   */
-  private computeGuideCropCorners(captureW: number, captureH: number): import('../types').DocumentCorners {
-    const { width: SW, height: SH } = Dimensions.get('window');
+  private computeRawStability(current: DocumentCorners): number {
+    if (!this.prevRawCorners) return 0.85;
 
-    const GUIDE_RATIO  = 0.95;
-    const GUIDE_W_PTS  = SW * GUIDE_RATIO;
-    const GUIDE_H_PTS  = GUIDE_W_PTS * 1.414; // A4 aspect ratio
+    const pts: Array<[{ x: number; y: number }, { x: number; y: number }]> = [
+      [current.topLeft, this.prevRawCorners.topLeft],
+      [current.topRight, this.prevRawCorners.topRight],
+      [current.bottomRight, this.prevRawCorners.bottomRight],
+      [current.bottomLeft, this.prevRawCorners.bottomLeft],
+    ];
 
-    // Guide in preview-normalized space (0-1)
-    const prevL = (1 - GUIDE_RATIO) / 2;          // 0.025
-    const prevR = 1 - prevL;                       // 0.975
-    const prevT = 0.10;
-    const prevB = prevT + GUIDE_H_PTS / SH;
+    const movement = pts.reduce((sum, [c, p]) => {
+      const dx = c.x - p.x;
+      const dy = c.y - p.y;
+      return sum + Math.sqrt(dx * dx + dy * dy);
+    }, 0) / pts.length;
 
-    // The preview is a center-crop of the capture image.
-    const previewAspect = SW / SH;
-    const captureAspect = captureW / captureH;
+    return Math.max(0, 1 - movement / 0.12);
+  }
 
-    let cL: number, cR: number, cT: number, cB: number;
+  startLiveEdgeDetection(_intervalMs = 900) {
+    this.stopLiveEdgeDetection();
 
-    if (captureAspect > previewAspect) {
-      // Capture wider than preview → horizontal margins outside preview
-      const pw  = previewAspect / captureAspect;
-      const xOff = (1 - pw) / 2;
-      cL = xOff + prevL * pw;
-      cR = xOff + prevR * pw;
-      cT = prevT;
-      cB = prevB;
+    if (this.bridge.isAvailable) {
+      if (__DEV__) console.log('[ScannerLive] using native AVCapture stream');
+      this.bridge.start((payload) => this.handleNativeScanResult(payload));
     } else {
-      // Capture taller than preview → vertical margins outside preview
-      const ph   = captureAspect / previewAspect;
-      const yOff = (1 - ph) / 2;
-      cL = prevL;
-      cR = prevR;
-      cT = yOff + prevT * ph;
-      cB = yOff + prevB * ph;
+      if (__DEV__) console.log('[ScannerLive] native stream unavailable');
+    }
+  }
+
+  stopLiveEdgeDetection() {
+    this.bridge.stop();
+  }
+
+  private handleNativeScanResult({ corners, bufferW, bufferH }: LiveScanPayload) {
+    if (this.isCapturing) return;
+
+    const gate = checkLiveScanGate(corners);
+
+    if (__DEV__) {
+      const ts = Date.now() % 100000;
+      const gateTag = gate.pass ? 'PASS' : ('FAIL:' + gate.reason);
+      console.log(
+        '[ScannerLive] t=' + ts
+        + ' gate=' + gateTag
+        + ' conf=' + (corners.confidence?.toFixed(3) ?? 'null')
+        + ' edgeSupp=' + (corners.edgeSupportScore?.toFixed(3) ?? '-')
+        + ' area=' + (corners.areaScore?.toFixed(3) ?? '-')
+        + ' angle=' + (corners.angleScore?.toFixed(3) ?? '-')
+        + ' aspect=' + (corners.aspectScore?.toFixed(3) ?? '-')
+        + ' center=' + (corners.centerScore?.toFixed(3) ?? '-'),
+      );
     }
 
-    return {
-      topLeft:     { x: cL, y: cT },
-      topRight:    { x: cR, y: cT },
-      bottomRight: { x: cR, y: cB },
-      bottomLeft:  { x: cL, y: cB },
-      confidence:  0.82, // guide-frame crop: deterministic, not a heuristic
+    if (gate.pass) {
+      this.cornerCache.onFrameAccepted(corners);
+
+      const motionStability = this.computeRawStability(corners);
+      this.prevRawCorners = corners;
+
+      // Separate display gate (LIVE_GATE, already passed) from commit gate (COMMIT_GATE).
+      // Auto-capture countdown only runs when the polygon is tight and the device is still.
+      const commit = checkCommitGate(corners, motionStability);
+      this.lastCommitGatePassed = commit.pass;
+      if (commit.pass) {
+        const now = Date.now();
+        this.lastCommitGateTs = now;
+        this.lastCommittedCorners = corners;
+        this.lastCommittedCornersTs = now;
+      }
+      if (commit.pass) {
+        this.autoCapture.updateEdgeConfidence(corners.confidence);
+        this.autoCapture.updateQualityScores(
+          1.0,
+          1.0,
+          1.0,
+        );
+      } else {
+        this.autoCapture.updateEdgeConfidence(0);
+        if (__DEV__) console.log('[ScannerCommit] suppressed — ' + commit.reason);
+      }
+
+      const rawDisplay = this.geometry.mapToDisplay(corners, bufferW, bufferH);
+      if (!rawDisplay) {
+        this.consecutiveLivePassCount = 0;
+        if (__DEV__) console.log('[ScannerLiveEmit] rejecting frame: view dimensions unknown');
+        return;
+      }
+
+      if (!checkDisplayGeometry(rawDisplay)) {
+        this.consecutiveLivePassCount = 0;
+        this.autoCapture.updateEdgeConfidence(0);
+        this.geometry.resetSmoothing();
+        this.lastEdgeState = {
+          corners: null,
+          confidence: 0,
+          stabilityScore: 0,
+          detected: false,
+        };
+        if (__DEV__) console.log('[ScannerLiveEmit] rejecting frame: displayGeometry invalid');
+        this.emit({ type: 'edge_state_changed', state: this.lastEdgeState });
+        return;
+      }
+
+      this.consecutiveLivePassCount++;
+
+      const prev = this.geometry.currentSmoothed;
+      const prevArea = prev?.areaScore ?? 0;
+      const prevConf = prev?.confidence ?? 0;
+      const newArea = corners.areaScore ?? 0;
+      const newConf = corners.confidence;
+      const locked = prevArea >= 0.55 && prevConf >= 0.68;
+      const regressed = newArea < prevArea - 0.30 && newConf < prevConf - 0.10;
+      const emaAlpha = locked && regressed ? 0.05 : 0.35;
+
+      const displayCorners = this.geometry.smooth(rawDisplay, emaAlpha);
+
+      const detectedState: EdgeDetectionState = {
+        corners: displayCorners,
+        confidence: corners.confidence,
+        stabilityScore: motionStability,
+        detected: true,
+      };
+
+      this.lastEdgeState = detectedState;
+
+      if (__DEV__) console.log('[ScannerLiveEmit] emitting detected=true conf=' + detectedState.confidence.toFixed(3));
+
+      // Require 2 consecutive PASS frames before showing the polygon overlay.
+      // Isolated single-frame PASSes surrounded by FAILs are ghost detections — the native
+      // quad detector occasionally finds a partial edge in an otherwise-moving/empty frame.
+      if (this.consecutiveLivePassCount >= 2) {
+        this.emit({ type: 'edges_detected', corners: displayCorners });
+      }
+      this.emit({ type: 'edge_state_changed', state: detectedState });
+      return;
+    }
+
+    this.consecutiveLivePassCount = 0;
+    this.lastCommitGatePassed = false;
+    this.lastCommitGateTs = 0;
+    this.lastCommittedCorners = null;
+    this.lastCommittedCornersTs = 0;
+    this.autoCapture.updateEdgeConfidence(0);
+    this.geometry.resetSmoothing();
+
+    this.cornerCache.onFrameRejected();
+
+    const clearedState: EdgeDetectionState = {
+      corners: null,
+      confidence: 0,
+      stabilityScore: 0,
+      detected: false,
     };
+    this.lastEdgeState = clearedState;
+
+    if (__DEV__) console.log('[ScannerLiveEmit] emitting detected=false');
+    this.emit({ type: 'edge_state_changed', state: clearedState });
   }
 
   dispose() {
+    this.stopLiveEdgeDetection();
     this.autoCapture.stop();
+    this.cornerCache.reset();
+    this.geometry.resetSmoothing();
+    this.prevRawCorners = null;
+    this.consecutiveLivePassCount = 0;
+    this.lastCommitGatePassed = false;
+    this.lastCommitGateTs = 0;
+    this.lastCommittedCorners = null;
+    this.lastCommittedCornersTs = 0;
     this.listeners = [];
   }
 }

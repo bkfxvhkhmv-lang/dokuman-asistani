@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import type { Dokument } from '../../../store';
-import type { DocumentDigitalTwinModel } from '../../../core/intelligence/DocumentDigitalTwin';
-import type { GeneratedWorkflow } from '../../../core/intelligence/AutoWorkflowEngine';
-import type { OutcomePrediction } from '../../../core/intelligence/OutcomePredictor';
-import { QK } from '../../../hooks/queryHooks';
+import type { Dokument } from '@/store';
+import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
+import type { GeneratedWorkflow } from '@/core/intelligence/AutoWorkflowEngine';
+import type { OutcomePrediction } from '@/core/intelligence/OutcomePredictor';
+import { QK } from '@/hooks/queryHooks';
 
 // InstitutionBehaviorModel ve IntentDetector kendi tiplerini export etmiyor — minimal shape
 export interface InstitutionDesc { name?: string; description?: string; category?: string; [k: string]: unknown }
@@ -33,7 +33,7 @@ export function useDocumentAI(dok: Dokument | undefined) {
     if (prefetched) {
       if (!cancelled) setDigitalTwin(prefetched);
     } else {
-      import('../../../core/intelligence/DocumentDigitalTwin')
+      import('@/core/intelligence/DocumentDigitalTwin')
         .then(({ DocumentDigitalTwin }) =>
           DocumentDigitalTwin.build(dok).then(r => {
             if (!cancelled) {
@@ -46,13 +46,13 @@ export function useDocumentAI(dok: Dokument | undefined) {
         .catch(e => console.warn('[AI] digitalTwin error', e));
     }
 
-    import('../../../core/intelligence/AutoWorkflowEngine')
+    import('@/core/intelligence/AutoWorkflowEngine')
       .then(({ AutoWorkflowEngine }) =>
         AutoWorkflowEngine.generate(dok).then(r => { if (!cancelled) setWorkflow(r); })
       )
       .catch(e => console.warn('[AI] workflow error', e));
 
-    import('../../../core/intelligence/InstitutionBehaviorModel')
+    import('@/core/intelligence/InstitutionBehaviorModel')
       .then(({ InstitutionBehaviorModel }) => {
         InstitutionBehaviorModel.learn(dok).catch(e => console.warn('[AI] learn error', e));
         if (dok.absender) {
@@ -63,7 +63,7 @@ export function useDocumentAI(dok: Dokument | undefined) {
       })
       .catch(e => console.warn('[AI] InstitutionBehaviorModel import error', e));
 
-    import('../../../core/intelligence/IntentDetector')
+    import('@/core/intelligence/IntentDetector')
       .then(({ detectIntent }) => {
         try {
           if (!cancelled) setDocIntent(detectIntent(dok) as unknown as DocIntent);
@@ -71,17 +71,17 @@ export function useDocumentAI(dok: Dokument | undefined) {
       })
       .catch(e => console.warn('[AI] IntentDetector import error', e));
 
-    import('../../../core/intelligence/OutcomePredictor')
+    import('@/core/intelligence/OutcomePredictor')
       .then(({ OutcomePredictor }) =>
         OutcomePredictor.predict(dok).then(r => { if (!cancelled) setOutcomePrediction(r); })
       )
       .catch(e => console.warn('[AI] outcomePrediction error', e));
 
-    import('../../../core/intelligence/UserBehaviorModel')
+    import('@/core/intelligence/UserBehaviorModel')
       .then(({ UserBehaviorModel }) => UserBehaviorModel.recordOpen(dok).catch(() => null))
       .catch(e => console.warn('[AI] UserBehaviorModel error', e));
 
-    import('../../../core/intelligence/DocumentMemory')
+    import('@/core/intelligence/DocumentMemory')
       .then(({ DocumentMemory }) => DocumentMemory.recordOpen(dok.id).catch(() => null))
       .catch(e => console.warn('[AI] DocumentMemory error', e));
 

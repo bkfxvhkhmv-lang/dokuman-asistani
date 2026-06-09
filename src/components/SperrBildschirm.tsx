@@ -7,8 +7,8 @@ try {
   LocalAuthentication = require('expo-local-authentication');
 } catch { /* package not installed — biometric disabled */ }
 import * as Haptics from 'expo-haptics';
-import Icon from './Icon';
-import { useTheme } from '../ThemeContext';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
 
 interface SperrBildschirmProps {
   visible: boolean;

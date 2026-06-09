@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getPendingApprovals, resolveApproval } from '../services/v4Api';
+import { getPendingApprovals, resolveApproval } from '@/services/v4Api';
 
 export type ApprovalDecision = 'approved' | 'rejected';
 

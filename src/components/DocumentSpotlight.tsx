@@ -19,8 +19,8 @@ import Animated, {
   useSharedValue, useAnimatedStyle,
   withTiming, withSpring, cancelAnimation,
 } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
-import type { EntityBox } from '../services/visionApi';
+import { useTheme } from '@/ThemeContext';
+import type { EntityBox } from '@/services/visionApi';
 
 const ENTITY_LABEL: Record<EntityBox['type'], string> = {
   betrag:       'Betrag',

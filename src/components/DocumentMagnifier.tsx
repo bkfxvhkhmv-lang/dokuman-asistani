@@ -26,7 +26,7 @@ import {
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring, withTiming,
 } from 'react-native-reanimated';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 const MAG_SIZE    = 130;
 const MAG_SCALE   = 2.2;
@@ -51,8 +51,8 @@ export default function DocumentMagnifier({
   const opacity = useSharedValue(0);
 
   const panResponder = useRef(PanResponder.create({
-    onStartShouldSetPanResponder:  () => !!uri,
-    onMoveShouldSetPanResponder:   () => !!uri,
+    onStartShouldSetPanResponder:  (e) => !!uri && e.nativeEvent.touches.length === 1,
+    onMoveShouldSetPanResponder:   (e) => !!uri && e.nativeEvent.touches.length === 1,
     onPanResponderGrant: (e) => {
       const { locationX, locationY } = e.nativeEvent;
       setFingerPos({ x: locationX, y: locationY });

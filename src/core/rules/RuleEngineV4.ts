@@ -1,4 +1,4 @@
-import { installRule, uninstallRule } from '../../services/v4Api';
+import { installRule, uninstallRule } from '@/services/v4Api';
 
 export interface LocalRule {
   id: string;

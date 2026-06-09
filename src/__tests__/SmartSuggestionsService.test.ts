@@ -1,5 +1,5 @@
-import { runSmartSuggestions, runHomeSuggestions } from '../services/SmartSuggestionsService';
-import type { Dokument } from '../store';
+import { runSmartSuggestions, runHomeSuggestions } from '@/services/SmartSuggestionsService';
+import type { Dokument } from '@/store';
 
 function makeDok(overrides: Partial<Dokument> = {}): Dokument {
   return {

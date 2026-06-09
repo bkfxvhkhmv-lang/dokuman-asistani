@@ -1,3 +1,6 @@
-import ProfileScreen from '../../src/features/profile/ProfileScreen';
+import EinstellungenScreen from '@/features/settings/EinstellungenScreen';
+import React from 'react';
 
-export default ProfileScreen;
+export default function ProfilTab() {
+  return <EinstellungenScreen showBack={false} />;
+}

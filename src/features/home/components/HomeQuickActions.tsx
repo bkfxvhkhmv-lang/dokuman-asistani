@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
-import HomeDashboardCards from './HomeDashboardCards';
+import HomeDashboardCards from '@/features/home/components/HomeDashboardCards';
 
 export default function HomeQuickActions({ data }: { data: any }) {
   const router = useRouter();

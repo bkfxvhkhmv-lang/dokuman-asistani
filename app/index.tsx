@@ -3,8 +3,7 @@ import { Redirect } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../src/providers/AuthContext';
-
-const ONBOARDING_KEY = '@briefpilot_onboarding_done';
+import { ONBOARDING_DONE_KEY } from '../src/product/onboardingStorage';
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -12,7 +11,7 @@ export default function Index() {
   const [onboardingDone, setOnboardingDone] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(ONBOARDING_KEY).then(val => {
+    AsyncStorage.getItem(ONBOARDING_DONE_KEY).then(val => {
       setOnboardingDone(val === 'true');
       setOnboardingChecked(true);
     });

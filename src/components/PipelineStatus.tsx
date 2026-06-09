@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Icon from './Icon';
-import { useTheme } from '../ThemeContext';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
 
 const STEPS = [
   { event: 'DOCUMENT_CREATED',    label: 'Hochgeladen',       icon: 'cloud-upload' },

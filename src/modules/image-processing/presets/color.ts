@@ -1,5 +1,5 @@
-import { nativeApplyFilter } from '../../scanner/engine/NativeStub';
-import { BasePresetFilter } from './base';
+import { nativeApplyFilter } from '@/modules/scanner/engine/NativeStub';
+import { BasePresetFilter } from '@/modules/image-processing/presets/base';
 
 export class ColorFilter extends BasePresetFilter {
   id = 'color';

@@ -1,5 +1,5 @@
 // Barrel — tüm utils modülleri buradan re-export edilir
-// Geriye dönük uyumluluk: import { X } from '../utils' hâlâ çalışır
+// Geriye dönük uyumluluk: import { X } from '@/utils' hâlâ çalışır
 
 export * from './formatters';
 export * from './search';

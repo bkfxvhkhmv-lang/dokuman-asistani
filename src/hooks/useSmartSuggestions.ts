@@ -10,8 +10,8 @@ import {
   runSmartSuggestions,
   runHomeSuggestions,
   type Suggestion,
-} from '../services/SmartSuggestionsService';
-import type { Dokument } from '../store';
+} from '@/services/SmartSuggestionsService';
+import type { Dokument } from '@/store';
 
 interface UseSuggestionsActions {
   onZahlen?: () => void;

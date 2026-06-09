@@ -4,10 +4,10 @@
  */
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { runSmartSearch, buildSearchIndex, type SearchResponse } from '../services/SmartSearchService';
-import { hybridSearch } from '../services/v4Api';
-import { isOnline } from '../services/offlineQueue';
-import type { Dokument } from '../store';
+import { runSmartSearch, buildSearchIndex, type SearchResponse } from '@/services/SmartSearchService';
+import { hybridSearch } from '@/services/v4Api';
+import { isOnline } from '@/services/offlineQueue';
+import type { Dokument } from '@/store';
 
 const DEBOUNCE_MS = 280;
 const MIN_QUERY_ONLINE = 3;

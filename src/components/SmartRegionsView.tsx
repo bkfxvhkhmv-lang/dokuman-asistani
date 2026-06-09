@@ -3,8 +3,9 @@ import { View, Text, TouchableOpacity, ScrollView, Linking, Animated } from 'rea
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as Calendar from 'expo-calendar';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface Region {
   id: string;
@@ -109,6 +110,7 @@ function useFeedback() {
 }
 
 function useRegionActions(dok: Partial<Dokument>, showFeedback: (msg: string) => void) {
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   const addToCalendar = useCallback(async (region: Region) => {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     if (status !== 'granted') { showFeedback('Kalenderzugriff nicht erlaubt'); return; }
@@ -118,11 +120,11 @@ function useRegionActions(dok: Partial<Dokument>, showFeedback: (msg: string) =>
     const start = new Date(region.value); start.setHours(9, 0, 0, 0);
     const end   = new Date(region.value); end.setHours(10, 0, 0, 0);
     await Calendar.createEventAsync(def.id, {
-      title: dok.titel || 'BriefPilot Frist', startDate: start, endDate: end,
+      title: displayTitle || 'BriefPilot Frist', startDate: start, endDate: end,
       notes: dok.absender, alarms: [{ relativeOffset: -24 * 60 }, { relativeOffset: -60 }],
     });
     showFeedback('Termin eingetragen');
-  }, [dok, showFeedback]);
+  }, [displayTitle, dok.absender, showFeedback]);
 
   const handleTap = useCallback(async (region: Region) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -147,7 +149,7 @@ function useRegionActions(dok: Partial<Dokument>, showFeedback: (msg: string) =>
         break;
       }
       case 'email':
-        Linking.openURL(`mailto:${region.value}?subject=${encodeURIComponent(dok.titel || '')}`);
+        Linking.openURL(`mailto:${region.value}?subject=${encodeURIComponent(displayTitle || '')}`);
         break;
       case 'adresse':
         Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(region.value)}`);
@@ -156,7 +158,7 @@ function useRegionActions(dok: Partial<Dokument>, showFeedback: (msg: string) =>
         await Clipboard.setStringAsync(region.value);
         showFeedback('Kopiert');
     }
-  }, [addToCalendar, dok, showFeedback]);
+  }, [addToCalendar, displayTitle, showFeedback]);
 
   return { handleTap };
 }

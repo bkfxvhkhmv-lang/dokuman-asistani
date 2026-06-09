@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Pressable, PanResponder, Dimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 
 const { width: W, height: H } = Dimensions.get('window');
 const FAB_SIZE = 58;
@@ -10,14 +11,14 @@ const INIT_Y = H - FAB_SIZE - 100;
 
 interface FabAction {
   id: string;
-  emoji: string;
+  icon: string;
   label: string;
   route: string | null;
 }
 
 const ACTIONS: FabAction[] = [
-  { id: 'camera', emoji: '📷', label: 'Foto aufnehmen', route: '/(tabs)/Kamera' },
-  { id: 'search', emoji: '🔍', label: 'Suche',          route: '/(tabs)/Suche' },
+  { id: 'camera', icon: 'camera',           label: 'Foto aufnehmen', route: '/(tabs)/Kamera' },
+  { id: 'search', icon: 'magnifying-glass', label: 'Suche',          route: '/(tabs)/Suche' },
 ];
 
 interface GlobalFABProps {
@@ -125,7 +126,7 @@ export default function GlobalFAB({ router }: GlobalFABProps) {
                 accessibilityRole="button"
                 importantForAccessibility="no"
               >
-                <Text style={{ fontSize: 20 }}>{action.emoji}</Text>
+                <Icon name={action.icon} size={22} color={C.text} />
               </TouchableOpacity>
             </Animated.View>
           );

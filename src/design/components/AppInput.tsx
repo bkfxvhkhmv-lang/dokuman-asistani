@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ViewStyle, TextStyle, TextInputProps } from 'react-native';
-import { useTheme } from '../../ThemeContext';
-import Icon from '../../components/Icon';
+import { BlurView } from 'expo-blur';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 
 type InputVariant = 'default' | 'search' | 'underline';
 
@@ -40,8 +41,9 @@ export default function AppInput({
   const [secureVisible, setSecureVisible] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  const hasLeft  = !!icon || secure;
-  const hasRight = secure || (variant === 'search' && (value?.length ?? 0) > 0);
+  const isSearch = variant === 'search';
+  const hasLeft  = !!icon || secure || isSearch;
+  const hasRight = secure || (isSearch && (value?.length ?? 0) > 0);
 
   const borderColor = error
     ? Colors.danger ?? '#E24B4A'
@@ -70,13 +72,18 @@ export default function AppInput({
         </Text>
       ) : null}
 
-      <TouchableOpacity activeOpacity={1} onPress={() => inputRef.current?.focus()} style={containerStyle}>
+      <TouchableOpacity activeOpacity={1} onPress={() => inputRef.current?.focus()} style={[containerStyle, isSearch && st.searchWrap]}>
+        {/* iOS glass blur background for search variant */}
+        {isSearch && Platform.OS === 'ios' && (
+          <BlurView intensity={56} tint="light" style={[StyleSheet.absoluteFill, { borderRadius: 14 }]} />
+        )}
         {hasLeft ? (
           <View style={st.iconLeft}>
             <Icon
-              name={secure ? 'lock' : icon!}
-              size={16}
+              name={isSearch ? 'magnifying-glass' : secure ? 'lock' : icon!}
+              size={isSearch ? 17 : 16}
               color={focused ? Colors.primary : Colors.textTertiary}
+              weight={isSearch ? 'bold' : 'regular'}
             />
           </View>
         ) : null}
@@ -132,6 +139,10 @@ const st = StyleSheet.create({
   wrapDefault: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1, borderRadius: 12, minHeight: 48, paddingHorizontal: 12,
+  },
+  searchWrap: {
+    borderRadius: 14, minHeight: 44, overflow: 'hidden',
+    ...(Platform.OS === 'android' ? { backgroundColor: 'rgba(255,255,255,0.82)' } : {}),
   },
   wrapUnderline: {
     flexDirection: 'row', alignItems: 'center',

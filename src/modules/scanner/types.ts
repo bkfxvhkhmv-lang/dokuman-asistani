@@ -9,6 +9,12 @@ export interface DocumentCorners {
   bottomRight: Point;
   bottomLeft: Point;
   confidence: number;
+  // Debug scores (0–1) — populated when native detection succeeds
+  areaScore?: number;
+  angleScore?: number;
+  aspectScore?: number;
+  centerScore?: number;
+  edgeSupportScore?: number;
 }
 
 export interface CaptureConfig {
@@ -73,6 +79,8 @@ export interface AutoCaptureReadiness {
   distortionScore: number;
   stable: boolean;
   ready: boolean;
+  /** 0 → 1 während des autoTriggerDelay-Countdowns; 0 wenn kein Countdown läuft. */
+  countdownProgress: number;
 }
 
 export interface ScannerError {

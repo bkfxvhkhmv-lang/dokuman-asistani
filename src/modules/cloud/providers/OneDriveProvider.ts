@@ -1,7 +1,7 @@
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system';
-import type { CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile } from '../types';
+import type { CloudFolderChild, CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile } from '@/modules/cloud/types';
 
 const CLIENT_ID = process.env.EXPO_PUBLIC_ONEDRIVE_CLIENT_ID ?? '';
 const TOKEN_KEY = 'briefpilot_onedrive_token';
@@ -120,6 +120,48 @@ export class OneDriveProvider implements CloudSyncProvider {
       createdAt: f.createdDateTime,
       sizeBytes: f.size,
     }));
+  }
+
+  /** S6 — `BriefPilot` veya seçilen alt dizin için `path_lower` kimliği. */
+  async listFolderChildren(parentId: string | null): Promise<CloudFolderChild[]> {
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    if (!token) return [];
+
+    const folderItemId = parentId ?? (await this.getBriefPilotDriveItemId(token));
+    if (!folderItemId) return [];
+
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/me/drive/items/${folderItemId}/children?$select=id,name,folder,file&$top=100`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+
+    return (data.value ?? []).map((item: { id: string; name: string; folder?: unknown }) => ({
+      id: item.id,
+      name: item.name,
+      kind: item.folder ? ('folder' as const) : ('file' as const),
+    }));
+  }
+
+  private async getBriefPilotDriveItemId(token: string): Promise<string | null> {
+    const res = await fetch(`${GRAPH}/root:/${encodeURIComponent(FOLDER_NAME)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (typeof data.id === 'string') return data.id;
+    }
+
+    await this.ensureFolder(token, FOLDER_NAME);
+    const res2 = await fetch(`${GRAPH}/root:/${encodeURIComponent(FOLDER_NAME)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res2.ok) return null;
+    const d2 = await res2.json();
+    return typeof d2.id === 'string' ? d2.id : null;
   }
 
   private async ensureFolder(token: string, folderName: string): Promise<void> {

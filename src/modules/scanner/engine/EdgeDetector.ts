@@ -1,5 +1,5 @@
-import { DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '../types';
-import { nativeDetectDocumentEdges } from './NativeStub';
+import { DocumentCorners, EdgeDetectionState, ScannerListener, ScannerEvent } from '@/modules/scanner/types';
+import { nativeDetectDocumentEdges } from '@/modules/scanner/engine/NativeStub';
 
 export class EdgeDetector {
   private listeners: ScannerListener[] = [];
@@ -7,12 +7,16 @@ export class EdgeDetector {
   private processing = false;
   private lastCorners: DocumentCorners | null = null;
   private previousCorners: DocumentCorners | null = null;
+  private smoothedCorners: DocumentCorners | null = null;
   private lastState: EdgeDetectionState = {
     corners: null,
     confidence: 0,
     stabilityScore: 0,
     detected: false,
   };
+  // Overlay zıplamasını önlemek için üstel hareketli ortalama.
+  // alpha=0.35: yeni frame %35, önceki pozisyon %65 ağırlık taşır.
+  private static readonly SMOOTH_ALPHA = 0.35;
 
   addListener(listener: ScannerListener) {
     this.listeners.push(listener);
@@ -32,6 +36,7 @@ export class EdgeDetector {
     this.enabled = false;
     this.lastCorners = null;
     this.previousCorners = null;
+    this.smoothedCorners = null;
     this.lastState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
   }
 
@@ -40,15 +45,17 @@ export class EdgeDetector {
 
     this.processing = true;
     try {
-      let corners = await nativeDetectDocumentEdges(frame);
-      if (!corners) corners = null; // JS frame-level fallback not practical — use analyzeCapture instead
+      // Accept precomputed corners injected by CameraEngine.detectLiveEdges to avoid double call
+      let corners: DocumentCorners | null = frame?._precomputedCorners ?? null;
+      if (!corners) corners = await nativeDetectDocumentEdges(frame);
 
-      if (corners && corners.confidence > 0.3) {
+      if (corners && corners.confidence > 0.50) {
         const stabilityScore = this.calculateStabilityScore(corners, this.lastCorners);
         this.previousCorners = this.lastCorners;
         this.lastCorners = corners;
-        this.lastState = { corners, confidence: corners.confidence, stabilityScore, detected: true };
-        this.emit({ type: 'edges_detected', corners });
+        const smoothed = this.applySmoothing(corners);
+        this.lastState = { corners: smoothed, confidence: corners.confidence, stabilityScore, detected: true };
+        this.emit({ type: 'edges_detected', corners: smoothed });
         this.emit({ type: 'edge_state_changed', state: this.lastState });
       } else {
         this.lastState = { corners: null, confidence: 0, stabilityScore: 0, detected: false };
@@ -64,54 +71,48 @@ export class EdgeDetector {
   }
 
   /**
-   * Post-capture quadrilateral detection using image geometry heuristics.
-   * Returns normalized (0-1) corner coordinates. Confidence reflects how
-   * document-like the aspect ratio and dimensions are.
-   * Native OpenCV wiring goes in NativeStub — this is the pure-JS fallback.
+   * Post-capture corner detection via native OpenCV.
+   * Returns null when native detection fails or confidence is too low —
+   * callers should fall back to full-frame crop rather than using fake corners.
    */
-  async analyzeCapture(uri: string, width: number, height: number): Promise<DocumentCorners> {
-    // Try native path first (will return null until native module wired)
+  async analyzeCapture(uri: string, width: number, height: number): Promise<DocumentCorners | null> {
     const native = await nativeDetectDocumentEdges({ uri, width, height });
-    if (native && native.confidence > 0.3) {
+    if (native && native.confidence > 0.50) {
       this.lastCorners = native;
       return native;
     }
-
-    // JS heuristic: score the image by its aspect ratio proximity to A4/Letter
-    const aspectRatio = height / width;
-    const a4Ratio = 1.414; // height/width for portrait A4
-    const letterRatio = 1.294; // height/width for portrait Letter
-    const a4Distance = Math.abs(aspectRatio - a4Ratio) / a4Ratio;
-    const letterDistance = Math.abs(aspectRatio - letterRatio) / letterRatio;
-    const bestDistance = Math.min(a4Distance, letterDistance);
-
-    // High confidence if aspect ratio is within 15% of A4/Letter
-    const ratioConfidence = Math.max(0.3, 1 - bestDistance * 3);
-
-    // Resolution bonus: higher res = more likely a real document scan
-    const resBonus = Math.min(0.15, (Math.min(width, height) - 800) / 20000);
-
-    // Conservative inset: assume document fills ~90% of frame
-    const inset = 0.05;
-    const confidence = Math.min(0.85, ratioConfidence + resBonus);
-
-    const corners: DocumentCorners = {
-      topLeft:     { x: inset,       y: inset },
-      topRight:    { x: 1 - inset,   y: inset },
-      bottomRight: { x: 1 - inset,   y: 1 - inset },
-      bottomLeft:  { x: inset,       y: 1 - inset },
-      confidence,
-    };
-
-    this.lastCorners = corners;
-    return corners;
+    return null;
   }
 
   getLastCorners(): DocumentCorners | null { return this.lastCorners; }
   getLastState(): EdgeDetectionState { return this.lastState; }
 
+  private applySmoothing(raw: DocumentCorners): DocumentCorners {
+    if (!this.smoothedCorners) {
+      this.smoothedCorners = raw;
+      return raw;
+    }
+    const a = EdgeDetector.SMOOTH_ALPHA;
+    const b = 1 - a;
+    const lp = (r: number, p: number) => a * r + b * p;
+    const prev = this.smoothedCorners;
+    this.smoothedCorners = {
+      topLeft:     { x: lp(raw.topLeft.x,     prev.topLeft.x),     y: lp(raw.topLeft.y,     prev.topLeft.y) },
+      topRight:    { x: lp(raw.topRight.x,    prev.topRight.x),    y: lp(raw.topRight.y,    prev.topRight.y) },
+      bottomRight: { x: lp(raw.bottomRight.x, prev.bottomRight.x), y: lp(raw.bottomRight.y, prev.bottomRight.y) },
+      bottomLeft:  { x: lp(raw.bottomLeft.x,  prev.bottomLeft.x),  y: lp(raw.bottomLeft.y,  prev.bottomLeft.y) },
+      confidence:  raw.confidence,
+      areaScore:   raw.areaScore,
+      angleScore:  raw.angleScore,
+      aspectScore: raw.aspectScore,
+      centerScore: raw.centerScore,
+    };
+    return this.smoothedCorners;
+  }
+
   private calculateStabilityScore(nextCorners: DocumentCorners, previousCorners: DocumentCorners | null): number {
-    if (!previousCorners) return Math.max(0.25, nextCorners.confidence * 0.5);
+    // No previous frame — treat as stable with moderate initial score.
+    if (!previousCorners) return Math.min(0.80, nextCorners.confidence);
 
     const points = [
       [nextCorners.topLeft,     previousCorners.topLeft],
@@ -126,6 +127,7 @@ export class EdgeDetector {
       return sum + Math.sqrt(dx * dx + dy * dy);
     }, 0) / points.length;
 
-    return Number((1 - Math.min(movement / 40, 1)).toFixed(3));
+    // Corners are normalized 0-1. Movement > 0.12 (12% of frame) = fully unstable.
+    return Number((1 - Math.min(movement / 0.12, 1)).toFixed(3));
   }
 }

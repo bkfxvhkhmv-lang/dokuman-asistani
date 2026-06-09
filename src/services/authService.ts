@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
-import { API_BASE } from '../config';
+import { API_BASE } from '@/config';
+import { clearSupabaseAccessToken, getSupabaseAccessToken } from '@/services/supabaseJwtBridge';
 
 const BASE         = API_BASE;
 const ACCESS_KEY   = 'bp_access_token';
@@ -72,6 +73,13 @@ export async function getAccessToken(): Promise<string | null> {
   return SecureStore.getItemAsync(ACCESS_KEY);
 }
 
+/** Önce BriefPilot access token; yoksa Supabase oturum JWT (aynı Bearer hattı). */
+export async function getEffectiveAccessToken(): Promise<string | null> {
+  const primary = (await SecureStore.getItemAsync(ACCESS_KEY))?.trim();
+  if (primary) return primary;
+  return getSupabaseAccessToken();
+}
+
 export async function getStoredUser(): Promise<StoredUser | null> {
   const raw = await SecureStore.getItemAsync(USER_KEY);
   return raw ? JSON.parse(raw) : null;
@@ -82,6 +90,7 @@ export async function clearTokens(): Promise<void> {
     SecureStore.deleteItemAsync(ACCESS_KEY),
     SecureStore.deleteItemAsync(REFRESH_KEY),
     SecureStore.deleteItemAsync(USER_KEY),
+    clearSupabaseAccessToken(),
   ]);
 }
 
@@ -173,12 +182,16 @@ export async function authFetch(url: string, options: RequestOptions = {}): Prom
 
   await _acquire();
 
-  let token = await getAccessToken();
+  let token = await getEffectiveAccessToken();
 
-  const doRequest = (t: string | null) => fetch(url, {
-    ...options,
-    headers: { ...(options.headers || {}), Authorization: `Bearer ${t}` },
-  });
+  const doRequest = (t: string | null) => {
+    const baseHeaders = { ...(options.headers || {}) };
+    const headers =
+      t && t.trim().length > 0
+        ? { ...baseHeaders, Authorization: `Bearer ${t.trim()}` }
+        : baseHeaders;
+    return fetch(url, { ...options, headers });
+  };
 
   let res = await doRequest(token);
 
@@ -186,6 +199,11 @@ export async function authFetch(url: string, options: RequestOptions = {}): Prom
   _resInterceptors.forEach(fn => fn(url, res.status, res.ok));
 
   if (res.status === 401) {
+    const hasBriefPilotRefresh = await SecureStore.getItemAsync(REFRESH_KEY);
+    if (!hasBriefPilotRefresh) {
+      _release();
+      throw new Error('SESSION_EXPIRED');
+    }
     try {
       const refreshed = await refreshTokens();
       token = refreshed.access_token;

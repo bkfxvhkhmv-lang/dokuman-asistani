@@ -1,0 +1,1379 @@
+# Canonical approved German reply inventory
+# Source categories merged from approved workflow YAML files on 2026-06-03
+
+# Kira / Mietrecht
+- id: miete_mangel_anzeige_004
+  category: miete
+  institution_type: vermieter_oder_hausverwaltung
+  title: Mängelanzeige an den Vermieter
+  risk_level: medium
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: mangelanzeige
+  action_type: anzeige
+  delivery_channel: brief
+  priority: medium
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, mietwohnung_lage, mangel_beschreibung, mangel_festgestellt_datum]
+  optional_fields: [terminvorschlag]
+  notes: "Erster formeller Schritt zur Anzeige eines Wohnungsmangels gegenüber Vermieter oder Verwaltung."
+
+- id: miete_reparatur_fristsetzung_005
+  category: miete
+  institution_type: vermieter_oder_hausverwaltung
+  title: Fristsetzung zur Mängelbeseitigung
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: mangelanzeige
+  action_type: aufforderung
+  delivery_channel: brief
+  priority: high
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, mietwohnung_lage, mangel_beschreibung, mangel_anzeige_datum, behebungs_frist]
+  optional_fields: []
+  notes: "Setzt eine angemessene Frist zur Beseitigung eines bereits angezeigten Mangels."
+
+- id: miete_belegeinsicht_002
+  category: miete
+  institution_type: vermieter_oder_hausverwaltung
+  title: Bitte um Belegeinsicht (Kaufmännische Prüfung)
+  risk_level: low
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: nebenkostenabrechnung
+  action_type: belegeinsicht
+  delivery_channel: brief
+  priority: medium
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, abrechnungs_zeitraum, abrechnungs_datum]
+  optional_fields: [unvollstaendige_punkte]
+  notes: "Dient der Prüfung einzelner Kostenpositionen vor einer Reaktion auf die Abrechnung."
+
+- id: miete_heizungsausfall_meldung_011
+  category: miete
+  institution_type: vermieter_oder_hausverwaltung
+  title: Meldung eines Heizungsausfalls (Dringend)
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: mangelanzeige
+  action_type: anzeige
+  delivery_channel: brief
+  priority: high
+  notes: "Bei Winter, längerer Dauer, sehr niedriger Innentemperatur oder Gesundheitsrisiko als high behandeln."
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, mietwohnung_lage, ausfall_datum]
+  optional_fields: [aktuelle_innentemperatur, frist_notdienst, zeugen_nachbarn]
+
+- id: miete_kaution_rueckzahlung_006
+  category: miete
+  institution_type: vermieter
+  title: Forderung der Kautionsrückzahlung nach Auszug
+  risk_level: medium
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: kaution
+  action_type: aufforderung
+  delivery_channel: brief
+  priority: medium
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, auszugs_datum]
+  optional_fields: [kautionsbetrag, bankverbindung, letzte_nebenkostenabrechnung_status]
+  notes: "Schriftliche Aufforderung zur Rückzahlung der Mietkaution nach Beendigung des Mietverhältnisses."
+
+- id: miete_untervermietung_antrag_009
+  category: miete
+  institution_type: vermieter
+  title: Antrag auf Erlaubnis zur Untervermietung
+  risk_level: medium
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: antrag
+  action_type: antrag
+  delivery_channel: brief
+  priority: medium
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, untermieter_name, grund, zeitraum]
+  optional_fields: [untermiete_flaeche_zimmer]
+  notes: "Antrag auf Zustimmung zur Untervermietung mit Angabe von Person, Grund und Zeitraum."
+
+- id: miete_ratenzahlung_rueckstand_008
+  category: miete
+  institution_type: vermieter
+  title: Antrag auf Ratenzahlung bei Mietrückständen
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: mahnung
+  action_type: antrag
+  delivery_channel: brief
+  priority: high
+  required_fields: [vermieter_name, vermieter_adresse, name, adresse, rueckstand_gesamthoehe, begruendung_rueckstand]
+  optional_fields: [monatliche_rate, erste_rate_datum]
+  notes: "Vorschlag für eine geordnete Ratenzahlung bei bereits aufgelaufenen Mietrückständen."
+
+# Krankenkasse
+- id: krankenkasse_leistung_ablehnung_widerspruch_001
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Widerspruch gegen Ablehnungsbescheid (Allgemein)
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: ablehnungsbescheid
+  action_type: widerspruch
+  delivery_channel: brief
+  priority: high
+  required_fields: [versichertennummer, name, adresse, datum_bescheid, widerspruch_begruendung]
+  optional_fields: [aktenzeichen, arzt_stellungnahme]
+  notes: "Allgemeiner Widerspruch gegen eine Leistungsablehnung mit individueller Begründung und optionalen Nachweisen."
+
+- id: krankenkasse_krankengeld_widerspruch_002
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Widerspruch gegen die Einstellung von Krankengeld
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: krankengeldbescheid
+  action_type: widerspruch
+  delivery_channel: brief
+  priority: high
+  required_fields: [versichertennummer, name, adresse, zeitraum, datum_bescheid]
+  optional_fields: [attest_datum, au_nachweis, arbeitsunfaehigkeit_bis]
+  notes: "Widerspruch gegen die Beendigung oder Ablehnung von Krankengeldleistungen."
+
+- id: krankenkasse_kostenerstattung_antrag_003
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Antrag auf Kostenerstattung für selbstbeschaffte Leistungen
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: erstattung
+  action_type: antrag
+  delivery_channel: brief
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, rechnungsbetrag, behandlungsdatum, leistungstyp]
+  optional_fields: [rechnungsnummer, begruendung, arzt_empfehlung]
+  notes: "Antrag auf Prüfung einer Kostenerstattung für bereits selbst veranlasste Leistungen."
+
+- id: krankenkasse_hilfsmittel_widerspruch_004
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Widerspruch gegen Ablehnung von Hilfsmitteln
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: hilfsmittelbescheid
+  action_type: widerspruch
+  delivery_channel: brief
+  priority: high
+  required_fields: [versichertennummer, name, adresse, hilfsmittel_name, datum_bescheid]
+  optional_fields: [aerztliche_notwendigkeit, hersteller_angebot]
+  notes: "Widerspruch gegen die Nichtbewilligung eines Hilfsmittels mit optionalen medizinischen Unterlagen."
+
+- id: krankenkasse_beitragsanpassung_nachweis_005
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Antrag auf Überprüfung/Anpassung des Beitrags
+  risk_level: medium
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: beitragsbescheid
+  action_type: pruefung
+  sensitive_fields: [aktuelles_einkommen]
+  delivery_channel: brief
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, aktuelles_einkommen]
+  optional_fields: [steuerbescheid_datum, aenderung_status]
+  notes: "Prüfung oder Anpassung des Beitrags bei veränderten wirtschaftlichen Verhältnissen."
+
+- id: krankenkasse_fahrkosten_antrag_006
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Antrag auf Übernahme von Fahrkosten (Krankentransport)
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: true
+  document_type: kostenuebernahme
+  action_type: antrag
+  delivery_channel: brief
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, behandlungsdatum, strecke]
+  optional_fields: [arzttermin, medizinische_begruendung, belegliste]
+  notes: "Antrag auf Übernahme von Fahrkosten zu einer medizinisch veranlassten Behandlung."
+
+- id: krankenkasse_mitgliedschaft_korrektur_007
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Mitteilung zur Korrektur von Stammdaten/Mitgliedschaftsdaten
+  risk_level: low
+  requires_legal_caution: false
+  requires_user_facts: true
+  document_type: mitgliedschaft
+  action_type: aenderung
+  delivery_channel: brief
+  priority: low
+  required_fields: [versichertennummer, name, adresse, fehler_beschreibung]
+  optional_fields: [korrektur_nachweis, zeitraum]
+  notes: "Mitteilung zur Berichtigung fehlerhafter Stammdaten oder Mitgliedschaftsangaben."
+
+- id: krankenkasse_reha_antrag_008
+  category: krankenkasse
+  institution_type: krankenkasse
+  title: Antrag auf Leistungen zur medizinischen Rehabilitation (Reha)
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  notes: "Zuständigkeit kann je nach Fall bei Krankenkasse, Rentenversicherung oder anderem Reha-Träger liegen."
+  document_type: reha_antrag
+  action_type: antrag
+  sensitive_fields: [diagnose, arztbericht]
+  delivery_channel: brief
+  priority: high
+  required_fields: [versichertennummer, name, adresse, diagnose, arztbericht]
+  optional_fields: [reha_ziel, bisherige_behandlungen]
+
+# Krankenkasse / Pflegekasse advanced
+- id: krankenkasse_akteneinsicht_gutachten_003
+  category: krankenkasse_advanced
+  institution_type: krankenkasse_oder_medizinischer_dienst
+  document_type: gutachten
+  action_type: akteneinsicht
+  title: Antrag auf Akteneinsicht und Zusendung des MD-Gutachtens
+  risk_level: low
+  requires_user_facts: false
+  requires_legal_caution: false
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, bescheid_datum]
+  optional_fields: []
+  notes: "Dient der Anforderung des medizinischen Gutachtens (MD), um die genauen Gründe der Ablehnung oder Pflegegradeinstufung vor einer Widerspruchsbegründung zu prüfen."
+
+- id: pflegekasse_widerspruch_pflegegrad_005
+  category: pflegekasse_advanced
+  institution_type: pflegekasse
+  document_type: pflegegrad_bescheid
+  action_type: widerspruch
+  title: Widerspruch zur Fristwahrung gegen den Pflegegrad-Bescheid
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [versichertennummer, name, adresse, bescheid_datum]
+  optional_fields: [widerspruch_begruendung, pflegebericht_gesundheitszustand]
+  sensitive_fields: [pflegebericht_gesundheitszustand]
+  notes: "Richtet sich gegen fehlerhafte Einstufungen oder die Ablehnung eines Pflegegrads. Ein Monat Frist. Die Begründung sollte nach Erhalt des MD-Gutachtens nachgereicht werden."
+
+- id: krankenkasse_beitragsbescheid_widerspruch_007
+  category: krankenkasse_advanced
+  institution_type: krankenkasse
+  document_type: beitragsbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen die Festsetzung der Krankenkassenbeiträge
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, bescheid_datum]
+  optional_fields: [einkommensnachweise_aktuell, widerspruch_begruendung]
+  sensitive_fields: [einkommensnachweise_aktuell]
+  notes: "Betrifft häufig freiwillig Versicherte oder Selbstständige bei fehlerhafter Einkommensschätzung. Ein Widerspruch hemmt die Zahlungsverpflichtung in der Regel nicht automatisch."
+
+- id: krankenkasse_sachstandsanfrage_fristen_012
+  category: krankenkasse_advanced
+  institution_type: krankenkasse
+  document_type: sachstandsanfrage
+  action_type: sachstandsanfrage
+  title: Sachstandsanfrage zu einem Leistungsantrag
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [versichertennummer, name, adresse, antragsdatum]
+  optional_fields: [leistungs_typ]
+  notes: "Bei längerer Bearbeitungsdauer können je nach Fall besondere Fristen und Rechtsfolgen relevant werden. Die genaue Anwendbarkeit sollte sorgfältig geprüft werden."
+# Versicherung
+- id: versicherung_schadenmeldung_kfz_001
+  category: versicherung
+  institution_type: versicherung
+  document_type: schadenmeldung
+  action_type: anzeige
+  title: Kfz-Schaden melden
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_portal
+  priority: high
+  required_fields: [versicherungsscheinnummer, name, adresse, schadendatum, schadenort, schadenbeschreibung]
+  optional_fields: [aktenzeichen_polizei, zeugen_details, fotos_beigefuegt]
+  notes: "Schadenbeschreibung muss komplett vom Nutzer kommen; keine KI-Generierung von Unfallhergängen."
+
+- id: versicherung_schadenmeldung_hausrat_002
+  category: versicherung
+  institution_type: versicherung
+  document_type: schadenmeldung
+  action_type: anzeige
+  title: Hausrat-/Wohnungsschaden melden
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_portal
+  priority: medium
+  required_fields: [versicherungsscheinnummer, name, adresse, schadendatum, schadenbeschreibung]
+  optional_fields: [beschaedigte_gegenstaende_liste, reparaturangebote, stehlgutliste_polizei]
+  notes: "Schadenbeschreibung muss vom Nutzer definiert werden. Bei Einbruch/Diebstahl ist das Aktenzeichen der Polizei optional aber empfohlen."
+
+- id: versicherung_leistung_ablehnung_widerspruch_003
+  category: versicherung
+  institution_type: versicherung
+  document_type: ablehnungsbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen Leistungsablehnung
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [versicherungsscheinnummer, name, adresse, datum_ablehnung, widerspruch_begruendung]
+  optional_fields: [schadennummer, gutachten_beleg]
+  notes: "Leistungsablehnungen bergen hohes finanzielles Risiko. Widerspruchsfristen im Versicherungsvertrag beachten."
+
+- id: versicherung_unterlagen_nachreichen_004
+  category: versicherung
+  institution_type: versicherung
+  document_type: nachreichung
+  action_type: nachreichung
+  title: Unterlagen / Nachweise nachreichen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_email
+  priority: medium
+  required_fields: [versicherungsscheinnummer, name, adresse, unterlagen_liste]
+  optional_fields: [schadennummer, aktenzeichen]
+  notes: "Dient dem reinen Nachweis der Mitwirkung im Schadens- oder Vertragsprozess."
+
+- id: versicherung_fristverlaengerung_005
+  category: versicherung
+  institution_type: versicherung
+  document_type: fristverlaengerung
+  action_type: antrag
+  title: Fristverlängerung für Nachweise beantragen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_email
+  priority: medium
+  required_fields: [versicherungsscheinnummer, name, adresse, neue_frist]
+  optional_fields: [schadennummer, begruendung_frist]
+  notes: "Wird genutzt, wenn Gutachten, Rechnungen oder Kostenvoranschläge nicht rechtzeitig beschafft werden können."
+
+- id: versicherung_kuendigung_bestaetigung_006
+  category: versicherung
+  institution_type: versicherung
+  document_type: kuendigung
+  action_type: bestaetigung
+  title: Kündigungsbestätigung anfordern
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_email
+  priority: low
+  required_fields: [versicherungsscheinnummer, name, adresse, kuendigung_datum]
+  optional_fields: []
+  notes: "Reine Anforderung einer schriftlichen Bestätigung für eine bereits ausgesprochene oder beigefügte Kündigung."
+
+- id: versicherung_beitrag_pruefung_007
+  category: versicherung
+  institution_type: versicherung
+  document_type: beitragsanpassung
+  action_type: pruefung
+  title: Beitrag / Vertragsänderung prüfen lassen
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_email
+  priority: low
+  required_fields: [versicherungsscheinnummer, name, adresse, aenderung_grund]
+  optional_fields: [beitrag_alt, beitrag_neu, neue_fahrleistung, neue_tarifmerkmale]
+  notes: "Wird bei Beitragsanpassungen (Schadensfreiheitsklassen-Wechsel, jährliche Erhöhung) oder Tarifoptimierungen eingesetzt."
+
+# Energie / Wasser / Telekom
+- id: energie_zaehlerstand_meldung_001
+  category: energie_wasser_telekom
+  institution_type: versorger
+  document_type: ablesung
+  action_type: anzeige
+  title: Zählerstand melden (Strom/Gas/Wasser)
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_email
+  priority: medium
+  required_fields: [kundennummer, name, adresse, zaehlernummer, zaehlerstand, ablesedatum]
+  optional_fields: [foto_zaehler]
+  notes: "Für korrekte Jahresabrechnungen sowie bei Einzug oder Auszug zur Dokumentation des Zählerstands."
+
+- id: energie_abschlag_anpassung_002
+  category: energie_wasser_telekom
+  institution_type: versorger
+  document_type: abschlagsaenderung
+  action_type: antrag
+  title: Monatlichen Abschlag anpassen (Erhöhung/Senkung)
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_email
+  priority: low
+  required_fields: [kundennummer, name, adresse, neuer_abschlag_betrag]
+  optional_fields: [begruendung_anpassung, vertragsnummer]
+  notes: "Antrag auf Anpassung der monatlichen Abschlagszahlung bei geändertem Verbrauch oder geänderter finanzieller Situation."
+
+- id: energie_abrechnung_widerspruch_003
+  category: energie_wasser_telekom
+  institution_type: versorger
+  document_type: jahresabrechnung
+  action_type: widerspruch
+  title: Widerspruch gegen fehlerhafte Jahresabrechnung
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_email
+  priority: high
+  required_fields: [kundennummer, rechnungsnummer, name, adresse, widerspruch_begruendung]
+  optional_fields: [korrekter_zaehlerstand, vertragsnummer, abrechnungszeitraum]
+  notes: "Widerspruch bei mutmaßlich fehlerhafter Verbrauchsschätzung, falschem Zählerstand oder auffällig hoher Jahresabrechnung."
+
+- id: telekom_umzug_meldung_004
+  category: energie_wasser_telekom
+  institution_type: telekom_anbieter
+  document_type: umzugsmeldung
+  action_type: aenderung
+  title: Umzugsmeldung für Internet-/Telefonvertrag
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [kundennummer, name, alte_adresse, neue_adresse, umzugsdatum]
+  optional_fields: [vertragsnummer, anschluss_wunschtermin]
+  notes: "Mitteilung eines Umzugs für Internet- oder Telefonvertrag. Falls am neuen Wohnort keine Leistung möglich ist, kann später eine Sonderkündigung geprüft werden."
+
+- id: telekom_stoerung_fristsetzung_005
+  category: energie_wasser_telekom
+  institution_type: telekom_anbieter
+  document_type: stoerungsmeldung
+  action_type: aufforderung
+  title: Fristsetzung zur Behebung einer Internet-/Telefonstörung
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: true
+  delivery_channel: letter_or_email
+  priority: high
+  required_fields: [kundennummer, name, adresse, stoerung_seit, behebungs_frist]
+  optional_fields: [ticket_nummer, stoerungsprotokoll]
+  notes: "Formelle Fristsetzung bei länger andauernder Internet- oder Telefonstörung. Grundlage für weitere Schritte wie Minderung oder Kündigungsprüfung."
+
+- id: energie_telekom_kuendigung_006
+  category: energie_wasser_telekom
+  institution_type: versorger_or_anbieter
+  document_type: kuendigung
+  action_type: kuendigung
+  title: Ordentliche Kündigung des Vertrags
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_portal
+  priority: medium
+  required_fields: [kundennummer, name, adresse, kuendigung_termin]
+  optional_fields: [vertragsnummer, vertragslaufzeit_ende]
+  notes: "Ordentliche Kündigung unter Einhaltung der vertraglichen Kündigungsfrist."
+
+- id: energie_telekom_sonderkuendigung_007
+  category: energie_wasser_telekom
+  institution_type: versorger_or_anbieter
+  document_type: kuendigung
+  action_type: sonderkuendigung
+  title: Sonderkündigung wegen Preiserhöhung oder Leistungsänderung
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [kundennummer, name, adresse, datum_ankuendigung, sonderkuendigung_grund]
+  optional_fields: [vertragsnummer]
+  notes: "Sonderkündigung bei Preiserhöhung, Leistungsänderung oder fehlender Leistung am neuen Wohnort. Fristen und Nachweise müssen sorgfältig geprüft werden."
+# Mahngericht / Inkasso / Gericht
+- id: gericht_mahnverfahren_widerspruch_001
+  category: mahngericht_inkasso_gericht
+  institution_type: mahngericht
+  document_type: mahnbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen Mahnbescheid
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter_or_form
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, widerspruch_typ]
+  optional_fields: []
+  notes: "Widerspruch muss innerhalb von 2 Wochen ab Zustellung erfolgen. Sichere prozedurale Abwehr ohne materielle Begründung im ersten Schritt."
+
+- id: gericht_vollstreckungsbescheid_einspruch_002
+  category: mahngericht_inkasso_gericht
+  institution_type: mahngericht
+  document_type: vollstreckungsbescheid
+  action_type: einspruch
+  title: Einspruch gegen Vollstreckungsbescheid
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse]
+  optional_fields: []
+  notes: "Einspruch kann erforderlich sein, um die formelle Rechtskraft zu verhindern. Bei drohender Vollstreckung sollte zusätzlich geprüft werden, ob ein gesonderter Antrag erforderlich ist."
+
+- id: inkasso_forderung_pruefung_003
+  category: mahngericht_inkasso_gericht
+  institution_type: inkasso
+  document_type: inkassoschreiben
+  action_type: pruefung
+  title: Forderung prüfen lassen / Nachweise anfordern
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_email
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, inkasso_name, inkasso_adresse]
+  optional_fields: [forderung_details]
+  notes: "Kein Schuldanerkenntnis. Forderungsaufstellung, Gläubigerangaben und Nachweise zur Forderung anfordern."
+
+- id: inkasso_zahlung_nachweis_003
+  category: mahngericht_inkasso_gericht
+  institution_type: inkasso
+  document_type: inkassoschreiben
+  action_type: nachweis
+  title: Übersendung des Zahlungsnachweises an das Inkassobüro
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_email
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, inkasso_name, inkasso_adresse, zahlungs_nachweis_details]
+  optional_fields: [ueberweisungsbeleg_referenz]
+  notes: "Dient dem Nachweis, dass die Hauptforderung bereits vor Einschaltung des Inkassobüros beglichen wurde, um Inkassogebühren abzuwehren."
+
+- id: inkasso_ratenzahlung_antrag_005
+  category: mahngericht_inkasso_gericht
+  institution_type: inkasso
+  document_type: ratenzahlungsvereinbarung
+  action_type: antrag
+  title: Ratenzahlung vorschlagen
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  delivery_channel: letter_or_email
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, inkasso_name, inkasso_adresse, monatliche_rate, erste_rate_datum]
+  optional_fields: [begruendung_finanzielle_lage]
+  notes: "Achtung: Ein Ratenzahlungsangebot kann als Schuldanerkenntnis gewertet werden. Textierung muss rein auf prozeduraler Einigungsebene bleiben."
+
+- id: inkasso_unterlagen_nachreichen_006
+  category: mahngericht_inkasso_gericht
+  institution_type: inkasso
+  document_type: nachreichung
+  action_type: nachreichung
+  title: Unterlagen / Nachweise nachreichen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_email
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, inkasso_name, inkasso_adresse, unterlagen_liste]
+  optional_fields: []
+  notes: "Reine Nachreichung von Dokumenten zur Sachverhaltsklärung. Keine Anerkennung der Forderung."
+
+- id: gericht_fristverlaengerung_007
+  category: mahngericht_inkasso_gericht
+  institution_type: gericht
+  document_type: gerichtsschreiben
+  action_type: antrag
+  title: Fristverlängerung beantragen
+  risk_level: high
+  requires_legal_caution: true
+  requires_user_facts: true
+  delivery_channel: letter_or_fax
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, gericht_name, gericht_adresse, neue_frist]
+  optional_fields: [begruendung_frist]
+  notes: "Gilt nur für verlängerbare gerichtliche Fristen. Gesetzliche Notfristen, insbesondere im Mahnverfahren, können regelmäßig nicht verlängert werden."
+
+- id: gericht_adresse_mitteilung_008
+  category: mahngericht_inkasso_gericht
+  institution_type: gericht
+  document_type: gerichtsschreiben
+  action_type: aenderung
+  title: Adressänderung / Erreichbarkeit mitteilen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [aktenzeichen, name, alte_adresse, neue_adresse, gueltig_ab]
+  optional_fields: [gericht_name, gericht_adresse]
+  notes: "Wichtig, damit gerichtliche Schreiben ordnungsgemäß zugestellt werden können und Fristen nicht unbemerkt laufen."
+
+# Arbeitsagentur / Jobcenter ergänzend
+- id: arbeitsagentur_arbeitsuchend_meldung_001
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: arbeitsagentur
+  document_type: arbeitsuchendmeldung
+  action_type: anzeige
+  title: Arbeitsuchendmeldung einreichen
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [kundennummer_oder_sozialversicherungsnummer, name, adresse, geburtsdatum, beschaeftigungsende_datum]
+  optional_fields: [telefonnummer, email]
+  notes: "Muss spätestens 3 Monate vor Ende des Arbeitsverhältnisses oder innerhalb von 3 Tagen nach Kenntnisnahme erfolgen, um eine Sperrzeit beim Arbeitslosengeld zu vermeiden."
+
+- id: arbeitsagentur_widerspruch_sperrzeit_002
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: arbeitsagentur
+  document_type: sperrzeitbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen Sperrzeit / Leistungskürzung
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [kundennummer, name, adresse, datum_bescheid, widerspruch_begruendung]
+  optional_fields: [nachweise_beigefuegt, sozialversicherungsnummer]
+  notes: "Widerspruchsfrist von einem Monat nach Bekanntgabe des Bescheides zwingend beachten. Begründung muss wichtige Gründe für das Verhalten darlegen."
+
+- id: jobcenter_widerspruch_sanktion_003
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: jobcenter
+  document_type: sanktionsbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen Sanktionsbescheid (Bürgergeld)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [bg_nummer, kundennummer, name, adresse, datum_bescheid, widerspruch_begruendung]
+  optional_fields: [wichtiger_grund_nachweis]
+  notes: "Nur aufnehmen, wenn Jobcenter-Sanktionswiderspruch nicht bereits in der Hauptkategorie Jobcenter geführt wird."
+
+- id: arbeitsagentur_unterlagen_nachreichen_004
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: arbeitsagentur_or_jobcenter
+  document_type: nachreichung
+  action_type: nachreichung
+  title: Unterlagen / Nachweise nachreichen (Mitwirkungspflicht)
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [kundennummer_oder_bg_nummer, name, adresse, unterlagen_liste]
+  optional_fields: [aufforderungsschreiben_datum]
+  notes: "Nachreichung angeforderter Unterlagen zur Erfüllung von Mitwirkungspflichten und zur Vermeidung von Verzögerungen oder Leistungsnachteilen."
+
+- id: arbeitsagentur_ortsabwesenheit_antrag_005
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: arbeitsagentur_or_jobcenter
+  document_type: urlaubsantrag
+  action_type: antrag
+  title: Antrag auf Ortsabwesenheit (Urlaubsmeldung)
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [kundennummer_oder_bg_nummer, name, adresse, abwesenheit_von, abwesenheit_bis]
+  optional_fields: [grund_der_abwesenheit]
+  notes: "Eine nicht genehmigte Ortsabwesenheit kann zu Leistungsnachteilen bis hin zum Verlust des Leistungsanspruchs führen. Der Antrag sollte rechtzeitig vor Reiseantritt gestellt werden."
+
+- id: jobcenter_umzug_umzugskosten_006
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: jobcenter
+  document_type: umzugsantrag
+  action_type: antrag
+  title: Antrag auf Zusicherung der Umzugskosten und neuen Miete
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter
+  priority: high
+  required_fields: [bg_nummer, name, adresse, neue_adresse, neue_miete_kalt, neue_miete_warm, umzugsgrund]
+  optional_fields: [aktuelle_adresse, mietangebot_beigefuegt, umzugsangebot_kosten]
+  notes: "Die Zusicherung sollte vor Abschluss des neuen Mietvertrags eingeholt werden, da andernfalls Miet- und Umzugskosten nicht oder nicht vollständig übernommen werden können."
+
+- id: arbeitsagentur_fristverlaengerung_007
+  category: arbeitsagentur_jobcenter_ergaenzend
+  institution_type: arbeitsagentur_or_jobcenter
+  document_type: fristverlaengerung
+  action_type: antrag
+  title: Fristverlängerung zur Einreichung von Unterlagen beantragen
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [kundennummer_oder_bg_nummer, name, adresse, neue_frist, grund_verzoegerung]
+  optional_fields: [aktenzeichen]
+  notes: "Gilt nur für verlängerbare behördliche Fristen. Gesetzliche Notfristen können regelmäßig nicht verlängert werden."
+
+# Gemeinde / Stadt / Zoll
+- id: gemeinde_meldebescheinigung_antrag_001
+  category: gemeinde_stadt_zoll
+  institution_type: buergeramt
+  document_type: meldebescheinigung
+  action_type: antrag
+  title: Antrag auf Ausstellung einer Meldebescheinigung
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [name, adresse, geburtsdatum]
+  optional_fields: [geburtsort, ausweisnummer, verwendungszweck]
+  notes: "Einfache oder erweiterte Meldebescheinigung zur Vorlage bei Behörden, Banken oder Arbeitgebern."
+
+- id: gemeinde_gebuehrenbescheid_widerspruch_002
+  category: gemeinde_stadt_zoll
+  institution_type: stadt_oder_gemeinde
+  document_type: gebuehrenbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen einen Gebührenbescheid
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: high
+  required_fields: [kassenzeichen_oder_bescheidnummer, name, adresse, datum_bescheid, widerspruch_begruendung]
+  optional_fields: [nachweise_beigefuegt]
+  notes: "Widerspruch gegen kommunale Abgaben oder Gebühren (z. B. Müllgebühren, Straßenreinigung). Monatsfrist ab Bekanntgabe beachten."
+
+- id: gemeinde_unterlagen_nachreichen_003
+  category: gemeinde_stadt_zoll
+  institution_type: stadt_oder_gemeinde
+  document_type: nachreichung
+  action_type: nachreichung
+  title: Unterlagen / Nachweise nachreichen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [aktenzeichen_oder_kassenzeichen, name, adresse, unterlagen_liste]
+  optional_fields: [schreiben_datum]
+  notes: "Formlose Nachreichung fehlender Dokumente zur Bearbeitung eines schwebenden Antrags oder Verfahrens."
+
+- id: gemeinde_fristverlaengerung_004
+  category: gemeinde_stadt_zoll
+  institution_type: stadt_oder_gemeinde
+  document_type: fristverlaengerung
+  action_type: antrag
+  title: Fristverlängerung zur Einreichung von Unterlagen oder Stellungnahme
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [aktenzeichen_oder_kassenzeichen, name, adresse, neue_frist]
+  optional_fields: [grund_verzoegerung]
+  notes: "Antrag auf Verlängerung einer behördlich gesetzten Frist. Gesetzliche Ausschlussfristen können dadurch nicht verlängert werden."
+
+- id: stadt_ordnungsamt_anhoerung_stellungnahme_005
+  category: gemeinde_stadt_zoll
+  institution_type: ordnungsamt
+  document_type: anhoerung
+  action_type: stellungnahme
+  title: Stellungnahme im Anhörungsverfahren wegen einer Ordnungswidrigkeit
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_portal
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, stellungnahme_inhalt]
+  optional_fields: [beweismittel_liste]
+  notes: "Äußerung zu einem Vorwurf vor Erlass eines Bußgeldbescheides. Keine voreiligen Schuldanerkenntnisse formulieren."
+
+- id: zoll_forderung_pruefung_006
+  category: gemeinde_stadt_zoll
+  institution_type: zoll
+  document_type: forderungsschreiben
+  action_type: pruefung
+  title: Forderung prüfen lassen / Nachweise anfordern
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, zollamt_name]
+  optional_fields: [begruendung_details]
+  notes: "Aufforderung zur detaillierten Aufschlüsselung und Prüfung einer Zoll- oder Kfz-Steuer-Forderung ohne vorzeitiges Anerkenntnis."
+
+- id: zoll_ratenzahlung_antrag_007
+  category: gemeinde_stadt_zoll
+  institution_type: zoll
+  document_type: ratenzahlungsvereinbarung
+  action_type: antrag
+  title: Antrag auf Ratenzahlung / Stundung bei der Vollstreckungsbehörde
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, zollamt_name, offener_betrag, monatliche_rate, erste_rate_datum]
+  optional_fields: [begruendung_finanzielle_lage]
+  notes: "Antrag bei ausstehenden Forderungen (z. B. Kfz-Steuer oder Rundfunkbeitrag-Vollstreckung durch den Zoll). Kann als Schuldanerkenntnis gewertet werden."
+
+- id: gemeinde_adressaenderung_mitteilung_008
+  category: gemeinde_stadt_zoll
+  institution_type: stadt_oder_gemeinde
+  document_type: adressmitteilung
+  action_type: mitteilung
+  title: Adressänderung / Erreichbarkeit mitteilen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [aktenzeichen_oder_kassenzeichen, name, alte_adresse, neue_adresse, gueltig_ab]
+  optional_fields: []
+  notes: "Mitteilung der neuen Anschrift zur Sicherstellung der ordnungsgemäßen Zustellung laufender Bescheide."
+
+# Bußgeld standalone
+- id: bussgeld_parking_einspruch_003
+  category: bussgeld
+  institution_type: bussgeldstelle_oder_gemeinde
+  document_type: verwarngeld
+  action_type: einspruch
+  title: Einspruch bzw. Widerspruch gegen Verwarngeld wegen Parkverstoßes
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, einspruch_begruendung]
+  optional_fields: [belege_parkschein]
+  notes: "Spezifischer Einspruch bei fehlerhaften oder unberechtigten Verwarngeldern im ruhenden Verkehr (z. B. defekter Parkautomat oder gültiger Parkausweis)."
+
+- id: bussgeld_general_einspruch_005
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: bussgeldbescheid
+  action_type: einspruch
+  title: Einspruch zur Fristwahrung gegen den Bußgeldbescheid
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter_or_fax
+  priority: high
+  required_fields: [aktenzeichen, name, adresse]
+  optional_fields: [datum_bescheid]
+  notes: "Die Einspruchsfrist von 2 Wochen ab Zustellung ist eine strikte gesetzliche Notfrist. Einspruch kann zunächst ohne Begründung zur Fristwahrung eingelegt werden."
+
+- id: bussgeld_akten_einsicht_009
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: bussgeldakte
+  action_type: akteneinsicht
+  title: Antrag auf Akteneinsicht
+  risk_level: low
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse]
+  optional_fields: []
+  notes: "Dient der Überprüfung von Beweismitteln (z. B. Blitzerfotos, Messprotokolle), um die Erfolgschancen eines Einspruchs fundiert zu bewerten."
+
+- id: bussgeld_fristverlaengerung_010
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: fristverlaengerung
+  action_type: antrag
+  title: Fristverlängerung für die Begründung oder Stellungnahme
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: false
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, neue_frist]
+  optional_fields: [begruendung_frist]
+  notes: "Gilt nur für behördlich gesetzte Fristen (z. B. zur Begründung des Einspruchs). Die gesetzliche 2-wöchige Einspruchsfrist selbst kann NICHT verlängert werden."
+
+- id: bussgeld_photo_anfordern_013
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: anhoerung
+  action_type: antrag
+  title: Anforderung des Beweisfotos / Blitzerfotos
+  risk_level: low
+  requires_user_facts: false
+  requires_legal_caution: false
+  delivery_channel: portal_or_email
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse]
+  optional_fields: []
+  notes: "Formlose Anforderung des Messfotos zur Identifikation des Fahrers, falls dieses dem Anhörungsbogen oder Bußgeldbescheid nicht lesbar beigefügt war."
+
+- id: bussgeld_anhorung_stellungnahme_012
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: anhoerung
+  action_type: stellungnahme
+  title: Stellungnahme zum Anhörungsbogen
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse]
+  optional_fields: [stellungnahme_inhalt, beweismittel_liste]
+  notes: "Äußerung zu einem Vorwurf vor Erlass des eigentlichen Bußgeldbescheides. Angaben zur Sache sind optional; keine voreiligen Schuldanerkenntnisse."
+
+- id: bussgeld_ratenzahlung_011
+  category: bussgeld
+  institution_type: bussgeldstelle
+  document_type: ratenzahlungsvereinbarung
+  action_type: antrag
+  title: Antrag auf Ratenzahlung / Stundung der Geldbuße
+  risk_level: medium
+  requires_legal_caution: true
+  requires_user_facts: true
+  delivery_channel: letter
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, offener_betrag, monatliche_rate, erste_rate_datum]
+  optional_fields: [begruendung_finanzielle_lage]
+  notes: "Ratenzahlung betrifft in der Regel bereits fällige Zahlungsforderungen. Vorher sollte geprüft werden, ob noch Rechtsmittel laufen oder Fristen offen sind."
+
+- id: bussgeld_fahrverbot_haertefall_006
+  category: bussgeld
+  institution_type: bussgeldstelle_oder_staatsanwaltschaft
+  document_type: bussgeldbescheid
+  action_type: antrag
+  title: Antrag auf Umwandlung des Fahrverbots in eine höhere Geldbuße (Härtefall)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, haertefall_begruendung]
+  optional_fields: [arbeitgeberbescheinigung_beigefuegt]
+  notes: "Geltendmachung eines existenziellen Härtefalls (z. B. drohender Arbeitsplatzverlust). Hohe rechtliche Hürden; setzt in der Regel ein sauberes Fahreignungsregister voraus."
+
+# Jobcenter standalone
+- id: jobcenter_hauptantrag_buergergeld_006
+  category: jobcenter_main
+  institution_type: jobcenter
+  document_type: hauptantrag
+  action_type: antrag
+  title: Hauptantrag auf Leistungen zur Sicherung des Lebensunterhalts (Bürgergeld)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [name, adresse, geburtsdatum]
+  optional_fields: [telefonnummer, email, weitere_personen_im_haushalt, sozialversicherungsnummer, bankverbindung]
+  sensitive_fields: [sozialversicherungsnummer, bankverbindung]
+  notes: "Leistungen werden erst ab dem Ersten des Monats der Antragstellung gewährt. Vollständigkeit der Angaben zur Bedarfsgemeinschaft ist zwingend erforderlich."
+
+- id: jobcenter_antrag_wba_007
+  category: jobcenter_main
+  institution_type: jobcenter
+  document_type: weiterbewilligungsantrag
+  action_type: antrag
+  title: Weiterbewilligungsantrag (WBA) auf Bürgergeld
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [bg_nummer, name, adresse, zeitraum_von]
+  optional_fields: [aenderungen_details]
+  notes: "Sollte ca. 4 bis 6 Wochen vor Ablauf des aktuellen Bewilligungszeitraums eingereicht werden, um nahtlose Zahlungen zur Existenzsicherung zu garantieren."
+
+- id: jobcenter_veraenderungsmitteilung_vzm_008
+  category: jobcenter_main
+  institution_type: jobcenter
+  document_type: veraenderungsmitteilung
+  action_type: anzeige
+  title: Veränderungsmitteilung bei Bezug von Bürgergeld (VZM)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [bg_nummer, name, adresse, art_der_aenderung, datum_der_aenderung]
+  optional_fields: [nachweise_einkommen_wohnen]
+  sensitive_fields: [nachweise_einkommen_wohnen]
+  notes: "Gesetzliche Verpflichtung zur unverzüglichen Anzeige aller Änderungen (z. B. Einkommen, Umzug, Personenanzahl). Eine Verletzung kann Bußgelder oder Strafverfahren nach sich ziehen."
+
+- id: jobcenter_widerspruch_bescheid_001
+  category: jobcenter_main
+  institution_type: jobcenter
+  document_type: leistungsbescheid
+  action_type: widerspruch
+  title: Widerspruch gegen den Leistungsbescheid / Berechnungsfehler
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: registered_letter
+  priority: high
+  required_fields: [bg_nummer, name, adresse, datum_bescheid]
+  optional_fields: [widerspruch_begruendung, berechnungsnachweise]
+  notes: "Widerspruchsfrist von einem Monat nach Bekanntgabe des Bescheides beachten. Dient der Korrektur fehlerhafter Anrechnungen von Einkommen oder KdU."
+
+- id: jobcenter_sachstandsanfrage_untaetigkeit_013
+  category: jobcenter_main
+  institution_type: jobcenter
+  document_type: sachstandsanfrage
+  action_type: sachstandsanfrage
+  title: Sachstandsanfrage / Erinnerung wegen ausstehender Entscheidung
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter_or_fax
+  priority: high
+  required_fields: [bg_nummer, name, adresse, antrags_oder_widerspruchsdatum]
+  optional_fields: [antrags_typ]
+  notes: "Bei längerer Untätigkeit können je nach Verfahrensart weitere rechtliche Schritte geprüft werden. Unterschiedliche Fristen für Antrag und Widerspruch beachten."
+
+# Finanzamt standalone
+- id: finanzamt_einspruch_fristwahrung_002
+  category: finanzamt
+  institution_type: finanzamt
+  document_type: steuerbescheid
+  action_type: einspruch
+  title: Einspruch zur Fristwahrung gegen Steuerbescheid
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: elster_or_letter
+  priority: high
+  required_fields: [steuernummer, name, adresse, bescheid_typ, bescheid_datum]
+  optional_fields: []
+  notes: "Fristwahrender Einspruch ohne Begründung. Die Begründung muss zeitnah nachgereicht werden. Ein Einspruch hemmt die Zahlungspflicht grundsätzlich nicht."
+
+- id: finanzamt_fristverlaengerung_003
+  category: finanzamt
+  institution_type: finanzamt
+  document_type: steuererklaerung
+  action_type: antrag
+  title: Antrag auf Verlängerung der Frist zur Abgabe der Steuererklärung
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: elster_or_letter
+  priority: medium
+  required_fields: [steuernummer, name, adresse, neue_frist]
+  optional_fields: [steuerart_jahr, begruendung_frist]
+  notes: "Antrag auf Verlängerung einer Abgabe- oder Stellungnahmefrist. Die Fristverlängerung wird nicht automatisch gewährt; der Antrag sollte rechtzeitig gestellt werden."
+
+- id: finanzamt_ratenzahlung_005
+  category: finanzamt
+  institution_type: finanzamt
+  document_type: steuerforderung
+  action_type: antrag
+  title: Antrag auf Stundung / Ratenzahlung von Steuerschulden
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter
+  priority: high
+  required_fields: [steuernummer, name, adresse, bescheid_datum, offener_betrag, monatliche_rate, erste_rate_datum]
+  optional_fields: [begruendung_finanzielle_lage]
+  notes: "Antrag auf Ratenzahlung oder Stundung bei offener Steuerforderung. Die Bewilligung liegt im Ermessen des Finanzamts; zusätzliche Nachweise und ggf. Zinsen können verlangt werden."
+
+- id: finanzamt_akteneinsicht_007
+  category: finanzamt
+  institution_type: finanzamt
+  document_type: steuerakte
+  action_type: akteneinsicht
+  title: Antrag auf Akteneinsicht
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [steuernummer, name, adresse, steuerart_jahr]
+  optional_fields: []
+  notes: "Dient der Überprüfung der vom Finanzamt gespeicherten Daten oder Berechnungsunterlagen, um Unstimmigkeiten im Steuerbescheid aufzuklären."
+
+- id: finanzamt_aussetzung_vollziehung_antrag_012
+  category: finanzamt
+  institution_type: finanzamt
+  document_type: steuerbescheid
+  action_type: antrag
+  title: Antrag auf Aussetzung der Vollziehung (AdV)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: high
+  required_fields: [steuernummer, name, adresse, datum_bescheid, streitiger_betrag]
+  optional_fields: [begruendung_adv, einspruch_datum]
+  notes: "AdV setzt die Zahlungspflicht nicht automatisch aus. Der Antrag sollte in der Regel im Zusammenhang mit einem Einspruch geprüft werden. Bei Ablehnung können Zinsen oder Vollstreckungsrisiken bestehen."
+
+# Ausländerbehörde
+- id: auslaenderbehoerde_aufenthalt_verlaengerung_001
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: aufenthaltstitel
+  action_type: antrag
+  title: Antrag auf Verlängerung des Aufenthaltstitels
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum, aufenthaltsstatus_aktuell]
+  optional_fields: [arbeitgeberbescheinigung, nachweis_lebensunterhalt, passnummer, visum_details]
+  sensitive_fields: [passnummer, visum_details]
+  notes: "Der Antrag sollte möglichst vor Ablauf des aktuellen Aufenthaltstitels gestellt werden. Je nach Aufenthaltstitel und Verfahrensstand kann eine Fiktionswirkung oder Fiktionsbescheinigung relevant werden; die Voraussetzungen sollten sorgfältig geprüft werden."
+
+- id: auslaenderbehoerde_sachstandsanfrage_untaetigkeit_002
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: sachstandsanfrage
+  action_type: sachstandsanfrage
+  title: Sachstandsanfrage zum ausstehenden Aufenthaltstitel / Visumverfahren
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum, antragsdatum]
+  optional_fields: [antrags_typ]
+  notes: "Dient der Erinnerung bei verzögerter Bearbeitung. Bei längerer Untätigkeit können je nach Verfahrensart weitere rechtliche Schritte geprüft werden; Fristen und Voraussetzungen sollten im Einzelfall geprüft werden."
+
+- id: auslaenderbehoerde_widerspruch_ablehnung_003
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: ablehnungsbescheid
+  action_type: widerspruch
+  title: Widerspruch zur Fristwahrung gegen die Ablehnung des Aufenthaltstitels
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: registered_letter_or_fax
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum, bescheid_datum]
+  optional_fields: [widerspruch_begruendung, ausweisdokumente]
+  sensitive_fields: [ausweisdokumente]
+  notes: "Fristwahrender Widerspruch gegen einen ablehnenden Bescheid. Ob der Widerspruch aufschiebende Wirkung hat oder weitere Eilanträge erforderlich sind, muss im Einzelfall geprüft werden."
+
+- id: auslaenderbehoerde_akteneinsicht_verfahren_004
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: auslaenderakte
+  action_type: akteneinsicht
+  title: Antrag auf Akteneinsicht in die Ausländerakte
+  risk_level: medium
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_fax
+  priority: medium
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum]
+  optional_fields: []
+  notes: "Ermöglicht dem Betroffenen oder Bevollmächtigten die Einsicht in die behördlichen Vermerke und Gutachten, insbesondere vor einer detaillierten Widerspruchsbegründung oder bei drohenden ausländerrechtlichen Maßnahmen."
+
+- id: auslaenderbehoerde_fiktionsbescheinigung_antrag_005
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: fiktionsbescheinigung
+  action_type: antrag
+  title: Antrag auf Ausstellung / Verlängerung einer Fiktionsbescheinigung
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum]
+  optional_fields: [antragsdatum_aufenthalt, dringlichkeit_grund, passnummer]
+  sensitive_fields: [passnummer]
+  notes: "Wichtig zur Überbrückung und als Nachweis des rechtmäßigen Aufenthalts im Bundesgebiet, während über den eigentlichen Hauptantrag noch entschieden wird."
+
+- id: auslaenderbehoerde_terminanfrage_006
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: terminanfrage
+  action_type: anfrage
+  title: Anfrage für einen Termin / persönliche Vorsprache
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_email
+  priority: medium
+  required_fields: [name, adresse, geburtsdatum, anliegen_beschreibung]
+  optional_fields: [aktenzeichen, frist_ablauf]
+  notes: "Formlose Anfrage zur Vereinbarung eines Termins zur Beantragung, Verlängerung oder Abholung von Dokumenten. Fristen für bestehende Titel sollten erwähnt werden."
+
+- id: auslaenderbehoerde_unterlagen_nachreichen_007
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: nachreichung
+  action_type: nachreichung
+  title: Nachreichung von angeforderten Unterlagen oder Nachweisen
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum]
+  optional_fields: [schreiben_datum_faelligkeit, anlagen_liste, einkommensnachweise, mietvertrag_details]
+  sensitive_fields: [einkommensnachweise, mietvertrag_details]
+  notes: "Dient der Vervollständigung der Antragsunterlagen und der Vermeidung von Verzögerungen oder Nachteilen wegen fehlender Mitwirkung."
+
+- id: auslaenderbehoerde_adressaenderung_mitteilung_008
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: mitteilung
+  action_type: mitteilung
+  title: Mitteilung über eine Adressänderung / Wohnungswechsel
+  risk_level: low
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [aktenzeichen, name, geburtsdatum, neue_adresse, einzugsdatum]
+  optional_fields: [alte_adresse, meldebescheinigung_beigefuegt]
+  notes: "Wichtig, damit behördliche Schreiben zuverlässig zugestellt werden können und Fristen nicht unbemerkt laufen."
+
+- id: auslaenderbehoerde_arbeitserlaubnis_anfrage_009
+  category: auslaenderbehoerde
+  institution_type: auslaenderbehoerde
+  document_type: beschaeftigungserlaubnis
+  action_type: antrag
+  title: Antrag auf Beschäftigungserlaubnis oder Arbeitgeberwechsel
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [aktenzeichen, name, adresse, geburtsdatum, neuer_arbeitgeber_name]
+  optional_fields: [stellenbeschreibung_formular, arbeitsvertrag_entwurf, arbeitsvertrag_details]
+  sensitive_fields: [arbeitsvertrag_details]
+  notes: "Richtet sich auf die Erteilung oder Änderung einer Arbeitserlaubnis. Setzt in vielen Fällen die interne Zustimmung der Bundesagentur für Arbeit (BA) voraus."
+
+# Banka / Schufa / Kredi
+- id: bank_konto_kuendigung_001
+  category: bank
+  institution_type: bank
+  document_type: kuendigung
+  action_type: anzeige
+  title: Kündigung des Girokontos / Bankkontos
+  risk_level: medium
+  requires_user_facts: true
+  requires_legal_caution: false
+  delivery_channel: letter_or_online
+  priority: medium
+  required_fields: [iban, name, adresse, kuendigungstermin]
+  optional_fields: [kontonummer, bankleitzahl, ziel_iban]
+  notes: "Kündigung eines Giro- oder Bankkontos. Eine Ziel-IBAN ist sinnvoll, wenn ein Restguthaben ausgezahlt werden soll."
+
+- id: bank_umsatz_reklamation_002
+  category: bank
+  institution_type: bank
+  document_type: reklamation
+  action_type: widerspruch
+  title: Widerspruch gegen fehlerhafte oder unberechtigte Kontobuchungen (Chargeback)
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [iban, name, adresse, buchungsdatum, betrag, transaktions_id]
+  optional_fields: [begruendung_reklamation, haendler_name, transaktions_details]
+  sensitive_fields: [transaktions_details]
+  notes: "Reklamation einer aus Sicht des Nutzers fehlerhaften oder nicht autorisierten Buchung. Fristen hängen von Zahlungsart und Sachverhalt ab; Kontoauszüge und Vertragsbedingungen sollten zeitnah geprüft werden."
+
+- id: schufa_datenkorrektur_antrag_003
+  category: schufa
+  institution_type: auskunftei
+  document_type: korrekturantrag
+  action_type: antrag
+  title: Antrag auf Korrektur oder Löschung fehlerhafter SCHUFA-Einträge
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: portal_or_letter
+  priority: high
+  required_fields: [name, adresse, geburtsdatum, glaeubiger_name, fehlerhafter_eintrag_details]
+  optional_fields: [erledigungsnachweis_beigefuegt, schufa_kennziffer, schufa_auskunft_daten]
+  sensitive_fields: [schufa_auskunft_daten]
+  notes: "Antrag auf Prüfung, Berichtigung oder Löschung eines aus Sicht des Nutzers fehlerhaften Eintrags. Nachweise sollten beigefügt werden; die Auskunftei prüft die Voraussetzungen im Einzelfall."
+
+- id: schufa_selbstauskunft_001
+  category: schufa
+  institution_type: auskunftei
+  document_type: auskunftsersuchen
+  action_type: antrag
+  title: Antrag auf kostenlose Datenkopie nach Art. 15 DSGVO (Selbstauskunft)
+  risk_level: low
+  requires_user_facts: false
+  requires_legal_caution: false
+  delivery_channel: portal_or_letter
+  priority: medium
+  required_fields: [name, adresse, geburtsdatum]
+  optional_fields: [vorige_adresse, geburtsort]
+  sensitive_fields: [geburtsdatum, geburtsort, vorige_adresse]
+  attachment_hints: [optional_id_copy_redacted]
+  notes: "Auskunftsersuchen nach Art. 15 DSGVO zur Datenkopie. Enthält keine Löschungs- oder Berichtigungsanträge."
+
+- id: kredit_ratenaussetzung_antrag_005
+  category: bank
+  institution_type: bank_oder_kreditinstitut
+  document_type: kreditvertrag
+  action_type: antrag
+  title: Antrag auf vorübergehende Raten- bzw. Tilgungsaussetzung
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_portal
+  priority: high
+  required_fields: [kreditkontonummer, name, adresse, aussetzungs_dauer_monate, beginn_datum]
+  optional_fields: [begruendung_engpass, einkommensnachweise]
+  sensitive_fields: [einkommensnachweise]
+  notes: "Formeller Antrag bei vorübergehenden finanziellen Engpässen. Eine Aussetzung liegt im Ermessen der Bank, sofern kein gesetzlicher Anspruch besteht, und kann die Gesamtlaufzeit sowie die Zinslast des Kredits verändern."
+
+- id: bank_p_konto_umwandlung_006
+  category: bank
+  institution_type: bank
+  document_type: umwandlungsantrag
+  action_type: antrag
+  title: Antrag auf Umwandlung des Girokontos in ein Pfändungsschutzkonto (P-Konto)
+  risk_level: high
+  requires_user_facts: false
+  requires_legal_caution: true
+  delivery_channel: letter_or_filiale
+  priority: high
+  required_fields: [iban, name, adresse]
+  optional_fields: [pfaendungsbeschluss_aktenzeichen]
+  notes: "Antrag auf Umwandlung eines bestehenden Girokontos in ein Pfändungsschutzkonto. Fristen und Voraussetzungen sollten anhand der aktuellen gesetzlichen Regelung und der Bankinformationen geprüft werden."
+
+- id: bank_vollmacht_widerruf_007
+  category: bank
+  institution_type: bank
+  document_type: vollmacht
+  action_type: widerruf
+  title: Widerruf einer bestehenden Bankvollmacht / Kontovollmacht
+  risk_level: high
+  requires_user_facts: true
+  requires_legal_caution: true
+  delivery_channel: letter_or_filiale
+  priority: high
+  required_fields: [iban, name, adresse, bevollmaechtigter_name]
+  optional_fields: [vollmacht_datum]
+  notes: "Widerruf einer bestehenden Kontovollmacht gegenüber der Bank. Die Bank sollte den Eingang und die Umsetzung schriftlich bestätigen."

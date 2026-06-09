@@ -1,3 +1,3 @@
-import SearchScreen from '../../src/features/search/SearchScreen';
+import SearchScreen from '@features/search/SearchScreen';
 
 export default SearchScreen;

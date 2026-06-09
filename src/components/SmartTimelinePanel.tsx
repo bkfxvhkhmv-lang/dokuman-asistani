@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Animated, { FadeInDown, Layout } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import type { RadiusTokens } from '../theme';
-import type { TimelineEvent, TimelineView, WochenZusammenfassung } from '../services/SmartTimelineService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import type { RadiusTokens } from '@/theme';
+import type { TimelineEvent, TimelineView, WochenZusammenfassung } from '@/services/SmartTimelineService';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 // ── Single event row ───────────────────────────────────────────────────────────
 
 function EventRow({
   event, onPress, C, R,
 }: { event: TimelineEvent; onPress: () => void; C: ThemeColors; R: RadiusTokens }) {
+  const { t: T } = useT();
   const tage = event.tageVerbleibend;
   const isOverdue = tage !== null && tage < 0;
   const isToday   = tage === 0;
@@ -24,9 +27,9 @@ function EventRow({
     : C.success;
 
   const tageLabel = isOverdue
-    ? `${Math.abs(tage!)} Tage überfällig`
-    : isToday ? 'Heute'
-    : tage !== null ? `${tage} Tag${tage !== 1 ? 'e' : ''}`
+    ? T('doc.overdue')
+    : isToday ? T('doc.today')
+    : tage !== null ? T('doc.due_days', { n: tage })
     : new Date(event.datum).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
 
   return (
@@ -44,7 +47,7 @@ function EventRow({
           {event.label}
         </Text>
         <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }} numberOfLines={1}>
-          {event.dokumentTitel}
+          {safeDisplayTitel(event.dokumentTitel)}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
@@ -77,16 +80,17 @@ function SectionHeader({ label, count, color, C }: { label: string; count: numbe
 // ── Wochenübersicht card ───────────────────────────────────────────────────────
 
 function WochenCard({ summary, C, R }: { summary: WochenZusammenfassung; C: ThemeColors; R: RadiusTokens }) {
+  const { t: T } = useT();
   if (summary.gesamt === 0) {
     return (
       <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: 16,
         alignItems: 'center', marginBottom: 16 }}>
         <Text style={{ fontSize: 28 }}>✅</Text>
         <Text style={{ fontSize: 14, fontWeight: '700', color: C.text, marginTop: 8 }}>
-          Keine Termine diese Woche
+          {T('home.all_good_title')}
         </Text>
         <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>
-          Alles im grünen Bereich
+          {T('dash.all_clear')}
         </Text>
       </View>
     );
@@ -96,31 +100,31 @@ function WochenCard({ summary, C, R }: { summary: WochenZusammenfassung; C: Them
     <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: 14, marginBottom: 16,
       borderWidth: 0.5, borderColor: C.border }}>
       <Text style={{ fontSize: 12, fontWeight: '700', color: C.textTertiary, marginBottom: 10 }}>
-        DIESE WOCHE
+        {T('doc.this_week').toUpperCase()}
       </Text>
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
         {summary.überfälligCount > 0 && (
           <View style={{ flex: 1, backgroundColor: C.dangerLight, borderRadius: R.md, padding: 10, borderWidth: 1, borderColor: C.dangerBorder }}>
             <Text style={{ fontSize: 20, fontWeight: '800', color: C.danger }}>{summary.überfälligCount}</Text>
-            <Text style={{ fontSize: 10, color: C.dangerText, fontWeight: '600' }}>ÜBERFÄLLIG</Text>
+            <Text style={{ fontSize: 10, color: C.dangerText, fontWeight: '600' }}>{T('doc.overdue').toUpperCase()}</Text>
           </View>
         )}
         {summary.heuteCount > 0 && (
           <View style={{ flex: 1, backgroundColor: C.warningLight, borderRadius: R.md, padding: 10, borderWidth: 1, borderColor: C.warningBorder }}>
             <Text style={{ fontSize: 20, fontWeight: '800', color: C.warning }}>{summary.heuteCount}</Text>
-            <Text style={{ fontSize: 10, color: C.warningText, fontWeight: '600' }}>HEUTE</Text>
+            <Text style={{ fontSize: 10, color: C.warningText, fontWeight: '600' }}>{T('doc.today').toUpperCase()}</Text>
           </View>
         )}
         <View style={{ flex: 1, backgroundColor: C.primaryLight, borderRadius: R.md, padding: 10, borderWidth: 1, borderColor: C.primary + '33' }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: C.primary }}>{summary.dieseWocheCount}</Text>
-          <Text style={{ fontSize: 10, color: C.primaryDark, fontWeight: '600' }}>DIESE WOCHE</Text>
+          <Text style={{ fontSize: 10, color: C.primaryDark, fontWeight: '600' }}>{T('doc.this_week').toUpperCase()}</Text>
         </View>
         {summary.gesamtBetrag > 0 && (
           <View style={{ flex: 1, backgroundColor: C.dangerLight, borderRadius: R.md, padding: 10, borderWidth: 1, borderColor: C.danger + '44' }}>
             <Text style={{ fontSize: 14, fontWeight: '800', color: C.danger }} numberOfLines={1}>
               {summary.gesamtBetrag.toFixed(0)} €
             </Text>
-            <Text style={{ fontSize: 10, color: C.dangerText, fontWeight: '600' }}>OFFEN</Text>
+            <Text style={{ fontSize: 10, color: C.dangerText, fontWeight: '600' }}>{T('home.filter.open').toUpperCase()}</Text>
           </View>
         )}
       </View>
@@ -128,9 +132,11 @@ function WochenCard({ summary, C, R }: { summary: WochenZusammenfassung; C: Them
         <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 }}>
           <View style={{ width: 5, height: 5, borderRadius: 2.5,
             backgroundColor: (d.tage ?? 1) <= 0 ? C.danger : (d.tage ?? 1) <= 3 ? C.warning : C.success }} />
-          <Text style={{ fontSize: 12, color: C.text, flex: 1 }} numberOfLines={1}>{d.titel}</Text>
+          <Text style={{ fontSize: 12, color: C.text, flex: 1 }} numberOfLines={1}>
+            {safeDisplayTitel(d.titel)}
+          </Text>
           <Text style={{ fontSize: 11, color: C.textTertiary }}>
-            {d.tage !== null ? (d.tage <= 0 ? 'Überfällig' : `${d.tage}T`) : '–'}
+            {d.tage !== null ? (d.tage <= 0 ? T('doc.overdue') : `${d.tage}T`) : '–'}
           </Text>
         </View>
       ))}
@@ -151,6 +157,7 @@ export default function SmartTimelinePanel({
   view, wochenZusammenfassung, showWochenCard = true, maxPerSection = 5,
 }: SmartTimelinePanelProps) {
   const { Colors: C, R } = useTheme();
+  const { t: T } = useT();
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
 
@@ -164,11 +171,11 @@ export default function SmartTimelinePanel({
   if (totalEvents === 0 && !showWochenCard) return null;
 
   const sections: { label: string; events: TimelineEvent[]; color: string }[] = [
-    { label: 'Überfällig',     events: view.überfällig,   color: C.danger },
-    { label: 'Heute',          events: view.heute,        color: C.warning },
-    { label: 'Diese Woche',    events: view.dieseWoche,   color: C.warning },
-    { label: 'Diesen Monat',   events: view.diesenMonat,  color: C.success },
-    { label: 'Später',         events: view.später,       color: C.textTertiary },
+    { label: T('doc.overdue'),   events: view.überfällig,  color: C.danger },
+    { label: T('doc.today'),     events: view.heute,       color: C.warning },
+    { label: T('doc.this_week'), events: view.dieseWoche,  color: C.warning },
+    { label: T('home.filter.all'), events: view.diesenMonat, color: C.success },
+    { label: T('common.done'),   events: view.später,      color: C.textTertiary },
   ];
 
   return (

@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import type { CaptureResult, ScanQualityAnalysis, ScanQualityInput } from '../../scanner/types';
-import type { DetailedQualityReport, FastQualityResult, QualityMetrics } from '../types';
+import type { CaptureResult, ScanQualityAnalysis, ScanQualityInput } from '@/modules/scanner/types';
+import type { DetailedQualityReport, FastQualityResult, QualityMetrics } from '@/modules/image-processing/types';
 
 function defaultMetrics(): QualityMetrics {
   return {

@@ -1,40 +1,28 @@
 import React from 'react';
-import { useRouter } from 'expo-router';
-import HomeHeaderCluster from './HomeHeaderCluster';
-import HomeSyncStrip from './HomeSyncStrip';
-import HomeProfileStrip from './HomeProfileStrip';
+import { Animated } from 'react-native';
+import HomeHeaderCluster from '@/features/home/components/HomeHeaderCluster';
+import HomeSyncStrip from '@/features/home/components/HomeSyncStrip';
+import type { FilterParams } from '@/utils/search';
 
-export default function HomeHeader({ data }: { data: any }) {
-  const router = useRouter();
-  const profiles = data.state?.einstellungen?.profile ?? [];
-  const activeProfileId = data.state?.einstellungen?.aktifProfilId ?? null;
-
+export default function HomeHeader({ data, scrollY }: { data: any; scrollY?: Animated.Value }) {
   return (
     <>
       <HomeHeaderCluster
         colors={data.Colors}
-        tabs={['Aufgaben', 'Dokumente', 'Ordner', 'Kalender', 'Zahlungen']}
-        activeTab={data.aktiv}
-        onTabPress={data.handleTabPress}
-        onSearchPress={() => router.push('/(tabs)/Suche')}
-        onFilterPress={() => data.setFilterOffen?.((value: boolean) => !value)}
-        filterActive={data.filterAktiv}
-        filterOpen={data.filterOffen}
-        unreadCount={data.ungelesen}
+        dringend={data.dringend?.length ?? 0}
+        totalOpen={data.aufgaben?.length ?? 0}
+        totalDocs={data.sichtbareDocs?.length ?? 0}
+        quickScope={data.filter.quickScope ?? 'offen'}
+        onScopeChange={quickScope =>
+          data.setFilter((f: FilterParams) => ({ ...f, quickScope }))
+        }
+        scrollY={scrollY}
       />
       <HomeSyncStrip
         colors={data.Colors}
         syncStatus={data.syncStatus}
         letzterSync={data.letzterSync}
         onPress={data.runSync}
-      />
-      <HomeProfileStrip
-        colors={data.Colors}
-        profiles={profiles}
-        activeProfileId={activeProfileId}
-        onSelect={(id) => data.dispatch({ type: 'SELECT_PROFIL', id })}
-        spacing={data.S}
-        radius={data.R}
       />
     </>
   );

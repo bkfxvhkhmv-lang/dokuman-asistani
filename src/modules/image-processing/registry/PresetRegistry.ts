@@ -1,5 +1,5 @@
-import type { ImageFilter } from '../types';
-import { getSharedFilterRegistry } from './FilterRegistry';
+import type { ImageFilter } from '@/modules/image-processing/types';
+import { getSharedFilterRegistry } from '@/modules/image-processing/registry/FilterRegistry';
 
 export interface FilterPresetOption {
   id: string;

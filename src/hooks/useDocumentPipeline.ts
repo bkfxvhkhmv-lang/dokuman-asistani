@@ -1,10 +1,17 @@
 import { useCallback, useState } from 'react';
-import { analysiereText } from '../services/visionApi';
-import { analyzeDocument } from '../core/classification';
-import { uploadDocumentV4 } from '../services/v4Api';
-import { generateId, scheduleDeadlineNotification } from '../utils';
+import { analysiereText } from '@/services/visionApi';
+import { analyzeDocument } from '@/core/classification';
+import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
+import { generateId, scheduleDeadlineNotification } from '@/utils';
+import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
+import type { Dokument, LernRegel, ScannedPage } from '@/store';
+import { normalizeAndRefineTyp } from '@/product/canonicalDocTypes';
+import { wendeLernRegelnAn } from '@/utils/learningRules';
 
-export function useDocumentPipeline(dispatch: (action: any) => void) {
+export function useDocumentPipeline(
+  dispatch: (action: any) => void,
+  getLernRegeln?: () => LernRegel[],
+) {
   const [isSaving, setIsSaving] = useState(false);
   const [flyingCardUri, setFlyingCardUri] = useState<string | null>(null);
 
@@ -15,6 +22,15 @@ export function useDocumentPipeline(dispatch: (action: any) => void) {
    */
   const dispatchOptimistic = useCallback((pages: Array<{ uri: string }>) => {
     const tempId = generateId();
+    // Optimistic placeholder — bu sayfalar henuz cacheDirectory'de;
+    // finalizeDocument cagrildiginda persisted versiyonlariyla degistirilirler.
+    const tempPages: ScannedPage[] = pages.map((p, i) => ({
+      id:        generateId(),
+      uri:       p.uri,
+      order:     i + 1,
+      rotation:  0 as const,
+      createdAt: new Date().toISOString(),
+    }));
     dispatch({
       type: 'ADD_DOKUMENT',
       payload: {
@@ -33,8 +49,8 @@ export function useDocumentPipeline(dispatch: (action: any) => void) {
         datum:          new Date().toISOString(),
         gelesen:        false,
         erledigt:       false,
-        uri:            pages[0]?.uri || null,
-        pages,
+        uri:            tempPages[0]?.uri || null,
+        pages:          tempPages,
         rohText:        null,
         confidence:     null,
         versionen:      [],
@@ -71,13 +87,39 @@ export function useDocumentPipeline(dispatch: (action: any) => void) {
         if (coreAnalysis.extractedIban && !analysis.iban) analysis.iban = coreAnalysis.extractedIban;
         if (coreAnalysis.extractedSender && !analysis.absender) analysis.absender = coreAnalysis.extractedSender;
       }
-      const leadPage   = pages[0];
       const documentId = optimisticId ?? generateId();
+
+      // ── Kalıcı dosya saklama ───────────────────────────────────────────
+      // OCR'in optimize ettigi sayfalar henuz cacheDirectory'de.
+      // Belge store'a yazilmadan once dosyalari kalici klasore kopyala
+      // ki uygulama bir sonraki acilista hala erisebilsin.
+      let persistedPages: ScannedPage[] = [];
+      try {
+        persistedPages = await persistScanFiles(documentId, pages.map(p => p.uri));
+      } catch (e) {
+        // Cache URIs must not reach the store — dead paths cause blank previews.
+        // Log the failure and save without pages; caller sees empty preview state.
+        console.error('[useDocumentPipeline] persistScanFiles failed — document saved without preview', e);
+        persistedPages = [];
+      }
+
+      const leadPage = persistedPages[0];
+
+      let typResolved = normalizeAndRefineTyp(String(analysis.typ ?? 'Sonstiges'), rawText);
+      const absResolved = analysis.absender || 'Unbekannt';
+
+      const { changes } = wendeLernRegelnAn(
+        { typ: typResolved, absender: absResolved },
+        ((getLernRegeln?.() ?? []) as any) ?? [],
+      );
+      if (changes.typ) typResolved = normalizeAndRefineTyp(changes.typ, rawText);
+      const learntOrdner = changes.userOrdner?.trim?.() ?? null;
+
       const documentPayload = {
         id: documentId,
-        titel: `${analysis.typ} — ${(analysis.absender || 'Unbekannt').slice(0, 30)}`,
-        typ: analysis.typ,
-        absender: analysis.absender || 'Unbekannt',
+        titel: `${typResolved} — ${absResolved.slice(0, 30)}`,
+        typ: typResolved,
+        absender: absResolved,
         zusammenfassung: analysis.zusammenfassung,
         kurzfassung: analysis.kurzfassung || null,
         warnung: analysis.risiko === 'hoch'
@@ -91,11 +133,13 @@ export function useDocumentPipeline(dispatch: (action: any) => void) {
         datum: new Date().toISOString(),
         gelesen: false,
         erledigt: false,
-        uri: leadPage?.uri || null,
-        pages,
+        uri:              leadPage?.uri || null,
+        fileRelativePath: leadPage?.relativePath ?? null,
+        pages:            persistedPages,
         rohText: rawText,
         iban: analysis.iban || null,
         confidence: confidence ?? null,
+        ...(learntOrdner ? { userOrdner: learntOrdner } : {}),
       };
 
       // If we had an optimistic placeholder, replace it; otherwise add new
@@ -113,23 +157,14 @@ export function useDocumentPipeline(dispatch: (action: any) => void) {
       }
 
       if (leadPage?.uri) {
-        uploadDocumentV4(leadPage.uri, `${documentId}.jpg`)
-          .then(result => {
-            if (result?.id) {
-              dispatch({
-                type: 'UPDATE_DOKUMENT',
-                payload: { id: documentId, v4DocId: result.id },
-              });
-            }
-          })
-          .catch(() => null);
+        enqueueV4Upload(dispatch, documentId, leadPage.uri, `${documentId}.jpg`);
       }
 
       return documentPayload;
     } finally {
       setIsSaving(false);
     }
-  }, [dispatch]);
+  }, [dispatch, getLernRegeln]);
 
   return {
     isSaving,

@@ -6,7 +6,7 @@ import Animated, {
   FadeInDown, Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 import type { SharedValue } from 'react-native-reanimated';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -46,7 +46,7 @@ function ShimmerBar({
     <View style={[st.barBase, { backgroundColor: Colors.borderLight }, style]}>
       <Animated.View style={[StyleSheet.absoluteFill, animStyle]}>
         <LinearGradient
-          colors={['transparent', 'rgba(255,255,255,0.72)', 'transparent']}
+          colors={['transparent', 'rgba(255,255,255,0.42)', 'transparent']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ width: SHIMMER_W, height: '100%' }}

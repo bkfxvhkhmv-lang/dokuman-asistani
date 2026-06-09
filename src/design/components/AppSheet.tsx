@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Dimensions, Modal, TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Dimensions, Keyboard, Modal, TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
   withSpring, withTiming, runOnJS, interpolate, Extrapolation,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { useTheme } from '../../ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 const SCREEN_H = Dimensions.get('window').height;
 const SPRING   = { damping: 22, stiffness: 240, mass: 0.85 };
@@ -23,14 +25,39 @@ export default function AppSheet({
   visible, onClose, title, subtitle, children, footer,
 }: AppSheetProps) {
   const { Colors } = useTheme();
+  const { t: T } = useT();
+  const insets = useSafeAreaInsets();
   const [mounted, setMounted] = useState(false);
+  const closeFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const translateY    = useSharedValue(SCREEN_H);
   const backdropAlpha = useSharedValue(0);
+  const kbHeight      = useSharedValue(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvent, (e) => {
+      const h   = e.endCoordinates?.height ?? (Platform.OS === 'android' ? SCREEN_H * 0.38 : 0);
+      const dur = Platform.OS === 'ios' ? (e.duration ?? 250) : 200;
+      kbHeight.value = withTiming(h, { duration: dur });
+    });
+    const hide = Keyboard.addListener(hideEvent, (e) => {
+      const dur = Platform.OS === 'ios' ? (e.duration ?? 200) : 180;
+      kbHeight.value = withTiming(0, { duration: dur });
+    });
+    return () => { show.remove(); hide.remove(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Step 1 — mount the Modal when becoming visible
   useEffect(() => {
-    if (visible) setMounted(true);
+    if (visible) {
+      if (closeFallbackRef.current) {
+        clearTimeout(closeFallbackRef.current);
+        closeFallbackRef.current = null;
+      }
+      setMounted(true);
+    }
   }, [visible]);
 
   // Step 2 — animate in/out whenever visible or mount state changes
@@ -41,10 +68,27 @@ export default function AppSheet({
       translateY.value    = withSpring(0, SPRING);
       backdropAlpha.value = withTiming(1, { duration: 240 });
     } else {
+      if (closeFallbackRef.current) clearTimeout(closeFallbackRef.current);
+      closeFallbackRef.current = setTimeout(() => {
+        if (__DEV__) {
+          console.warn('[APPSHEET_GUARD] forced unmount after close timeout');
+        }
+        setMounted(false);
+        closeFallbackRef.current = null;
+      }, 650);
       translateY.value    = withTiming(SCREEN_H, { duration: 260 }, () => runOnJS(setMounted)(false));
       backdropAlpha.value = withTiming(0, { duration: 220 });
     }
   }, [visible, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      if (closeFallbackRef.current) {
+        clearTimeout(closeFallbackRef.current);
+        closeFallbackRef.current = null;
+      }
+    };
+  }, []);
 
   // Swipe-to-close gesture — attached only to the handle area
   const pan = Gesture.Pan()
@@ -69,24 +113,43 @@ export default function AppSheet({
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
+    bottom: kbHeight.value,
+    height: Math.max(200, SCREEN_H * 0.88 - kbHeight.value),
   }));
 
   const bgStyle = useAnimatedStyle(() => ({
     opacity: backdropAlpha.value,
   }));
 
+  const interactive = visible && mounted;
+
   return (
-    <Modal visible={mounted} transparent animationType="none" statusBarTranslucent>
+    <Modal visible={mounted} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
       <View style={StyleSheet.absoluteFill}>
         {/* Backdrop */}
-        <Animated.View style={[StyleSheet.absoluteFill, st.backdrop, bgStyle]}>
-          <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} />
+        <Animated.View
+          pointerEvents={interactive ? 'auto' : 'none'}
+          style={[StyleSheet.absoluteFill, st.backdrop, bgStyle]}
+        >
+          <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} disabled={!interactive} />
         </Animated.View>
 
         {/* Sheet */}
         <Animated.View
-          style={[st.sheet, { backgroundColor: Colors.bgCard, borderTopColor: Colors.border }, sheetStyle]}
+          pointerEvents={interactive ? 'auto' : 'none'}
+          style={[
+            st.sheet,
+            { borderTopColor: Colors.border, paddingBottom: Math.max(20, insets.bottom + 12) },
+            Platform.OS === 'android' && { elevation: 8, borderTopWidth: 1 },
+            sheetStyle,
+          ]}
         >
+          {/* Surface background — solid, no BlurView to avoid native touch interception */}
+          <View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { backgroundColor: Colors.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24 }]}
+          />
+
           {/* Handle — gesture target */}
           <GestureDetector gesture={pan}>
             <Animated.View style={st.handleArea}>
@@ -103,9 +166,10 @@ export default function AppSheet({
             <TouchableOpacity
               onPress={onClose}
               activeOpacity={0.82}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={[st.closeButton, { backgroundColor: Colors.bg, borderColor: Colors.border }]}
             >
-              <Text style={[st.closeLabel, { color: Colors.textSecondary }]}>Schließen</Text>
+              <Text style={[st.closeLabel, { color: Colors.textSecondary }]}>{T('common.close')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -128,10 +192,9 @@ const st = StyleSheet.create({
     right:                0,
     borderTopLeftRadius:  24,
     borderTopRightRadius: 24,
-    borderTopWidth:       1,
+    borderTopWidth:       0.5,
     paddingHorizontal:    20,
-    paddingBottom:        34,
-    maxHeight:            '88%',
+    overflow:             'hidden',
   },
   handleArea: {
     paddingVertical: 10,
@@ -150,8 +213,8 @@ const st = StyleSheet.create({
   headerCopy:  { flex: 1, paddingRight: 8 },
   title:       { fontSize: 18, fontWeight: '700', letterSpacing: -0.2 },
   subtitle:    { fontSize: 13, lineHeight: 19, marginTop: 6, marginBottom: 18 },
-  closeButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
+  closeButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
   closeLabel:  { fontSize: 12, fontWeight: '700' },
-  body:        {},
-  footer:      { marginTop: 12 },
+  body:        { flex: 1 },
+  footer:      { flexShrink: 0, marginTop: 12 },
 });

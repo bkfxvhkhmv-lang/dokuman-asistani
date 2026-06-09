@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
-import type { ImageEditMode, ImageSession } from '../types';
-import type { CaptureResult } from '../../scanner/types';
-import { getSharedImageSessionManager } from '../session/ImageSessionManager';
+import type { ImageEditMode, ImageSession } from '@/modules/image-processing/types';
+import type { CaptureResult } from '@/modules/scanner/types';
+import { getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
 
 export function useImageSession() {
   const manager = getSharedImageSessionManager();

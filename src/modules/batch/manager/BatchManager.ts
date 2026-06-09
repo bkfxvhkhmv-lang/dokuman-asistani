@@ -1,7 +1,7 @@
-import { BatchPage, BatchConfig, PdfResult, BatchError } from '../types';
-import { PdfGenerator } from './PdfGenerator';
-import { PageOrganizer } from './PageOrganizer';
-import { getSharedImageSessionManager } from '../../image-processing/session/ImageSessionManager';
+import { BatchPage, BatchConfig, PdfResult, BatchError } from '@/modules/batch/types';
+import { PdfGenerator } from '@/modules/batch/manager/PdfGenerator';
+import { PageOrganizer } from '@/modules/batch/manager/PageOrganizer';
+import { getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
 
 type BatchEventMap = {
   changed: BatchPage[];
@@ -62,6 +62,11 @@ export class BatchManager {
 
   getPages(): BatchPage[] {
     return this.pageOrganizer.sort(this.pages);
+  }
+
+  replacePages(nextPages: BatchPage[]): void {
+    this.pages = this.pageOrganizer.sort([...nextPages]);
+    this.emit('changed', this.getPages());
   }
 
   getPageCount(): number {

@@ -1,9 +1,12 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import { exportiereTopluPDF } from '../utils';
-import { uploadDocumentV4 } from '../services/v4Api';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import { exportiereTopluPDF } from '@/utils';
+import { uploadDocumentV4 } from '@/services/v4Api';
+import { useToast } from '@/hooks/useToast';
+import PremiumToast from '@/design/components/PremiumToast';
+import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
 const ITEM_H = 60;
 
@@ -20,6 +23,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
 
   const [reihenfolge, setReihenfolge] = useState<Dokument[]>(items);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const dragY    = useRef(new Animated.Value(0)).current;
   const dragBase = useRef(0);
   const listRef  = useRef(reihenfolge);
@@ -57,17 +61,26 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
     }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExport = async () => {
-    onClose();
-    const uri = await exportiereTopluPDF(reihenfolge);
-    if (uri) {
-      const filename = `merged_${Date.now()}.pdf`;
-      uploadDocumentV4(uri, filename).catch(() => null);
+    try {
+      const uri = await exportiereTopluPDF(reihenfolge);
+      if (uri) {
+        const filename = `merged_${Date.now()}.pdf`;
+        uploadDocumentV4(uri, filename).catch(() => null);
+      }
+      onClose();
+      onDone?.();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg === 'BRIEFPILOT_SHARING_UNAVAILABLE') {
+        showToast({ message: 'Teilen nicht verfügbar', tone: 'danger', icon: 'alert-circle' });
+      } else {
+        showToast({ message: 'Export fehlgeschlagen', tone: 'danger', icon: 'alert-circle' });
+      }
     }
-    onDone?.();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={st.overlay} activeOpacity={1} onPress={onClose} />
       <View style={[st.sheet, { backgroundColor: C.bgCard }]}>
         <View style={[st.handle, { backgroundColor: C.border }]} />
@@ -89,7 +102,9 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
                 <View style={[st.badge, { backgroundColor: isDragging ? C.primary : C.primaryLight }]}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: isDragging ? '#fff' : C.primaryDark }}>{i + 1}</Text>
                 </View>
-                <Text style={[st.rowTitle, { color: C.text }]} numberOfLines={1}>{dok.titel}</Text>
+                <Text style={[st.rowTitle, { color: C.text }]} numberOfLines={1}>
+                  {safeDisplayTitel(dok.titel, dok.typ, dok.confidence)}
+                </Text>
                 <Text style={{ fontSize: 18, color: C.textTertiary, paddingHorizontal: 4 }}>☰</Text>
               </Animated.View>
             );
@@ -99,6 +114,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
           <Text style={st.btnText}> {reihenfolge.length} Dokumente als PDF exportieren</Text>
         </TouchableOpacity>
       </View>
+      <PremiumToast config={toastConfig} onHide={hideToast} />
     </Modal>
   );
 }

@@ -35,7 +35,7 @@ export const LightColors: ColorPalette = {
   // Borders — hairline (1 ton fark)
   border: '#E8E7E1', borderLight: '#F0EFE9',
   // Typography
-  text: '#18181B', textSecondary: '#6B6B72', textTertiary: '#B0B0B8', textInverse: '#FFFFFF',
+  text: '#111827', textSecondary: '#6B7280', textTertiary: '#9CA3AF', textInverse: '#FFFFFF',
 };
 
 export const DarkColors: ColorPalette = {
@@ -49,15 +49,16 @@ export const DarkColors: ColorPalette = {
 };
 
 export const LightRisk: RiskPalette = {
-  hoch:    { color: '#EE6055', bg: '#FEF0EF', border: '#F8ACA8', text: '#9B2D24', label: 'Dringend' },
-  mittel:  { color: '#FFB703', bg: '#FFF8E0', border: '#FFD44D', text: '#5C3D00', label: 'Diese Woche' },
-  niedrig: { color: '#1D9E75', bg: '#E8F5EF', border: '#5DCAA5', text: '#0F5233', label: 'Kein Handlungsbedarf' },
+  // Stronger separation: red vs amber vs teal — each unmistakably different
+  hoch:    { color: '#D7263D', bg: '#FDEDF0', border: '#E8849A', text: '#7A0E1E', label: 'Dringend' },
+  mittel:  { color: '#E87B0C', bg: '#FEF6E8', border: '#F0AE5A', text: '#6B3200', label: 'Diese Woche' },
+  niedrig: { color: '#0F9E6A', bg: '#E6F5EF', border: '#52C49A', text: '#084D31', label: 'Kein Handlungsbedarf' },
 };
 
 export const DarkRisk: RiskPalette = {
-  hoch:    { color: '#FF6B6B', bg: '#3A1A1A', border: '#8B3333', text: '#FF9B9B', label: 'Dringend' },
-  mittel:  { color: '#FFB830', bg: '#3A2A00', border: '#8B6000', text: '#FFD080', label: 'Diese Woche' },
-  niedrig: { color: '#2ED882', bg: '#0A2A1A', border: '#1A6B3A', text: '#5EFFA8', label: 'Kein Handlungsbedarf' },
+  hoch:    { color: '#FF5C6E', bg: '#3D1018', border: '#A03040', text: '#FFB0BB', label: 'Dringend' },
+  mittel:  { color: '#FFA040', bg: '#3A1E00', border: '#9B5500', text: '#FFCC90', label: 'Diese Woche' },
+  niedrig: { color: '#2ED882', bg: '#08281A', border: '#186640', text: '#5EFFA8', label: 'Kein Handlungsbedarf' },
 };
 
 export const Shadow: ShadowTokens = {

@@ -1,8 +1,8 @@
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE } from '../config';
-import { authFetch } from './authService';
+import { API_BASE } from '@/config';
+import { authFetch } from '@/services/authService';
 
 WebBrowser.maybeCompleteAuthSession();
 

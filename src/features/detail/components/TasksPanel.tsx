@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { Aufgabe } from '../../../store';
-import type { AufgabenVorschlag } from '../../../utils/types';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP_LG } from '@/theme';
+import type { Aufgabe } from '@/store';
+import type { AufgabenVorschlag } from '@/utils/types';
+import { useT } from '@/hooks/useT';
 
 interface TasksPanelProps {
   aufgaben?: Aufgabe[];
@@ -22,14 +24,16 @@ export default function TasksPanel({
   onOpenAddModal,
 }: TasksPanelProps) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t: T } = useT();
 
   return (
     <View style={{ marginHorizontal: S.md, marginBottom: S.md }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary }}>AUFGABEN</Text>
+        <Text style={{ fontSize: 10, fontWeight: '700', color: C.textTertiary }}>{T('detail.section.tasks')}</Text>
         <TouchableOpacity onPress={onOpenAddModal}
+          hitSlop={HIT_SLOP_LG}
           style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.primary }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark }}>+ Aufgabe</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark }}>{T('detail.add_task')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -56,7 +60,12 @@ export default function TasksPanel({
         </>
       )}
 
-      <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 8 }}>Offene Aufgaben: {offeneAufgaben}</Text>
+      {offeneAufgaben === 0 && aufgaben.length === 0 && (
+        <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 8 }}>{T('detail.no_tasks')}</Text>
+      )}
+      {(offeneAufgaben > 0 || aufgaben.length > 0) && (
+        <Text style={{ fontSize: 10, color: C.textTertiary, marginTop: 8 }}>Offene Aufgaben: {offeneAufgaben}</Text>
+      )}
     </View>
   );
 }

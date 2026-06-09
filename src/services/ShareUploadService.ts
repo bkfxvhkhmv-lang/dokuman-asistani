@@ -15,12 +15,20 @@
  */
 
 import * as FileSystem from 'expo-file-system/legacy';
-import { analysiereText, extractTextFromImage } from './visionApi';
-import { runSmartAutoFill, mergeAutoFillIntoDokument } from './SmartAutoFillService';
-import { runSmartCategorization, applyCategoryToVisionResult } from './SmartCategorizationService';
-import { generateId } from '../utils';
-import { buildUploadNotificationContent } from './SmartNotificationsService';
-import type { Dokument } from '../store';
+import { analysiereText, extractTextFromImage } from '@/services/visionApi';
+import { runSmartAutoFill, mergeAutoFillIntoDokument } from '@/services/SmartAutoFillService';
+import { runSmartCategorization, applyCategoryToVisionResult } from '@/services/SmartCategorizationService';
+import { generateId } from '@/utils';
+import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
+import {
+  buildUploadNotificationContent,
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
+import { erstelleKurzfassung } from '@/services/vision-api/summarizeText';
+import type { Dokument } from '@/store';
 
 export type ShareFileType = 'pdf' | 'image' | 'unknown';
 
@@ -34,7 +42,7 @@ export function detectFileType(uri: string): ShareFileType {
 
 export function extractFileNameFromUri(uri: string): string {
   const decoded = decodeURIComponent(uri);
-  const last = decoded.split('/').pop() ?? 'Dokument';
+  const last = decoded.split('/').pop() ?? t(getLangSync(), 'display.fallback.document');
   return last.split('?')[0];  // strip query params
 }
 
@@ -43,8 +51,9 @@ export function extractFileNameFromUri(uri: string): string {
 async function fireImmediate(title: string, body: string, data: Record<string, unknown> = {}): Promise<void> {
   try {
     const { default: Notifications } = await import('expo-notifications');
+    await ensureAndroidDefaultNotificationChannel();
     await Notifications.scheduleNotificationAsync({
-      content: { title, body, data },
+      content: withAndroidNotificationChannel({ title, body, data }),
       trigger: null,
     });
   } catch {}
@@ -61,12 +70,13 @@ export async function processSharedFile(
   uri: string,
   alleDocs: Dokument[],
 ): Promise<ShareUploadResult | null> {
+  const lang = getLangSync();
   const fileType = detectFileType(uri);
   const fileName = extractFileNameFromUri(uri);
 
   // Step 1 — immediate feedback
   await fireImmediate(
-    'Dokument erhalten — analysiere…',
+    t(lang, 'share_upload.received_title'),
     fileName,
     { type: 'share_processing' },
   );
@@ -107,14 +117,21 @@ export async function processSharedFile(
     const merged = mergeAutoFillIntoDokument(autoFillResult, {});
     const documentId = generateId();
 
+    // Copy source file to documentDirectory before writing to store.
+    // Cache URIs are evicted by iOS — store must only contain stable paths.
+    const persistedPages = await persistScanFiles(documentId, [uri]);
+
+    const typ = String(merged.typ || t(lang, 'doc.type.other'));
+    const absender = String(merged.absender || t(lang, 'document_analysis.unknown_sender'));
+
     const dokument: Dokument = {
       id:              documentId,
-      titel:           fileName.replace(/\.(pdf|jpe?g|png|heic)$/i, '') || `${merged.typ} — Geteilt`,
-      typ:             String(merged.typ || 'Sonstiges'),
-      absender:        String(merged.absender || 'Unbekannter Absender'),
+      titel:           fileName.replace(/\.(pdf|jpe?g|png|heic)$/i, '') || t(lang, 'share_upload.shared_title', { type: String(merged.typ || t(lang, 'display.fallback.document')) }),
+      typ,
+      absender,
       zusammenfassung: rawText.length > 0 ? visionResult.zusammenfassung ?? null : null,
-      kurzfassung:     null,
-      warnung:         merged.risiko === 'hoch' ? 'Bitte innerhalb der Frist handeln.' : null,
+      kurzfassung:     erstelleKurzfassung(typ, merged.betrag ?? null, merged.frist ?? null, absender),
+      warnung:         merged.risiko === 'hoch' ? t(lang, 'share_upload.deadline_warning') : null,
       betrag:          merged.betrag ?? null,
       waehrung:        '€',
       frist:           merged.frist ?? null,
@@ -123,8 +140,10 @@ export async function processSharedFile(
       datum:           new Date().toISOString(),
       gelesen:         false,
       erledigt:        false,
-      uri:             uri,
-      rohText:         rawText || null,
+      uri:              persistedPages[0]?.uri ?? null,
+      fileRelativePath: persistedPages[0]?.relativePath ?? null,
+      pages:            persistedPages,
+      rohText:          rawText || null,
     };
 
     // Step 3 — value-first "done" notification
@@ -134,7 +153,7 @@ export async function processSharedFile(
     return { dokument, rawText };
   } catch (e) {
     console.warn('[ShareUpload] error', e);
-    await fireImmediate('Fehler beim Analysieren', fileName);
+    await fireImmediate(t(lang, 'share_upload.error_title'), fileName);
     return null;
   }
 }

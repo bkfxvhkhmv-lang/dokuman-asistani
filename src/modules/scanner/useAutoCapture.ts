@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { AutoCaptureEngine } from './engine/AutoCapture';
-import type { AutoCaptureReadiness } from './types';
+import { AutoCaptureEngine } from '@/modules/scanner/engine/AutoCapture';
+import type { AutoCaptureReadiness } from '@/modules/scanner/types';
 
 interface AutoCaptureConfig {
   threshold?: number;
@@ -15,6 +15,7 @@ export function useAutoCapture(config?: AutoCaptureConfig) {
   const [readiness, setReadiness] = useState<AutoCaptureReadiness>({
     score: 0, stable: false, ready: false,
     motionConfidence: 0, edgeConfidence: 0, blurScore: 1, brightnessScore: 1, distortionScore: 1,
+    countdownProgress: 0,
   });
   const [enabled, setEnabled] = useState(false);
 

@@ -6,7 +6,7 @@ import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 import type { SharedValue } from 'react-native-reanimated';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -32,9 +32,9 @@ function ShimmerBar({
         <LinearGradient
           colors={[
             'transparent',
-            'rgba(255,255,255,0.62)',
-            'rgba(255,255,255,0.80)',
-            'rgba(255,255,255,0.62)',
+            'rgba(255,255,255,0.38)',
+            'rgba(255,255,255,0.48)',
+            'rgba(255,255,255,0.38)',
             'transparent',
           ]}
           locations={[0, 0.35, 0.50, 0.65, 1]}

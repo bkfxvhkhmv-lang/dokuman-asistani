@@ -1,7 +1,5 @@
-import { PdfGenerator as CorePdfGenerator } from '../../../core/pdf';
-import type { BatchPage, BatchConfig, PdfResult } from '../types';
-
-const core = new CorePdfGenerator();
+import { pdfRenderService } from '@/pdf';
+import type { BatchPage, BatchConfig, PdfResult } from '@/modules/batch/types';
 
 export class PdfGenerator {
   async generate(pages: BatchPage[], config?: Partial<BatchConfig>): Promise<PdfResult> {
@@ -11,12 +9,12 @@ export class PdfGenerator {
       : config?.pdfQuality === 'medium' ? 'standard'
       : 'high';
 
-    const result = await core.generate(
+    const result = await pdfRenderService.generate(
       pages.map(page => ({
         uri: page.imageSession?.finalUri ?? page.capture?.finalUri ?? page.uri,
         ocrText: page.ocr?.text,
       })),
-      { profile }
+      { profile },
     );
 
     return { uri: result.uri, pageCount: result.pageCount, fileSize: result.fileSize };

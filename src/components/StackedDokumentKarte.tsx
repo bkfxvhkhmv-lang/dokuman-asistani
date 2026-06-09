@@ -9,20 +9,23 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../ThemeContext';
-import DokumentKarte from './DokumentKarte';
-import type { DocStack } from '../services/CardStackService';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import DokumentKarte from '@/components/DokumentKarte';
+import type { DocStack } from '@/services/CardStackService';
+import type { Dokument } from '@/store';
 
 interface Props {
-  stack:   DocStack;
-  onPress: (dok: Dokument) => void;
-  onErledigt?: (dok: Dokument) => void;
+  stack:            DocStack;
+  onPress:          (dok: Dokument) => void;
+  onErledigt?:      (dok: Dokument) => void;
+  onLongPressDok?:  (dok: Dokument) => void;
+  secilen?:         boolean;
+  isSelectionMode?: boolean;
 }
 
 const SPRING_CFG  = { damping: 22, stiffness: 240, mass: 0.8 };
 
-export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Props) {
+export default function StackedDokumentKarte({ stack, onPress, onErledigt, onLongPressDok, secilen, isSelectionMode }: Props) {
   const { Colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -33,12 +36,13 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Pro
   const progress = useSharedValue(0);
 
   const toggle = useCallback(() => {
+    if (isSelectionMode) { onPress(stack.lead); return; }
     if (!stack.isStack) { onPress(stack.lead); return; }
     const next = expanded ? 0 : 1;
     progress.value = withSpring(next, SPRING_CFG);
     setExpanded(!expanded);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, [expanded, stack, progress, onPress]);
+  }, [expanded, stack, progress, onPress, isSelectionMode]);
 
   // Chevron rotation for expand indicator
   const chevronStyle = useAnimatedStyle(() => ({
@@ -72,13 +76,20 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Pro
       {/* ── Lead card ────────────────────────────────────────────────────── */}
       <TouchableOpacity
         onPress={toggle}
-        activeOpacity={stack.isStack ? 0.92 : 1}
+        activeOpacity={stack.isStack && !isSelectionMode ? 0.92 : 1}
         style={st.leadWrap}
       >
-        <DokumentKarte dok={stack.lead} onPress={stack.isStack ? undefined : onPress} />
+        <DokumentKarte dok={stack.lead} onPress={stack.isStack ? undefined : onPress} onLongPress={onLongPressDok} />
 
-        {/* Stack badge + chevron */}
-        {stack.isStack && (
+        {/* Selection checkmark */}
+        {isSelectionMode && (
+          <View style={[st.selectionBadge, { backgroundColor: secilen ? Colors.primary : Colors.bgCard, borderColor: secilen ? Colors.primary : Colors.border }]}>
+            {secilen && <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>✓</Text>}
+          </View>
+        )}
+
+        {/* Stack badge + chevron — hidden in selection mode */}
+        {stack.isStack && !isSelectionMode && (
           <View style={[st.badge, { backgroundColor: Colors.primary }]}>
             <Text style={st.badgeText}>{stack.docs.length}</Text>
             <Animated.Text style={[st.chevron, chevronStyle]}>›</Animated.Text>
@@ -92,7 +103,7 @@ export default function StackedDokumentKarte({ stack, onPress, onErledigt }: Pro
           docs={stack.docs.slice(1)}
           progress={progress}
           onPress={onPress}
-          onErledigt={onErledigt}
+          onLongPressDok={onLongPressDok}
           colors={Colors}
         />
       )}
@@ -130,11 +141,11 @@ function ShadowLayer({ index, totalShadows, color, border }: {
 
 // ── Animated expanded list ────────────────────────────────────────────────
 
-function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
+function ExpandedList({ docs, progress, onPress, onLongPressDok, colors }: {
   docs:       Dokument[];
   progress:   ReturnType<typeof useSharedValue<number>>;
   onPress:    (d: Dokument) => void;
-  onErledigt?: (d: Dokument) => void;
+  onLongPressDok?: (d: Dokument) => void;
   colors:     any;
 }) {
   const containerStyle = useAnimatedStyle(() => ({
@@ -153,6 +164,7 @@ function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
           index={i}
           progress={progress}
           onPress={onPress}
+          onLongPressDok={onLongPressDok}
           colors={colors}
         />
       ))}
@@ -160,11 +172,12 @@ function ExpandedList({ docs, progress, onPress, onErledigt, colors }: {
   );
 }
 
-function ExpandItem({ dok, index, progress, onPress, colors }: {
+function ExpandItem({ dok, index, progress, onPress, onLongPressDok, colors }: {
   dok:      Dokument;
   index:    number;
   progress: ReturnType<typeof useSharedValue<number>>;
   onPress:  (d: Dokument) => void;
+  onLongPressDok?: (d: Dokument) => void;
   colors:   any;
 }) {
   const delay = index * 0.08;
@@ -178,7 +191,7 @@ function ExpandItem({ dok, index, progress, onPress, colors }: {
 
   return (
     <Animated.View style={itemStyle}>
-      <DokumentKarte dok={dok} onPress={onPress} />
+      <DokumentKarte dok={dok} onPress={onPress} onLongPress={onLongPressDok} />
     </Animated.View>
   );
 }
@@ -213,4 +226,9 @@ const st = StyleSheet.create({
   badgeText:    { color: '#fff', fontSize: 11, fontWeight: '800' },
   chevron:      { color: '#fff', fontSize: 14, fontWeight: '400', lineHeight: 16 },
   expandDivider:{ borderTopWidth: 0.5, marginTop: 4, marginBottom: 4, marginHorizontal: 8 },
+  selectionBadge: {
+    position: 'absolute', top: 10, right: 10,
+    width: 22, height: 22, borderRadius: 11, borderWidth: 2,
+    alignItems: 'center', justifyContent: 'center', zIndex: 10,
+  },
 });

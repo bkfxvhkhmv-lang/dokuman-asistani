@@ -7,6 +7,11 @@ export interface CloudSyncProvider {
   signOut(): Promise<void>;
   uploadDocument(document: CloudUploadInput): Promise<CloudUploadResult>;
   listUploads(): Promise<CloudRemoteFile[]>;
+  /**
+   * S6 — Klasör altı listesi (drive.file kapsamı içinde görünen klasör kimliği).
+   * `null`: varsayılan uygulama kök klasörü. Desteklemeyen sağlayıcılar [] döner.
+   */
+  listFolderChildren?(parentId: string | null): Promise<CloudFolderChild[]>;
 }
 
 export interface CloudUploadInput {
@@ -29,6 +34,13 @@ export interface CloudRemoteFile {
   url?: string;
   createdAt?: string;
   sizeBytes?: number;
+}
+
+/** S6 gezinme düğümü — `listFolderChildren` çıktısı. */
+export interface CloudFolderChild {
+  id: string;
+  name: string;
+  kind: 'folder' | 'file';
 }
 
 export type CloudProviderId = 'dropbox' | 'google-drive' | 'onedrive';

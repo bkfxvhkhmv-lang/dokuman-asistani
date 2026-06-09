@@ -3,7 +3,7 @@ import {
   scheduleDeadlineNotification,
   cancelNotification,
   registerForPushNotificationsAsync,
-} from '../services/notifications';
+} from '@/services/notifications';
 
 export function useNotifications() {
   const register = useCallback(async (): Promise<string | null> => {

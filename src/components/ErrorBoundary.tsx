@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { ThemeContext } from '@/ThemeContext';
 
 interface Props {
   children:  React.ReactNode;
@@ -32,14 +33,12 @@ export default class ErrorBoundary extends React.Component<Props, State> {
       return;
     }
 
+    console.error('[BriefPilot:crash]', error?.message ?? error, __DEV__ ? info.componentStack : '');
+
     // One silent auto-retry for transient JS engine errors
     if (this.state.retries < MAX_AUTO_RETRY && !__DEV__) {
       this.setState(s => ({ hasError: false, error: null, retries: s.retries + 1 }));
       return;
-    }
-
-    if (__DEV__) {
-      console.error('[ErrorBoundary]', error.message, info.componentStack);
     }
   }
 
@@ -56,48 +55,47 @@ export default class ErrorBoundary extends React.Component<Props, State> {
                            error?.message?.toLowerCase().includes('fetch');
 
     return (
-      <View style={st.container}>
-        {/* Illustration */}
-        <View style={st.iconWrap}>
-          <View style={st.iconOuter}>
-            <View style={st.iconInner}>
-              <Text style={st.iconEmoji}>{isNetworkError ? '📡' : '⚡'}</Text>
+      <ThemeContext.Consumer>
+        {(theme) => (
+          <View style={[st.container, { backgroundColor: theme.Colors.bg }]}>
+            <View style={st.iconWrap}>
+              <View style={[st.iconOuter, { borderColor: `${PRIMARY}1A` }]}>
+                <View style={[st.iconInner, { backgroundColor: theme.Colors.primaryLight }]}>
+                  <Text style={st.iconEmoji}>{isNetworkError ? '📡' : '⚡'}</Text>
+                </View>
+              </View>
             </View>
+
+            <Text style={[st.title, { color: theme.Colors.text }]}>
+              {isNetworkError ? 'Verbindungsproblem' : 'Unerwarteter Fehler'}
+            </Text>
+            <Text style={[st.subtitle, { color: theme.Colors.textSecondary }]}>
+              {isNetworkError
+                ? 'Die Verbindung zum Server ist kurz unterbrochen.\nIch versuche es gleich erneut.'
+                : 'Ein interner Fehler ist aufgetreten.\nIch bin bereits dabei, ihn zu beheben.'}
+            </Text>
+
+            <View style={[st.hint, { backgroundColor: theme.Colors.primaryLight, borderColor: `${PRIMARY}28` }]}>
+              <View style={st.hintDot} />
+              <Text style={[st.hintText, { color: theme.Colors.textSecondary }]}>
+                {isNetworkError
+                  ? 'Alle lokalen Daten sind weiterhin verfügbar.'
+                  : 'Deine Daten sind sicher gespeichert.'}
+              </Text>
+            </View>
+
+            {__DEV__ && error && (
+              <ScrollView style={[st.devBox, { backgroundColor: theme.Colors.dangerLight }]}>
+                <Text style={[st.devText, { color: theme.Colors.danger }]}>{error.toString()}</Text>
+              </ScrollView>
+            )}
+
+            <TouchableOpacity style={st.btn} onPress={this.handleReset} activeOpacity={0.82}>
+              <Text style={st.btnText}>Erneut versuchen</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Copy — assistant voice */}
-        <Text style={st.title}>
-          {isNetworkError ? 'Verbindungsproblem' : 'Unerwarteter Fehler'}
-        </Text>
-        <Text style={st.subtitle}>
-          {isNetworkError
-            ? 'Die Verbindung zum Server ist kurz unterbrochen.\nIch versuche es gleich erneut.'
-            : 'Ein interner Fehler ist aufgetreten.\nIch bin bereits dabei, ihn zu beheben.'}
-        </Text>
-
-        {/* Assistant hint bubble */}
-        <View style={st.hint}>
-          <View style={st.hintDot} />
-          <Text style={st.hintText}>
-            {isNetworkError
-              ? 'Alle lokalen Daten sind weiterhin verfügbar.'
-              : 'Deine Daten sind sicher gespeichert.'}
-          </Text>
-        </View>
-
-        {/* Dev details */}
-        {__DEV__ && error && (
-          <ScrollView style={st.devBox}>
-            <Text style={st.devText}>{error.toString()}</Text>
-          </ScrollView>
         )}
-
-        {/* CTA */}
-        <TouchableOpacity style={st.btn} onPress={this.handleReset} activeOpacity={0.82}>
-          <Text style={st.btnText}>Erneut versuchen</Text>
-        </TouchableOpacity>
-      </View>
+      </ThemeContext.Consumer>
     );
   }
 }
@@ -106,7 +104,7 @@ const PRIMARY = '#4361EE';
 const LIGHT   = '#EEF1FD';
 
 const st = StyleSheet.create({
-  container:  { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, backgroundColor: '#F8F9FF', paddingBottom: 48 },
+  container:  { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, paddingBottom: 48 },
   iconWrap:   { marginBottom: 28 },
   iconOuter:  { width: 120, height: 120, borderRadius: 60, borderWidth: 1.5, borderColor: `${PRIMARY}1A`, alignItems: 'center', justifyContent: 'center' },
   iconInner:  { width: 88,  height: 88,  borderRadius: 44, backgroundColor: LIGHT, alignItems: 'center', justifyContent: 'center' },
@@ -115,9 +113,9 @@ const st = StyleSheet.create({
   subtitle:   { fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 22, letterSpacing: -0.1, marginBottom: 16 },
   hint:       { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: LIGHT, borderRadius: 14, borderWidth: 1, borderColor: `${PRIMARY}28`, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 24, alignSelf: 'stretch' },
   hintDot:    { width: 6, height: 6, borderRadius: 3, backgroundColor: PRIMARY, marginTop: 5, flexShrink: 0 },
-  hintText:   { flex: 1, fontSize: 12, color: '#374151', lineHeight: 18, fontStyle: 'italic' },
-  devBox:     { maxHeight: 120, alignSelf: 'stretch', backgroundColor: '#FEF2F2', borderRadius: 10, padding: 10, marginBottom: 16 },
-  devText:    { fontSize: 11, color: '#EF4444', fontFamily: 'monospace' },
+  hintText:   { flex: 1, fontSize: 12, lineHeight: 18, fontStyle: 'italic' },
+  devBox:     { maxHeight: 120, alignSelf: 'stretch', borderRadius: 10, padding: 10, marginBottom: 16 },
+  devText:    { fontSize: 11, fontFamily: 'monospace' },
   btn:        { backgroundColor: PRIMARY, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 999, shadowColor: PRIMARY, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.30, shadowRadius: 12, elevation: 6 },
   btnText:    { color: '#fff', fontSize: 14, fontWeight: '700', letterSpacing: -0.1 },
 });

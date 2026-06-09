@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { deltaSync, eventReplay, resolveConflict } from '../../services/v4Api';
-import { db } from '../database/client';
-import { documents } from '../database/schema';
+import { deltaSync, eventReplay, resolveConflict } from '@/services/v4Api';
+import { db } from '@/core/database/client';
+import { documents } from '@/core/database/schema';
 import { eq } from 'drizzle-orm';
 
 const LAST_SYNC_KEY    = 'bp_last_sync_ts';
@@ -130,7 +130,7 @@ export class CloudSyncV4 {
     const fromId = await this.getLastEventId();
     const { events = [], last_event_id } = await eventReplay(fromId);
     if (last_event_id) await this.setLastEventId(last_event_id);
-    console.log(`[CloudSync] Replayed ${events.length} events from id=${fromId}`);
+    if (__DEV__) console.log(`[CloudSync] Replayed ${events.length} events from id=${fromId}`);
   }
 
   // ── Push: lokal değişiklikleri sunucuya gönder ────────────────────────────────

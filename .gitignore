@@ -1,4 +1,60 @@
 .expo/
 .env
+.env.*
+!.env.example
 .env.local
+.DS_Store
 
+# Dependencies (asla commit edilmemeli)
+node_modules/
+
+# Cursor / Claude lokal ayar
+.claude/settings.local.json
+
+# Yerel araç çıktıları (EPS vb. yanlış adla köke düşmesin diye ayırılmış varlıklar)
+_artifacts/
+_audit/
+_backup/
+_legacy_backups/
+
+# ── OCR / ML Binary Artifacts (Git'e GİRMEZ) ──────────────────────────────
+*.tar.gz
+*.zip
+*.pdparams
+*.pdopt
+*.pdmodel
+*.pdiparams
+*.pdiparams.info
+*.states
+*.onnx
+*.log
+
+# Dataset / model / training output dizinleri
+/dataset/
+/datasets/generated/
+/checkpoints/
+/output/
+/runs/
+/logs/
+/artifacts/binaries/
+/workspace/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# iOS local framework — 537MB, git'e girmez, disk üzerinde kalır
+ios/opencv2.framework/
+
+# Local device build script — hardcoded device UUID + Team ID, machine-specific
+build_device.sh
+
+# Android build outputs
+android/app/build/
+android/app/src/main/assets/index.android.bundle
+
+# Android Metro-bundler generated image assets (build-time output, NOT splash logos)
+android/app/src/main/res/drawable-*/node_modules_*
+android/app/src/main/res/drawable-*/assets_brand_*
+android/app/src/main/res/raw/

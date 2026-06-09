@@ -1,7 +1,7 @@
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
 import * as FileSystem from 'expo-file-system';
-import type { CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile } from '../types';
+import type { CloudFolderChild, CloudSyncProvider, CloudUploadInput, CloudUploadResult, CloudRemoteFile } from '@/modules/cloud/types';
 
 const CLIENT_ID = process.env.EXPO_PUBLIC_DROPBOX_CLIENT_ID ?? '';
 const TOKEN_KEY = 'briefpilot_dropbox_token';
@@ -127,5 +127,41 @@ export class DropboxProvider implements CloudSyncProvider {
       createdAt: e.server_modified,
       sizeBytes: e.size,
     }));
+  }
+
+  /** S6 — Dropbox klasör kimliği / derin liste ileride; şimdilik []. */
+  async listFolderChildren(parentId: string | null): Promise<CloudFolderChild[]> {
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    if (!token) return [];
+
+    const pathDisplay = parentId ?? FOLDER;
+    const res = await fetch('https://api.dropboxapi.com/2/files/list_folder', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ path: pathDisplay, limit: 100 }),
+    });
+
+    if (!res.ok) return [];
+    const data = await res.json();
+
+    const entries = (data.entries ?? []) as Array<{
+      path_lower?: string;
+      name?: string;
+      tag?: string;
+      ['.tag']?: string;
+    }>;
+    return entries.map(e => {
+      const tag = e['.tag'] ?? e.tag;
+      const isFolder = tag === 'folder';
+      const idPath = typeof e.path_lower === 'string' ? e.path_lower : `/${e.name ?? ''}`;
+      return {
+        id: idPath,
+        name: e.name ?? idPath.split('/').pop() ?? idPath,
+        kind: isFolder ? ('folder' as const) : ('file' as const),
+      };
+    });
   }
 }

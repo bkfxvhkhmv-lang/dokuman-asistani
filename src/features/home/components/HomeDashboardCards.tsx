@@ -1,21 +1,34 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Icon from '../../../components/Icon';
-import { AppCard } from '../../../design/components';
-import { getTageVerbleibend } from '../../../utils';
-import type { Dokument } from '../../../store';
-import type { ThemeColors } from '../../../ThemeContext';
-import type { SpacingTokens } from '../../../theme';
+import Icon from '@/components/Icon';
+import { AppCard } from '@/design/components';
+import { getTageVerbleibend } from '@/utils';
+import {
+  dashboardAttentionPrimary,
+  getDashboardAllClearText,
+  getDashboardEyebrowAllClear,
+  getDashboardEyebrowBusy,
+} from '@/product/strategyCopy';
+import { safeDisplayAbsender, resolveDocumentTitle } from '@/utils/displaySanitizer';
+import type { Dokument } from '@/store';
+import type { ThemeColors } from '@/ThemeContext';
+import type { SpacingTokens } from '@/theme';
+import { useT } from '@/hooks/useT';
+import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
 
 
-function fristTag(fristISO: string | null | undefined, C: ThemeColors) {
+function fristTag(
+  fristISO: string | null | undefined,
+  C: ThemeColors,
+  T: (key: string, vars?: Record<string, string | number>) => string,
+) {
   const t = getTageVerbleibend(fristISO ?? null);
   if (t === null) return null;
-  if (t < 0)   return { text: 'Überfällig!',    color: C.danger };
-  if (t === 0) return { text: 'Heute fällig!',  color: C.danger };
-  if (t === 1) return { text: 'Morgen fällig',  color: C.warning };
-  if (t <= 3)  return { text: `Noch ${t} Tage`, color: C.warning };
-  return { text: `${t} Tage`, color: null };
+  if (t < 0)   return { text: T('doc.overdue'), color: C.danger };
+  if (t === 0) return { text: T('doc.due_today'), color: C.danger };
+  if (t === 1) return { text: T('doc.tomorrow'), color: C.warning };
+  if (t <= 3)  return { text: T('doc.due_days', { n: t }), color: C.warning };
+  return { text: T('doc.in_days', { n: t }), color: null };
 }
 
 function workflowTone(dok: Dokument, colors: ThemeColors) {
@@ -42,32 +55,34 @@ interface HomeDashboardCardsProps {
 export default function HomeDashboardCards({
   colors: C, dashboardStats, spacing: S, topDocs = [], onDocPress, onStatChipPress,
 }: HomeDashboardCardsProps) {
+  const { t: T, lang } = useT();
   const { wichtig = 0, mitDeadline = 0, mahnungen = 0, vertraege = 0, duplikate = 0, fehlend = 0 } = dashboardStats;
   const allClear = wichtig === 0 && mitDeadline === 0;
 
   const chips = [
-    { label: 'Mahnungen', val: mahnungen, icon: 'alert-circle-outline', warn: mahnungen > 0, filter: 'Mahnung' },
-    { label: 'Verträge',  val: vertraege, icon: 'document-text-outline', warn: false,          filter: 'Vertrag' },
-    { label: 'Duplikate', val: duplikate, icon: 'copy-outline',           warn: duplikate > 0, filter: 'duplikate' },
-    { label: 'Unvollst.', val: fehlend,   icon: 'reader-outline',         warn: fehlend > 0,   filter: 'fehlend' },
+    { label: T('dashboard.chip.reminders'), val: mahnungen, icon: 'alert-circle-outline', warn: mahnungen > 0, filter: 'Mahnung' },
+    { label: T('dashboard.chip.contracts'), val: vertraege, icon: 'document-text-outline', warn: false, filter: 'Vertrag' },
+    { label: T('dashboard.chip.duplicates'), val: duplikate, icon: 'copy-outline', warn: duplikate > 0, filter: 'duplikate' },
+    { label: T('dashboard.chip.incomplete'), val: fehlend, icon: 'reader-outline', warn: fehlend > 0, filter: 'fehlend' },
   ];
 
   return (
     <View style={{ paddingHorizontal: S.md, marginBottom: S.md }}>
-      {/* Hero card */}
-      <AppCard style={[st.heroCard, { backgroundColor: allClear ? C.success : C.primary }]} padding={S.lg} radius={18}>
-        <Text style={st.eyebrow}>{allClear ? 'HEUTE' : 'HEUTE · HANDLUNGSBEDARF'}</Text>
+      {/* Hero card — always primary, all-clear uses a small indicator instead of large ✓ */}
+      <AppCard style={[st.heroCard, { backgroundColor: C.primary }]} padding={S.lg} radius={18}>
+        <Text style={st.eyebrow}>{allClear ? getDashboardEyebrowAllClear() : getDashboardEyebrowBusy()}</Text>
         {allClear ? (
           <>
-            <Text style={st.heroNumber}>✓</Text>
-            <Text style={st.heroText}>Alles unter Kontrolle — keine offenen Aufgaben</Text>
+            <View style={st.allClearIndicator}>
+              <Icon name="check-circle" size={16} color="rgba(255,255,255,0.85)" />
+            </View>
+            <Text style={st.heroText}>{getDashboardAllClearText()}</Text>
           </>
         ) : (
           <>
             <Text style={st.heroNumber}>{wichtig}</Text>
             <Text style={st.heroText}>
-              {wichtig === 1 ? 'Dokument erfordert' : 'Dokumente erfordern'} Ihre Aufmerksamkeit
-              {mitDeadline > 0 ? ` · ${mitDeadline} mit offener Frist` : ''}
+              {dashboardAttentionPrimary(wichtig, mitDeadline)}
             </Text>
           </>
         )}
@@ -75,17 +90,17 @@ export default function HomeDashboardCards({
 
       {/* Snippet doc cards */}
       {topDocs.slice(0, 2).map(dok => {
-        const frist    = dok.frist ? fristTag(dok.frist, C) : null;
+        const frist    = dok.frist ? fristTag(dok.frist, C, T) : null;
         const workflow = workflowTone(dok, C);
         return (
           <TouchableOpacity key={dok.id} onPress={() => onDocPress?.(dok)}
             style={[st.snippet, { backgroundColor: C.bgCard, borderColor: C.border }]} activeOpacity={0.75}>
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, letterSpacing: -0.1 }} numberOfLines={1}>
-                {dok.titel}
+                {translateLegacyBusinessLabel(resolveDocumentTitle(dok), lang)}
               </Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
-                {dok.absender}
+                {safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText)}
               </Text>
               {frist && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
@@ -97,10 +112,10 @@ export default function HomeDashboardCards({
               )}
               {!!dok.workflowStamp && workflow && (
                 <View style={[st.workflowBox, { backgroundColor: workflow.bg }]}>
-                  <Text style={[st.workflowStamp, { color: workflow.text }]}>{dok.workflowStamp}</Text>
+                  <Text style={[st.workflowStamp, { color: workflow.text }]}>{translateLegacyBusinessLabel(dok.workflowStamp, lang)}</Text>
                   {!!dok.workflowTimeline && (
                     <Text style={[st.workflowTimeline, { color: workflow.text }]} numberOfLines={1}>
-                      {dok.workflowTimeline}
+                      {translateLegacyBusinessLabel(dok.workflowTimeline, lang)}
                     </Text>
                   )}
                 </View>
@@ -137,9 +152,10 @@ export default function HomeDashboardCards({
 }
 
 const st = StyleSheet.create({
-  heroCard:        { marginBottom: 10 },
-  eyebrow:         { fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-  heroNumber:      { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  heroCard:          { marginBottom: 10 },
+  eyebrow:           { fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
+  heroNumber:        { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  allClearIndicator: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   heroText:        { fontSize: 12, color: 'rgba(255,255,255,0.80)', marginTop: 4, lineHeight: 17 },
   snippet:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 8 },
   workflowBox:     { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 4 },

@@ -1,4 +1,4 @@
-import type { RiskPalette } from '../theme';
+import type { RiskPalette } from '@/theme';
 
 export const generateId = (): string =>
   Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -22,17 +22,22 @@ export function formatBetrag(betrag: number | string | null | undefined, waehrun
   if (betrag == null) return null;
   const n = typeof betrag === 'string' ? parseFloat(betrag) : betrag;
   if (isNaN(n)) return null;
-  return `${n.toFixed(2).replace('.', ',')} ${waehrung}`;
+  const sym = (!waehrung || waehrung.toUpperCase() === 'EUR') ? '€' : waehrung;
+  return `${n.toFixed(2).replace('.', ',')} ${sym}`;
 }
 
 export function formatDatum(iso: string | null | undefined): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'Nicht erkannt';
+  return date.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function formatFrist(iso: string | null | undefined): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'Nicht erkannt';
+  return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export interface RisikoInfo {

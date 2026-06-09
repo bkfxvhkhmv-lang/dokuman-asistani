@@ -1,0 +1,1 @@
+export { germanMvpReplyTemplates } from './mvpTemplates';

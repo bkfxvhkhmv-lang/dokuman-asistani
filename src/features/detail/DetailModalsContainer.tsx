@@ -1,34 +1,62 @@
-import React, { useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Share } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Share } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { downloadOcrResult } from '@/services/ocrMvpApi';
 import * as Clipboard from 'expo-clipboard';
-import { useTheme } from '../../ThemeContext';
-import { AppSheet, AppButton } from '../../design/components';
-import PremiumToast from '../../design/components/PremiumToast';
-import { useToast } from '../../hooks/useToast';
-import type { Dokument, StoreAction, StoreState } from '../../store';
-import type { ActionSession } from './hooks/useActionSessionManager';
-import type { ModalController } from './hooks/useModalController';
-import type { useDocumentActions } from './hooks/useDocumentActions';
+import { useT } from '@/hooks/useT';
+import { useToast } from '@/hooks/useToast';
+import PremiumToast from '@/design/components/PremiumToast';
+import type { Dokument, StoreAction, StoreState } from '@/store';
+import type { ActionSession } from '@/features/detail/hooks/useActionSessionManager';
+import type { ModalController } from '@/features/detail/hooks/useModalController';
+import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
 
-import ActionSimulatorModal from '../../components/ActionSimulatorModal';
-import EditDocumentModal from './modals/EditDocumentModal';
-import AufgabenModal from './modals/AufgabenModal';
-import FormularModal from './modals/FormularModal';
-import ErledigtModal from './modals/ErledigtModal';
-import SicherTeilenModal from './modals/SicherTeilenModal';
-import YanıtSablonlariModal from '../../components/YanıtSablonlariModal';
-import KurumlarRehberiModal from '../../components/KurumlarRehberiModal';
-import BelgeAciklamaModal from '../../components/BelgeAciklamaModal';
-import HilfeModal from '../../components/HilfeModal';
-import BelgeChatModal from '../../components/BelgeChatModal';
+import ActionSimulatorModal from '@/components/ActionSimulatorModal';
+import EditDocumentModal from '@/features/detail/modals/EditDocumentModal';
+import AufgabenModal from '@/features/detail/modals/AufgabenModal';
+import FormularModal from '@/features/detail/modals/FormularModal';
+import ErledigtModal from '@/features/detail/modals/ErledigtModal';
+import SicherTeilenModal from '@/features/detail/modals/SicherTeilenModal';
+import YanıtSablonlariModal from '@/components/YanıtSablonlariModal';
+import KurumlarRehberiModal from '@/components/KurumlarRehberiModal';
+import BelgeAciklamaModal from '@/components/BelgeAciklamaModal';
+import HilfeModal from '@/components/HilfeModal';
+import BelgeChatModal from '@/components/BelgeChatModal';
 
-export interface MoreMenuItem {
-  key: string;
-  icon: string;
-  label: string;
-  onPress?: () => void;
-  destructive?: boolean;
+import SignaturePdfSheet from '@/features/detail/modals/SignaturePdfSheet';
+
+import ExportierenSheet from '@/features/detail/detail-modals/ExportierenSheet';
+import PaymentPrepareSheet from '@/features/detail/detail-modals/PaymentPrepareSheet';
+import ConfirmSheet from '@/features/detail/detail-modals/ConfirmSheet';
+import NoticeSheet from '@/features/detail/detail-modals/NoticeSheet';
+import OptionsSheet from '@/features/detail/detail-modals/OptionsSheet';
+import EinspruchSheet from '@/features/detail/detail-modals/EinspruchSheet';
+import LoeschenModal from '@/features/detail/modals/LoeschenModal';
+import type { MoreMenuItem } from '@/features/detail/detail-modals/types'; // re-exported for DetailActionsTab
+
+const ReplyAssistantDevPreview = __DEV__
+  ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
+  : null;
+
+function inferReplyCategory(
+  typ: string | null | undefined,
+  absender?: string | null,
+  titel?: string | null,
+): string | undefined {
+  const norm = (s?: string | null) =>
+    (s ?? '').toLowerCase().replace(/ß/g, 'ss').replace(/[üÜ]/g, 'u').replace(/[äÄ]/g, 'a').replace(/[öÖ]/g, 'o');
+  const all = `${norm(typ)} ${norm(absender)} ${norm(titel)}`.trim();
+  if (!all) return undefined;
+  if (/bussgeld|ordnungswidrig|ordnungsamt/.test(all)) return 'bussgeld';
+  if (/jobcenter|burgergeld/.test(all))                return 'jobcenter';
+  if (/finanzamt|steuer/.test(all))                    return 'finanzamt';
+  if (/miete|nebenkosten|vermieter|mietvertrag/.test(all)) return 'miete';
+  if (/schufa/.test(all))                              return 'schufa';
+  if (/inkasso|mahnung|pfandung/.test(all))            return 'inkasso';
+  return undefined;
 }
+
+export type { MoreMenuItem };
 
 interface Props {
   modal: ModalController;
@@ -37,20 +65,45 @@ interface Props {
   state: StoreState;
   dispatch: (action: StoreAction) => void;
   actions: ReturnType<typeof useDocumentActions>;
-  moreMenu: boolean;
-  setMoreMenu: (v: boolean) => void;
-  moreItems: MoreMenuItem[];
   beginActionSession: (data: ActionSession) => void;
   router: { back: () => void };
+  onOpenFullscreen?: () => void;
 }
 
 export default function DetailModalsContainer({
   modal, dok, dokId, state, dispatch, actions,
-  moreMenu, setMoreMenu, moreItems, beginActionSession, router,
+  beginActionSession, router, onOpenFullscreen,
 }: Props) {
-  const { Colors: C } = useTheme();
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
-  const pendingMarkRef = useRef(false);
+  const pendingMarkRef   = useRef(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const deleteTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
+
+  const { t: T } = useT();
+  const replyAssistantCategory = inferReplyCategory(dok?.typ, dok?.absender, dok?.titel);
+  const useDevReplyAssistantForAppeal = __DEV__ && !!replyAssistantCategory && !!ReplyAssistantDevPreview;
+
+  const handleExcelDownload = useCallback(async () => {
+    if (!dok.ocrJobId) return;
+    try {
+      const filename = `briefpilot_${dok.titel?.replace(/[^a-zA-Z0-9]/g, '_') ?? 'export'}.xlsx`;
+      const uri = await downloadOcrResult(dok.ocrJobId, filename);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          UTI: 'com.microsoft.excel.xlsx',
+        });
+      }
+    } catch (e: any) {
+      Alert.alert(T('reply.excel.error'), e?.message ?? T('reply.excel.error.body'));
+    }
+  }, [dok.ocrJobId, dok.titel, T]);
 
   const handleCopyEinspruch = useCallback(async () => {
     await Clipboard.setStringAsync(modal.einspruchText || '');
@@ -96,189 +149,90 @@ export default function DetailModalsContainer({
     });
   }, [modal, beginActionSession]);
 
+  const handleDeleteConfirm = useCallback(() => {
+    setPendingDelete(true);
+    deleteTimerRef.current = setTimeout(() => {
+      deleteTimerRef.current = null;
+      setPendingDelete(false);
+      dispatch({ type: 'DELETE_DOKUMENT', id: dokId });
+      modal.close();
+      router.back();
+    }, 3000);
+  }, [dispatch, dokId, modal, router]);
+
+  const handleDeleteUndo = useCallback(() => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setPendingDelete(false);
+    modal.close();
+  }, [modal]);
+
   return (
     <>
       <PremiumToast config={toastConfig} onHide={hideToast} />
 
-      {/* More menu */}
-      <AppSheet
-        visible={moreMenu}
-        onClose={() => setMoreMenu(false)}
-        title="Mehr"
-        subtitle="Zusätzliche Aktionen, Freigaben und Werkzeuge für dieses Dokument."
-        footer={
-          <AppButton
-            label="Zurück"
-            variant="secondary"
-            onPress={() => setMoreMenu(false)}
-          />
-        }
-      >
-        {moreItems.map((item, index) => (
-          <TouchableOpacity
-            key={item.key}
-            onPress={item.onPress ?? undefined}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              paddingVertical: 14,
-              borderBottomWidth: index < moreItems.length - 1 ? 0.5 : 0,
-              borderBottomColor: C.border,
-            }}
-          >
-            <Text style={{ fontSize: 17 }}>{item.icon}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: item.destructive ? C.danger : C.text }}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </AppSheet>
+      <ExportierenSheet
+        visible={modal.isOpen('exportieren')}
+        onClose={modal.close}
+        onMail={() => void actions.handleMailTaslak()}
+        onPDF={() => void actions.handlePDF()}
+        onExcel={dok.ocrJobId ? () => void handleExcelDownload() : undefined}
+        onOriginal={dok.uri ? () => void actions.handleOriginalTeilen() : undefined}
+        onText={() => actions.handleTeilen(modal.anonModus)}
+        onSicherLink={dok.v4DocId ? () => actions.handleGuvenliPaylasim() : undefined}
+      />
 
-      {/* Payment */}
-      <AppSheet
+      <LoeschenModal
+        visible={modal.isOpen('loeschen')}
+        onClose={modal.close}
+        onConfirm={handleDeleteConfirm}
+        phase={pendingDelete ? 'pending' : 'confirm'}
+        onUndo={handleDeleteUndo}
+      />
+
+      <PaymentPrepareSheet
         visible={modal.isOpen('payment')}
         onClose={modal.close}
-        title={modal.activeModal?.data?.title || 'Zahlung vorbereiten'}
-        subtitle="Möchten Sie jetzt in Ihre Banking-App wechseln und die Überweisung vorbereiten?"
-        footer={
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <AppButton label="Später" variant="secondary" onPress={modal.close} style={{ flex: 1 }} />
-            <AppButton label="Banking-App öffnen" onPress={handleOpenBankingApp} style={{ flex: 1 }} />
-          </View>
-        }
-      >
-        <View style={[st.infoCard, { backgroundColor: C.bg, borderColor: C.border }]}>
-          <View style={st.infoRow}>
-            <Text style={[st.infoLabel, { color: C.textTertiary }]}>Betrag</Text>
-            <Text style={[st.infoValue, { color: C.text }]}>{String(modal.activeModal?.data?.amount ?? '')}</Text>
-          </View>
-          <View style={[st.infoDivider, { backgroundColor: C.border }]} />
-          <View style={st.infoRow}>
-            <Text style={[st.infoLabel, { color: C.textTertiary }]}>Empfänger</Text>
-            <Text style={[st.infoValue, { color: C.text }]}>{String(modal.activeModal?.data?.recipient ?? '')}</Text>
-          </View>
-          {!!modal.activeModal?.data?.iban && (
-            <>
-              <View style={[st.infoDivider, { backgroundColor: C.border }]} />
-              <View style={st.infoRow}>
-                <Text style={[st.infoLabel, { color: C.textTertiary }]}>IBAN</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(modal.activeModal?.data?.iban ?? '')}</Text>
-              </View>
-            </>
-          )}
-          {!!modal.activeModal?.data?.reference && (
-            <>
-              <View style={[st.infoDivider, { backgroundColor: C.border }]} />
-              <View style={st.infoRow}>
-                <Text style={[st.infoLabel, { color: C.textTertiary }]}>Verwendung</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(modal.activeModal?.data?.reference ?? '')}</Text>
-              </View>
-            </>
-          )}
-          {!!modal.activeModal?.data?.partnerEmail && (
-            <>
-              <View style={[st.infoDivider, { backgroundColor: C.border }]} />
-              <View style={st.infoRow}>
-                <Text style={[st.infoLabel, { color: C.textTertiary }]}>Partner</Text>
-                <Text style={[st.infoValue, { color: C.text }]}>{String(modal.activeModal?.data?.partnerEmail ?? '')}</Text>
-              </View>
-            </>
-          )}
-        </View>
-      </AppSheet>
+        data={modal.activeModal?.data}
+        onOpenBankingApp={handleOpenBankingApp}
+      />
 
-      {/* Confirm */}
-      <AppSheet
+      <ConfirmSheet
         visible={modal.isOpen('confirm')}
         onClose={modal.close}
-        title={modal.activeModal?.data?.title || 'Bestätigung'}
-        subtitle={modal.activeModal?.data?.message || ''}
-        footer={
-          <View style={{ gap: 8 }}>
-            {(modal.activeModal?.data?.actions || []).map((action: any, index: number) => (
-              <AppButton
-                key={`${action.text}-${index}`}
-                label={action.text}
-                variant={action.style === 'destructive' ? 'danger' : action.style === 'cancel' ? 'secondary' : 'primary'}
-                onPress={() => { modal.close(); action.onPress?.(); }}
-              />
-            ))}
-          </View>
-        }
+        data={modal.activeModal?.data}
       />
 
-      {/* Notice */}
-      <AppSheet
+      <NoticeSheet
         visible={modal.isOpen('notice')}
         onClose={modal.close}
-        title={modal.activeModal?.data?.title || 'Hinweis'}
-        subtitle={modal.activeModal?.data?.message || ''}
-        footer={<AppButton label="Verstanden" onPress={modal.close} />}
+        data={modal.activeModal?.data}
       />
 
-      {/* Options */}
-      <AppSheet
+      <OptionsSheet
         visible={modal.isOpen('options')}
         onClose={modal.close}
-        title={modal.activeModal?.data?.title || 'Auswahl'}
-        subtitle={modal.activeModal?.data?.message || ''}
-      >
-        {(modal.activeModal?.data?.options || []).map((option: any, index: number, arr: any[]) => (
-          <TouchableOpacity
-            key={`${option.text}-${index}`}
-            onPress={() => { modal.close(); option.onPress?.(); }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 14,
-              borderBottomWidth: index < arr.length - 1 ? 0.5 : 0,
-              borderBottomColor: C.border,
-            }}
-          >
-            <Text style={{
-              fontSize: 14,
-              fontWeight: option.style === 'cancel' ? '600' : '500',
-              color: option.style === 'destructive' ? C.danger : C.text,
-            }}>
-              {option.text}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </AppSheet>
+        data={modal.activeModal?.data}
+      />
 
-      {/* Einspruch */}
-      <AppSheet
-        visible={modal.isOpen('einspruch')}
-        onClose={modal.close}
-        title="Einspruch-Vorlage"
-        subtitle="Prüfen Sie den Entwurf, kopieren Sie ihn oder teilen Sie ihn weiter."
-        footer={
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              onPress={handleCopyEinspruch}
-              style={[st.sheetButton, { backgroundColor: C.primaryLight, borderColor: C.primary }]}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>Kopieren</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleShareEinspruch}
-              style={[st.sheetButton, { backgroundColor: C.bg, borderColor: C.border }]}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>Teilen</Text>
-            </TouchableOpacity>
-          </View>
-        }
-      >
-        <View style={{ borderRadius: 16, borderWidth: 0.5, borderColor: C.border, backgroundColor: C.bg, padding: 14, maxHeight: 320 }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <Text style={{ fontSize: 13, lineHeight: 21, color: C.text }}>
-              {modal.einspruchText || 'Es ist noch kein Text verfügbar.'}
-            </Text>
-          </ScrollView>
-        </View>
-      </AppSheet>
+      {useDevReplyAssistantForAppeal && modal.isOpen('einspruch') ? (
+        <ReplyAssistantDevPreview
+          autoOpen
+          hideLauncher
+          onClose={modal.close}
+          category={replyAssistantCategory}
+        />
+      ) : (
+        <EinspruchSheet
+          visible={modal.isOpen('einspruch')}
+          onClose={modal.close}
+          einspruchText={modal.einspruchText || ''}
+          onCopy={handleCopyEinspruch}
+          onShare={handleShareEinspruch}
+        />
+      )}
 
       <ActionSimulatorModal
         visible={modal.isOpen('simulator')}
@@ -369,26 +323,33 @@ export default function DetailModalsContainer({
         onClose={modal.close}
         dok={dok}
       />
+
+      <SignaturePdfSheet
+        visible={modal.isOpen('signatur')}
+        onClose={modal.close}
+        dok={dok}
+        onDone={(signedUri, signedPreviewUri) => {
+          dispatch({
+            type: 'UPDATE_DOKUMENT',
+            payload: {
+              id: dokId,
+              uri: signedUri,
+              fileRelativePath: null,
+              // keep original so user can revert
+              unsignedUri: dok.unsignedUri ?? dok.uri,
+              signedPreviewUri: signedPreviewUri ?? dok.signedPreviewUri ?? null,
+            },
+          });
+          showToast({
+            message: T('signature.v2.success_title'),
+            tone: 'success',
+            icon: 'checkmark-circle',
+          });
+          // Delay fullscreen open until SignaturePdfSheet close animation
+          // finishes — simultaneous Modal transitions conflict on iOS
+          setTimeout(() => onOpenFullscreen?.(), 400);
+        }}
+      />
     </>
   );
 }
-
-const st = StyleSheet.create({
-  sheetButton: {
-    flex: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoCard: {
-    borderRadius: 16,
-    borderWidth: 0.5,
-    padding: 14,
-  },
-  infoRow:     { gap: 4 },
-  infoLabel:   { fontSize: 11, fontWeight: '700', letterSpacing: 0.4 },
-  infoValue:   { fontSize: 15, fontWeight: '700' },
-  infoDivider: { height: 0.5, marginVertical: 12 },
-});

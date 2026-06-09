@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <title>BriefPilot Icon</title>
+  <defs>
+    <radialGradient id="bg" cx="48%" cy="38%" r="65%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#2D54D8"/>
+      <stop offset="100%" stop-color="#1B34B4"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
+
+  <!-- Document outline (stroke only — blue background shows through) -->
+  <!-- Bounds: x=262–758, y=188–814 -->
+  <!-- Dog-ear fold: top at x=638, right edge at y=352 -->
+  <path
+    d="M 310 188
+       H 638
+       L 758 352
+       V 766
+       Q 758 814 710 814
+       H 310
+       Q 262 814 262 766
+       V 236
+       Q 262 188 310 188
+       Z"
+    stroke="white"
+    stroke-width="42"
+    stroke-linejoin="round"
+    fill="none"
+  />
+
+  <!-- Fold crease (paper fold curve inside the dog-ear) -->
+  <path
+    d="M 638 188 Q 638 352 758 352"
+    stroke="white"
+    stroke-width="42"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- B Letter — stroke-based (open bumps, bold) -->
+
+  <!-- Vertical spine -->
+  <line
+    x1="372" y1="385"
+    x2="372" y2="728"
+    stroke="white"
+    stroke-width="52"
+    stroke-linecap="round"
+  />
+
+  <!-- Upper bump (D-shape, open) -->
+  <!-- extends to ~x=595 at midpoint -->
+  <path
+    d="M 372 385 C 672 385 672 540 372 540"
+    stroke="white"
+    stroke-width="44"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Lower bump (D-shape, slightly wider) -->
+  <!-- extends to ~x=618 at midpoint -->
+  <path
+    d="M 372 540 C 700 540 700 728 372 728"
+    stroke="white"
+    stroke-width="44"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

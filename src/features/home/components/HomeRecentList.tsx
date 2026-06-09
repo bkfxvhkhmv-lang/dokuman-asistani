@@ -1,18 +1,24 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import DocumentContextSheet from '../../../components/DocumentContextSheet';
-import type { Dokument } from '../../../store';
+import type { Dokument } from '@/store';
+import { useTheme } from '@/ThemeContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { TransitionStore } from '../../../navigation/transitionStore';
-import { prefetchDocumentData } from '../../../hooks/queryHooks';
+import { TransitionStore } from '@/navigation/transitionStore';
+import { prefetchDocumentData } from '@/hooks/queryHooks';
 import Reanimated, { FadeIn, Layout } from 'react-native-reanimated';
-import SwipeableDokumentKarte from '../../../components/SwipeableDokumentKarte';
-import StackedDokumentKarte from '../../../components/StackedDokumentKarte';
-import OptimisticDokumentKarte from '../../../components/OptimisticDokumentKarte';
-import { useStaggerFadeIn } from '../../../hooks/useStaggerFadeIn';
-import EmptyState, { type EmptyVariant } from '../../../components/EmptyState';
-import { buildDocStacks } from '../../../services/CardStackService';
+import SwipeableDokumentKarte from '@/components/SwipeableDokumentKarte';
+import StackedDokumentKarte from '@/components/StackedDokumentKarte';
+import OptimisticDokumentKarte from '@/components/OptimisticDokumentKarte';
+import { useStaggerFadeIn } from '@/hooks/useStaggerFadeIn';
+import EmptyState, { type EmptyVariant } from '@/components/EmptyState';
+import { buildDocStacks } from '@/services/CardStackService';
+import {
+  getDocumentsSectionEyebrow,
+  getDocumentsSectionSubline,
+} from '@/product/strategyCopy';
+import { useT } from '@/hooks/useT';
 
 // Tabs where sender-based stacking improves readability
 const STACK_TABS = new Set(['Aufgaben', 'Zahlungen']);
@@ -38,10 +44,12 @@ const TAB_VARIANT: Record<string, EmptyVariant> = {
 };
 
 function HomeRecentListInner({ data }: { data: any }) {
-  const router           = useRouter();
-  const cardRefs         = useRef<Map<string, View>>(new Map());
+  const router = useRouter();
+  const { fs } = useTheme();
+  const { t: T } = useT();
+  const [showAll, setShowAll] = useState(false);
+  const cardRefs = useRef<Map<string, View>>(new Map());
   const queryClient      = useQueryClient();
-  const [contextDok, setContextDok] = useState<Dokument | null>(null);
 
   // Predictive pre-fetch — after list stabilises for 800ms, warm the cache
   // for the top 3 visible docs so detail opens are instant.
@@ -60,42 +68,44 @@ function HomeRecentListInner({ data }: { data: any }) {
   }, [sectionDokIds, queryClient]);
 
   const navigateWithHero = (dokId: string) => {
-    const ref = cardRefs.current.get(dokId);
-    if (ref) {
-      ref.measureInWindow((x, y, width, height) => {
-        TransitionStore.trigger({
-          x, y, width, height,
-          accentColor: data.Colors.bgCard,
-        });
-      });
-    }
     router.push({ pathname: '/detail', params: { dokId } });
+  };
+
+  const openFromList = (dok: Dokument) => {
+    if (data.secilenModus) {
+      Haptics.selectionAsync();
+      data.handleSecim(dok);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      navigateWithHero(dok.id);
+    }
   };
 
   const sectionMap = {
     Aufgaben: {
-      title: 'Offene Aufgaben',
-      eyebrow: 'FOKUS',
+      title: T('detail.section.tasks'),
+      eyebrow: T('detail.status.action_needed'),
       docs: data.aufgaben ?? [],
     },
     Dokumente: {
-      title: 'Letzte Dokumente',
-      eyebrow: 'DOKUMENTE',
+      title: T('home.recent'),
+      eyebrow: getDocumentsSectionEyebrow(),
+      subtitle: getDocumentsSectionSubline(),
       docs: data.alleDocs ?? [],
     },
     Ordner: {
-      title: 'Ordner-Inhalte',
-      eyebrow: 'STRUKTUR',
+      title: T('empty.title'),
+      eyebrow: T('field.type'),
       docs: data.ordnerDocs?.length ? data.ordnerDocs : data.alleDocs ?? [],
     },
     Kalender: {
-      title: 'Dokumente mit Frist',
-      eyebrow: 'ZEITFENSTER',
+      title: T('field.deadline'),
+      eyebrow: T('doc.this_week'),
       docs: data.kalDocs ?? [],
     },
     Zahlungen: {
-      title: 'Weitere Zahlungsdokumente',
-      eyebrow: 'ZAHLUNGEN',
+      title: T('field.amount'),
+      eyebrow: T('dash.amount'),
       docs: (data.zahlungsDocs ?? []).slice(2),
     },
   };
@@ -108,9 +118,14 @@ function HomeRecentListInner({ data }: { data: any }) {
 
   const section     = (sectionMap as any)[data.aktiv] || sectionMap.Dokumente;
   const useStacking = STACK_TABS.has(data.aktiv);
-  // Exclude optimistic docs from regular list to avoid duplicates
-  const allDocs     = section.docs.filter((d: any) => !d.isOptimistic);
-  const docs        = allDocs.slice(0, useStacking ? 20 : 6);
+  // Exclude optimistic and flagged duplicates; deduplicate by typ+betrag+absender fingerprint
+  const allDocs = section.docs.filter((d: any) => !d.isOptimistic && !d._duplikat);
+  const deduped = allDocs.filter((d: any, i: number) => {
+    const fp = `${d.typ}|${d.betrag}|${d.absender}`;
+    return allDocs.findIndex((x: any) => `${x.typ}|${x.betrag}|${x.absender}` === fp) === i;
+  });
+  const INITIAL_LIMIT = useStacking ? 20 : 6;
+  const docs = deduped.slice(0, showAll ? deduped.length : INITIAL_LIMIT);
 
   // Build stacks only for tabs that benefit from grouping
   const stacks = useMemo(
@@ -119,10 +134,22 @@ function HomeRecentListInner({ data }: { data: any }) {
   );
 
   if (docs.length === 0) {
+    // S2.3: Bos durum CTA — varsayilan sekme "Dokumente" oldugu icin
+    // ilk acilis bos kalirsa kullaniciyi dogrudan tarama akisina yonlendir.
+    const variant = TAB_VARIANT[data.aktiv] ?? 'generic';
+    const showScanCta = variant === 'docs' || variant === 'folder';
     return (
       <EmptyState
-        variant={TAB_VARIANT[data.aktiv] ?? 'generic'}
+        variant={variant}
         compact={false}
+        action={
+          showScanCta
+            ? {
+                label: T('home.triage.scan_new'),
+                onPress: () => router.push('/(tabs)/Kamera'),
+              }
+            : undefined
+        }
       />
     );
   }
@@ -130,24 +157,47 @@ function HomeRecentListInner({ data }: { data: any }) {
   return (
     <View style={st.wrap}>
       <View style={st.header}>
-        <View>
-          <Text style={[st.eyebrow, { color: data.Colors.textTertiary }]}>{section.eyebrow}</Text>
-          <Text style={[st.title, { color: data.Colors.text }]}>{section.title}</Text>
-        </View>
-        <View style={[st.countPill, { backgroundColor: data.Colors.bgCard, borderColor: `${data.Colors.border}D9` }]}>
-          <Text style={[st.countText, { color: data.Colors.textSecondary }]}>{docs.length}</Text>
-        </View>
+        <Text style={[st.title, { color: data.Colors.text, fontSize: fs(17) }]}>{section.title}</Text>
+        {docs.length > 0 && (
+          <TouchableOpacity
+            onPress={data.secilenModus ? data.secimiIptal : data.secimiBaslat}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={data.secilenModus ? T('search.cancel') : T('search.select')}
+            accessibilityState={{ selected: data.secilenModus }}
+          >
+            {data.secilenModus ? (
+              <View style={{
+                backgroundColor: data.Colors.primary,
+                borderRadius: 8,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+              }}>
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>
+                  {T('search.cancel')}
+                </Text>
+              </View>
+            ) : (
+              <Text style={{ color: data.Colors.primary, fontSize: 14, fontWeight: '600' }}>
+                {T('search.select')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <View>
         {stacks
           ? stacks.map((stack, i) => (
               <StaggeredRow key={stack.id} index={i}>
                 <View ref={r => { if (r) cardRefs.current.set(stack.id, r); }}>
                   <StackedDokumentKarte
                     stack={stack}
-                    onPress={(dok) => navigateWithHero(dok.id)}
+                    onPress={(dok) => openFromList(dok)}
+                    onLongPressDok={(dok) => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
+                    secilen={!!data.secilenIds?.has?.(stack.lead.id)}
+                    isSelectionMode={!!data.secilenModus}
                   />
                 </View>
               </StaggeredRow>
@@ -158,32 +208,30 @@ function HomeRecentListInner({ data }: { data: any }) {
                 <View ref={r => { if (r) cardRefs.current.set(dok.id, r); }}>
                   <SwipeableDokumentKarte
                     dok={dok}
-                    onPress={() => navigateWithHero(dok.id)}
-                    onLongPress={() => setContextDok(dok)}
+                    secilen={!!data.secilenIds?.has?.(dok.id)}
+                    onPress={() => openFromList(dok)}
+                    onLongPress={() => data.handleLongPress(dok)}
                     onErledigt={data.handleSwipeErledigt}
-                    onContextAction={(d, action) => {
-                      if (action === 'bezahlt' || action === 'archivieren')
-                        data.dispatch({ type: 'MARK_ERLEDIGT', id: d.id });
-                      else
-                        navigateWithHero(d.id);
-                    }}
+                    onContextAction={(d) => navigateWithHero(d.id)}
                   />
                 </View>
               </StaggeredRow>
             ))
         }
-      </ScrollView>
+      </View>
 
-      {/* #113 Long-press context menu */}
-      <DocumentContextSheet
-        dok={contextDok}
-        onClose={() => setContextDok(null)}
-        onNavigate={() => contextDok && navigateWithHero(contextDok.id)}
-        onErledigt={() => contextDok && data.dispatch({ type: 'MARK_ERLEDIGT', id: contextDok.id })}
-        onTeilen={() => contextDok && navigateWithHero(contextDok.id)}
-        onPDF={() => contextDok && navigateWithHero(contextDok.id)}
-        onLoeschen={() => contextDok && data.dispatch({ type: 'DELETE_DOKUMENT', id: contextDok.id })}
-      />
+      {deduped.length > docs.length && !data.secilenModus && (
+        <TouchableOpacity
+          onPress={() => setShowAll(true)}
+          style={st.allLink}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+        >
+          <Text style={[st.allLinkLabel, { color: data.Colors.primary }]}>
+            {T('home.show_all_documents', { n: deduped.length })}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -202,28 +250,19 @@ const st = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
   },
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.7,
-    marginBottom: 4,
+  allLink: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  allLinkLabel: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   title: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     letterSpacing: -0.3,
-  },
-  countPill: {
-    minWidth: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: '800',
   },
 });

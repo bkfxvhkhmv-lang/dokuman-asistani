@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { HomeSuggestion } from '../../../services/SmartSuggestionsService';
+import { useTheme } from '@/ThemeContext';
+import type { HomeSuggestion } from '@/services/SmartSuggestionsService';
 
 interface HomeSuggestionsStripProps {
   suggestions: HomeSuggestion[];

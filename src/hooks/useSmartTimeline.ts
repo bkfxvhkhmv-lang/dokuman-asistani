@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useEffect, useState } from 'react';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
   buildDocumentTimeline,
   buildTimelineView,
@@ -12,9 +13,9 @@ import {
   type TimelineView,
   type TimelineEvent,
   type WochenZusammenfassung,
-} from '../services/SmartTimelineService';
-import { TimelineEngineV4 } from '../core/events/TimelineEngineV4';
-import type { Dokument } from '../store';
+} from '@/services/SmartTimelineService';
+import { TimelineEngineV4 } from '@/core/events/TimelineEngineV4';
+import type { Dokument } from '@/store';
 
 // ── Per-document timeline hook ─────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ export function useDocumentTimeline(dok: Dokument | null) {
           .map(e => ({
             id:              String(e.id),
             dokumentId:      dok.id,
-            dokumentTitel:   dok.titel,
+            dokumentTitel:   safeDisplayTitel(dok.titel, dok.typ, dok.confidence),
             dokumentTyp:     dok.typ,
             absender:        dok.absender,
             typ:             'sonstiges' as const,

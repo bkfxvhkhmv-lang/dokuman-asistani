@@ -1,9 +1,9 @@
-import type { ImageSession, ProcessingConfig, ProcessingResult } from '../types';
-import { FilterPipeline } from './FilterPipeline';
-import { QualityAnalyzer } from './QualityAnalyzer';
-import { FilterCache, getSharedFilterCache } from './FilterCache';
-import { getSharedFilterRegistry } from '../registry/FilterRegistry';
-import { getSharedImageSessionManager } from '../session/ImageSessionManager';
+import type { ImageSession, ProcessingConfig, ProcessingResult } from '@/modules/image-processing/types';
+import { FilterPipeline } from '@/modules/image-processing/core/FilterPipeline';
+import { QualityAnalyzer } from '@/modules/image-processing/core/QualityAnalyzer';
+import { FilterCache, getSharedFilterCache } from '@/modules/image-processing/core/FilterCache';
+import { getSharedFilterRegistry } from '@/modules/image-processing/registry/FilterRegistry';
+import { getSharedImageSessionManager } from '@/modules/image-processing/session/ImageSessionManager';
 
 export class ImagePipeline {
   private filterPipeline: FilterPipeline;

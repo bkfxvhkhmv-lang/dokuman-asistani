@@ -1,4 +1,4 @@
-import { BatchPage } from '../types';
+import { BatchPage } from '@/modules/batch/types';
 
 export class PageOrganizer {
   sort(pages: BatchPage[]): BatchPage[] {

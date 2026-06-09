@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme } from '../../ThemeContext';
-import Icon from '../../components/Icon';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
 
 interface RightAction {
   icon: string;
@@ -40,12 +40,12 @@ export default function AppBar({
     <View style={[
       st.bar,
       { backgroundColor: bg },
-      borderBottom && { borderBottomWidth: 0.5, borderBottomColor: Colors.border },
+      borderBottom && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border },
       style,
     ]}>
       <View style={st.slot}>
         {leftIcon && leftPress ? (
-          <TouchableOpacity onPress={leftPress} style={st.iconBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity onPress={leftPress} style={st.iconBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
             <Icon name={leftIcon} size={22} color={Colors.text} />
           </TouchableOpacity>
         ) : leftIcon ? (
@@ -68,7 +68,7 @@ export default function AppBar({
             key={i}
             onPress={action.onPress}
             style={[st.iconBtn, action.active && { backgroundColor: Colors.primaryLight }]}
-            hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             activeOpacity={0.75}
           >
             <Icon name={action.icon} size={21} color={action.active ? Colors.primary : Colors.text} />

@@ -1,4 +1,4 @@
-import type { Dokument } from '../store';
+import type { Dokument } from '@/store';
 
 export interface DocStack {
   id:       string;      // stable key = lead doc id

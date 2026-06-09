@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import type { RadiusTokens } from '../theme';
-import type { Suggestion, SuggestionPriority } from '../services/SmartSuggestionsService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import type { RadiusTokens } from '@/theme';
+import type { Suggestion, SuggestionPriority } from '@/services/SmartSuggestionsService';
 
 interface SmartSuggestionsPanelProps {
   suggestions: Suggestion[];

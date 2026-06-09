@@ -7,29 +7,50 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01B68EDAFBC620A6F2D45CB9 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 497E816F4CB51A5480215A7D /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		27EB56DF7F02DCC697B66BEC /* libPods-BriefPilot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FDDBCB9DD79AB254EA55156B /* libPods-BriefPilot.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		7A0C56868B83C8A419A3E9EE /* libPods-BriefPilot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 04D686D209441C84AA44334C /* libPods-BriefPilot.a */; };
+		A360F5ED27E9116D9A65860C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		E5D73B02CC86102E5D562674 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7140AF9928236A41C4607820 /* ExpoModulesProvider.swift */; };
+		BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB01 /* BriefPilotScannerModule.m */; };
+		BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB02 /* BriefPilotScannerModule.swift */; };
+		BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */; };
+		BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */; };
+		BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */; };
+		D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */; };
+		DBF0C71E2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */; };
+		DBF0C71F2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */; };
+		DBF0C7202FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */; };
+		DBF0C7212FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */; };
+		DBF0C7222FAD44E300C579E7 /* BriefPilotLiveScanModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		04D686D209441C84AA44334C /* libPods-BriefPilot.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BriefPilot.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* BriefPilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BriefPilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BriefPilot/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BriefPilot/Info.plist; sourceTree = "<group>"; };
-		497E816F4CB51A5480215A7D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = BriefPilot/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		7140AF9928236A41C4607820 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		813C74A1FCDD172ADC14BD09 /* Pods-BriefPilot.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.release.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.release.xcconfig"; sourceTree = "<group>"; };
-		A55976F892DDD0DA9A8D99BB /* Pods-BriefPilot.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.debug.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.debug.xcconfig"; sourceTree = "<group>"; };
+		185B793D29E6F059740BECB5 /* Pods-BriefPilot.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.release.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.release.xcconfig"; sourceTree = "<group>"; };
+		7B2E0209E5485F233F5C5DFF /* Pods-BriefPilot.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BriefPilot.debug.xcconfig"; path = "Target Support Files/Pods-BriefPilot/Pods-BriefPilot.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = BriefPilot/SplashScreen.storyboard; sourceTree = "<group>"; };
+		AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = BriefPilot/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		BP000000000000000000BB01 /* BriefPilotScannerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BriefPilotScannerModule.m; path = BriefPilot/BriefPilotScannerModule.m; sourceTree = "<group>"; };
+		BP000000000000000000BB02 /* BriefPilotScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotScannerModule.swift; path = BriefPilot/BriefPilotScannerModule.swift; sourceTree = "<group>"; };
+		BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BriefPilotOpenCVHelper.h; path = BriefPilot/BriefPilotOpenCVHelper.h; sourceTree = "<group>"; };
+		BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = BriefPilotOpenCVHelper.mm; path = BriefPilot/BriefPilotOpenCVHelper.mm; sourceTree = "<group>"; };
+		BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BriefPilotVisionScannerModule.m; path = BriefPilot/BriefPilotVisionScannerModule.m; sourceTree = "<group>"; };
+		BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BriefPilotVisionScannerModule.swift; path = BriefPilot/BriefPilotVisionScannerModule.swift; sourceTree = "<group>"; };
+		C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BriefPilot/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BriefPilotLiveScanModule.m; sourceTree = "<group>"; };
+		DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScanModule.swift; sourceTree = "<group>"; };
+		DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScannerView.swift; sourceTree = "<group>"; };
+		DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BriefPilotLiveScannerViewManager.m; sourceTree = "<group>"; };
+		DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefPilotLiveScannerViewManager.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BriefPilot/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BriefPilot-Bridging-Header.h"; path = "BriefPilot/BriefPilot-Bridging-Header.h"; sourceTree = "<group>"; };
+		FDDBCB9DD79AB254EA55156B /* libPods-BriefPilot.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BriefPilot.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,31 +58,34 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7A0C56868B83C8A419A3E9EE /* libPods-BriefPilot.a in Frameworks */,
+				27EB56DF7F02DCC697B66BEC /* libPods-BriefPilot.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0DD7CC6CFF75B4058179E2F6 /* BriefPilot */ = {
-			isa = PBXGroup;
-			children = (
-				7140AF9928236A41C4607820 /* ExpoModulesProvider.swift */,
-			);
-			name = BriefPilot;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* BriefPilot */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* BriefPilot-Bridging-Header.h */,
+				BP000000000000000000BB01 /* BriefPilotScannerModule.m */,
+				BP000000000000000000BB02 /* BriefPilotScannerModule.swift */,
+				DBF0C7192FAD44E300C579E7 /* BriefPilotLiveScanModule.m */,
+				DBF0C71A2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift */,
+				DBF0C71B2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift */,
+				DBF0C71C2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m */,
+				DBF0C71D2FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift */,
+				BP000000000000000000BB03 /* BriefPilotOpenCVHelper.h */,
+				BP000000000000000000BB04 /* BriefPilotOpenCVHelper.mm */,
+				BP000000000000000000BB05 /* BriefPilotVisionScannerModule.m */,
+				BP000000000000000000BB06 /* BriefPilotVisionScannerModule.swift */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				497E816F4CB51A5480215A7D /* PrivacyInfo.xcprivacy */,
+				AC74346D9012576FA07627B1 /* PrivacyInfo.xcprivacy */,
 			);
 			name = BriefPilot;
 			sourceTree = "<group>";
@@ -70,27 +94,17 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				04D686D209441C84AA44334C /* libPods-BriefPilot.a */,
+				FDDBCB9DD79AB254EA55156B /* libPods-BriefPilot.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		546D013F8E405A83DA38B033 /* Pods */ = {
+		75BD1551F0426A0210823F73 /* BriefPilot */ = {
 			isa = PBXGroup;
 			children = (
-				A55976F892DDD0DA9A8D99BB /* Pods-BriefPilot.debug.xcconfig */,
-				813C74A1FCDD172ADC14BD09 /* Pods-BriefPilot.release.xcconfig */,
+				C0707CE9123AEB6A99C306DD /* ExpoModulesProvider.swift */,
 			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		65D26B54DEF86FEA45F2D537 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				0DD7CC6CFF75B4058179E2F6 /* BriefPilot */,
-			);
-			name = ExpoModulesProviders;
+			name = BriefPilot;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -107,8 +121,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				546D013F8E405A83DA38B033 /* Pods */,
-				65D26B54DEF86FEA45F2D537 /* ExpoModulesProviders */,
+				8F4F923F28496923F1D54754 /* Pods */,
+				B7CA723919DAC1084039AB1A /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -121,6 +135,23 @@
 				13B07F961A680F5B00A75B9A /* BriefPilot.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		8F4F923F28496923F1D54754 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				7B2E0209E5485F233F5C5DFF /* Pods-BriefPilot.debug.xcconfig */,
+				185B793D29E6F059740BECB5 /* Pods-BriefPilot.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		B7CA723919DAC1084039AB1A /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				75BD1551F0426A0210823F73 /* BriefPilot */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -140,13 +171,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BriefPilot" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				88AEFF2BD262A5A6679ED545 /* [Expo] Configure project */,
+				9D149B9606F82D5583E33181 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				A99A8F78CC013A3199F35809 /* [CP] Embed Pods Frameworks */,
+				A096E2E89162728C0E5313DE /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +227,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				01B68EDAFBC620A6F2D45CB9 /* PrivacyInfo.xcprivacy in Resources */,
+				A360F5ED27E9116D9A65860C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,6 +293,7 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/SDWebImage/SDWebImage.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/react-native-blob-util/ReactNativeBlobUtilPrivacyInfo.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
@@ -278,13 +310,14 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/SDWebImage.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ReactNativeBlobUtilPrivacyInfo.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BriefPilot/Pods-BriefPilot-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		88AEFF2BD262A5A6679ED545 /* [Expo] Configure project */ = {
+		9D149B9606F82D5583E33181 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -308,7 +341,7 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-BriefPilot/expo-configure-project.sh\"\n";
 		};
-		A99A8F78CC013A3199F35809 /* [CP] Embed Pods Frameworks */ = {
+		A096E2E89162728C0E5313DE /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -338,7 +371,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				E5D73B02CC86102E5D562674 /* ExpoModulesProvider.swift in Sources */,
+				D886270A5B707A4765898E9E /* ExpoModulesProvider.swift in Sources */,
+				BP000000000000000000AA01 /* BriefPilotScannerModule.m in Sources */,
+				BP000000000000000000AA02 /* BriefPilotScannerModule.swift in Sources */,
+				BP000000000000000000AA05 /* BriefPilotVisionScannerModule.m in Sources */,
+				DBF0C71E2FAD44E300C579E7 /* BriefPilotLiveScanModule.swift in Sources */,
+				DBF0C71F2FAD44E300C579E7 /* BriefPilotLiveScannerView.swift in Sources */,
+				DBF0C7202FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.m in Sources */,
+				DBF0C7212FAD44E300C579E7 /* BriefPilotLiveScannerViewManager.swift in Sources */,
+				DBF0C7222FAD44E300C579E7 /* BriefPilotLiveScanModule.m in Sources */,
+				BP000000000000000000AA06 /* BriefPilotVisionScannerModule.swift in Sources */,
+				BP000000000000000000AA03 /* BriefPilotOpenCVHelper.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,12 +390,14 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A55976F892DDD0DA9A8D99BB /* Pods-BriefPilot.debug.xcconfig */;
+			baseConfigurationReference = 7B2E0209E5485F233F5C5DFF /* Pods-BriefPilot.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = BriefPilot/BriefPilot.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4ZJBLHHFL6;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -383,12 +428,14 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 813C74A1FCDD172ADC14BD09 /* Pods-BriefPilot.release.xcconfig */;
+			baseConfigurationReference = 185B793D29E6F059740BECB5 /* Pods-BriefPilot.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = BriefPilot/BriefPilot.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4ZJBLHHFL6;
 				INFOPLIST_FILE = BriefPilot/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (

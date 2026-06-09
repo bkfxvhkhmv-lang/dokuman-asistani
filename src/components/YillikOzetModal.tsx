@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import { berechneJahresOzet, formatBetrag } from '../utils';
-import type { Dokument } from '../store';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { berechneJahresOzet, formatBetrag } from '@/utils';
+import type { Dokument } from '@/store';
 
 const RENKLER = ['#6C63FF', '#FF6584', '#43B89C', '#F7B731', '#FC5C65', '#45AAF2'];
 
@@ -106,7 +106,7 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
     .sort((a, b) => b[1] - a[1]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={onClose} />
       <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24,
         maxHeight: '90%', paddingBottom: 32 }}>
@@ -133,7 +133,7 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {ozet.gesamtAnzahl === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 48 }}>
-              <Text style={{ fontSize: 40 }}>📭</Text>
+              <Text style={{ fontSize: 24 }}>📭</Text>
               <Text style={{ fontSize: 15, color: C.textSecondary, marginTop: 12 }}>
                 Keine Dokumente für {seciliYil}
               </Text>

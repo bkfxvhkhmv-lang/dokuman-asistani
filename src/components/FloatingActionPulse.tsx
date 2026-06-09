@@ -15,11 +15,11 @@ import React, { useEffect } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle,
-  withRepeat, withSequence, withTiming, withSpring,
-  cancelAnimation, Easing,
+  withTiming, withSpring,
+  cancelAnimation,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon from './Icon';
+import Icon from '@/components/Icon';
 
 export type PulseUrgency = 'high' | 'medium' | 'low';
 
@@ -30,6 +30,8 @@ export interface FloatingActionPulseProps {
   icon?:     string;
   urgency?:  PulseUrgency;
   onPress:   () => void;
+  /** Push CTA up (e.g. deadline strip above home indicator) */
+  extraBottomInset?: number;
 }
 
 const URGENCY_COLOR: Record<PulseUrgency, string> = {
@@ -46,6 +48,7 @@ const PULSE_DURATION: Record<PulseUrgency, number> = {
 
 export default function FloatingActionPulse({
   visible, label, sublabel, icon = 'flash', urgency = 'medium', onPress,
+  extraBottomInset = 0,
 }: FloatingActionPulseProps) {
   const insets = useSafeAreaInsets();
   const color  = URGENCY_COLOR[urgency];
@@ -61,26 +64,9 @@ export default function FloatingActionPulse({
     if (visible) {
       slideY.value  = withSpring(0,   { damping: 20, stiffness: 240 });
       opacity.value = withTiming(1,   { duration: 220 });
-
-      if (dur > 0) {
-        glowScale.value = withRepeat(
-          withSequence(
-            withTiming(1.18, { duration: dur, easing: Easing.out(Easing.quad) }),
-            withTiming(1.00, { duration: dur, easing: Easing.in(Easing.quad) }),
-          ),
-          -1,
-        );
-        glowOp.value = withRepeat(
-          withSequence(
-            withTiming(0.0, { duration: dur }),
-            withTiming(0.6, { duration: dur }),
-          ),
-          -1,
-        );
-      } else {
-        glowScale.value = 1;
-        glowOp.value    = 0.3;
-      }
+      // Static muted glow — no pulse, scale stays at 1
+      glowScale.value = 1;
+      glowOp.value    = dur > 0 ? 0.25 : 0.18;
     } else {
       cancelAnimation(glowScale);
       cancelAnimation(glowOp);
@@ -106,7 +92,7 @@ export default function FloatingActionPulse({
       pointerEvents={visible ? 'auto' : 'none'}
       style={[
         st.wrapper,
-        { bottom: (insets.bottom || 16) + 16 },
+        { bottom: (insets.bottom || 16) + 16 + extraBottomInset },
         containerStyle,
       ]}
     >
@@ -164,10 +150,10 @@ const st = StyleSheet.create({
     gap:            12,
     width:          '100%',
     shadowColor:    '#000',
-    shadowOffset:   { width: 0, height: 6 },
-    shadowOpacity:  0.28,
-    shadowRadius:   14,
-    elevation:      10,
+    shadowOffset:   { width: 0, height: 4 },
+    shadowOpacity:  0.14,
+    shadowRadius:   10,
+    elevation:      5,
   },
   iconWrap: {
     width: 36, height: 36, borderRadius: 18,

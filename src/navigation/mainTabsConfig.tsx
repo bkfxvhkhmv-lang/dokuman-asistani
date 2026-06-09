@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, View } from 'react-native';
-import Icon from '../components/Icon';
+import { LinearGradient } from 'expo-linear-gradient';
+import Icon from '@/components/Icon';
 
 interface TabColors {
   bgCard: string;
@@ -94,47 +95,75 @@ function ScanTabIcon({ focused, colors }: { focused: boolean; colors: TabColors 
     }
   }, [focused]);
 
-  const pulseScale   = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.52] });
+  const pulseScale   = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.28] });
   const pulseOpacity = pulse.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.45, 0.15, 0] });
 
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', width: 72, height: 72 }}>
+    <View style={{ alignItems: 'center', justifyContent: 'center', width: 80, height: 80 }}>
+      {/* Outer glow halo — iOS native shadow, Android larger radial gradient */}
+      {Platform.OS === 'ios' ? (
+        <View style={{
+          position: 'absolute',
+          width: 62, height: 62, borderRadius: 31,
+          shadowColor: colors.primary,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: focused ? 0.24 : 0.10,
+          shadowRadius: focused ? 10 : 6,
+          backgroundColor: 'transparent',
+        }} />
+      ) : (
+        // Android: daraltilmis radial glow — komsu tab etiketlerine tasmasin
+        <LinearGradient
+          colors={[
+            `${colors.primary}${focused ? '30' : '18'}`,
+            `${colors.primary}${focused ? '18' : '0D'}`,
+            `${colors.primary}${focused ? '0A' : '05'}`,
+            'transparent',
+          ]}
+          style={{
+            position: 'absolute',
+            width: 108, height: 108, borderRadius: 54,
+            top: -14, left: -14,
+          }}
+          pointerEvents="none"
+        />
+      )}
+
       {/* Pulse ring */}
       <Animated.View
         style={{
           position: 'absolute',
-          width: 62, height: 62, borderRadius: 31,
-          borderWidth: 2, borderColor: colors.primary,
+          width: 58, height: 58, borderRadius: 29,
+          borderWidth: 1.8, borderColor: colors.primary,
           transform: [{ scale: pulseScale }],
           opacity: pulseOpacity,
         }}
       />
-      {/* Android glow halkası — colored elevation taklit */}
-      {Platform.OS === 'android' && (
-        <View style={{
-          position: 'absolute',
-          width: 68, height: 68, borderRadius: 34,
-          backgroundColor: focused ? `${colors.primary}28` : `${colors.primary}14`,
-          elevation: focused ? 14 : 6,
-        }} />
-      )}
+
       {/* Main button */}
       <Animated.View
         style={{
           transform: [{ scale: scanScale }],
-          width: 62, height: 62, borderRadius: 31,
+          width: 64, height: 64, borderRadius: 32,
           backgroundColor: focused ? colors.primary : '#FFFFFF',
           alignItems: 'center', justifyContent: 'center',
           shadowColor: colors.primary,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: focused ? 0.45 : 0.22,
-          shadowRadius: focused ? 32 : 18,
-          elevation: focused ? 16 : 9,
-          borderWidth: Platform.OS === 'android' ? 1.5 : 0.8,
-          borderColor: `${colors.primary}${focused ? '60' : '30'}`,
+          shadowOffset: { width: 0, height: focused ? 7 : 3 },
+          shadowOpacity: focused ? 0.22 : 0.10,
+          shadowRadius: focused ? 10 : 6,
+          elevation: focused ? 10 : 5,
+          borderWidth: 0.8,
+          borderColor: `${colors.primary}${focused ? '70' : '28'}`,
         }}
       >
-        <Icon name="scan" size={24} color={focused ? '#fff' : colors.primary} />
+        {/* Inner shine (iOS Photos style top-gloss) */}
+        <View style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 32,
+          borderTopLeftRadius: 32, borderTopRightRadius: 32,
+          backgroundColor: focused ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.55)',
+          overflow: 'hidden',
+        }} pointerEvents="none" />
+        <Icon name="scan" size={26} color={focused ? '#fff' : colors.primary} weight="bold" />
       </Animated.View>
     </View>
   );
@@ -144,7 +173,7 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'index',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Docs',
+      tabBarLabel: 'Dokumente',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="files" focused={focused} color={color} colors={colors} />
       ),
@@ -153,7 +182,7 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'Suche',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Search',
+      tabBarLabel: 'Suche',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
         <TabIcon name="magnifying-glass" focused={focused} color={color} colors={colors} />
       ),
@@ -170,6 +199,12 @@ export const MAIN_TABS: MainTabDefinition[] = [
     }),
   },
   {
+    name: 'Export',
+    // Hidden until export document selection is confirmed working on device.
+    // Per-document export remains available in Detail → Dokument tab.
+    options: () => ({ href: null }),
+  },
+  {
     name: 'Marktplatz',
     options: () => ({
       href: null,
@@ -178,9 +213,9 @@ export const MAIN_TABS: MainTabDefinition[] = [
   {
     name: 'Profil',
     options: (colors: TabColors) => ({
-      tabBarLabel: 'Profile',
+      tabBarLabel: 'Einstellungen',
       tabBarIcon: ({ focused, color }: { focused: boolean; color: string }) => (
-        <TabIcon name="user-circle" focused={focused} color={color} colors={colors} />
+        <TabIcon name="gear" focused={focused} color={color} colors={colors} />
       ),
     }),
   },

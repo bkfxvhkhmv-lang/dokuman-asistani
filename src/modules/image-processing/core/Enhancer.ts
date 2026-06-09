@@ -1,6 +1,6 @@
-import { ImagePipeline, getSharedImagePipeline } from './ImagePipeline';
-import { createImageSession } from '../session/ImageSessionManager';
-import type { QualityMetrics } from '../types';
+import { ImagePipeline, getSharedImagePipeline } from '@/modules/image-processing/core/ImagePipeline';
+import { createImageSession } from '@/modules/image-processing/session/ImageSessionManager';
+import type { QualityMetrics } from '@/modules/image-processing/types';
 
 export interface EnhancementResult {
   uri: string;

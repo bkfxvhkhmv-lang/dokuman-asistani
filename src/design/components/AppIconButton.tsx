@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, StyleSheet, View, ViewStyle, Animated } from 'react-native';
-import Icon from '../../components/Icon';
-import { useTheme } from '../../ThemeContext';
-import { HIT_SLOP } from '../../theme';
+import Icon from '@/components/Icon';
+import { useTheme } from '@/ThemeContext';
+import { HIT_SLOP } from '@/theme';
 
 interface AppIconButtonProps {
   name: string;

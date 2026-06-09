@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
-import { useTheme } from '../ThemeContext';
-import type { Dokument } from '../store';
+import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import type { Dokument } from '@/store';
 
 interface SimStep { icon: string; text: string }
 interface SimResult {
@@ -12,71 +13,77 @@ interface SimResult {
   note: string;
 }
 
-function simulateLocally(action: string, dok: Dokument): SimResult {
-  const betrag   = dok.betrag ? `${dok.betrag.toFixed(2)} €` : 'angegebenen Betrag';
-  const absender = dok.absender || 'Behörde';
+function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: Record<string, string | number>) => string): SimResult {
+  const amount = dok.betrag ? `${dok.betrag.toFixed(2)} €` : T('action_sim.default_amount');
+  const sender = dok.absender || T('action_sim.default_sender');
 
   const scenarios: Record<string, SimResult> = {
     zahlen: {
-      title: '💶 Wenn Sie zahlen',
+      title: T('action_sim.pay.title'),
       steps: [
-        { icon: '✅', text: `${betrag} wird an ${absender} überwiesen.` },
-        { icon: '📋', text: 'Der Vorgang wird abgeschlossen und die Akte archiviert.' },
-        { icon: '📧', text: 'In der Regel erhalten Sie eine Zahlungsbestätigung.' },
-        { icon: '🔒', text: 'Rechtliche Schritte werden vermieden.' },
+        { icon: '✅', text: T('action_sim.pay.step_1', { amount, sender }) },
+        { icon: '📋', text: T('action_sim.pay.step_2') },
+        { icon: '📧', text: T('action_sim.pay.step_3') },
+        { icon: '🔒', text: T('action_sim.pay.step_4') },
       ],
-      risk: 'low', riskLabel: 'Geringes Risiko',
-      note: 'Eine Zahlung ist in den meisten Fällen die schnellste Lösung.',
+      risk: 'low',
+      riskLabel: T('action_sim.risk.low'),
+      note: T('action_sim.pay.note'),
     },
     einspruch: {
-      title: '✍️ Wenn Sie Einspruch einlegen',
+      title: T('action_sim.appeal.title'),
       steps: [
-        { icon: '📝', text: 'Sie schreiben einen Widerspruch und senden ihn an die Behörde.' },
-        { icon: '⏳', text: 'Die Behörde prüft den Einspruch (kann 2–8 Wochen dauern).' },
-        { icon: '📬', text: 'Die Behörde kann die Entscheidung überprüfen oder ablehnen.' },
-        { icon: '⚖️', text: 'Bei Ablehnung können Sie das Verwaltungsgericht einschalten.' },
-        { icon: '💡', text: 'Haben Sie recht, kann die Zahlung oder Strafe reduziert werden.' },
+        { icon: '📝', text: T('action_sim.appeal.step_1') },
+        { icon: '⏳', text: T('action_sim.appeal.step_2') },
+        { icon: '📬', text: T('action_sim.appeal.step_3') },
+        { icon: '⚖️', text: T('action_sim.appeal.step_4') },
+        { icon: '💡', text: T('action_sim.appeal.step_5') },
       ],
-      risk: 'medium', riskLabel: 'Mittleres Risiko',
-      note: 'Das Widerspruchsverfahren kann lange dauern. Anwaltliche Beratung empfohlen.',
+      risk: 'medium',
+      riskLabel: T('action_sim.risk.medium'),
+      note: T('action_sim.appeal.note'),
     },
     ignorieren: {
-      title: '🚫 Wenn Sie ignorieren',
+      title: T('action_sim.ignore.title'),
       steps: [
-        { icon: '⚠️', text: 'Eine zweite oder letzte Mahnung wird versendet.' },
-        { icon: '💸', text: `Verzugszinsen und Zusatzkosten häufen sich an (ca. ${betrag} + 1 %/Monat).` },
-        { icon: '📬', text: 'Ein Inkasso- oder Mahnverfahren wird eingeleitet.' },
-        { icon: '🏛️', text: 'Vollstreckungsbescheid → Risiko der Pfändung von Lohn oder Konto.' },
-        { icon: '❌', text: 'Ein negativer Schufa-Eintrag ist möglich.' },
+        { icon: '⚠️', text: T('action_sim.ignore.step_1') },
+        { icon: '💸', text: T('action_sim.ignore.step_2', { amount }) },
+        { icon: '📬', text: T('action_sim.ignore.step_3') },
+        { icon: '🏛️', text: T('action_sim.ignore.step_4') },
+        { icon: '❌', text: T('action_sim.ignore.step_5') },
       ],
-      risk: 'high', riskLabel: 'Hohes Risiko',
-      note: 'Ignorieren führt in den meisten Fällen zum schlechtesten Ergebnis.',
+      risk: 'high',
+      riskLabel: T('action_sim.risk.high'),
+      note: T('action_sim.ignore.note'),
     },
     erledigt: {
-      title: '✓ Als erledigt markieren',
+      title: T('action_sim.done.title'),
       steps: [
-        { icon: '✅', text: 'Das Dokument wird ins Archiv verschoben.' },
-        { icon: '🔕', text: 'Keine weiteren Erinnerungen für dieses Dokument.' },
-        { icon: '📊', text: 'Wird in Ihrer Statistik berücksichtigt.' },
-        { icon: '↩️', text: 'Sie können dies jederzeit rückgängig machen.' },
+        { icon: '✅', text: T('action_sim.done.step_1') },
+        { icon: '🔕', text: T('action_sim.done.step_2') },
+        { icon: '📊', text: T('action_sim.done.step_3') },
+        { icon: '↩️', text: T('action_sim.done.step_4') },
       ],
-      risk: 'none', riskLabel: 'Kein Risiko',
-      note: 'Markieren Sie nur als erledigt, wenn der Vorgang wirklich abgeschlossen ist.',
+      risk: 'none',
+      riskLabel: T('action_sim.risk.none'),
+      note: T('action_sim.done.note'),
     },
   };
 
   return scenarios[action] ?? {
     title: action,
-    steps: [{ icon: '❓', text: 'Keine Simulationsdaten für diese Aktion verfügbar.' }],
-    risk: 'unknown', riskLabel: 'Unbekannt', note: '',
+    steps: [{ icon: '❓', text: T('action_sim.unknown') }],
+    risk: 'unknown',
+    riskLabel: T('display.fallback.unknown'),
+    note: '',
   };
 }
 
 const ACTIONS = [
-  { id: 'zahlen',     label: 'Bezahlen',              emoji: '💶' },
-  { id: 'einspruch',  label: 'Einspruch einlegen',     emoji: '✍️' },
-  { id: 'ignorieren', label: 'Ignorieren',             emoji: '🚫' },
-  { id: 'erledigt',   label: 'Als erledigt markieren', emoji: '✅' },
+  { id: 'zahlen', labelKey: 'action_sim.action.pay', emoji: '💶' },
+  { id: 'einspruch', labelKey: 'action_sim.action.appeal', emoji: '✍️' },
+  { id: 'ignorieren', labelKey: 'action_sim.action.ignore', emoji: '🚫' },
+  { id: 'erledigt', labelKey: 'action_sim.action.done', emoji: '✅' },
 ];
 
 const RISK_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -95,41 +102,52 @@ interface ActionSimulatorModalProps {
 
 export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSimulatorModalProps) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t: T } = useT();
   const [selected, setSelected] = useState<string | null>(null);
 
-  const result    = selected ? simulateLocally(selected, dok) : null;
+  const result = selected ? simulateLocally(selected, dok, T) : null;
   const riskColor = result ? (RISK_COLORS[result.risk] ?? RISK_COLORS.unknown) : null;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[st.container, { backgroundColor: C.bg }]}>
         <View style={[st.header, { borderBottomColor: C.border }]}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={{ fontSize: 15, color: C.primary, fontWeight: '500' }}>✕ Schließen</Text>
+            <Text style={{ fontSize: 15, color: C.primary, fontWeight: '500' }}>{`✕ ${T('common.close')}`}</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>🤖 Aktionssimulator</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>{`🤖 ${T('action_sim.title')}`}</Text>
           <View style={{ width: 72 }} />
         </View>
         <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: S.lg, lineHeight: 20 }}>
-            Wählen Sie eine Aktion — die KI simuliert das wahrscheinlichste Ergebnis für dieses Dokument.
+            {T('action_sim.subtitle')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: S.lg }}>
-            {ACTIONS.map(a => {
-              const active = selected === a.id;
+            {ACTIONS.map((action) => {
+              const active = selected === action.id;
               return (
-                <TouchableOpacity key={a.id} onPress={() => setSelected(a.id)}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6,
-                    paddingHorizontal: 14, paddingVertical: 10, borderRadius: 20,
+                <TouchableOpacity
+                  key={action.id}
+                  onPress={() => setSelected(action.id)}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    borderRadius: 20,
                     backgroundColor: active ? C.primary : C.bgCard,
-                    borderWidth: 1.5, borderColor: active ? C.primary : C.border }}>
-                  <Text style={{ fontSize: 16 }}>{a.emoji}</Text>
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: active ? '#fff' : C.text }}>{a.label}</Text>
+                    borderWidth: 1.5,
+                    borderColor: active ? C.primary : C.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 16 }}>{action.emoji}</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: active ? '#fff' : C.text }}>{T(action.labelKey)}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          {result && riskColor && (
+          {result && riskColor ? (
             <View style={{ borderRadius: R.lg, backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, overflow: 'hidden', ...Shadow.sm }}>
               <View style={{ padding: S.md, backgroundColor: C.primaryLight }}>
                 <Text style={{ fontSize: 15, fontWeight: '700', color: C.primaryDark }}>{result.title}</Text>
@@ -140,8 +158,8 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
                 </View>
               </View>
               <View style={{ padding: S.md, gap: 10 }}>
-                {result.steps.map((step, i) => (
-                  <View key={i} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+                {result.steps.map((step, index) => (
+                  <View key={index} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                     <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.bgInput, alignItems: 'center', justifyContent: 'center' }}>
                       <Text style={{ fontSize: 14 }}>{step.icon}</Text>
                     </View>
@@ -151,19 +169,19 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
               </View>
               {result.note ? (
                 <View style={{ marginHorizontal: S.md, marginBottom: S.md, padding: 10, borderRadius: 10, backgroundColor: C.warningLight }}>
-                  <Text style={{ fontSize: 11, color: C.warningText, lineHeight: 17 }}>💡 {result.note}</Text>
+                  <Text style={{ fontSize: 11, color: C.warningText, lineHeight: 17 }}>{`💡 ${result.note}`}</Text>
                 </View>
               ) : null}
             </View>
-          )}
-          {!selected && (
+          ) : null}
+          {!selected ? (
             <View style={{ alignItems: 'center', padding: 30 }}>
               <Text style={{ fontSize: 32, marginBottom: 10 }}>🤖</Text>
               <Text style={{ fontSize: 13, color: C.textTertiary, textAlign: 'center' }}>
-                Wählen Sie oben eine Aktion, um zu sehen, welche Konsequenzen sie für dieses Dokument hat.
+                {T('action_sim.empty')}
               </Text>
             </View>
-          )}
+          ) : null}
         </ScrollView>
       </View>
     </Modal>

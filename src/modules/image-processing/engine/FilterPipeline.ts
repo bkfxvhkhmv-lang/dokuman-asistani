@@ -1,5 +1,5 @@
 import { manipulateAsync, SaveFormat, type Action } from 'expo-image-manipulator';
-import { nativeApplyFilter, hasNativeMotor } from '../../scanner/engine/NativeStub';
+import { nativeApplyFilter, hasNativeMotor } from '@/modules/scanner/engine/NativeStub';
 
 // ── Filter recipe types ───────────────────────────────────────────────────────
 

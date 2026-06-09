@@ -1,10 +1,10 @@
-import { getTageVerbleibend } from '../utils';
-import type { Dokument } from '../store';
+import { getTageVerbleibend } from '@/utils';
+import type { Dokument } from '@/store';
 
 export interface SmartFolder {
   id:    string;
   label: string;
-  emoji: string;
+  icon:  string;
   color: string;
   docs:  Dokument[];
   count: number;
@@ -13,7 +13,7 @@ export interface SmartFolder {
 type FolderDef = {
   id:       string;
   label:    string;
-  emoji:    string;
+  icon:     string;
   color:    string;
   priority: number;
   filter:   (d: Dokument) => boolean;
@@ -21,7 +21,7 @@ type FolderDef = {
 
 const FOLDER_DEFS: FolderDef[] = [
   {
-    id: 'dringende_fristen', label: 'Dringende Fristen', emoji: '🔴', color: '#EE6055', priority: 0,
+    id: 'dringende_fristen', label: 'Dringende Fristen', icon: 'warning-circle', color: '#EE6055', priority: 0,
     filter: (d) => {
       if (d.erledigt) return false;
       const t = getTageVerbleibend(d.frist);
@@ -29,15 +29,15 @@ const FOLDER_DEFS: FolderDef[] = [
     },
   },
   {
-    id: 'offene_zahlungen', label: 'Offene Zahlungen', emoji: '💳', color: '#4361EE', priority: 1,
+    id: 'offene_zahlungen', label: 'Offene Zahlungen', icon: 'card', color: '#4361EE', priority: 1,
     filter: (d) => !d.erledigt && !!(d.betrag as number) && (d.betrag as number) > 0 && ['Rechnung','Mahnung'].includes(d.typ),
   },
   {
-    id: 'hohe_risiken', label: 'Hohe Risiken', emoji: '⚠️', color: '#FFB703', priority: 2,
+    id: 'hohe_risiken', label: 'Hohe Risiken', icon: 'warning-octagon', color: '#FFB703', priority: 2,
     filter: (d) => !d.erledigt && d.risiko === 'hoch',
   },
   {
-    id: 'letzte_30_tage', label: 'Letzte 30 Tage', emoji: '📅', color: '#1D9E75', priority: 3,
+    id: 'letzte_30_tage', label: 'Letzte 30 Tage', icon: 'calendar-blank', color: '#1D9E75', priority: 3,
     filter: (d) => {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - 30);
@@ -45,11 +45,11 @@ const FOLDER_DEFS: FolderDef[] = [
     },
   },
   {
-    id: 'abonnements', label: 'Abonnements', emoji: '📋', color: '#7C6EF8', priority: 4,
+    id: 'abonnements', label: 'Abonnements', icon: 'files', color: '#7C6EF8', priority: 4,
     filter: (d) => !d.erledigt && ['Vertrag','Kündigung'].includes(d.typ),
   },
   {
-    id: 'behoerden', label: 'Behörden', emoji: '🏛️', color: '#BA7517', priority: 5,
+    id: 'behoerden', label: 'Behörden', icon: 'buildings', color: '#BA7517', priority: 5,
     filter: (d) => !d.erledigt && ['Behörde','Steuer','Steuerbescheid','Bußgeld'].includes(d.typ),
   },
 ];
@@ -59,7 +59,7 @@ export function buildSmartFolders(docs: Dokument[]): SmartFolder[] {
     .map((def) => ({
       id:    def.id,
       label: def.label,
-      emoji: def.emoji,
+      icon:  def.icon,
       color: def.color,
       docs:  docs.filter(def.filter),
       count: 0,

@@ -4,8 +4,8 @@ import {
   useInstallRuleMutation,
   useUninstallRuleMutation,
   useRateRuleMutation,
-} from './queryHooks';
-import type { MarketplaceRule } from '../services/v4Api';
+} from '@/hooks/queryHooks';
+import type { MarketplaceRule } from '@/services/v4Api';
 
 interface MarketplaceParams {
   category?: string;

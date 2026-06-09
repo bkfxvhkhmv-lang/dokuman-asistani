@@ -5,8 +5,10 @@
  * InstitutionBehaviorModel + RuleEngine verisini kombine eder.
  * Çıktı: phase, nextAction, predictedFristDate, confidence.
  */
-import { InstitutionBehaviorModel, type InstitutionSuggestion } from './InstitutionBehaviorModel';
-import { RuleEngineV4 } from '../rules/RuleEngineV4';
+import { InstitutionBehaviorModel, type InstitutionSuggestion } from '@/core/intelligence/InstitutionBehaviorModel';
+import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 
@@ -33,29 +35,29 @@ export interface LifecyclePrediction {
 
 // ── Sabitler ──────────────────────────────────────────────────────────────────
 
-const PHASE_LABELS: Record<LifecyclePhase, string> = {
-  received:      'Alındı',
-  reviewing:     'İnceleniyor',
-  action_needed: 'Aksiyon Gerekli',
-  waiting:       'Beklemede',
-  resolved:      'Tamamlandı',
-  overdue:       'Süresi Geçti',
+const PHASE_LABEL_KEYS: Record<LifecyclePhase, string> = {
+  received:      'detail.lifecycle.phase.received',
+  reviewing:     'detail.status.in_review',
+  action_needed: 'detail.status.action_needed',
+  waiting:       'detail.lifecycle.phase.waiting',
+  resolved:      'detail.status.done',
+  overdue:       'doc.overdue',
 };
 
 const PHASE_ICONS: Record<LifecyclePhase, string> = {
-  received:      '📬',
-  reviewing:     '👁',
-  action_needed: '⚡',
-  waiting:       '⏳',
-  resolved:      '✅',
-  overdue:       '🔴',
+  received:      'envelope-simple',
+  reviewing:     'eye',
+  action_needed: 'warning-circle',
+  waiting:       'clock',
+  resolved:      'check-circle',
+  overdue:       'warning-octagon',
 };
 
-const NEXT_ACTION_MAP: Partial<Record<string, { action: string; emoji: string }>> = {
-  zahlen:    { action: 'Ödeme yapılmalı',      emoji: '💶' },
-  einspruch: { action: 'Einspruch mümkün',     emoji: '✍️' },
-  kalender:  { action: 'Takvime ekle',         emoji: '📅' },
-  mail:      { action: 'E-posta taslağı aç',   emoji: '📧' },
+const NEXT_ACTION_MAP: Partial<Record<string, { actionKey: string; emoji: string }>> = {
+  zahlen:    { actionKey: 'detail.lifecycle.action.zahlen',    emoji: 'currency-eur' },
+  einspruch: { actionKey: 'detail.lifecycle.action.einspruch', emoji: 'pencil-simple' },
+  kalender:  { actionKey: 'detail.lifecycle.action.kalender',  emoji: 'calendar-blank' },
+  mail:      { actionKey: 'detail.lifecycle.action.mail',      emoji: 'envelope-simple' },
 };
 
 // ── Yardımcılar ───────────────────────────────────────────────────────────────
@@ -98,7 +100,7 @@ export class LifecyclePredictionEngine {
       const learned = parseInt(suggestion.avgFristText);
       if (!isNaN(learned)) {
         predictedFristDays = learned;
-        reasoning.push(`${dok.absender} için öğrenilmiş ort. frist: ${learned} gün`);
+        reasoning.push(`Gelernte Ø-Frist für ${dok.absender}: ${learned} Tage`);
       }
     }
 
@@ -108,7 +110,7 @@ export class LifecyclePredictionEngine {
       const learned = parseFloat(suggestion.avgBetragText);
       if (!isNaN(learned)) {
         predictedBetrag = learned;
-        reasoning.push(`Kurumdan öğrenilmiş ort. tutar: ${suggestion.avgBetragText}`);
+        reasoning.push(`Gelernte Ø-Betrag: ${suggestion.avgBetragText}`);
       }
     }
 
@@ -116,9 +118,9 @@ export class LifecyclePredictionEngine {
     const daysLeft = daysUntilFrist(dok);
     const phase = determinePhase(dok, daysLeft);
 
-    if (phase === 'overdue') reasoning.push('Frist geçmiş — acil aksiyon');
-    if (phase === 'action_needed') reasoning.push('Yüksek risk veya yakın frist');
-    if (dok.erledigt) reasoning.push('Kullanıcı tamamlandı işaretledi');
+    if (phase === 'overdue') reasoning.push('Frist abgelaufen — schnelle Rückmeldung nötig');
+    if (phase === 'action_needed') reasoning.push('Hohes Risiko oder kurze Frist');
+    if (dok.erledigt) reasoning.push('Vom Nutzer als erledigt markiert');
 
     // Sonraki aksiyon
     const aktionen: string[] = dok.aktionen ?? suggestion?.likelyActions ?? [];
@@ -132,15 +134,16 @@ export class LifecyclePredictionEngine {
     else if (dok.frist && dok.risiko) confidence = 'medium';
 
     // Risk açıklaması
-    if (dok.risiko === 'hoch')   reasoning.push('Kural motoru: yüksek risk');
+    if (dok.risiko === 'hoch')   reasoning.push('Regelmotor: hohes Risiko');
     if (dok.typ === 'Mahnung')   reasoning.push('Mahnung → ödeme veya itiraz gerekebilir');
     if (dok.typ === 'Bußgeld')   reasoning.push('Bußgeld → genellikle ödeme veya Einspruch');
 
+    const lang = getLangSync();
     return {
       phase,
-      phaseLabel:         PHASE_LABELS[phase],
+      phaseLabel:         t(lang, PHASE_LABEL_KEYS[phase]),
       phaseIcon:          PHASE_ICONS[phase],
-      nextAction:         actionInfo?.action ?? null,
+      nextAction:         actionInfo ? t(lang, actionInfo.actionKey) : null,
       nextActionEmoji:    actionInfo?.emoji  ?? null,
       predictedFristDays,
       predictedBetrag,
@@ -165,12 +168,13 @@ export class LifecyclePredictionEngine {
 
   static async summarize(dok: Record<string, any>): Promise<string> {
     const p = await this.predict(dok);
-    const parts = [`${p.phaseIcon} ${p.phaseLabel}`];
-    if (p.nextAction) parts.push(`→ ${p.nextAction}`);
+    const lang = getLangSync();
+    const parts = [p.phaseLabel];
+    if (p.nextAction) parts.push(p.nextAction);
     if (p.predictedFristDays !== null) {
-      if (p.predictedFristDays < 0) parts.push('⚠️ Frist abgelaufen');
-      else if (p.predictedFristDays === 0) parts.push('⚠️ Heute fällig');
-      else parts.push(`${p.predictedFristDays} Tage verbleibend`);
+      if (p.predictedFristDays < 0) parts.push(t(lang, 'doc.overdue'));
+      else if (p.predictedFristDays === 0) parts.push(t(lang, 'doc.due_today'));
+      else parts.push(t(lang, 'doc.due_days', { n: p.predictedFristDays }));
     }
     return parts.join(' · ');
   }

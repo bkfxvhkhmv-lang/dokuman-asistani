@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useTheme, type ThemeColors } from '../ThemeContext';
-import { parseGiroCode, giroCodeToText } from '../services/giroCodeService';
-import type { GiroCode } from '../services/giroCodeService';
+import { useTheme, type ThemeColors } from '@/ThemeContext';
+import { parseGiroCode, giroCodeToText } from '@/services/giroCodeService';
+import type { GiroCode } from '@/services/giroCodeService';
 
 type ScanResult = (GiroCode & { raw?: never }) | { raw: string; iban?: never };
 
@@ -15,6 +16,7 @@ interface QrScanModalProps {
 
 export default function QrScanModal({ visible, onClose, onResult }: QrScanModalProps) {
   const { Colors: C } = useTheme();
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [tarama, setTarama] = useState(true);
   const [sonuc, setSonuc] = useState<ScanResult | null>(null);
@@ -55,7 +57,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
 
   if (!permission?.granted) {
     return (
-      <Modal visible={visible} transparent animationType="slide">
+      <Modal visible={visible} transparent animationType="fade">
         <View style={[styles.overlay, { backgroundColor: C.bg }]}>
           <Text style={{ color: C.text, marginBottom: 12 }}>Kamera izni gerekli.</Text>
           <TouchableOpacity onPress={requestPermission} style={[styles.btn, { backgroundColor: C.primary }]}>
@@ -70,7 +72,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
   }
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal visible={visible} animationType="fade">
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         {tarama ? (
           <>
@@ -81,7 +83,7 @@ export default function QrScanModal({ visible, onClose, onResult }: QrScanModalP
               <View style={styles.scanFrame} />
               <Text style={styles.scanHint}>QR-Code in den Rahmen halten</Text>
             </View>
-            <TouchableOpacity onPress={handleKapat} style={styles.kapatBtn}>
+            <TouchableOpacity onPress={handleKapat} style={[styles.kapatBtn, { top: insets.top + 12 }]}>
               <Text style={{ color: '#fff', fontSize: 16 }}>✕ Schließen</Text>
             </TouchableOpacity>
           </>
@@ -140,9 +142,9 @@ const styles = StyleSheet.create({
   scanOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
   scanFrame:   { width: 220, height: 220, borderWidth: 2, borderColor: '#fff', borderRadius: 12 },
   scanHint:    { color: '#fff', marginTop: 16, fontSize: 13 },
-  kapatBtn:    { position: 'absolute', top: 48, right: 20, padding: 8 },
+  kapatBtn:    { position: 'absolute', right: 20, padding: 12 },
   baslik:      { fontSize: 18, fontWeight: '700', marginBottom: 16 },
   butonlar:    { flexDirection: 'row', gap: 12, marginTop: 20 },
   btn:         { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },
-  kapat:       { alignSelf: 'center', marginTop: 16, padding: 8 },
+  kapat:       { alignSelf: 'center', marginTop: 16, padding: 14 },
 });

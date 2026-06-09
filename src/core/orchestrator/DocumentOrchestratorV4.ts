@@ -2,20 +2,20 @@
  * DocumentOrchestratorV4
  * OCR → Rule Engine → Metadata → V4 Upload → Timeline → Sync → Intelligence
  */
-import { uploadDocumentV4Safe, explainDocumentSafe } from '../../services/v4Api';
-import { extractTextFromImage, analysiereText } from '../../services/visionApi';
-import { EventLogger } from '../events/EventLogger';
-import { CloudSyncV4 } from '../sync/CloudSyncV4';
-import { RuleEngineV4, LocalRule } from '../rules/RuleEngineV4';
-import { InstitutionBehaviorModel } from '../intelligence/InstitutionBehaviorModel';
-import { AutoWorkflowEngine, type GeneratedWorkflow } from '../intelligence/AutoWorkflowEngine';
-import { scheduleDeadlineNotification } from '../../utils';
+import { uploadDocumentV4Safe, explainDocumentSafe } from '@/services/v4Api';
+import { extractTextFromImage, analysiereText } from '@/services/visionApi';
+import { EventLogger } from '@/core/events/EventLogger';
+import { CloudSyncV4 } from '@/core/sync/CloudSyncV4';
+import { RuleEngineV4, LocalRule } from '@/core/rules/RuleEngineV4';
+import { InstitutionBehaviorModel } from '@/core/intelligence/InstitutionBehaviorModel';
+import { AutoWorkflowEngine, type GeneratedWorkflow } from '@/core/intelligence/AutoWorkflowEngine';
+import { scheduleDeadlineNotification } from '@/utils';
 import * as FileSystem from 'expo-file-system/legacy';
 
 export interface OcrResult {
   rohText:     string;
   confidence:  number | null;
-  entityBoxes?: import('../../services/visionApi').EntityBox[];
+  entityBoxes?: import('@/services/visionApi').EntityBox[];
   typ: string;
   absender: string;
   zusammenfassung: string;
@@ -50,7 +50,7 @@ export class DocumentOrchestratorV4 {
     // OCR — tüm sayfaları birleştir
     let alleTexte = '';
     let totalConfidence = 0;
-    let allEntityBoxes: import('../../services/visionApi').EntityBox[] = [];
+    let allEntityBoxes: import('@/services/visionApi').EntityBox[] = [];
 
     for (const uri of uris) {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });

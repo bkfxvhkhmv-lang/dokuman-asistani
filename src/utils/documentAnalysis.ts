@@ -1,16 +1,40 @@
-import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from './formatters';
-import type { Dokument } from '../store';
+import { formatBetrag, formatFrist, formatDatum, getTageVerbleibend } from '@/utils/formatters';
+import { getLangSync } from '@/i18n/langStore';
+import { t } from '@/i18n/translations';
+import type { Dokument } from '@/store';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
+
+const MEANINGLESS_ABSENDER = /^(unbekannt|unbekannter absender)$/i;
+const WEAK_TYP              = /^sonstiges$/i;
+
+function localeTag(lang = getLangSync()): string {
+  switch (lang) {
+    case 'tr': return 'tr-TR';
+    case 'en': return 'en-US';
+    case 'fr': return 'fr-FR';
+    case 'es': return 'es-ES';
+    case 'ru': return 'ru-RU';
+    case 'ar': return 'ar-EG';
+    case 'de':
+    default: return 'de-DE';
+  }
+}
 
 export function findeAehnlicheDokumente(dok: Dokument, alleDocs: Dokument[], maxAnzahl = 5): (Dokument & { _aehnlichScore: number })[] {
   return alleDocs.filter(d => d.id !== dok.id).map(d => {
     let score = 0;
-    if (d.typ === dok.typ) score += 3;
-    if (dok.absender && d.absender) { const a = dok.absender.toLowerCase().split(' ')[0]; if (d.absender.toLowerCase().includes(a)) score += 2; }
+    if (d.typ === dok.typ && !WEAK_TYP.test(dok.typ ?? '')) score += 3;
+    if (dok.absender && d.absender
+        && !MEANINGLESS_ABSENDER.test(dok.absender.trim())
+        && !MEANINGLESS_ABSENDER.test(d.absender.trim())) {
+      const a = dok.absender.toLowerCase().split(' ')[0];
+      if (d.absender.toLowerCase().includes(a)) score += 2;
+    }
     const meineEtiketten = dok.etiketten || [];
     score += meineEtiketten.filter(e => (d.etiketten || []).includes(e)).length;
     if (d.risiko === dok.risiko) score += 1;
     return { ...d, _aehnlichScore: score };
-  }).filter(d => d._aehnlichScore > 0).sort((a, b) => b._aehnlichScore - a._aehnlichScore).slice(0, maxAnzahl);
+  }).filter(d => d._aehnlichScore >= 2).sort((a, b) => b._aehnlichScore - a._aehnlichScore).slice(0, maxAnzahl);
 }
 
 export interface TextDiffItem { wort: string; status: 'gleich' | 'entfernt' | 'hinzugefuegt' }
@@ -64,42 +88,49 @@ const ROZETLER_DEF = [
 ];
 
 export function berechneRozetler(docs: Dokument[]): Rozet[] {
+  const lang = getLangSync();
   const stats = { gesamt: docs.length, erledigt: docs.filter(d => d.erledigt).length, dringend: docs.filter(d => d.risiko === 'hoch' && !d.erledigt).length, offenBetrag: docs.filter(d => d.betrag && !d.erledigt).reduce((s, d) => s + (d.betrag ?? 0), 0), ungelesen: docs.filter(d => !d.gelesen && !d.erledigt).length };
-  return ROZETLER_DEF.map(r => ({ id: r.id, icon: r.icon, label: r.label, beschreibung: r.beschreibung, verdient: r.check(stats) }));
+  return ROZETLER_DEF.map(r => ({ id: r.id, icon: r.icon, label: t(lang, `document_analysis.badge.${r.id}.label`), beschreibung: t(lang, `document_analysis.badge.${r.id}.description`), verdient: r.check(stats) }));
 }
 
 export interface GraphNode { id: string; titel: string; typ: string; risiko: string | undefined; zentrum?: boolean; score?: number }
 export interface GraphEdge { von: string; nach: string; gewicht: 'stark' | 'mittel' | 'schwach'; grund: string }
 
 export function baueBeziehungsGraph(dok: Dokument, alleDocs: Dokument[]): { nodes: GraphNode[]; edges: GraphEdge[] } {
+  const lang = getLangSync();
   const aehnliche = findeAehnlicheDokumente(dok, alleDocs, 8);
   const nodes: GraphNode[] = [{ id: dok.id, titel: dok.titel, typ: dok.typ, risiko: dok.risiko, zentrum: true }, ...aehnliche.map(d => ({ id: d.id, titel: d.titel, typ: d.typ, risiko: d.risiko, score: d._aehnlichScore }))];
   const edges: GraphEdge[] = aehnliche.map(d => {
     const gewicht: 'stark' | 'mittel' | 'schwach' = d._aehnlichScore >= 4 ? 'stark' : d._aehnlichScore >= 2 ? 'mittel' : 'schwach';
     let grund = '';
-    if (d.typ === dok.typ) grund += 'Gleicher Typ · ';
-    if (d.absender && dok.absender && d.absender.split(' ')[0] === dok.absender.split(' ')[0]) grund += 'Gleicher Absender · ';
+    if (d.typ === dok.typ) grund += `${t(lang, 'document_analysis.graph.same_type')} · `;
+    if (d.absender && dok.absender
+        && !MEANINGLESS_ABSENDER.test(dok.absender.trim())
+        && !MEANINGLESS_ABSENDER.test(d.absender.trim())
+        && d.absender.split(' ')[0] === dok.absender.split(' ')[0]) grund += `${t(lang, 'document_analysis.graph.same_sender')} · `;
     const etShared = (d.etiketten || []).filter(e => (dok.etiketten || []).includes(e));
-    if (etShared.length) grund += `Etiketten: ${etShared.join(', ')} · `;
+    if (etShared.length) grund += `${t(lang, 'document_analysis.graph.tags')}: ${etShared.join(', ')} · `;
     return { von: dok.id, nach: d.id, gewicht, grund: grund.replace(/ · $/, '') };
   });
   return { nodes, edges };
 }
 
 export function erstelleWochenzusammenfassung(docs: Dokument[]): string {
+  const lang = getLangSync();
+  const locale = localeTag(lang);
   const heute = new Date();
   const inSiebenTagen = new Date(heute.getTime() + 7 * 86400000);
   const offene = docs.filter(d => !d.erledigt);
   const faellig = offene.filter(d => d.frist && new Date(d.frist) <= inSiebenTagen && new Date(d.frist) >= heute);
   const ueberfaellig = offene.filter(d => d.frist && new Date(d.frist) < heute);
   const offen = offene.filter(d => !d.frist);
-  let text = `📋 BriefPilot — Wochenzusammenfassung\n${heute.toLocaleDateString('de-DE')}\n\n`;
-  if (ueberfaellig.length > 0) { text += `⛔ ÜBERFÄLLIG (${ueberfaellig.length}):\n`; ueberfaellig.forEach(d => { text += `  • ${d.titel}${d.betrag ? ` — ${(d.betrag as number).toFixed(2)} €` : ''}\n`; }); text += '\n'; }
-  if (faellig.length > 0) { text += ` FÄLLIG DIESE WOCHE (${faellig.length}):\n`; faellig.forEach(d => { const restTage = Math.ceil((new Date(d.frist!).getTime() - heute.getTime()) / 86400000); text += `  • ${d.titel} — in ${restTage} Tag${restTage !== 1 ? 'en' : ''}\n`; }); text += '\n'; }
-  if (offen.length > 0) text += `📂 WEITERE OFFENE DOKUMENTE: ${offen.length}\n\n`;
+  let text = `${t(lang, 'document_analysis.weekly.title')}\n${heute.toLocaleDateString(locale)}\n\n`;
+  if (ueberfaellig.length > 0) { text += `${t(lang, 'document_analysis.weekly.overdue', { n: ueberfaellig.length })}:\n`; ueberfaellig.forEach(d => { text += `  • ${safeDisplayTitel(d.titel, d.typ, d.confidence)}${d.betrag ? ` — ${(d.betrag as number).toFixed(2)} €` : ''}\n`; }); text += '\n'; }
+  if (faellig.length > 0) { text += `${t(lang, 'document_analysis.weekly.due_this_week', { n: faellig.length })}:\n`; faellig.forEach(d => { const restTage = Math.ceil((new Date(d.frist!).getTime() - heute.getTime()) / 86400000); text += `  • ${safeDisplayTitel(d.titel, d.typ, d.confidence)} — ${t(lang, 'document_analysis.weekly.in_days', { n: restTage })}\n`; }); text += '\n'; }
+  if (offen.length > 0) text += `${t(lang, 'document_analysis.weekly.open_other', { n: offen.length })}\n\n`;
   const gesamtBetrag = offene.filter(d => d.betrag).reduce((s, d) => s + ((d.betrag as number) || 0), 0);
-  if (gesamtBetrag > 0) text += ` Offene Gesamtsumme: ${gesamtBetrag.toFixed(2)} €\n\n`;
-  return text + '---\nBriefPilot App';
+  if (gesamtBetrag > 0) text += `${t(lang, 'document_analysis.weekly.open_total', { amount: `${gesamtBetrag.toFixed(2)} €` })}\n\n`;
+  return text + `---\n${t(lang, 'document_analysis.weekly.app')}`;
 }
 
 export interface Stats { gesamt: number; erledigt: number; offen: number; dringend: number; offenBetrag: number; topTypen: { typ: string; n: number }[] }
@@ -116,10 +147,10 @@ export function berechneGesundheitsscore(dok: Dokument): number {
   let puan = 0;
   if (dok.confidence != null) puan += Math.round((dok.confidence / 100) * 35); else puan += 18;
   if (dok.titel && dok.titel.length > 3) puan += 10;
-  if (dok.absender && dok.absender !== 'Unbekannter Absender') puan += 10;
+  if (dok.absender && dok.absender !== t(getLangSync(), 'document_analysis.unknown_sender')) puan += 10;
   if (dok.frist) puan += 10;
   if (dok.betrag && dok.betrag > 0) puan += 10;
-  if (dok.typ && dok.typ !== 'Sonstiges') puan += 15;
+  if (dok.typ && dok.typ !== t(getLangSync(), 'doc.type.other')) puan += 15;
   if (['Rechnung', 'Mahnung'].includes(dok.typ) && dok.iban) puan += 10;
   return Math.min(100, puan);
 }
@@ -127,12 +158,14 @@ export function berechneGesundheitsscore(dok: Dokument): number {
 export interface OzetKarte { icon: string; titel: string; inhalt: string; aktion: string | null; aktionLabel: string | null }
 
 export function extrahiereOzetKartlari(dok: Dokument): OzetKarte[] {
+  const lang = getLangSync();
+  const locale = localeTag(lang);
   const betragStr = dok.betrag ? formatBetrag(dok.betrag) : null;
-  const fristStr = dok.frist ? new Date(dok.frist).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }) : null;
+  const fristStr = dok.frist ? new Date(dok.frist).toLocaleDateString(locale, { day: 'numeric', month: 'short' }) : null;
   return [
-    { icon: dok.risiko === 'hoch' ? '🔴' : dok.risiko === 'mittel' ? '🟡' : '🟢', titel: dok.typ, inhalt: ({ hoch: 'Sofortige Aktion erforderlich', mittel: 'Diese Woche handeln', niedrig: 'Kein dringender Bedarf' } as Record<string, string>)[dok.risiko ?? 'niedrig'] || '', aktion: null, aktionLabel: null },
-    { icon: betragStr ? '💶' : '📅', titel: betragStr || (fristStr ? `Frist ${fristStr}` : 'Kein Betrag'), inhalt: fristStr ? `Fällig am ${fristStr}` : 'Kein Fälligkeitsdatum', aktion: dok.aktionen?.includes('zahlen') ? 'zahlen' : null, aktionLabel: dok.aktionen?.includes('zahlen') ? 'Jetzt zahlen' : null },
-    dok.aktionen?.includes('einspruch') ? { icon: '✍️', titel: 'Einspruch möglich', inhalt: 'Vorlage in Sekunden erstellen', aktion: 'einspruch', aktionLabel: 'Vorlage öffnen' } : dok.aktionen?.includes('kalender') && dok.frist ? { icon: '📅', titel: 'Termin sichern', inhalt: 'Frist mit Erinnerung eintragen', aktion: 'kalender', aktionLabel: 'Eintragen' } : { icon: '📌', titel: 'Archivieren', inhalt: 'Als erledigt markieren', aktion: 'erledigt', aktionLabel: 'Erledigt' },
+    { icon: dok.risiko === 'hoch' ? '🔴' : dok.risiko === 'mittel' ? '🟡' : '🟢', titel: dok.typ, inhalt: ({ hoch: t(lang, 'document_analysis.summary.high'), mittel: t(lang, 'document_analysis.summary.medium'), niedrig: t(lang, 'document_analysis.summary.low') } as Record<string, string>)[dok.risiko ?? 'niedrig'] || '', aktion: null, aktionLabel: null },
+    { icon: betragStr ? '💶' : '📅', titel: betragStr || (fristStr ? t(lang, 'document_analysis.summary.deadline_short', { date: fristStr }) : t(lang, 'document_analysis.summary.no_amount')), inhalt: fristStr ? t(lang, 'document_analysis.summary.due_on', { date: fristStr }) : t(lang, 'document_analysis.summary.no_deadline'), aktion: dok.aktionen?.includes('zahlen') ? 'zahlen' : null, aktionLabel: dok.aktionen?.includes('zahlen') ? t(lang, 'document_analysis.summary.pay_now') : null },
+    dok.aktionen?.includes('einspruch') ? { icon: '✍️', titel: t(lang, 'document_analysis.summary.appeal_title'), inhalt: t(lang, 'document_analysis.summary.appeal_body'), aktion: 'einspruch', aktionLabel: t(lang, 'document_analysis.summary.open_template') } : dok.aktionen?.includes('kalender') && dok.frist ? { icon: '📅', titel: t(lang, 'document_analysis.summary.calendar_title'), inhalt: t(lang, 'document_analysis.summary.calendar_body'), aktion: 'kalender', aktionLabel: t(lang, 'document_analysis.summary.add') } : { icon: '📌', titel: t(lang, 'document_analysis.summary.archive_title'), inhalt: t(lang, 'document_analysis.summary.archive_body'), aktion: 'erledigt', aktionLabel: t(lang, 'document_analysis.summary.done') },
   ];
 }
 
@@ -160,7 +193,8 @@ export function berechneJahresOzet(docs: Dokument[], yil: number): JahresOzet {
     monatsGruppen[monat].anzahl += 1; monatsGruppen[monat].gesamtBetrag += betrag; gesamtBetrag += betrag;
     if (d.erledigt) { monatsGruppen[monat].bezahlt += betrag; bezahlteBetraege += betrag; } else if (betrag > 0) { monatsGruppen[monat].offen += betrag; offeneBetraege += betrag; }
     if (d.risiko === 'hoch') { monatsGruppen[monat].risikoHoch += 1; risikoVerteilung.hoch += 1; } else if (d.risiko === 'mittel') risikoVerteilung.mittel += 1; else risikoVerteilung.niedrig += 1;
-    typZaehler[d.typ || 'Sonstiges'] = (typZaehler[d.typ || 'Sonstiges'] || 0) + 1;
+    const fallbackTyp = d.typ || t(getLangSync(), 'doc.type.other');
+    typZaehler[fallbackTyp] = (typZaehler[fallbackTyp] || 0) + 1;
     if (d.absender) absenderZaehler[d.absender] = (absenderZaehler[d.absender] || 0) + 1;
   });
   const topAbsender = Object.entries(absenderZaehler).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([ad, anzahl]) => ({ ad, anzahl }));

@@ -9,8 +9,14 @@
  * - Offline-first: all scheduling is local
  */
 
-import type { Dokument } from '../store';
-import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '../utils';
+import type { Dokument } from '@/store';
+import {
+  ensureAndroidDefaultNotificationChannel,
+  withAndroidNotificationChannel,
+} from '@/services/SmartNotificationsService';
+import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '@/utils';
+import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import * as Notifications from 'expo-notifications';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -57,6 +63,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
   const suggestions: ReminderSuggestion[] = [];
   const tage = getTageVerbleibend(dok.frist);
   const now = new Date();
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
 
   // Deadline reminders
   if (dok.frist && !dok.erledigt) {
@@ -79,7 +86,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
             dringend:     t <= 2,
             icon:         t <= 2 ? '🔴' : '🟡',
             typ:          'deadline',
-            notifTitle:   `${t === 1 ? '🔴 Morgen fällig' : `⏰ ${t} Tage bis Frist`}: ${dok.titel}`,
+            notifTitle:   `${t === 1 ? '🔴 Morgen fällig' : `⏰ ${t} Tage bis Frist`}: ${displayTitle}`,
             notifBody:    `${dok.absender} — ${dok.betrag ? `${(dok.betrag as number).toFixed(2)} €` : dok.typ}`,
           });
         }
@@ -104,7 +111,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
         dringend:     false,
         icon:         '✍️',
         typ:          'einspruch',
-        notifTitle:   `⚠️ Einspruchsfrist endet bald: ${dok.titel}`,
+        notifTitle:   `⚠️ Einspruchsfrist endet bald: ${displayTitle}`,
         notifBody:    `Nur noch 3 Tage — jetzt Einspruch prüfen`,
       });
     }
@@ -127,7 +134,7 @@ export function buildReminderSuggestions(dok: Dokument): ReminderSuggestion[] {
         dringend:     true,
         icon:         '🚨',
         typ:          'deadline',
-        notifTitle:   `🚨 Dringendes Dokument: ${dok.titel}`,
+        notifTitle:   `🚨 Dringendes Dokument: ${displayTitle}`,
         notifBody:    `Risiko: Hoch — bitte sofort handeln`,
       });
     }
@@ -142,19 +149,22 @@ export async function scheduleReminder(
   dok: Dokument,
   suggestion: ReminderSuggestion,
 ): Promise<ScheduledReminder | null> {
+  if (suggestion.datum <= new Date()) return null;
   try {
-    const { default: Notifications } = await import('expo-notifications');
-    if (suggestion.datum <= new Date()) return null;
+    await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
-      content: {
+      content: withAndroidNotificationChannel({
         title: suggestion.notifTitle,
         body:  suggestion.notifBody,
         data:  { dokId: dok.id, reminderId: suggestion.id, type: 'smart_reminder' },
-      },
+      }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: suggestion.datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: suggestion.datum.toISOString(), label: suggestion.label };
-  } catch { return null; }
+  } catch (e: unknown) {
+    console.warn('[scheduleReminder] Failed:', e);
+    throw new Error('BRIEFPILOT_REMINDER_FAILED');
+  }
 }
 
 // ── Template reminders ────────────────────────────────────────────────────────
@@ -167,29 +177,32 @@ export async function scheduleTemplateReminder(
   dok: Dokument,
   sablon: HatirlaticiSablon,
 ): Promise<ScheduledReminder | null> {
+  const datum = new Date();
+  datum.setMonth(datum.getMonth() + sablon.aySayisi);
+  datum.setHours(9, 0, 0, 0);
+  if (datum <= new Date()) return null;
+  const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   try {
-    const { default: Notifications } = await import('expo-notifications');
-    const datum = new Date();
-    datum.setMonth(datum.getMonth() + sablon.aySayisi);
-    datum.setHours(9, 0, 0, 0);
-    if (datum <= new Date()) return null;
+    await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
-      content: {
+      content: withAndroidNotificationChannel({
         title: `${sablon.icon} ${sablon.label} — Erinnerung`,
-        body:  `${dok.titel}: ${sablon.hinweis}`,
+        body:  `${displayTitle}: ${sablon.hinweis}`,
         data:  { dokId: dok.id, sablonId: sablon.id, type: 'template_reminder' },
-      },
+      }),
       trigger: { type: SchedulableTriggerInputTypes.DATE, date: datum },
     });
     return { notifId: id, dokumentId: dok.id, datum: datum.toISOString(), label: sablon.label };
-  } catch { return null; }
+  } catch (e: unknown) {
+    console.warn('[scheduleTemplateReminder] Failed:', e);
+    throw new Error('BRIEFPILOT_REMINDER_FAILED');
+  }
 }
 
 // ── Cancel a reminder ────────────────────────────────────────────────────────
 
 export async function cancelReminder(notifId: string): Promise<void> {
   try {
-    const { default: Notifications } = await import('expo-notifications');
     await Notifications.cancelScheduledNotificationAsync(notifId);
   } catch {}
 }
@@ -198,7 +211,6 @@ export async function cancelReminder(notifId: string): Promise<void> {
 
 export async function getPendingRemindersForDoc(dokId: string): Promise<string[]> {
   try {
-    const { default: Notifications } = await import('expo-notifications');
     const all = await Notifications.getAllScheduledNotificationsAsync();
     return all
       .filter(n => (n.content.data as any)?.dokId === dokId)

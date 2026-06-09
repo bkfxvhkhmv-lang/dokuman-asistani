@@ -4,7 +4,7 @@ import {
   formatBetrag,
   formatDatum,
   generateId,
-} from '../utils/formatters';
+} from '@/utils/formatters';
 
 describe('generateId', () => {
   it('returns a non-empty string', () => {

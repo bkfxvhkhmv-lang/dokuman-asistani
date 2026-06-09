@@ -1,15 +1,18 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import { printToFileAsync } from 'expo-print';
-import type { CompressionProfile } from './compressionProfiles';
-import { getProfile } from './compressionProfiles';
-import { normalizeForDpi } from './dpiNormalizer';
-import { nativeGeneratePdf } from './native/PdfEngine.stub';
+import type { CompressionProfile } from '@/core/pdf/compressionProfiles';
+import { getProfile } from '@/core/pdf/compressionProfiles';
+import { normalizeForDpi } from '@/core/pdf/dpiNormalizer';
+import { generatePdfFromImages } from '@/core/pdf/jsPdfGenerate';
+import { nativeGeneratePdf } from '@/core/pdf/native/PdfEngine';
 
 export interface PdfPage {
   uri: string;
   width?: number;
   height?: number;
-  ocrText?: string;       // text to embed as searchable overlay
+  ocrText?: string;       // OCR metni pdf-lib ile görünmez metin olarak gömülür
+  /** Dosya doğrulanmadan kullanıcı yönü; görüntü olduğu gibi bırakılıp PDF sayfasına uygulanır */
+  rotation?: 0 | 90 | 180 | 270;
 }
 
 export interface PdfMetadata {
@@ -39,8 +42,8 @@ export interface PdfResult {
 export class PdfGenerator {
   /**
    * Generate a professional PDF from scanned pages.
-   * Pipeline: normalize DPI → encode as base64 → build HTML with OCR layer → print to PDF.
-   * Native engine wires in via PdfEngine.stub.ts for PDF/A and true text objects.
+   * Pipeline: normalize DPI → native (stub) → pdf-lib (gerçek PDF) → HTML + expo-print.
+   * Önce `BriefPilotPdfEngine` (iOS/Android) dener (A4 raster + görünmez OCR).
    */
   async generate(pages: PdfPage[], options: PdfOptions = {}): Promise<PdfResult> {
     if (!pages.length) throw new Error('Keine Seiten zum Generieren');
@@ -48,7 +51,7 @@ export class PdfGenerator {
     const profile = options.profile ?? 'high';
     const spec = getProfile(profile);
     const { onProgress, metadata } = options;
-    const total = pages.length + 2; // normalize + build + print
+    const total = pages.length + 3; // normalize + build + render
     let step = 0;
 
     onProgress?.(step++, total, 'Bilder werden normalisiert…');
@@ -77,7 +80,37 @@ export class PdfGenerator {
       return { uri: nativeResult.uri, pageCount: pages.length, fileSize: nativeResult.fileSize, profile, isSearchable: nativeResult.isSearchable, dpi: spec.dpi };
     }
 
-    // JS fallback: HTML → PDF via expo-print
+    const pdfLibResult = await generatePdfFromImages(
+      normalizedPages.map(p => ({
+        uri: p.uri,
+        width: p.width,
+        height: p.height,
+        ocrText: p.ocrText,
+        rotation: p.rotation,
+      })),
+      metadata
+        ? {
+            title: metadata.title,
+            author: metadata.author,
+            subject: metadata.subject,
+            keywords: metadata.keywords,
+          }
+        : undefined,
+    );
+
+    if (pdfLibResult) {
+      onProgress?.(total, total, 'Fertig');
+      return {
+        uri: pdfLibResult.uri,
+        pageCount: pages.length,
+        fileSize: pdfLibResult.fileSize,
+        profile,
+        isSearchable: pdfLibResult.isSearchable,
+        dpi: spec.dpi,
+      };
+    }
+
+    // Fallback: HTML → PDF via expo-print
     const html = await this.buildHtml(normalizedPages, metadata, spec.dpi);
     onProgress?.(step++, total, 'PDF wird gerendert…');
 

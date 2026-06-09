@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet, Animated } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import type { SmartFolder } from '../../../services/SmartFolderService';
+import { useTheme } from '@/ThemeContext';
+import Icon from '@/components/Icon';
+import type { SmartFolder } from '@/services/SmartFolderService';
 
 interface Props {
   folders:       SmartFolder[];
@@ -66,7 +67,7 @@ function FolderCard({
       ]}>
         {/* Icon background */}
         <View style={[st.iconBg, { backgroundColor: `${folder.color}1A` }]}>
-          <Text style={st.emoji}>{folder.emoji}</Text>
+          <Icon name={folder.icon} size={22} color={folder.color} />
         </View>
 
         {/* Badge */}
@@ -99,7 +100,6 @@ const st = StyleSheet.create({
     position:     'relative',
   },
   iconBg:     { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  emoji:      { fontSize: 22 },
   badge:      {
     position:     'absolute',
     top:          8,

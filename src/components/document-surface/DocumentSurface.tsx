@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../../ThemeContext';
+import { useTheme } from '@/ThemeContext';
 
 interface DocumentSurfaceProps {
   children: React.ReactNode;
@@ -14,6 +14,7 @@ interface DocumentSurfaceProps {
   onLongPress?: () => void;
   selected?: boolean;
   accentColor?: string;
+  urgent?: boolean;
   style?: ViewStyle;
   accessibilityLabel?: string;
 }
@@ -21,7 +22,7 @@ interface DocumentSurfaceProps {
 const SPRING = { damping: 22, stiffness: 320, mass: 0.7 };
 
 export default function DocumentSurface({
-  children, onPress, onLongPress, selected = false, accentColor, style, accessibilityLabel,
+  children, onPress, onLongPress, selected = false, accentColor, urgent = false, style, accessibilityLabel,
 }: DocumentSurfaceProps) {
   const { Colors } = useTheme();
   const scale = useSharedValue(1);
@@ -53,7 +54,7 @@ export default function DocumentSurface({
 
   const accent = accentColor || Colors.border;
   const shadowColor = selected ? Colors.primary : accent;
-  const isUrgent = accent === Colors.danger || accent === Colors.warning;
+  const isUrgent = urgent;
 
   return (
     <Animated.View style={[animStyle, style]}>
@@ -70,13 +71,18 @@ export default function DocumentSurface({
         style={[
           st.card,
           {
-            backgroundColor: selected ? Colors.bgCard : `${accent}${Platform.OS === 'android' ? '14' : '09'}`,
-            borderColor: selected ? Colors.primary : 'transparent',
+            backgroundColor: Colors.bgCard,
+            borderColor: selected
+              ? Colors.primary
+              : isUrgent
+              ? `${accent}28`
+              : Colors.borderLight,
+            borderWidth: selected ? 1.5 : isUrgent ? 1 : 1,
             shadowColor,
-            shadowOpacity: selected ? 0.16 : isUrgent ? 0.22 : 0.07,
-            shadowRadius: selected ? 20 : isUrgent ? 20 : 14,
-            shadowOffset: { width: 0, height: selected ? 8 : isUrgent ? 10 : 5 },
-            elevation: selected ? 6 : isUrgent ? 5 : 3,
+            shadowOpacity: selected ? 0.16 : isUrgent ? 0.10 : 0.05,
+            shadowRadius: selected ? 16 : isUrgent ? 14 : 10,
+            shadowOffset: { width: 0, height: selected ? 6 : isUrgent ? 4 : 3 },
+            elevation: selected ? 5 : isUrgent ? 3 : 2,
           },
           selected && st.selected,
         ]}
@@ -91,12 +97,12 @@ export default function DocumentSurface({
 
 const st = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    paddingLeft: 20,        // extra left padding for stripe
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    paddingLeft: 18,        // extra left padding for stripe
     marginHorizontal: 16,
-    marginVertical: 6,
+    marginVertical: 4,
     borderWidth: 1,
     overflow: 'hidden',
   },
@@ -106,8 +112,9 @@ const st = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 3,
-    borderTopLeftRadius: 20,
-    borderBottomLeftRadius: 20,
+    width: 2,
+    opacity: 0.65,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
   },
 });

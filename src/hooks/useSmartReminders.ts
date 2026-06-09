@@ -1,17 +1,21 @@
 import { useState, useMemo, useCallback } from 'react';
+import { Alert, Linking } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import {
   buildReminderSuggestions,
   scheduleReminder,
   cancelReminder,
   type ReminderSuggestion,
   type ScheduledReminder,
-} from '../services/SmartRemindersService';
-import type { Dokument } from '../store';
+} from '@/services/SmartRemindersService';
+import { useToast } from '@/hooks/useToast';
+import type { Dokument } from '@/store';
 
 export function useSmartReminders(dok: Dokument | null) {
   const [scheduled, setScheduled] = useState<ScheduledReminder[]>([]);
   const [isScheduling, setIsScheduling] = useState(false);
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
 
   const suggestions = useMemo(() => (dok ? buildReminderSuggestions(dok) : []), [dok]);
 
@@ -19,9 +23,40 @@ export function useSmartReminders(dok: Dokument | null) {
     if (!dok) return;
     setIsScheduling(true);
     try {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const permissions = await Notifications.getPermissionsAsync();
+      let finalStatus = permissions.status;
+
+      if (permissions.status !== 'granted') {
+        if (!permissions.canAskAgain) {
+          Alert.alert(
+            'Benachrichtigungen deaktiviert',
+            'Öffne die Einstellungen und aktiviere Benachrichtigungen für BriefPilot.',
+            [
+              { text: 'Abbrechen', style: 'cancel' },
+              { text: 'Einstellungen öffnen', onPress: () => Linking.openURL('app-settings:') },
+            ],
+          );
+          return;
+        }
+        const requestResult = await Notifications.requestPermissionsAsync();
+        finalStatus = requestResult.status;
+      }
+
+      if (finalStatus !== 'granted') {
+        Alert.alert(
+          'Benachrichtigungen deaktiviert',
+          'Aktiviere Benachrichtigungen, damit BriefPilot dich an Fristen erinnern kann.',
+        );
+        return;
+      }
+
       const result = await scheduleReminder(dok, suggestion);
-      if (result) setScheduled(prev => [...prev, result]);
+      if (result) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setScheduled(prev => [...prev, result]);
+      }
+    } catch {
+      showToast({ message: 'Erinnerung nicht gesetzt', tone: 'danger', icon: 'alert-circle' });
     } finally {
       setIsScheduling(false);
     }
@@ -36,5 +71,5 @@ export function useSmartReminders(dok: Dokument | null) {
     return scheduled.some(r => r.label.includes(suggestionId));
   }, [scheduled]);
 
-  return { suggestions, scheduled, isScheduling, schedule, cancel, isAlreadyScheduled };
+  return { suggestions, scheduled, isScheduling, schedule, cancel, isAlreadyScheduled, toastConfig, hideToast };
 }

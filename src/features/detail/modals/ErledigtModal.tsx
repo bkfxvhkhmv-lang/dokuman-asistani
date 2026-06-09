@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity } from 'react-native';
-import { useTheme } from '../../../ThemeContext';
-import { UISoundService } from '../../../services/UISoundService';
-import { useThrottledPress } from '../../../hooks/useThrottledPress';
+import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
+import { UISoundService } from '@/services/UISoundService';
+import { useThrottledPress } from '@/hooks/useThrottledPress';
 
 const UNDO_SECONDS = 10;
 
@@ -19,6 +20,7 @@ export default function ErledigtModal({
   visible, onClose, erledigt, betrag, onConfirm, onUndo,
 }: ErledigtModalProps) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const [phase, setPhase]       = useState<'confirm' | 'undo'>('confirm');
   const [countdown, setCountdown] = useState(UNDO_SECONDS);
 
@@ -56,7 +58,7 @@ export default function ErledigtModal({
       ? ` · ${betrag.toFixed(2).replace('.', ',')} € abgehakt`
       : '';
     return (
-      <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+      <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
         <TouchableOpacity style={{ flex: 1 }} onPress={onClose} activeOpacity={1} />
         <View style={{
           backgroundColor: C.bgCard,
@@ -96,29 +98,29 @@ export default function ErledigtModal({
 
   // ── Confirm phase ─────────────────────────────────────────────────────────
   return (
-    <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
+    <Modal visible={visible} animationType="fade" transparent presentationStyle="overFullScreen">
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }} onPress={onClose} />
       <View style={{ backgroundColor: C.bgCard, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 }}>
         <View style={{ width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20, backgroundColor: C.border }} />
         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text, marginBottom: 8 }}>
-          {erledigt ? 'Dokument wieder öffnen' : 'Dokument als erledigt markieren'}
+          {T('modal.done.title')}
         </Text>
         <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: 18, lineHeight: 18 }}>
           {erledigt
-            ? 'Dieses Dokument wird wieder als offen markiert.'
-            : 'Dieses Dokument wird als erledigt markiert.'}
+            ? T('detail.status.in_review')
+            : T('detail.action.mark_done')}
         </Text>
         <TouchableOpacity
           onPress={handleConfirm}
           style={{ paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: erledigt ? C.warning : C.success, marginBottom: 10 }}
         >
           <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>
-            {erledigt ? 'Als offen markieren' : 'Als erledigt markieren'}
+            {T('detail.action.mark_done')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose}
           style={{ paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: C.border }}>
-          <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>Abbrechen</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('common.cancel')}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

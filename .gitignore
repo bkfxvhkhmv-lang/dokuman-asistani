@@ -2,7 +2,12 @@
 .env
 .env.*
 !.env.example
+!**/.env.example
 .env.local
+
+# Android debug signing (local; regenerate with Android SDK if missing)
+android/app/debug.keystore
+*.jks
 .DS_Store
 
 # Dependencies (asla commit edilmemeli)

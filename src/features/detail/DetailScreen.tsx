@@ -198,6 +198,7 @@ export default function Detailbildschirm() {
         <DetailHeader
           onBack={handleBack}
           anonModus={modal.anonModus}
+          isDemo={!!dok.isDemo}
           erinnerungAktiv={smartReminders.scheduled.length > 0}
         />
       </Animated.View>

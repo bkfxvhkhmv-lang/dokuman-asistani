@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from '@/components/Icon';
 import { HIT_SLOP_LG } from '@/theme';
 import { useScan } from '@/features/scan/context/ScanContext';
 import { useT } from '@/hooks/useT';
+import { confirmCameraClose } from '@/features/scan/components/camera-view/confirmCameraClose';
 
 interface TopBarProps {
   topInset: number;
@@ -15,20 +16,7 @@ export default function CameraTopBar({ topInset, pageCount, onClose }: TopBarPro
   const { flash, toggleFlash, autoCapture, toggleAutoCapture } = useScan();
   const { t: T } = useT();
 
-  const handleClose = () => {
-    if (pageCount > 0) {
-      Alert.alert(
-        T('scan.camera.abort_title'),
-        T(pageCount === 1 ? 'scan.camera.abort_body_single' : 'scan.camera.abort_body_multi', { n: pageCount }),
-        [
-          { text: T('scan.camera.continue'), style: 'cancel' },
-          { text: T('common.cancel'), style: 'destructive', onPress: onClose },
-        ],
-      );
-    } else {
-      onClose();
-    }
-  };
+  const handleClose = () => confirmCameraClose(pageCount, onClose, T);
 
   return (
     <View style={[st.bar, { top: topInset }]}>

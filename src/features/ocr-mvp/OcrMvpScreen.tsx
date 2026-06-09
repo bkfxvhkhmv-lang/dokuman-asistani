@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, AppState, type AppStateStatus,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, AppState, BackHandler, Platform, type AppStateStatus,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -376,6 +376,15 @@ export default function OcrMvpScreen({ onClose }: Props) {
     reset();
   }, [reset]);
 
+  const exitDuringAnalysis = useCallback(() => {
+    handleReset();
+    if (onClose) {
+      onClose();
+      return;
+    }
+    router.back();
+  }, [handleReset, onClose, router]);
+
   // Fallback: OCR failed/offline — save imported file as a minimal draft document.
   const handleSaveAsDraft = useCallback(async () => {
     if (savedDocId || !selectedUri) return;
@@ -470,6 +479,24 @@ export default function OcrMvpScreen({ onClose }: Props) {
     setPrivacyGateBypassed(suppressPrivacyGate);
     return () => setPrivacyGateBypassed(false);
   }, [scannerOpen, status]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    if (status !== 'uploading' && status !== 'processing') return;
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      Alert.alert(
+        T('ocr.back_guard.title'),
+        T('ocr.back_guard.body'),
+        [
+          { text: T('common.cancel'), style: 'cancel' },
+          { text: T('ocr.status.cancel_analysis'), style: 'destructive', onPress: exitDuringAnalysis },
+        ],
+      );
+      return true;
+    });
+    return () => sub.remove();
+  }, [status, T, exitDuringAnalysis]);
 
   const st = styles(Colors);
   const isActive = status === 'uploading' || status === 'processing';

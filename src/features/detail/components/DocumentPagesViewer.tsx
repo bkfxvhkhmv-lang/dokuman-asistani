@@ -13,6 +13,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
+import { preparePageShareUri } from '@/utils/sharePageFile';
 
 import EmptyPagesModal from '@/features/detail/components/document-pages-viewer/EmptyPagesModal';
 import ViewerTopBar from '@/features/detail/components/document-pages-viewer/ViewerTopBar';
@@ -31,6 +32,7 @@ export default function DocumentPagesViewer({
   pages,
   initialIndex = 0,
   onClose,
+  dok,
   onShare,
 }: DocumentPagesViewerProps) {
   const insets = useSafeAreaInsets();
@@ -107,17 +109,23 @@ export default function DocumentPagesViewer({
     setPrivacyGateBypassed(true);
     try {
       const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(page.uri, {
-          dialogTitle: `Seite ${active + 1}`,
-        });
-      }
+      if (!canShare) return;
+      const { uri, filename, mimeType } = await preparePageShareUri({
+        sourceUri: page.uri,
+        dok,
+        pageIndex: active,
+        pageCount: sortedPages.length,
+      });
+      await Sharing.shareAsync(uri, {
+        mimeType,
+        dialogTitle: filename,
+      });
     } catch {
       // sessizce yut — sheet zaten kapanir
     } finally {
       setPrivacyGateBypassed(false);
     }
-  }, [onShare, sortedPages, active]);
+  }, [onShare, sortedPages, active, dok]);
 
   const [contentHeight, setContentHeight] = useState(Dimensions.get('window').height);
   const thumbBottomPad = Math.max(12, insets.bottom + 8);

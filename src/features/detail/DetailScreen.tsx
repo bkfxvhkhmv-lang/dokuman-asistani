@@ -370,6 +370,7 @@ export default function Detailbildschirm() {
         visible={pagesViewer.visible}
         pages={viewerPages}
         initialIndex={pagesViewer.index}
+        dok={dok}
         onClose={closePagesViewer}
       />
 

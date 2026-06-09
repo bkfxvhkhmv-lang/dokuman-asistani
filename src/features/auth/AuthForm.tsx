@@ -44,7 +44,7 @@ export default function AuthForm({
         returnKeyType="next"
       />
       <AppInput
-        label="Passwort"
+        label={T('auth.password_label')}
         secure
         placeholder={T('auth.password')}
         value={password}
@@ -96,7 +96,7 @@ export default function AuthForm({
           activeOpacity={0.75}
           style={{ marginTop: 10, alignItems: 'center' }}
         >
-          <Text style={{ fontSize: 13, color: C.primary }}>Passwort vergessen?</Text>
+          <Text style={{ fontSize: 13, color: C.primary }}>{T('auth.forgot_password')}</Text>
         </TouchableOpacity>
       )}
     </View>

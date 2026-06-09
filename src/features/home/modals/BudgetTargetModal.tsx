@@ -82,7 +82,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
 
         {/* Header */}
         <View style={st.header}>
-          <Text style={[st.title, { color: Colors.text }]}>Budgetziele</Text>
+          <Text style={[st.title, { color: Colors.text }]}>{T('budget.targets.title')}</Text>
           <TouchableOpacity onPress={onClose}>
             <Text style={[st.closeBtn, { color: Colors.primary }]}>Fertig</Text>
           </TouchableOpacity>

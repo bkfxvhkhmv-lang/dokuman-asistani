@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { useT } from '@/hooks/useT';
 import type { FristenDemo, PrivatDemo, RisikoDemo, ScanDemo, Slide, SlideDemo, SucheDemo } from '@/components/onboarding/onboarding.types';
 
 function DemoScan({ demo }: { demo: ScanDemo }) {
@@ -116,16 +117,20 @@ function DemoSuche({ demo }: { demo: SucheDemo }) {
 }
 
 function DemoPrivat({ demo }: { demo: PrivatDemo }) {
+  const { t: T } = useT();
   return (
     <View style={{ width: '100%', marginTop: 20, gap: 10 }}>
-      {demo.punkte.map((p, i) => (
+      {demo.punkte.map((p, i) => {
+        const label = p.textKey ? T(p.textKey) : p.text ?? '';
+        return (
         <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12,
           borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)' }}>
           <Text style={{ fontSize: 22 }}>{p.icon}</Text>
-          <Text style={{ fontSize: 13, color: '#fff', fontWeight: '500', flex: 1 }}>{p.text}</Text>
+          <Text style={{ fontSize: 13, color: '#fff', fontWeight: '500', flex: 1 }}>{label}</Text>
           <Text style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>✓</Text>
         </View>
-      ))}
+        );
+      })}
     </View>
   );
 }

@@ -7,10 +7,12 @@ import type { OnboardingModalProps } from '@/components/onboarding/onboarding.ty
 import { onboardingAlsGesehen } from '@/components/onboarding/onboarding.storage';
 import { onboardingStyles as st, ONBOARDING_TOP_OFFSET } from '@/components/onboarding/onboarding.styles';
 import { OnboardingSlideDemo } from '@/components/onboarding/onboarding.demos';
+import { useT } from '@/hooks/useT';
 
 const W = ONBOARDING_SLIDE_WIDTH;
 
 export default function OnboardingModalView({ visible, onFertig }: OnboardingModalProps) {
+  const { t: T } = useT();
   const [aktiv, setAktiv] = useState(0);
   const scrollRef = useRef<ScrollView | null>(null);
   const insets = useSafeAreaInsets();
@@ -64,7 +66,7 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
                 <Text style={st.emoji}>{s.emoji}</Text>
               </View>
               <Text style={st.titel}>{s.titel}</Text>
-              <Text style={st.text}>{s.text}</Text>
+              <Text style={st.text}>{s.textKey ? T(s.textKey) : s.text}</Text>
               {i === aktiv ? <OnboardingSlideDemo slide={s} /> : null}
               <View style={{ height: 120 }} />
             </ScrollView>

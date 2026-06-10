@@ -32,6 +32,8 @@ import {
   persistImportSource,
 } from './domain/saveImportDraft';
 import { toUserFacingOcrMessage } from './domain/userFacingErrors';
+import { useGuestLimit } from '@/hooks/useGuestLimit';
+import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -96,6 +98,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const { t: T } = useT();
   const router = useRouter();
   const { state, dispatch } = useStore();
+  const { gateDocument, gateOcr, upgradeVisible, dismissUpgrade } = useGuestLimit();
   const { status, jobId, result, error, errorKind, startJob, reset } = useOcrMvpJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
@@ -192,6 +195,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
       return duplicate.id;
     }
 
+    if (!(await gateDocument())) return '';
+
     const doc = buildDraftDocument(docId, persistedPages, fileName, sourceUri);
     dispatch({ type: 'ADD_DOKUMENT', payload: doc });
     setSavedDocId(doc.id);
@@ -202,6 +207,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     earlyPersistedPages,
     state.dokumente,
     dispatch,
+    gateDocument,
   ]);
 
   const handleSaveWithoutAnalysisFromAsset = useCallback(async (asset: ScannedAsset) => {
@@ -229,6 +235,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
       if (duplicate) {
         finalDocId = duplicate.id;
       } else {
+        if (!(await gateDocument())) return;
         const doc = buildDraftDocument(persisted.docId, persisted.pages, asset.name ?? null, asset.uri);
         dispatch({ type: 'ADD_DOKUMENT', payload: doc });
         finalDocId = doc.id;
@@ -250,6 +257,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     router,
     T,
     setTiming,
+    gateDocument,
   ]);
 
   const handleSubmit = async (
@@ -261,6 +269,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
     sourceType?: string,
     pageCount?: number,
   ) => {
+    if (!(await gateOcr())) return;
+
     setTiming('scanReceived');
     setSelectedUri(fileUri);
     setSelectedFileName(fileName ?? null);
@@ -327,6 +337,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
         return;
       }
 
+      if (!(await gateDocument())) return;
+
       const draft = ocrMvpToV4Document(result, {
         id:               docId,
         uri:              persistedPages[0]?.uri ?? null,
@@ -356,7 +368,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     } catch (e: any) {
       Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
-  }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente]);
+  }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente, gateDocument]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;
@@ -390,7 +402,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     if (savedDocId || !selectedUri) return;
     try {
       const docId = await persistDraftAndSave(selectedUri, selectedFileName);
-      setSavedDocId(docId);
+      if (docId) setSavedDocId(docId);
     } catch (e: any) {
       Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
@@ -605,6 +617,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
           </View>
         )}
       </ScrollView>
+
+      <GuestUpgradeSheet visible={upgradeVisible} onClose={dismissUpgrade} />
     </SafeAreaView>
   );
 }

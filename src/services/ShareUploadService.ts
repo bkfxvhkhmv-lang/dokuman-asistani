@@ -28,15 +28,30 @@ import {
   withAndroidNotificationChannel,
 } from '@/services/SmartNotificationsService';
 import { erstelleKurzfassung } from '@/services/vision-api/summarizeText';
+import type { DocumentAnalysis } from '@/services/vision-api/types';
 import type { Dokument } from '@/store';
+
+function emptyShareAnalysis(): DocumentAnalysis {
+  return {
+    typ: 'Sonstiges',
+    risiko: 'niedrig',
+    betrag: null,
+    frist: null,
+    absender: '',
+    aktionen: [],
+    zusammenfassung: '',
+    kurzfassung: '',
+    iban: null,
+  };
+}
 
 export type ShareFileType = 'pdf' | 'image' | 'unknown';
 
 export function detectFileType(uri: string): ShareFileType {
-  const lower = uri.toLowerCase();
-  if (lower.endsWith('.pdf') || lower.includes('application/pdf')) return 'pdf';
-  if (/\.(jpe?g|png|heic|tiff?|webp|bmp)/.test(lower)) return 'image';
-  if (lower.includes('image/')) return 'image';
+  const decoded = decodeURIComponent(uri).toLowerCase();
+  if (decoded.endsWith('.pdf') || decoded.includes('/pdf:') || decoded.includes('application/pdf')) return 'pdf';
+  if (/\.(jpe?g|png|heic|tiff?|webp|bmp)/.test(decoded)) return 'image';
+  if (decoded.includes('image/') || decoded.includes('/images/') || decoded.includes('/image:')) return 'image';
   return 'unknown';
 }
 
@@ -103,7 +118,9 @@ export async function processSharedFile(
     }
 
     // Step 2 — run analysis pipeline
-    const visionResult = analysiereText(rawText);
+    const visionResult = (fileType === 'pdf' && !rawText.trim())
+      ? emptyShareAnalysis()
+      : analysiereText(rawText);
     const autoFillResult = runSmartAutoFill(visionResult, rawText);
     const categoryResult = runSmartCategorization(visionResult, rawText);
 
@@ -163,18 +180,23 @@ export async function processSharedFile(
 export async function normaliseSharedUri(uri: string): Promise<string | null> {
   if (!uri) return null;
 
-  // Already a file:// — use as-is
-  if (uri.startsWith('file://')) return uri;
+  const docDir = FileSystem.documentDirectory ?? '';
+  const cacheDir = FileSystem.cacheDirectory ?? '';
+  const isInternal = (docDir && uri.startsWith(docDir)) || (cacheDir && uri.startsWith(cacheDir));
 
-  // content:// — copy to cache directory first
-  if (uri.startsWith('content://')) {
+  // content:// and external file:// URIs must be copied into app storage first.
+  if (uri.startsWith('content://') || (uri.startsWith('file://') && !isInternal)) {
     try {
-      const ext = detectFileType(uri) === 'pdf' ? '.pdf' : '.jpg';
-      const dest = `${FileSystem.cacheDirectory}briefpilot_share_${Date.now()}${ext}`;
+      const type = detectFileType(uri);
+      const ext = type === 'image' ? '.jpg' : '.pdf';
+      const dest = `${cacheDir}briefpilot_share_${Date.now()}${ext}`;
       await FileSystem.copyAsync({ from: uri, to: dest });
       return dest;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
+  if (uri.startsWith('file://')) return uri;
   return uri;
 }

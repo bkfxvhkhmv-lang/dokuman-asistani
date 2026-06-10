@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import com.facebook.react.PackageList
 import com.briefpilot.app.scanner.BriefPilotScannerPackage
 import com.briefpilot.app.scanner.BriefPilotDocumentScannerPackage
+import com.briefpilot.app.share.BriefPilotShareIntentPackage
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.ReactNativeHost
@@ -27,6 +28,7 @@ class MainApplication : Application(), ReactApplication {
             PackageList(this).packages.apply {
               add(BriefPilotScannerPackage())
               add(BriefPilotDocumentScannerPackage())
+              add(BriefPilotShareIntentPackage())
             }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"

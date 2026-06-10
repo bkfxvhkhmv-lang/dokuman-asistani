@@ -1,8 +1,10 @@
 package com.briefpilot.app
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 
+import com.briefpilot.app.share.ShareIntentRouter
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -17,6 +19,13 @@ class MainActivity : ReactActivity() {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null)
+    ShareIntentRouter.captureIntent(intent)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    ShareIntentRouter.captureIntent(intent)
   }
 
   /**

@@ -37,6 +37,8 @@ import {
 } from '@/features/settings/SettingsPrimitives';
 import { KontoShortcutsBlock, PrivacyLegalExtras } from '@/features/settings/SettingsGroupedBlocks';
 import FeedbackModal from '@/features/feedback/FeedbackModal';
+import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
+import { useGuestLimit } from '@/hooks/useGuestLimit';
 
 export default function EinstellungenScreen({ showBack = true }: { showBack?: boolean }) {
   const router = useRouter();
@@ -45,6 +47,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const { state, dispatch } = useStore();
   const { logout, user } = useAuth();
   const isGuest = user?.isGuest === true;
+  const { showUpgrade, upgradeVisible, dismissUpgrade } = useGuestLimit();
 
   const [emailModalOpen,   setEmailModalOpen]   = useState(false);
   const [plusVisible,      setPlusVisible]      = useState(false);
@@ -87,9 +90,13 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   }, [exportBackup, hideSheet, showSheet, state]);
 
   const handleImport = useCallback(async () => {
+    if (isGuest) {
+      showUpgrade();
+      return;
+    }
     const snapshot = { dokumente: state.dokumente, einstellungen: state.einstellungen };
     await importBackup(dispatch, snapshot);
-  }, [dispatch, importBackup, state.dokumente, state.einstellungen]);
+  }, [dispatch, importBackup, isGuest, showUpgrade, state.dokumente, state.einstellungen]);
 
   const docCount = state.dokumente.length;
 
@@ -404,6 +411,8 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           sheetConfig?.actions ?? [{ label: 'OK', variant: 'primary', onPress: hideSheet }]
         }
       />
+
+      <GuestUpgradeSheet visible={upgradeVisible} onClose={dismissUpgrade} />
     </SafeAreaView>
   );
 }

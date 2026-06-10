@@ -11,6 +11,7 @@ import React, {
   useEffect,
   useReducer,
   useRef,
+  useState,
   type Dispatch,
 } from 'react';
 import type { StoreState } from '@/store/types';
@@ -22,6 +23,8 @@ import { loadPersistedState, usePersistOnChange } from '@/store/persistence';
 interface StoreContextValue {
   state: StoreState;
   dispatch: Dispatch<StoreAction>;
+  /** true once loadPersistedState() has resolved and LOAD has been dispatched. */
+  storeHydrated: boolean;
 }
 
 const Ctx = createContext<StoreContextValue | null>(null);
@@ -29,6 +32,7 @@ const Ctx = createContext<StoreContextValue | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(rootReducer, INITIAL_STATE);
   const hydratedRef = useRef(false);
+  const [storeHydrated, setStoreHydrated] = useState(false);
 
   // 1) Acilista persisted state'i hydrate et.
   useEffect(() => {
@@ -39,7 +43,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (payload) dispatch({ type: 'LOAD', payload });
       })
       .finally(() => {
-        if (!cancelled) hydratedRef.current = true;
+        if (!cancelled) {
+          hydratedRef.current = true;
+          setStoreHydrated(true);
+        }
       });
     return () => { cancelled = true; };
   }, []);
@@ -47,7 +54,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // 2) State her degistiginde diske kaydet (hydration sonrasi).
   usePersistOnChange(state, hydratedRef);
 
-  return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ state, dispatch, storeHydrated }}>{children}</Ctx.Provider>;
 }
 
 export function useStore(): StoreContextValue {

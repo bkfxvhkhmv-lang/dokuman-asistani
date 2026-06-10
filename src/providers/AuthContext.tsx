@@ -1,11 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import {
   loginUser, registerUser, logoutUser, loginWithGoogleIdToken,
   getStoredUser, setSessionExpiredHandler,
 } from '@/services/authService';
+import { clearLimits } from '@/services/guestLimitService';
+
+const GUEST_MODE_KEY = '@briefpilot_guest_mode';
 
 import {
   GOOGLE_ANDROID_CLIENT_ID,
@@ -46,10 +50,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getStoredUser()
-      .then(u => setUser(u as AuthUser | null))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        const u = await getStoredUser();
+        if (u) {
+          setUser(u as AuthUser | null);
+        } else {
+          const guestMode = await AsyncStorage.getItem(GUEST_MODE_KEY);
+          setUser(guestMode === 'true'
+            ? { id: 'guest', email: 'gast@briefpilot.de', name: 'Gast', isGuest: true }
+            : null);
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
 
     setSessionExpiredHandler(() => { setUser(null); router.replace('/login'); });
   }, []);
@@ -57,22 +74,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const data = await loginUser(email, password) as any;
     setUser({ id: data.user_id, email: data.email });
+    void AsyncStorage.removeItem(GUEST_MODE_KEY);
+    void clearLimits();
     return data;
   }, []);
 
   const register = useCallback(async (email: string, password: string) => {
     const data = await registerUser(email, password) as any;
     setUser({ id: data.user_id, email: data.email });
+    void AsyncStorage.removeItem(GUEST_MODE_KEY);
+    void clearLimits();
     return data;
   }, []);
 
   const logout = useCallback(async () => {
+    void AsyncStorage.removeItem(GUEST_MODE_KEY);
     await logoutUser();
     setUser(null);
     router.replace('/login');
   }, []);
 
   const loginAsGuest = useCallback(() => {
+    void AsyncStorage.setItem(GUEST_MODE_KEY, 'true');
     setUser({ id: 'guest', email: 'gast@briefpilot.de', name: 'Gast', isGuest: true });
   }, []);
 
@@ -112,6 +135,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then((tokens) => {
         if (cancelled) return;
         setUser({ id: tokens.user_id!, email: tokens.email! });
+        void AsyncStorage.removeItem(GUEST_MODE_KEY);
+        void clearLimits();
       })
       .catch(e => console.warn('[AuthContext] Google login error', e))
       .finally(() => {

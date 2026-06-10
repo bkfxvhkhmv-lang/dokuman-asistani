@@ -37,6 +37,8 @@ import { clearPendingFirstValueNavigation } from '@/product/onboardingStorage';
 import { getScanQualityProfile } from '@/modules/scanner/flow/scanQualityProfiles';
 import KameraScreenBody from '@/features/scan/kamera-screen/KameraScreenBody';
 import AutoFillReviewModal from '@/components/auto-fill-review/AutoFillReviewModal';
+import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
+import { useGuestLimit } from '@/hooks/useGuestLimit';
 
 import type { CameraView as ExpoCameraView } from 'expo-camera';
 import type { BatchPage } from '@/modules/batch/types';
@@ -47,6 +49,7 @@ export default function KameraScreenView() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { dispatch, state } = useStore();
+  const { gateDocument, gateOcr, upgradeVisible, dismissUpgrade } = useGuestLimit();
   const imageSessionManager = getSharedImageSessionManager();
 
   const { prepareCapture, processSession } = useImagePipeline();
@@ -233,6 +236,9 @@ export default function KameraScreenView() {
   // Saves a minimal needs_review document from supplied page URIs, then navigates to it.
   // Pass optimisticId to UPDATE the existing placeholder instead of creating a new doc.
   const saveAsNeedsReview = useCallback(async (pageUris: Array<{ uri: string }>, optimisticId?: string) => {
+    // Placeholder already counted via handleProcessAll gate; only gate fresh saves.
+    if (!optimisticId && !(await gateDocument())) return;
+
     try {
       const saved = await finalizeDocument({ rawText: '', confidence: null, pages: pageUris, optimisticId });
       clearPages();
@@ -243,7 +249,7 @@ export default function KameraScreenView() {
       clearPages();
       setMode('camera');
     }
-  }, [finalizeDocument, clearPages, setMode, router, dispatch]);
+  }, [finalizeDocument, clearPages, setMode, router, dispatch, gateDocument]);
 
   // Called by AnalysisView visual-timeout buttons ("Felder prüfen" / "Trotzdem weiter").
   const handleContinueAnyway = useCallback(async () => {
@@ -280,7 +286,7 @@ export default function KameraScreenView() {
     });
   }, [showSheet, hideSheet, saveAsNeedsReview, clearPages, setMode, dispatch]);
 
-  const { handleProcessAll } = useProcessingHandler({
+  const { handleProcessAll: handleProcessAllInternal } = useProcessingHandler({
     pages: sessionPages, recognizeCaptures, attachOcr, finalizeDocument, attachMetadata,
     analyzeAndReview: smartPipeline.analyzeAndReview,
     clearPages, setMode, showSheet, hideSheet,
@@ -289,6 +295,14 @@ export default function KameraScreenView() {
     onOptimisticFail: (id) => dispatch({ type: 'DELETE_DOKUMENT', id }),
     onNeedsReview: handleNeedsReview,
   });
+
+  // Gate BEFORE dispatchOptimistic runs inside useProcessingHandler (OCR + doc counters).
+  const handleProcessAll = useCallback(async () => {
+    if (sessionPages.length === 0) return;
+    if (!(await gateOcr())) return;
+    if (!(await gateDocument())) return;
+    await handleProcessAllInternal();
+  }, [sessionPages.length, gateOcr, gateDocument, handleProcessAllInternal]);
 
   const handleActionSelect = useCallback(async (action: PostCaptureAction) => {
     closeActionPicker();
@@ -309,6 +323,10 @@ export default function KameraScreenView() {
       .sort((a, b) => a.order - b.order)
       .map(p => p.imageSession?.finalUri ?? p.uri)
       .filter(Boolean) as string[];
+
+    if (action === 'archive' || action === 'save_only' || action === 'export') {
+      if (!(await gateDocument())) return;
+    }
 
     await executeScanAction({
       action,
@@ -332,6 +350,7 @@ export default function KameraScreenView() {
   }, [
     closeActionPicker, sessionPages, pageCount, handleProcessAll, clearPages,
     showSheet, hideSheet, generatePdf, router, dispatch, setMode, backToCamera, startEditing, mode,
+    gateDocument,
   ]);
 
   const onRootLayout = useCallback((width: number, height: number) => {
@@ -384,6 +403,7 @@ export default function KameraScreenView() {
 
   return (
     <ScanProvider value={scanContextValue}>
+      <GuestUpgradeSheet visible={upgradeVisible} onClose={dismissUpgrade} />
       <AutoFillReviewModal
         visible={smartPipeline.showReview}
         onClose={smartPipeline.dismissReview}

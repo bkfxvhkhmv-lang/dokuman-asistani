@@ -22,6 +22,9 @@ _audit/
 _backup/
 _legacy_backups/
 
+# Local QA artifacts — may contain screenshots, DB dumps, tokens, or PII
+qa-artifacts/
+
 # ── OCR / ML Binary Artifacts (Git'e GİRMEZ) ──────────────────────────────
 *.tar.gz
 *.zip

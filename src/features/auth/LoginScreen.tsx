@@ -35,7 +35,7 @@ export default function LoginScreen() {
   const reset = usePasswordReset(openSheet);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !user.isGuest) {
       router.replace('/(tabs)/');
     }
   }, [user, authLoading, router]);
@@ -119,7 +119,10 @@ export default function LoginScreen() {
             loading={loading}
             onSubmit={handleSubmit}
             onGoogle={loginWithGoogle}
-            onGuest={loginAsGuest}
+            onGuest={() => {
+              loginAsGuest();
+              router.replace('/(tabs)/');
+            }}
             onForgotPassword={() => {
               reset.setResetModal(true);
               reset.setResetEmail(email);

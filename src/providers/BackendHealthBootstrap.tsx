@@ -16,7 +16,7 @@ export default function BackendHealthBootstrap() {
   useEffect(() => {
     void pingOnce().then(ok => {
       if (__DEV__ && !ok) {
-        console.warn('[BackendHealth] Reachability check failed for', `${OCR_MVP_BASE}/health`);
+        console.log('[BackendHealth] Reachability check failed for', `${OCR_MVP_BASE}/health`);
       }
     });
     return undefined;

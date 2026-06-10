@@ -70,7 +70,7 @@ export const tabStyles = StyleSheet.create({
     minHeight:      56,
     paddingBottom:  2,
   },
-  scanItem: { justifyContent: 'flex-start' },
+  scanItem: { justifyContent: 'flex-end', paddingBottom: 9 },
   iconWrap: {
     alignItems:     'center',
     justifyContent: 'center',

@@ -9,27 +9,32 @@ try {
 import * as Haptics from 'expo-haptics';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface SperrBildschirmProps {
   visible: boolean;
   onEntsperrt: () => void;
 }
 
+const CANCEL_ERRORS = new Set(['user_cancel', 'system_cancel', 'app_cancel']);
+
 export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschirmProps) {
   const { Colors: C } = useTheme();
+  const { t: T } = useT();
   const [fehler, setFehler] = useState(false);
+  const [abgebrochen, setAbgebrochen] = useState(false);
   const [unterstuetzt, setUnterstuetzt] = useState(true);
 
   useEffect(() => {
     if (visible) {
       setFehler(false);
+      setAbgebrochen(false);
       authentifizieren();
     }
   }, [visible]);
 
   async function authentifizieren() {
     if (!LocalAuthentication) {
-      // Package not installed — unlock immediately (dev mode fallback)
       onEntsperrt();
       return;
     }
@@ -38,7 +43,7 @@ export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschir
       const registriert = await LocalAuthentication.isEnrolledAsync();
       if (!hat || !registriert) {
         setUnterstuetzt(false);
-        onEntsperrt(); // no hardware → let user through
+        onEntsperrt();
         return;
       }
       const result = await LocalAuthentication.authenticateAsync({
@@ -51,12 +56,14 @@ export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschir
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         onEntsperrt();
       } else {
+        const cancelled = result.error ? CANCEL_ERRORS.has(result.error) : true;
+        setAbgebrochen(cancelled);
         setFehler(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch {
       setUnterstuetzt(false);
-      onEntsperrt(); // graceful fallback
+      onEntsperrt();
     }
   }
 
@@ -76,7 +83,9 @@ export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschir
           </Text>
         )}
         {fehler && (
-          <Text style={[st.hinweis, { color: C.danger }]}>Authentifizierung fehlgeschlagen.</Text>
+          <Text style={[st.hinweis, { color: abgebrochen ? 'rgba(255,255,255,0.55)' : C.danger }]}>
+            {abgebrochen ? T('privacy.unlock_cancelled') : T('privacy.auth_failed')}
+          </Text>
         )}
         <TouchableOpacity
           style={st.btn}

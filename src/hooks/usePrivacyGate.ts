@@ -1,32 +1,73 @@
 /**
  * usePrivacyGate
  *
- * Two-layer privacy when the user leaves the app:
+ * Two-layer privacy when the user leaves the app (only when appSperre is ON
+ * and the user is a signed-in non-guest outside excluded routes):
  *
- *  1. IMMEDIATE — opaque overlay appears the instant the app goes to background
- *     so the App Switcher never shows sensitive content (#102)
- *
- *  2. BIOMETRIC — when the app returns to the foreground, SperrBildschirm
- *     triggers FaceID / Fingerprint before the overlay lifts (#101)
+ *  1. IMMEDIATE — opaque overlay on background (#102)
+ *  2. BIOMETRIC — SperrBildschirm on foreground return (#101)
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
+import { usePathname } from 'expo-router';
+import { useStore } from '@/store';
+import { useAuth } from '@/providers/AuthContext';
 import { isPrivacyGateBypassed, subscribePrivacyGateBypass } from './privacyGateBypass';
 
+const LOCK_EXCLUDED_ROUTES = ['/login', '/onboarding', '/first-value'] as const;
+
+export function isLockExcludedRoute(pathname: string): boolean {
+  return LOCK_EXCLUDED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
+}
+
+export function shouldArmPrivacyGate(opts: {
+  appSperre: boolean;
+  user: { isGuest?: boolean } | null;
+  authLoading: boolean;
+  pathname: string;
+}): boolean {
+  if (!opts.appSperre) return false;
+  if (opts.authLoading) return false;
+  if (!opts.user || opts.user.isGuest) return false;
+  if (isLockExcludedRoute(opts.pathname)) return false;
+  if (isPrivacyGateBypassed()) return false;
+  return true;
+}
+
 interface PrivacyGateState {
-  overlayVisible: boolean;   // #102 — opaque cover (shown immediately on background)
-  lockVisible:    boolean;   // #101 — biometric gate (shown on foreground return)
-  onUnlocked:     () => void;
+  overlayVisible: boolean;
+  lockVisible: boolean;
+  onUnlocked: () => void;
 }
 
 export function usePrivacyGate(): PrivacyGateState {
+  const pathname = usePathname();
+  const { state } = useStore();
+  const { user, loading: authLoading } = useAuth();
+  const appSperre = state.einstellungen.appSperre;
+
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [lockVisible,    setLockVisible]    = useState(false);
+  const [lockVisible, setLockVisible] = useState(false);
   const [bypassed, setBypassed] = useState(isPrivacyGateBypassed());
 
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const wasBackground = useRef(false);
+
+  const policyRef = useRef({ appSperre, user, authLoading, pathname });
+  policyRef.current = { appSperre, user, authLoading, pathname };
+
+  const isArmed = useCallback((): boolean => {
+    const p = policyRef.current;
+    return shouldArmPrivacyGate({
+      appSperre: p.appSperre,
+      user: p.user,
+      authLoading: p.authLoading,
+      pathname: p.pathname,
+    });
+  }, []);
 
   const onUnlocked = () => {
     setLockVisible(false);
@@ -45,9 +86,18 @@ export function usePrivacyGate(): PrivacyGateState {
     });
   }, []);
 
+  // Drop overlay/lock when policy no longer applies (route change, logout, toggle off).
+  useEffect(() => {
+    if (!isArmed()) {
+      wasBackground.current = false;
+      setLockVisible(false);
+      setOverlayVisible(false);
+    }
+  }, [appSperre, user, authLoading, pathname, bypassed, isArmed]);
+
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
-      if (isPrivacyGateBypassed()) {
+      if (isPrivacyGateBypassed() || !isArmed()) {
         appStateRef.current = next;
         wasBackground.current = false;
         setLockVisible(false);
@@ -55,30 +105,30 @@ export function usePrivacyGate(): PrivacyGateState {
         return;
       }
 
-      const prev = appStateRef.current;
       appStateRef.current = next;
 
       if (next === 'background') {
-        // Show opaque cover immediately → App Switcher never sees content
         setOverlayVisible(true);
         wasBackground.current = true;
       } else if (next === 'inactive') {
-        // System dialogs (camera permission, calls) — cover but don't arm biometric
         setOverlayVisible(true);
       } else if (next === 'active') {
         if (wasBackground.current) {
           wasBackground.current = false;
-          // Overlay stays visible — SperrBildschirm (biometric) will dismiss it on success
           setLockVisible(true);
         } else {
-          // Returning from system dialog (permission, Face ID prompt) — just lift the cover
           setOverlayVisible(false);
         }
       }
     });
 
     return () => sub.remove();
-  }, []);
+  }, [isArmed]);
 
-  return { overlayVisible: bypassed ? false : overlayVisible, lockVisible: bypassed ? false : lockVisible, onUnlocked };
+  const gated = !bypassed && isArmed();
+  return {
+    overlayVisible: gated && overlayVisible,
+    lockVisible: gated && lockVisible,
+    onUnlocked,
+  };
 }

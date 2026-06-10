@@ -12,6 +12,13 @@ import {
   GOOGLE_WEB_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
 } from '@/config/googleAuth';
+import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
+
+const OAUTH_PRIVACY_BYPASS_MS = 60_000;
+
+function releaseOAuthPrivacyBypass() {
+  setPrivacyGateBypassed(false);
+}
 
 WebBrowser.maybeCompleteAuthSession();
 export interface AuthUser {
@@ -76,7 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (response?.type !== 'success') return;
+    if (!response) return;
+
+    if (response.type !== 'success') {
+      releaseOAuthPrivacyBypass();
+      return;
+    }
 
     const authentication = (response as { authentication?: { idToken?: string } }).authentication;
     const params = (response as { params?: Record<string, string> }).params;
@@ -91,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authenticationKeys: authentication ? Object.keys(authentication) : [],
         paramKeys: params ? Object.keys(params) : [],
       });
+      releaseOAuthPrivacyBypass();
       return;
     }
 
@@ -100,13 +113,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         setUser({ id: tokens.user_id!, email: tokens.email! });
       })
-      .catch(e => console.warn('[AuthContext] Google login error', e));
+      .catch(e => console.warn('[AuthContext] Google login error', e))
+      .finally(() => {
+        if (!cancelled) {
+          setTimeout(releaseOAuthPrivacyBypass, 300);
+        }
+      });
 
     return () => { cancelled = true; };
   }, [response]);
 
   const loginWithGoogle = useCallback(async () => {
-    await promptAsync();
+    setPrivacyGateBypassed(true);
+    const safetyTimer = setTimeout(releaseOAuthPrivacyBypass, OAUTH_PRIVACY_BYPASS_MS);
+    try {
+      await promptAsync();
+    } catch {
+      releaseOAuthPrivacyBypass();
+    } finally {
+      clearTimeout(safetyTimer);
+    }
   }, [promptAsync]);
 
   return (

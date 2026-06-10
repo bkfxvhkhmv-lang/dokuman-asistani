@@ -185,15 +185,18 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
           <FlatRow
             icon="lock-closed-outline"
             label={T('settings.app_lock')}
-            sub={T('settings.app_lock_sub')}
+            sub={isGuest ? T('settings.app_lock_guest_sub') : T('settings.app_lock_sub')}
             right={
               <Switch
                 value={state.einstellungen.appSperre}
-                onValueChange={(v: boolean) =>
-                  dispatch({ type: 'UPDATE_EINSTELLUNGEN', payload: { appSperre: v } })
-                }
+                onValueChange={(v: boolean) => {
+                  if (isGuest) return;
+                  dispatch({ type: 'UPDATE_EINSTELLUNGEN', payload: { appSperre: v } });
+                }}
+                disabled={isGuest}
                 trackColor={{ false: C.border, true: C.primary }}
                 thumbColor={state.einstellungen.appSperre ? '#fff' : C.bgCard}
+                style={isGuest ? { opacity: 0.5 } : undefined}
               />
             }
           />

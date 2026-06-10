@@ -1,5 +1,6 @@
 import { View, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { MarketplaceRule } from '@/services/v4Api';
 import { SheetDragger } from '@/screens/marktplatz/SheetDragger';
 import Icon from '@/components/Icon';
@@ -20,6 +21,7 @@ export function MarktplatzRuleDetailModal({
   onRate,
 }: Props) {
   const { Colors: C } = useTheme();
+  const { t } = useT();
 
   return (
     <Modal visible={!!detailRegel} animationType="fade" transparent presentationStyle="overFullScreen">
@@ -38,7 +40,7 @@ export function MarktplatzRuleDetailModal({
             <Text style={{ fontSize: 18, fontWeight: '700', color: C.text, flex: 1 }}>{detailRegel.name}</Text>
             <TouchableOpacity
               onPress={onDismiss}
-              accessibilityLabel="Schließen"
+              accessibilityLabel={t('common.close')}
               accessibilityRole="button"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={{ padding: 4, marginLeft: 8 }}

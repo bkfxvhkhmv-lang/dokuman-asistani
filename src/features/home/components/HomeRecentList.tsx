@@ -19,6 +19,8 @@ import {
   getDocumentsSectionSubline,
 } from '@/product/strategyCopy';
 import { useT } from '@/hooks/useT';
+import { AppInput } from '@/design/components';
+import { filterBySearch } from '@/utils/search';
 
 // Tabs where sender-based stacking improves readability
 const STACK_TABS = new Set(['Aufgaben', 'Zahlungen']);
@@ -48,6 +50,7 @@ function HomeRecentListInner({ data }: { data: any }) {
   const { fs } = useTheme();
   const { t: T } = useT();
   const [showAll, setShowAll] = useState(false);
+  const [listQuery, setListQuery] = useState('');
   const cardRefs = useRef<Map<string, View>>(new Map());
   const queryClient      = useQueryClient();
 
@@ -125,7 +128,12 @@ function HomeRecentListInner({ data }: { data: any }) {
     return allDocs.findIndex((x: any) => `${x.typ}|${x.betrag}|${x.absender}` === fp) === i;
   });
   const INITIAL_LIMIT = useStacking ? 20 : 6;
-  const docs = deduped.slice(0, showAll ? deduped.length : INITIAL_LIMIT);
+  const normalizedQuery = listQuery.trim();
+  const searched = normalizedQuery.length >= 2
+    ? filterBySearch(deduped, { query: normalizedQuery })
+    : deduped;
+  const effectiveShowAll = showAll || normalizedQuery.length >= 2;
+  const docs = searched.slice(0, effectiveShowAll ? searched.length : INITIAL_LIMIT);
 
   // Build stacks only for tabs that benefit from grouping
   const stacks = useMemo(
@@ -134,6 +142,9 @@ function HomeRecentListInner({ data }: { data: any }) {
   );
 
   if (docs.length === 0) {
+    if (normalizedQuery.length >= 2) {
+      return <EmptyState variant="search" compact={false} />;
+    }
     // S2.3: Bos durum CTA — varsayilan sekme "Dokumente" oldugu icin
     // ilk acilis bos kalirsa kullaniciyi dogrudan tarama akisina yonlendir.
     const variant = TAB_VARIANT[data.aktiv] ?? 'generic';
@@ -186,6 +197,17 @@ function HomeRecentListInner({ data }: { data: any }) {
         )}
       </View>
 
+      {!data.secilenModus && (
+        <AppInput
+          variant="search"
+          placeholder={T('home.list_search.placeholder')}
+          value={listQuery}
+          onChangeText={setListQuery}
+          onClear={() => setListQuery('')}
+          style={{ marginHorizontal: 16, marginBottom: 8 }}
+        />
+      )}
+
       <View>
         {stacks
           ? stacks.map((stack, i) => (
@@ -220,7 +242,7 @@ function HomeRecentListInner({ data }: { data: any }) {
         }
       </View>
 
-      {deduped.length > docs.length && !data.secilenModus && (
+      {searched.length > docs.length && !data.secilenModus && (
         <TouchableOpacity
           onPress={() => setShowAll(true)}
           style={st.allLink}

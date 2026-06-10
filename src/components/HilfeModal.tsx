@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface Kurum {
   ad: string;
@@ -77,6 +78,7 @@ interface HilfeModalProps {
 
 export default function HilfeModal({ visible, onClose, dokTyp }: HilfeModalProps) {
   const { Colors: C, R, S } = useTheme();
+  const { t } = useT();
   const [aktifKat, setAktifKat] = useState<Kategorie | null>(null);
 
   const handleTelefon = (tel: string) => { Linking.openURL(`tel:${tel.replace(/\s/g, '')}`).catch(() => null); };
@@ -94,7 +96,7 @@ export default function HilfeModal({ visible, onClose, dokTyp }: HilfeModalProps
                 <Text style={{ fontSize: 15, color: C.primary }}>← Zurück</Text>
               </TouchableOpacity>
               <Text style={{ flex: 1, fontSize: 16, fontWeight: '800', color: C.text }}>{aktifKat.icon}  {aktifKat.label}</Text>
-              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Schließen">
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={t('common.close')}>
                 <Text style={{ fontSize: 22, color: C.textTertiary, lineHeight: 24 }}>×</Text>
               </TouchableOpacity>
             </View>
@@ -135,7 +137,7 @@ export default function HilfeModal({ visible, onClose, dokTyp }: HilfeModalProps
                 <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>🆘 Hilfe & Beratung</Text>
                 <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 4 }}>Kostenlose und günstige Beratungsstellen in Deutschland</Text>
               </View>
-              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel="Schließen" style={{ paddingTop: 2 }}>
+              <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} accessibilityRole="button" accessibilityLabel={t('common.close')} style={{ paddingTop: 2 }}>
                 <Text style={{ fontSize: 22, color: C.textTertiary, lineHeight: 24 }}>×</Text>
               </TouchableOpacity>
             </View>

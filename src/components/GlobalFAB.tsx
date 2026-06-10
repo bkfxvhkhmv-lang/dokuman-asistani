@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet, Pressable, PanResponder, Dimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -27,6 +28,7 @@ interface GlobalFABProps {
 
 export default function GlobalFAB({ router }: GlobalFABProps) {
   const { Colors: C, isDark } = useTheme();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const anim = useRef(new Animated.Value(0)).current;
   const pan = useRef(new Animated.ValueXY({ x: INIT_X, y: INIT_Y })).current;
@@ -136,7 +138,7 @@ export default function GlobalFAB({ router }: GlobalFABProps) {
           style={fabStyle}
           activeOpacity={0.85}
           accessibilityRole="button"
-          accessibilityLabel={open ? 'Menü schließen' : 'Aktionen öffnen'}
+          accessibilityLabel={open ? t('global_fab.close_menu_a11y') : t('global_fab.open_actions_a11y')}
           accessibilityState={{ expanded: open }}
         >
           <Animated.Text style={{ fontSize: 26, color: '#fff', transform: [{ rotate }] }}>+</Animated.Text>

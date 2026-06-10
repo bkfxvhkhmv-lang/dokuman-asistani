@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import AIThinkingIndicator from '@/components/AIThinkingIndicator';
 import type { Dokument } from '@/store';
 import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
@@ -17,13 +18,14 @@ interface DigitalTwinPanelProps {
 
 export default function DigitalTwinPanel({ digitalTwin, dok, institutionDesc, isLoading }: DigitalTwinPanelProps) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t } = useT();
 
   if (!digitalTwin) {
     if (!isLoading) return null;
     return (
       <View style={{ marginHorizontal: S.md, marginBottom: S.md, borderRadius: R.lg,
         backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
-        <AIThinkingIndicator label="Kurzfassung wird ermittelt…" />
+        <AIThinkingIndicator label={t('detail.twin.summary_loading')} />
       </View>
     );
   }

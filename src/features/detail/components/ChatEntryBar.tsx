@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 import type { Dokument } from '@/store';
 
@@ -23,6 +24,7 @@ interface ChatEntryBarProps {
 
 export default function ChatEntryBar({ dok, onOpen }: ChatEntryBarProps) {
   const { Colors: C, S, R, Shadow } = useTheme();
+  const { t } = useT();
   const teaser = dok ? (TYP_TEASER[dok.typ] ?? 'Stell eine Frage zu diesem Dokument.') : '';
 
   return (
@@ -30,7 +32,7 @@ export default function ChatEntryBar({ dok, onOpen }: ChatEntryBarProps) {
       activeOpacity={0.85}
       onPress={() => onOpen()}
       accessibilityRole="button"
-      accessibilityLabel="Assistenten fragen"
+      accessibilityLabel={t('detail.chat.ask_assistant_a11y')}
       style={[st.card, {
         backgroundColor: C.primaryLight,
         borderColor: C.primary + '33',
@@ -48,7 +50,7 @@ export default function ChatEntryBar({ dok, onOpen }: ChatEntryBarProps) {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>
-            Frag den Assistenten
+            {t('detail.chat.ask_assistant_title')}
           </Text>
           {!!teaser && (
             <Text style={{ fontSize: 11, color: C.primaryDark + 'AA', marginTop: 1 }} numberOfLines={1}>
@@ -62,7 +64,7 @@ export default function ChatEntryBar({ dok, onOpen }: ChatEntryBarProps) {
       {/* Fake input */}
       <View style={[st.fakeInput, { backgroundColor: C.bg, borderColor: C.primary + '22' }]}>
         <Text style={{ fontSize: 13, color: C.textTertiary, flex: 1 }}>
-          Was möchtest du wissen?
+          {t('detail.chat.prompt_placeholder')}
         </Text>
         <View style={[st.sendBtn, { backgroundColor: C.primary }]}>
           <Text style={{ color: '#fff', fontSize: 16, lineHeight: 20 }}>↑</Text>

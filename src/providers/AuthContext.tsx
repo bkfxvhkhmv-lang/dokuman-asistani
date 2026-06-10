@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { router } from 'expo-router';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  loginUser, registerUser, logoutUser,
+  loginUser, registerUser, logoutUser, loginWithGoogleIdToken,
   getStoredUser, setSessionExpiredHandler,
 } from '@/services/authService';
 
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
 
-    setSessionExpiredHandler(() => setUser(null));
+    setSessionExpiredHandler(() => { setUser(null); router.replace('/login'); });
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     await logoutUser();
     setUser(null);
+    router.replace('/login');
   }, []);
 
   const loginAsGuest = useCallback(() => {
@@ -75,19 +77,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (response?.type !== 'success') return;
-    const { authentication } = response as any;
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10_000);
-    fetch('https://www.googleapis.com/userinfo/v2/me', {
-      headers: { Authorization: `Bearer ${authentication.accessToken}` },
-      signal: controller.signal,
-    })
-      .then(r => { if (!r.ok) throw new Error(`Google API ${r.status}`); return r.json(); })
-      .then((googleUser: any) => {
-        setUser({ id: googleUser.id, email: googleUser.email, name: googleUser.name, photo: googleUser.picture });
+
+    const authentication = (response as { authentication?: { idToken?: string } }).authentication;
+    const params = (response as { params?: Record<string, string> }).params;
+    const idToken = authentication?.idToken?.trim()
+      || (typeof params?.id_token === 'string' ? params.id_token.trim() : '');
+
+    // Code exchange may complete asynchronously; wait for id_token.
+    if (!idToken) {
+      if (params?.code && !authentication) return;
+      console.warn('[AuthContext] Google login: id_token missing', {
+        hasAuthentication: !!authentication,
+        authenticationKeys: authentication ? Object.keys(authentication) : [],
+        paramKeys: params ? Object.keys(params) : [],
+      });
+      return;
+    }
+
+    let cancelled = false;
+    loginWithGoogleIdToken(idToken)
+      .then((tokens) => {
+        if (cancelled) return;
+        setUser({ id: tokens.user_id!, email: tokens.email! });
       })
-      .catch(e => console.warn('[AuthContext] Google login error', e))
-      .finally(() => clearTimeout(timer));
+      .catch(e => console.warn('[AuthContext] Google login error', e));
+
+    return () => { cancelled = true; };
   }, [response]);
 
   const loginWithGoogle = useCallback(async () => {

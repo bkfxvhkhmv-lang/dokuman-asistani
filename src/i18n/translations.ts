@@ -446,6 +446,7 @@ const de: Dict = {
   'settings.privacy_info':        'Datenschutzerklärung',
   'settings.konto_profile':       'Profil',
   'settings.konto_docs':          '{n} Dokumente auf diesem Gerät',
+  'settings.konto_guest_mode':    'Gastmodus',
   'settings.konto_premium':       'BriefPilot Plus',
   'settings.konto_premium_sub':   'Bald hier verfügbar',
   'detail.section.sender':        'Absender-Profil',

@@ -4,9 +4,25 @@ import { SectionCard, Row } from '@/features/profile/components/ProfileSection';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
-import { useAuth } from '@/providers/AuthContext';
+import { useAuth, type AuthUser } from '@/providers/AuthContext';
 import type { Router } from 'expo-router';
 import { FlatRow } from '@/features/settings/SettingsPrimitives';
+
+function kontoProfileSub(
+  T: (key: string, params?: Record<string, string | number>) => string,
+  docCount: number,
+  user: AuthUser | null,
+): string {
+  const docs = T('settings.konto_docs', { n: docCount });
+  if (user?.isGuest === true) {
+    return `${T('settings.konto_guest_mode')} · ${docs}`;
+  }
+  const email = user?.email?.trim();
+  if (email) {
+    return `${email} · ${docs}`;
+  }
+  return docs;
+}
 
 export function PrivacyLegalExtras() {
   const { Colors: C, fs } = useTheme();
@@ -47,7 +63,7 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false, on
       <>
         <FlatRow icon="person-outline"
           label={T('settings.konto_profile')}
-          sub={T('settings.konto_docs', { n: docCount })}
+          sub={kontoProfileSub(T, docCount, user)}
           onPress={goProfil}
           right={<Icon name="chevron-forward" size={20} color={C.textTertiary} />}
         />
@@ -66,7 +82,7 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false, on
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={{ fontSize: fs(14), fontWeight: '700', color: C.text }}>{T('settings.konto_profile')}</Text>
           <Text style={{ fontSize: fs(11), color: C.textTertiary, marginTop: 2 }}>
-            {T('settings.konto_docs', { n: docCount })}
+            {kontoProfileSub(T, docCount, user)}
           </Text>
         </View>
         <Icon name="chevron-forward" size={20} color={C.textTertiary} />

@@ -135,6 +135,24 @@ export async function loginUser(email: string, password: string): Promise<AuthTo
   return tokens;
 }
 
+export async function loginWithGoogleIdToken(idToken: string): Promise<AuthTokens> {
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: 'google',
+    token: idToken,
+  });
+  if (error) throw new Error(error.message);
+  if (!data.session) throw new Error('Keine Supabase-Sitzung');
+  const tokens: AuthTokens = {
+    access_token:  data.session.access_token,
+    refresh_token: data.session.refresh_token,
+    user_id:       data.session.user.id,
+    email:         data.session.user.email ?? '',
+  };
+  await saveTokens(tokens);
+  await setSupabaseAccessToken(data.session.access_token);
+  return tokens;
+}
+
 // Mutex: a single in-flight refresh promise shared across all concurrent callers.
 // Without this, N requests expiring simultaneously all race to refresh and
 // the first one wins while the others all get a fresh token from the same old refresh_token — causing chaos.

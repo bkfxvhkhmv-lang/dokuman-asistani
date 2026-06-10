@@ -19,6 +19,7 @@ import type { StoreAction } from '@/store/actions';
 import { rootReducer } from '@/store/reducers';
 import { INITIAL_STATE } from '@/store/initialState';
 import { loadPersistedState, usePersistOnChange } from '@/store/persistence';
+import { useAuth } from '@/providers/AuthContext';
 
 interface StoreContextValue {
   state: StoreState;
@@ -53,6 +54,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // 2) State her degistiginde diske kaydet (hydration sonrasi).
   usePersistOnChange(state, hydratedRef);
+
+  // 3) Guest → real user transition: clear stale appSperre so new real user is not locked out.
+  const { user } = useAuth();
+  const prevUserRef = useRef(user);
+  useEffect(() => {
+    if (storeHydrated) {
+      const wasGuest = prevUserRef.current?.isGuest === true;
+      const isReal = user != null && user.isGuest !== true;
+      if (wasGuest && isReal) {
+        dispatch({ type: 'UPDATE_EINSTELLUNGEN', payload: { appSperre: false } });
+      }
+    }
+    prevUserRef.current = user;
+  }, [user, storeHydrated, dispatch]);
 
   return <Ctx.Provider value={{ state, dispatch, storeHydrated }}>{children}</Ctx.Provider>;
 }

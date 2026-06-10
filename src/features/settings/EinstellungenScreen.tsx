@@ -314,7 +314,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
             backgroundColor: C.primaryLight,
           }}
         >
-          <Icon name="envelope" size={18} color={C.primary} />
+          <Icon name="envelope" size={22} color={C.primary} />
           <Text style={{ color: C.primary, fontSize: fs(14), fontWeight: '700' }}>
             {T('feedback.send')}
           </Text>

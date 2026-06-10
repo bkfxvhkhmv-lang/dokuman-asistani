@@ -69,7 +69,7 @@ export function FlatRow({ icon, label, sub, right, onPress, disabled }: FlatRowP
               justifyContent: 'center',
             }}
           >
-            <Icon name={icon} size={fs(17)} color={C.textSecondary} />
+            <Icon name={icon} size={fs(22)} color={C.textSecondary} />
           </View>
         ) : (
           <View style={{ width: 29 }} />

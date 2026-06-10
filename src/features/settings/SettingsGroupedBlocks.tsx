@@ -37,7 +37,7 @@ export function PrivacyLegalExtras() {
         label={T('settings.privacy_info')}
         sub={T('common.understood')}
         onPress={onPrivacyInfo}
-        right={<Icon name="information-circle-outline" size={18} color={C.textTertiary} />}
+        right={<Icon name="information-circle-outline" size={22} color={C.textTertiary} />}
       />
     </>
   );

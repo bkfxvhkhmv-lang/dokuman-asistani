@@ -34,7 +34,7 @@ export default function TabItem({
   const { t: T } = useT();
   // Translate tab label based on route name
   const rawLabel = resolveLabel(route, options);
-  const label = route.name === 'index'    ? T('tab.documents')
+  const label = route.name === 'index'    ? '📄 ' + T('tab.documents')
               : route.name === 'Suche'    ? T('tab.search')
               : route.name === 'Kamera'   ? T('tab.scan')
               : route.name === 'Export'   ? T('tab.export')

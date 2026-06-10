@@ -39,7 +39,7 @@ export default function AppListRow({
     <View style={[st.row, !noBorder && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border }, style]}>
       {icon ? (
         <View style={[st.iconBadge, { backgroundColor: iconBg + '1A' }]}>
-          <Icon name={icon} size={16} color={iconBg} />
+          <Icon name={icon} size={22} color={iconBg} />
         </View>
       ) : null}
 

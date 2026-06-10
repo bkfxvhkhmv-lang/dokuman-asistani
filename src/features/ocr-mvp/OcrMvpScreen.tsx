@@ -92,6 +92,7 @@ type TimingMarks = Partial<Record<
 >>;
 
 const OCR_KEEP_AWAKE_TAG = 'briefpilot-ocr-mvp';
+const SCANNER_OPENING_LABEL = 'Scanner wird geöffnet …';
 
 export default function OcrMvpScreen({ onClose }: Props) {
   const { Colors } = useTheme();
@@ -114,6 +115,31 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const scannerSessionRef = useRef(false);
   const submissionStartingRef = useRef(false);
+  const scannerOpenRef = useRef(false);
+  const statusRef = useRef(status);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  const endScannerSession = useCallback(() => {
+    scannerSessionRef.current = false;
+    submissionStartingRef.current = false;
+    scannerOpenRef.current = false;
+    setScannerOpen(false);
+  }, []);
+
+  const beginScannerSession = useCallback(() => {
+    scannerSessionRef.current = true;
+    submissionStartingRef.current = false;
+    scannerOpenRef.current = true;
+    setScannerOpen(true);
+  }, []);
+
+  const handleScannerPresentingChange = useCallback((presenting: boolean) => {
+    if (presenting) beginScannerSession();
+    else endScannerSession();
+  }, [beginScannerSession, endScannerSession]);
 
   const setTiming = useCallback((key: keyof TimingMarks, value = Date.now()) => {
     timingRef.current[key] = value;
@@ -409,11 +435,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
   }, [savedDocId, selectedUri, selectedFileName, persistDraftAndSave, T]);
 
   const runNewAnalysisPick = useCallback(async (pick: () => Promise<ScannedAsset | null>) => {
-    scannerSessionRef.current = true;
-    submissionStartingRef.current = false;
-    setScannerOpen(true);
+    beginScannerSession();
     try {
       const asset = await pick();
+      // AC-7: cancel/no asset — keep existing result card, do not reset.
       if (!asset) return;
       submissionStartingRef.current = true;
       handleReset();
@@ -429,10 +454,14 @@ export default function OcrMvpScreen({ onClose }: Props) {
     } catch (e: any) {
       Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(e?.message, T, 'ocr.upload.scan_error_body'));
     } finally {
-      scannerSessionRef.current = false;
-      requestAnimationFrame(() => requestAnimationFrame(() => setScannerOpen(false)));
+      endScannerSession();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (scannerOpenRef.current) endScannerSession();
+        });
+      });
     }
-  }, [handleReset, handleSubmit, T]);
+  }, [beginScannerSession, endScannerSession, handleReset, handleSubmit, T]);
 
   const handleNewAnalysisScan = useCallback(
     () => runNewAnalysisPick(() => ExpoScannerProvider.takePhotoWithScanner()),
@@ -459,14 +488,19 @@ export default function OcrMvpScreen({ onClose }: Props) {
       const prev = appStateRef.current;
       appStateRef.current = nextState;
       if (prev.match(/inactive|background/) && nextState === 'active') {
-        if (scannerSessionRef.current && !submissionStartingRef.current && status !== 'uploading' && status !== 'processing') {
-          scannerSessionRef.current = false;
-          setScannerOpen(false);
+        const isActiveNow = statusRef.current === 'uploading' || statusRef.current === 'processing';
+        if (scannerOpenRef.current && !submissionStartingRef.current && !isActiveNow) {
+          endScannerSession();
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (scannerOpenRef.current) endScannerSession();
+            });
+          });
         }
       }
     });
     return () => sub.remove();
-  }, [status]);
+  }, [endScannerSession]);
 
   useEffect(() => {
     const shouldKeepAwake = scannerOpen || status === 'uploading' || status === 'processing';
@@ -494,6 +528,17 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
+    if (!scannerOpen || status === 'uploading' || status === 'processing') return;
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      endScannerSession();
+      return true;
+    });
+    return () => sub.remove();
+  }, [scannerOpen, status, endScannerSession]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
     if (status !== 'uploading' && status !== 'processing') return;
 
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -512,11 +557,11 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
   const st = styles(Colors);
   const isActive = status === 'uploading' || status === 'processing';
-  const hideIdleChrome = scannerOpen && !isActive;
+  const showScannerShell = scannerOpen && !isActive;
 
   return (
     <SafeAreaView style={st.root} edges={['top', 'bottom']}>
-      <View style={[st.header, hideIdleChrome && st.headerHidden]} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
+      <View style={st.header}>
         <Text style={st.title}>{T('ocr.upload.screen_title')}</Text>
         {onClose && (
           <IconButton onPress={onClose} accessibilityLabel={T('common.close')}>
@@ -587,7 +632,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
 
         {/* Idle durumda: health check + upload box — done state'de gizle */}
         {!isActive && status !== 'done' && (
-          <View style={hideIdleChrome ? st.idleChromeHidden : undefined} pointerEvents={hideIdleChrome ? 'none' : 'auto'}>
+          <View>
             {health === 'checking' && (
               <View style={st.checkingBox}>
                 <ActivityIndicator color={Colors.primary} />
@@ -612,11 +657,22 @@ export default function OcrMvpScreen({ onClose }: Props) {
               onSubmit={handleSubmit}
               onSaveWithoutAnalysis={handleSaveWithoutAnalysisFromAsset}
               saveWithoutAnalysisBusy={saveWithoutAnalysisBusy}
-              onScannerPresentingChange={setScannerOpen}
+              onScannerPresentingChange={handleScannerPresentingChange}
             />
           </View>
         )}
       </ScrollView>
+
+      {showScannerShell && (
+        <View style={st.scannerOverlay} pointerEvents="box-none">
+          <View style={[st.scannerOverlayCard, { backgroundColor: Colors.bgCard, borderColor: Colors.border }]}>
+            <ActivityIndicator color={Colors.primary} />
+            <Text style={[st.scannerOverlayLabel, { color: Colors.textSecondary }]}>
+              {SCANNER_OPENING_LABEL}
+            </Text>
+          </View>
+        </View>
+      )}
 
       <GuestUpgradeSheet visible={upgradeVisible} onClose={dismissUpgrade} />
     </SafeAreaView>
@@ -630,9 +686,23 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border,
   },
-  headerHidden:  { opacity: 0 },
-  idleChromeHidden: { opacity: 0 },
   title:         { color: C.text, fontSize: 18, fontWeight: '700' },
+  scannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    zIndex: 10,
+  },
+  scannerOverlayCard: {
+    paddingVertical: 20,
+    paddingHorizontal: 28,
+    borderRadius: 16,
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+  },
+  scannerOverlayLabel: { fontSize: 14, fontWeight: '600' },
   centeredState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 24, paddingHorizontal: 20 },
   cancelAnalysisBtn: {
     marginTop: 18,

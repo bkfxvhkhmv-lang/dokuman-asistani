@@ -91,7 +91,7 @@ export default function SperrBildschirm({ visible, onEntsperrt }: SperrBildschir
           style={st.btn}
           onPress={authentifizieren}
           accessibilityRole="button"
-          accessibilityLabel={unterstuetzt ? 'BriefPilot entsperren' : 'Erneut versuchen'}
+          accessibilityLabel={unterstuetzt ? T('lockscreen.unlock_a11y') : T('common.retry')}
         >
           <Text style={st.btnText}>
             {unterstuetzt ? '🔓  Entsperren' : '↩  Erneut versuchen'}

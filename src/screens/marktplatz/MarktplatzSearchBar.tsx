@@ -1,6 +1,7 @@
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 
 interface Props {
   suche: string;
@@ -10,6 +11,7 @@ interface Props {
 
 export function MarktplatzSearchBar({ suche, setSuche, onSubmitSearch }: Props) {
   const { Colors: C, S } = useTheme();
+  const { t } = useT();
   return (
     <View style={{
       marginHorizontal: S.md,
@@ -27,7 +29,7 @@ export function MarktplatzSearchBar({ suche, setSuche, onSubmitSearch }: Props) 
       <Icon name="search" size={16} color={C.textTertiary} />
       <TextInput
         style={{ flex: 1, fontSize: 14, color: C.text }}
-        placeholder="Regel suchen…"
+        placeholder={t('market.search_placeholder')}
         placeholderTextColor={C.textTertiary}
         value={suche}
         onChangeText={setSuche}

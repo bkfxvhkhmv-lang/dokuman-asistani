@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { useT } from '@/hooks/useT';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARDING_SLIDE_WIDTH } from '@/components/onboarding/onboarding.constants';
 import { ONBOARDING_SLIDES } from '@/components/onboarding/onboarding.slides';
@@ -7,7 +8,6 @@ import type { OnboardingModalProps } from '@/components/onboarding/onboarding.ty
 import { onboardingAlsGesehen } from '@/components/onboarding/onboarding.storage';
 import { onboardingStyles as st, ONBOARDING_TOP_OFFSET } from '@/components/onboarding/onboarding.styles';
 import { OnboardingSlideDemo } from '@/components/onboarding/onboarding.demos';
-import { useT } from '@/hooks/useT';
 
 const W = ONBOARDING_SLIDE_WIDTH;
 
@@ -48,7 +48,7 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
       <View style={[st.container, { backgroundColor: slide.farbe }]}>
         {aktiv < slides.length - 1 ? (
           <TouchableOpacity style={[st.atla, { top: topOffset }]} onPress={handleUeberspringen}>
-            <Text style={st.atlaText}>Überspringen</Text>
+            <Text style={st.atlaText}>{T('onboarding.skip')}</Text>
           </TouchableOpacity>
         ) : null}
         <View style={[st.counter, { top: topOffset }]}>
@@ -83,7 +83,7 @@ export default function OnboardingModalView({ visible, onFertig }: OnboardingMod
 
         <TouchableOpacity style={st.btn} onPress={handleWeiter} activeOpacity={0.85}>
           <Text style={st.btnText}>
-            {aktiv === slides.length - 1 ? '🚀  Jetzt starten' : 'Weiter  →'}
+            {aktiv === slides.length - 1 ? T('onboarding.start_now') : T('onboarding.next_cta')}
           </Text>
         </TouchableOpacity>
 

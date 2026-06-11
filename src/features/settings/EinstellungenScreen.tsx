@@ -249,6 +249,18 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
               />
             }
           />
+          <FlatRow
+            icon="receipt-outline"
+            label="Nebenkostenabrechnung"
+            sub="Abrechnung vorbereiten und Hinweise erhalten"
+            onPress={() =>
+              router.push({
+                pathname: '/nebenkosten/assistant',
+                params: { role: 'vermieter' },
+              })
+            }
+            right={<Icon name="chevron-forward" size={20} color={C.textTertiary} />}
+          />
         </FlatGroup>
 
         <SettingsSectionTitle label={T('settings.data')} />

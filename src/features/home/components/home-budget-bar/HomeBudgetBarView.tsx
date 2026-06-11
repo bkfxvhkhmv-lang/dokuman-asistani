@@ -24,10 +24,12 @@ import { CriticalGlowLayers } from '@/features/home/components/home-budget-bar/C
 import { BudgetSparkRegion } from '@/features/home/components/home-budget-bar/BudgetSparkRegion';
 import { BudgetTargetProgressSection } from '@/features/home/components/home-budget-bar/BudgetTargetProgressSection';
 import { BudgetInsightFooter } from '@/features/home/components/home-budget-bar/BudgetInsightFooter';
+import { useT } from '@/hooks/useT';
 
 export default function HomeBudgetBarView({ budget, docs, onPress: _onPress }: HomeBudgetBarProps) {
   void _onPress;
   const { Colors, S } = useTheme();
+  const { t } = useT();
   const { state } = useStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [activeBucket, setActiveBucket] = useState<number | null>(null);
@@ -101,7 +103,7 @@ export default function HomeBudgetBarView({ budget, docs, onPress: _onPress }: H
                   <BudgetChip label={`${formatBetrag(budget.thisMonthTotal) ?? '€0'} / Monat`} color="#4361EE" />
                   {budget.unpaidCount > 0
                     ? <BudgetChip label={`${budget.unpaidCount} unbezahlt`} color={Colors.danger} />
-                    : <BudgetChip label="Alles bezahlt ✓" color={Colors.success} />}
+                    : <BudgetChip label={t('budget.all_paid')} color={Colors.success} />}
                   {budget.nextMonthEstimate > 0 && (
                     <BudgetChip
                       label={`~${formatBetrag(budget.nextMonthEstimate) ?? '–'} nächsten Monat`}

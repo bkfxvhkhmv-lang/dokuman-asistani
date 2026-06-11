@@ -92,7 +92,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
 
           <View style={[st.header, { borderColor: C.border }]}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>Dokument fragen</Text>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>{T('chat.document_title')}</Text>
               {dok?.absender ? (
                 <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 1 }} numberOfLines={1}>
                   {dok.absender} · {dok.typ}
@@ -109,7 +109,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
                 </Text>
               </View>
             )}
-            <TouchableOpacity onPress={handleClose} style={{ padding: 10 }} hitSlop={HIT_SLOP_LG} accessibilityRole="button" accessibilityLabel="Schließen">
+            <TouchableOpacity onPress={handleClose} style={{ padding: 10 }} hitSlop={HIT_SLOP_LG} accessibilityRole="button" accessibilityLabel={T('common.close')}>
               <Icon name="close" size={20} color={C.textSecondary} />
             </TouchableOpacity>
           </View>

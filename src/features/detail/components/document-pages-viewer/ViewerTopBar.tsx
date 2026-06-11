@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '@/components/Icon';
+import { useT } from '@/hooks/useT';
 import { HIT_SLOP_LG } from '@/theme';
 import { documentPagesViewerStyles as st } from '@/features/detail/components/document-pages-viewer/styles';
 
@@ -15,6 +16,7 @@ interface Props {
 
 export default function ViewerTopBar({ activeIndex, pageCount, onClose, onShare, onRotate }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useT();
   return (
     <View style={[st.topBarSafeWrapper, { paddingTop: insets.top }]}>
       <View style={st.topBar}>
@@ -31,7 +33,7 @@ export default function ViewerTopBar({ activeIndex, pageCount, onClose, onShare,
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           {onRotate && (
             <TouchableOpacity onPress={onRotate} hitSlop={HIT_SLOP_LG} style={st.iconBtn}
-              accessibilityLabel="Drehen" accessibilityRole="button">
+              accessibilityLabel={t('viewer.rotate_a11y')} accessibilityRole="button">
               <Icon name="arrow-clockwise" size={20} color="#fff" />
             </TouchableOpacity>
           )}

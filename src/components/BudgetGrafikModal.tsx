@@ -21,6 +21,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import type { Dokument } from '@/store';
 
 import BudgetYearStrip from '@/components/budget-grafik/BudgetYearStrip';
@@ -43,6 +44,7 @@ type UebersichtModus = 'monat' | 'jahr';
 
 export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
   const { Colors: C } = useTheme();
+  const { t } = useT();
   const mevcutYil = new Date().getFullYear();
 
   const [seciliYil, setSeciliYil]     = useState(mevcutYil);
@@ -95,7 +97,7 @@ export default function BudgetGrafikModal({ visible, onClose, docs }: Props) {
             onPress={onClose}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             accessibilityRole="button"
-            accessibilityLabel="Fertig"
+            accessibilityLabel={t('common.done')}
           >
             <Text style={{ fontSize: 15, fontWeight: '600', color: C.primary }}>Fertig</Text>
           </TouchableOpacity>

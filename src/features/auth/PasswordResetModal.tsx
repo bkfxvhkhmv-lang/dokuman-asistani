@@ -82,7 +82,7 @@ export default function PasswordResetModal({ reset }: Props) {
             <AppInput
               label={T('auth.reset_code_label')}
               icon="key"
-              placeholder="Token eingeben"
+              placeholder={T('auth.reset_token_placeholder')}
               value={resetToken}
               onChangeText={setResetToken}
               autoCapitalize="none"

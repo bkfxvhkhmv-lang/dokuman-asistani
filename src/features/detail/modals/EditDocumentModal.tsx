@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useTheme } from '@/ThemeContext';
+import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
 import { AppInput } from '@/design/components';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
@@ -22,6 +23,7 @@ interface EditDocumentModalProps {
 
 export default function EditDocumentModal({ visible, onClose, onSave, state, modal }: EditDocumentModalProps) {
   const { Colors: C, S, R } = useTheme();
+  const { t } = useT();
 
   const initialRef = useRef({
     titel: '', absender: '', betrag: '', frist: '', dokumentDatum: '',
@@ -199,7 +201,7 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
         <TouchableOpacity onPress={onSave}
           style={{ borderRadius: R.lg, padding: S.md, alignItems: 'center', backgroundColor: C.primary }}
           accessibilityRole="button"
-          accessibilityLabel="Speichern">
+          accessibilityLabel={t('common.save')}>
           <Text style={{ fontSize: 15, fontWeight: '700', color: '#fff' }}>Speichern</Text>
         </TouchableOpacity>
       </View>

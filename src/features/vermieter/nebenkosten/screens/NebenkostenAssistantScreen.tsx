@@ -144,14 +144,14 @@ export default function NebenkostenAssistantScreen() {
           <Text style={[st.badgeText, { color: C.primary }]}>{roleLabel}</Text>
         </View>
 
-        {importCandidate && !importDismissed ? (
+        {role === 'vermieter' && importCandidate && !importDismissed ? (
           <NkImportConfirmCard
             candidate={importCandidate}
             units={state.units}
             onConfirm={handleConfirmImport}
             onCancel={handleCancelImport}
           />
-        ) : sourceDokId && !importDismissed ? (
+        ) : role === 'vermieter' && sourceDokId && !importDismissed && !importCandidate ? (
           <View style={st.notFound}>
             <Text style={[st.notFoundText, { color: C.textSecondary }]}>
               Dokument nicht gefunden.

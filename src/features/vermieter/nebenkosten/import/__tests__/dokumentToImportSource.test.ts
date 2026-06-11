@@ -61,6 +61,29 @@ describe('dokumentToImportSource', () => {
     expect(result.confidence).toBe(0.87);
   });
 
+  it('maps title fields from input', () => {
+    const result = dokumentToImportSource(
+      makeDok({
+        customTitle: 'Benutzer Titel',
+        aiDisplayTitle: 'AI Titel',
+        titel: 'Schornsteinfeger 30.',
+        dateiName: 'schornsteinfeger.pdf',
+      }),
+    );
+    expect(result.customTitle).toBe('Benutzer Titel');
+    expect(result.aiDisplayTitle).toBe('AI Titel');
+    expect(result.titel).toBe('Schornsteinfeger 30.');
+    expect(result.dateiName).toBe('schornsteinfeger.pdf');
+  });
+
+  it('defaults missing title fields to null', () => {
+    const result = dokumentToImportSource(makeDok());
+    expect(result.customTitle).toBeNull();
+    expect(result.aiDisplayTitle).toBeNull();
+    expect(result.titel).toBeNull();
+    expect(result.dateiName).toBeNull();
+  });
+
   it('does not mutate input', () => {
     const dok = makeDok({ betrag: 50, absender: 'Test' });
     const snapshot = JSON.stringify(dok);

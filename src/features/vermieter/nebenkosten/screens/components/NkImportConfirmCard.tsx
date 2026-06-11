@@ -69,6 +69,12 @@ export function NkImportConfirmCard({
   const includeInCalculation = selectedCategory
     ? resolveIncludeInCalculation(selectedCategory.status)
     : true;
+  const hasUnits = units.length > 0;
+
+  const handleScopeSelect = (option: 'property' | 'unit') => {
+    if (option === 'unit' && !hasUnits) return;
+    setScope(option);
+  };
 
   const handleCategorySelect = (key: string) => {
     setCategoryKey(key);
@@ -154,26 +160,38 @@ export function NkImportConfirmCard({
 
       <Text style={[st.label, { color: C.textTertiary }]}>Umfang</Text>
       <View style={st.chipRow}>
-        {(['property', 'unit'] as const).map((option) => (
-          <Pressable
-            key={option}
-            onPress={() => setScope(option)}
-            style={[
-              st.chip,
-              {
-                backgroundColor: scope === option ? C.primaryLight : C.bgInput,
-                borderColor: scope === option ? C.primary : C.borderLight,
-              },
-            ]}
-          >
-            <Text style={[st.chipText, { color: scope === option ? C.primary : C.text }]}>
-              {option === 'property' ? 'Objekt' : 'Einheit'}
-            </Text>
-          </Pressable>
-        ))}
+        {(['property', 'unit'] as const).map((option) => {
+          const isUnitOption = option === 'unit';
+          const isDisabled = isUnitOption && !hasUnits;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => handleScopeSelect(option)}
+              disabled={isDisabled}
+              style={[
+                st.chip,
+                {
+                  backgroundColor: scope === option ? C.primaryLight : C.bgInput,
+                  borderColor: scope === option ? C.primary : C.borderLight,
+                  opacity: isDisabled ? 0.45 : 1,
+                },
+              ]}
+            >
+              <Text style={[st.chipText, { color: scope === option ? C.primary : C.text }]}>
+                {option === 'property' ? 'Objekt' : 'Einheit'}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
-      {scope === 'unit' ? (
+      {!hasUnits ? (
+        <Text style={[st.unitHint, { color: C.textTertiary }]}>
+          Einheit kann später ergänzt werden. Für den Anfang kann die Position dem Objekt zugeordnet werden.
+        </Text>
+      ) : null}
+
+      {scope === 'unit' && hasUnits ? (
         <>
           <Text style={[st.label, { color: C.textTertiary }]}>Einheit</Text>
           <View style={st.chipRow}>
@@ -296,6 +314,11 @@ const st = StyleSheet.create({
   chipText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  unitHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 8,
   },
   error: {
     fontSize: 13,

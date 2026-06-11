@@ -129,11 +129,17 @@ function HomeRecentListInner({ data }: { data: any }) {
   });
   const INITIAL_LIMIT = useStacking ? 20 : 6;
   const normalizedQuery = listQuery.trim();
+  const listBase = showAll ? allDocs : deduped;
   const searched = normalizedQuery.length >= 2
-    ? filterBySearch(deduped, { query: normalizedQuery })
-    : deduped;
+    ? filterBySearch(listBase, { query: normalizedQuery })
+    : listBase;
   const effectiveShowAll = showAll || normalizedQuery.length >= 2;
   const docs = searched.slice(0, effectiveShowAll ? searched.length : INITIAL_LIMIT);
+
+  const hiddenByDedupe = !showAll && allDocs.length > deduped.length;
+  const hiddenByLimit = !effectiveShowAll && searched.length > INITIAL_LIMIT;
+  const showExpandAffordance =
+    !data.secilenModus && normalizedQuery.length < 2 && (hiddenByDedupe || hiddenByLimit);
 
   // Build stacks only for tabs that benefit from grouping
   const stacks = useMemo(
@@ -208,6 +214,12 @@ function HomeRecentListInner({ data }: { data: any }) {
         />
       )}
 
+      {!data.secilenModus && hiddenByDedupe ? (
+        <Text style={[st.dedupeHint, { color: data.Colors.textTertiary, fontSize: fs(12) }]}>
+          {docs.length} von {allDocs.length} angezeigt · Ähnliche Belege zusammengefasst
+        </Text>
+      ) : null}
+
       <View>
         {stacks
           ? stacks.map((stack, i) => (
@@ -242,7 +254,7 @@ function HomeRecentListInner({ data }: { data: any }) {
         }
       </View>
 
-      {searched.length > docs.length && !data.secilenModus && (
+      {showExpandAffordance ? (
         <TouchableOpacity
           onPress={() => setShowAll(true)}
           style={st.allLink}
@@ -250,10 +262,10 @@ function HomeRecentListInner({ data }: { data: any }) {
           accessibilityRole="button"
         >
           <Text style={[st.allLinkLabel, { color: data.Colors.primary }]}>
-            {T('home.show_all_documents', { n: deduped.length })}
+            {T('home.show_all_documents', { n: allDocs.length })}
           </Text>
         </TouchableOpacity>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -278,6 +290,11 @@ const st = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 12,
+  },
+  dedupeHint: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    lineHeight: 17,
   },
   allLinkLabel: {
     fontSize: 14,

@@ -9,7 +9,9 @@ import {
   Modal,
   Keyboard,
   Platform,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ExpoClipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppSheet from '@/design/components/AppSheet';
@@ -84,6 +86,8 @@ export default function ReplyAssistantPreview({
   const [editedBody, setEditedBody] = useState('');
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [editorVisible, setEditorVisible] = useState(false);
+  const [editorDraft, setEditorDraft] = useState('');
   const autoOpenedRef = useRef(false);
   const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const copyBypassTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -216,7 +220,28 @@ export default function ReplyAssistantPreview({
     setStep('fill');
   }, []);
 
+  const openEditor = useCallback(() => {
+    setEditorDraft(editedBody);
+    setEditorVisible(true);
+  }, [editedBody]);
+
+  const saveEditor = useCallback(() => {
+    setEditedBody(editorDraft);
+    setEditorVisible(false);
+  }, [editorDraft]);
+
+  const restoreOriginal = useCallback(() => {
+    setEditorDraft(renderedBody);
+  }, [renderedBody]);
+
   const handleCopy = useCallback(async () => {
+    if (editedBody.trim().length < 80) {
+      Alert.alert(
+        'Entwurf zu kurz',
+        'Der Entwurf ist sehr kurz. Bitte prüfen Sie den Inhalt oder erstellen Sie den Entwurf erneut.',
+      );
+      return;
+    }
     holdCopyPrivacyBypass(COPY_PRIVACY_BYPASS_MS);
     try {
       await ExpoClipboard.setStringAsync(`${renderedBriefkopf}Betreff: ${renderedSubject}\n\n${editedBody}`);
@@ -225,7 +250,7 @@ export default function ReplyAssistantPreview({
     } catch {
       releaseCopyPrivacyBypass();
     }
-  }, [renderedBriefkopf, renderedSubject, editedBody, holdCopyPrivacyBypass, releaseCopyPrivacyBypass]);
+  }, [editedBody, renderedBriefkopf, renderedSubject, holdCopyPrivacyBypass, releaseCopyPrivacyBypass]);
 
   const sheetTitle =
     step === 'select' ? 'Antwortentwurf wählen' :
@@ -350,15 +375,45 @@ export default function ReplyAssistantPreview({
               template={selectedTemplate}
               briefkopf={renderedBriefkopf}
               subject={renderedSubject}
-              body={renderedBody}
               editedBody={editedBody}
-              onEditedBodyChange={setEditedBody}
+              onOpenEditor={openEditor}
+              onEditFields={goToFillFromPreview}
               safetyNote={selectedTemplate?.safetyNote}
               C={C} S={S} R={R}
             />
           )}
         </ScrollView>
       </AppSheet>
+
+      <Modal visible={editorVisible} animationType="slide" onRequestClose={saveEditor}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.bgCard }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.border }}>
+            <TouchableOpacity onPress={saveEditor} activeOpacity={0.75}>
+              <Text style={{ color: C.primary, fontSize: 16 }}>✕</Text>
+            </TouchableOpacity>
+            <Text style={{ color: C.text, fontSize: 16, fontWeight: '600' }}>Entwurf bearbeiten</Text>
+            <TouchableOpacity onPress={saveEditor} activeOpacity={0.75}>
+              <Text style={{ color: C.primary, fontSize: 16, fontWeight: '600' }}>Fertig</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="none">
+            <TextInput
+              value={editorDraft}
+              onChangeText={setEditorDraft}
+              multiline
+              autoFocus
+              style={{ padding: 16, fontSize: 15, lineHeight: 22, color: C.text, minHeight: 300 }}
+            />
+          </ScrollView>
+          <TouchableOpacity
+            onPress={restoreOriginal}
+            style={{ paddingVertical: 14, alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.border }}
+            activeOpacity={0.75}
+          >
+            <Text style={{ color: C.primary, fontSize: 14 }}>Original wiederherstellen</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </Modal>
 
       <Modal transparent visible={disclaimerVisible} animationType="fade" onRequestClose={() => {}}>
         <View style={st.disclaimerBackdrop}>
@@ -564,27 +619,54 @@ function FieldInput({
   );
 }
 
-const PREVIEW_COPY_DISCLAIMER =
-  'BriefPilot erstellt nur einen Textentwurf.\n' +
-  'Prüfen Sie Inhalt, Frist, Empfänger und Aktenzeichen selbst.\n' +
-  'Fügen Sie den Entwurf in Ihre E-Mail, in ein Online-Formular oder Schreiben ein.\n' +
-  'BriefPilot sendet nichts und ersetzt keine Rechtsberatung.\n' +
-  'Bei Unsicherheit konsultieren Sie einen Anwalt oder die Verbraucherzentrale.';
-
 // ── Preview step ──────────────────────────────────────────────────────────────
 
+function BriefkopfPreview({ briefkopf, C }: { briefkopf: string; C: any }) {
+  const lines = briefkopf.trimEnd().split('\n');
+  const absender = [lines[0], lines[1]].filter(Boolean);
+  const empfaenger = [lines[3], lines[4]].filter(Boolean);
+  const datum = lines[6];
+
+  return (
+    <View style={{ gap: 10 }}>
+      <View>
+        <Text style={{ color: C.textTertiary, fontSize: 10, fontWeight: '700', marginBottom: 2 }}>Absender</Text>
+        {absender.map((l, i) => (
+          <Text key={`a-${i}`} style={{ color: C.textSecondary, fontSize: 12, lineHeight: 18, fontFamily: 'monospace' }}>{l}</Text>
+        ))}
+      </View>
+      <View>
+        <Text style={{ color: C.textTertiary, fontSize: 10, fontWeight: '700', marginBottom: 2 }}>Empfänger</Text>
+        {empfaenger.map((l, i) => (
+          <Text key={`e-${i}`} style={{ color: C.textSecondary, fontSize: 12, lineHeight: 18, fontFamily: 'monospace' }}>{l}</Text>
+        ))}
+      </View>
+      {datum ? (
+        <View>
+          <Text style={{ color: C.textTertiary, fontSize: 10, fontWeight: '700', marginBottom: 2 }}>Datum</Text>
+          <Text style={{ color: C.textSecondary, fontSize: 12, lineHeight: 18, fontFamily: 'monospace' }}>{datum}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function PreviewStep({
-  template, briefkopf, subject, body, editedBody, onEditedBodyChange, safetyNote, C, R,
+  template, briefkopf, subject, editedBody, onOpenEditor, onEditFields, safetyNote, C, R,
 }: {
   template: ReplyTemplate | null;
   briefkopf: string;
   subject: string;
-  body: string;
   editedBody: string;
-  onEditedBodyChange: (v: string) => void;
+  onOpenEditor: () => void;
+  onEditFields: () => void;
   safetyNote?: string;
   C: any; S: any; R: any;
 }) {
+  const snippetLines = editedBody.split('\n').slice(0, 6);
+  const snippet = snippetLines.join('\n');
+  const isTruncated = editedBody.split('\n').length > 6;
+
   return (
     <View style={{ paddingBottom: 4 }}>
       {shouldShowHighRiskWarning(template) && (
@@ -605,23 +687,26 @@ function PreviewStep({
 
       {!!briefkopf && (
         <>
-          <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
-            ABSENDER & EMPFÄNGER
-          </Text>
-          <Text style={{
-            color: C.textSecondary, fontSize: 12, lineHeight: 18,
+          <SectionHeader label="ABSENDER & EMPFÄNGER" C={C} />
+          <View style={{
             borderRadius: R.sm ?? 6, borderWidth: 0.5, borderColor: C.border,
             backgroundColor: C.bgCard, padding: 10, marginBottom: 14,
-            fontFamily: 'monospace',
           }}>
-            {briefkopf.trimEnd()}
-          </Text>
+            <BriefkopfPreview briefkopf={briefkopf} C={C} />
+            <TouchableOpacity
+              onPress={onEditFields}
+              style={{ marginTop: 8, alignItems: 'center', paddingVertical: 4 }}
+              activeOpacity={0.75}
+            >
+              <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600' }}>
+                Absender & Empfänger bearbeiten
+              </Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
 
-      <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
-        BETREFF
-      </Text>
+      <SectionHeader label="BETREFF" C={C} />
       <Text style={{
         color: C.text, fontSize: 13, fontWeight: '600',
         borderRadius: R.sm ?? 6, borderWidth: 0.5, borderColor: C.border,
@@ -630,32 +715,27 @@ function PreviewStep({
         {subject}
       </Text>
 
-      <Text style={{ color: C.textTertiary, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>
-        INHALT — Entwurf bearbeiten
-      </Text>
-      <TextInput
-        value={editedBody}
-        onChangeText={onEditedBodyChange}
-        blurOnSubmit={false}
-        multiline
-        scrollEnabled
-        style={{
-          borderRadius: R.sm ?? 6,
-          borderWidth: 0.8,
-          borderColor: C.border,
-          backgroundColor: C.bgCard,
-          color: C.text,
-          fontSize: 13,
-          lineHeight: 20,
-          padding: 10,
-          minHeight: 72,
-          maxHeight: 96,
-          textAlignVertical: 'top',
-        }}
-      />
-      <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', lineHeight: 16, marginTop: 10 }}>
-        {PREVIEW_COPY_DISCLAIMER}
-      </Text>
+      <SectionHeader label="INHALT" C={C} />
+      <View style={{
+        borderRadius: R.sm ?? 6, borderWidth: 0.8, borderColor: C.border,
+        backgroundColor: C.bgCard, padding: 10,
+      }}>
+        <Text style={{ color: C.textSecondary, fontSize: 13, lineHeight: 20 }}>
+          {snippet}
+        </Text>
+        {isTruncated && (
+          <Text style={{ color: C.textTertiary, fontSize: 11, textAlign: 'center', marginTop: 4 }}>…</Text>
+        )}
+      </View>
+      <TouchableOpacity
+        onPress={onOpenEditor}
+        style={{ marginTop: 10, alignItems: 'center', paddingVertical: 6 }}
+        activeOpacity={0.75}
+      >
+        <Text style={{ color: C.primary, fontSize: 13, fontWeight: '600' }}>
+          Vollständig anzeigen & bearbeiten
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }

@@ -25,13 +25,23 @@ function isNkEligibleDocument(dok: Dokument): boolean {
   if (subtyp === 'nebenkosten') {
     return true;
   }
-  if (
-    dok.rohText != null &&
-    /heizung|wasser|müll|grundsteuer|hausmeister|nebenkosten/i.test(dok.rohText)
-  ) {
-    return true;
-  }
-  return false;
+
+  const nkPattern =
+    /heizung|wasser|müll|muell|grundsteuer|hausmeister|nebenkosten|betriebskosten|schornstein|schornsteinfeger|versicherung|gebäudeversicherung|gebaeudeversicherung|abfall|abfallgebühren|abfallgebuehren|strom|elektro|heizöl|heizoel|wartung|reinigung/i;
+
+  const searchableText = [
+    dok.titel,
+    dok.dateiName,
+    dok.customTitle,
+    dok.aiDisplayTitle,
+    dok.zusammenfassung,
+    dok.absender,
+    dok.rohText,
+  ]
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+    .join(' ');
+
+  return nkPattern.test(searchableText);
 }
 
 interface Params {

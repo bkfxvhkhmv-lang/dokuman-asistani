@@ -41,6 +41,7 @@ export interface NebenkostenDraftState {
   results: UnitCalculationResult[];
   validationIssues: ValidationIssue[];
   status: DraftStatus;
+  isHydrated: boolean;
 }
 
 export interface UnitUpdateInput {
@@ -59,6 +60,7 @@ export interface CostPositionUpdateInput {
 }
 
 export type NebenkostenDraftAction =
+  | { type: 'HYDRATE_DRAFT'; payload: NebenkostenDraftState }
   | { type: 'RESET_DRAFT' }
   | { type: 'SET_LANDLORD'; payload: Landlord | null }
   | { type: 'SET_PROPERTY'; payload: Property | null }

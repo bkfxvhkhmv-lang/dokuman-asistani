@@ -22,3 +22,10 @@ export {
 } from './selectors';
 export { buildAbrechnungFromDraft, DraftBuildError } from './buildAbrechnungFromDraft';
 export { runNebenkostenCalculation } from './runNebenkostenCalculation';
+export {
+  NK_DRAFT_STORAGE_KEY,
+  loadNkDraft,
+  saveNkDraft,
+  clearNkDraft,
+  shouldSaveNkDraft,
+} from './persistence';

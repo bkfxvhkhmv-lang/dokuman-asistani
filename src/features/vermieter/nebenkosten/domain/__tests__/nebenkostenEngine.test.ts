@@ -16,6 +16,7 @@ import {
   calculateLineItem,
   calculateUnitResult,
   calculateAbrechnung,
+  computePrepaymentTotalCents,
 } from '../calculationEngine';
 
 import { validateAbrechnung } from '../validation';
@@ -85,6 +86,7 @@ function makeCostPosition(overrides?: Partial<CostPosition>): CostPosition {
     totalCents: 120000,
     scope: 'property',
     allocationKey: { type: 'wohnflaeche' },
+    includeInCalculation: true,
     ...overrides,
   };
 }
@@ -622,5 +624,338 @@ describe('letterGenerator', () => {
       createdAt: '2024-01-01',
     }, makeLandlord());
     expect(letter).toContain('ersetzt keine rechtliche Beratung');
+  });
+
+  it('contains Belegeinsicht note', () => {
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property: makeProperty(),
+      landlord: makeLandlord(),
+      billingPeriod: makeBillingPeriod(),
+      units: [makeUnit()],
+      tenancies: [makeTenancy()],
+      costPositions: [makeCostPosition()],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, makeUnit(), makeTenancy());
+    const letter = generateLetterDraft(result, abrechnung, makeLandlord());
+    expect(letter).toContain('Belegeinsicht: Die Belege zu dieser Abrechnung stehen Ihnen auf Anfrage zur Einsicht bereit.');
+  });
+
+  it('shows excluded blocked position with 0,00 € and note', () => {
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property: makeProperty(),
+      landlord: makeLandlord(),
+      billingPeriod: makeBillingPeriod(),
+      units: [makeUnit()],
+      tenancies: [makeTenancy()],
+      costPositions: [
+        makeCostPosition({
+          categoryKey: 'reparaturen',
+          totalCents: 50000,
+          includeInCalculation: false,
+        }),
+      ],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, makeUnit(), makeTenancy());
+    const letter = generateLetterDraft(result, abrechnung, makeLandlord());
+    expect(letter).toContain(formatEuro(0));
+    expect(letter).toContain('(nicht umlagefähig laut BetrKV — nicht einbezogen)');
+  });
+});
+
+// ------------------------------------------------------------------
+// includeInCalculation
+// ------------------------------------------------------------------
+
+describe('includeInCalculation', () => {
+  const property = makeProperty();
+  const unit = makeUnit();
+  const tenancy = makeTenancy();
+  const billingPeriod = makeBillingPeriod();
+
+  it('blocked with includeInCalculation false → tenantShareCents 0 and excluded from sum', () => {
+    const cp = makeCostPosition({
+      categoryKey: 'reparaturen',
+      totalCents: 100000,
+      includeInCalculation: false,
+    });
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property,
+      landlord: makeLandlord(),
+      billingPeriod,
+      units: [unit],
+      tenancies: [tenancy],
+      costPositions: [cp],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, unit, tenancy);
+    expect(result.lineItems[0].tenantShareCents).toBe(0);
+    expect(result.sumTenantCostsCents).toBe(0);
+  });
+
+  it('blocked with includeInCalculation true → counted in sum and emits warning', () => {
+    const cp = makeCostPosition({
+      categoryKey: 'reparaturen',
+      totalCents: 100000,
+      includeInCalculation: true,
+    });
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property,
+      landlord: makeLandlord(),
+      billingPeriod,
+      units: [unit],
+      tenancies: [tenancy],
+      costPositions: [cp],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, unit, tenancy);
+    expect(result.lineItems[0].tenantShareCents).toBeGreaterThan(0);
+    expect(result.sumTenantCostsCents).toBeGreaterThan(0);
+
+    const issues = validateAbrechnung(abrechnung);
+    expect(issues.some((i) => i.code === 'BLOCKED_CATEGORY_INCLUDED')).toBe(true);
+  });
+
+  it('allocable category unaffected by default include flag', () => {
+    const cp = makeCostPosition({ categoryKey: 'grundsteuer', totalCents: 100000 });
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property,
+      landlord: makeLandlord(),
+      billingPeriod,
+      units: [unit],
+      tenancies: [tenancy],
+      costPositions: [cp],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, unit, tenancy);
+    expect(result.lineItems[0].tenantShareCents).toBe(30000);
+  });
+
+  it('warn category unaffected', () => {
+    const cp = makeCostPosition({ categoryKey: 'hauswart', totalCents: 100000 });
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property,
+      landlord: makeLandlord(),
+      billingPeriod,
+      units: [unit],
+      tenancies: [tenancy],
+      costPositions: [cp],
+      createdAt: '2024-01-01',
+    };
+    const result = calculateUnitResult(abrechnung, unit, tenancy);
+    expect(result.lineItems[0].tenantShareCents).toBe(30000);
+  });
+});
+
+// ------------------------------------------------------------------
+// computePrepaymentTotalCents
+// ------------------------------------------------------------------
+
+describe('computePrepaymentTotalCents', () => {
+  it('full 12-month period with full tenancy', () => {
+    const tenancy = makeTenancy({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(12 * 15000);
+  });
+
+  it('move-in on 15th of first month', () => {
+    const tenancy = makeTenancy({ startDate: '2024-01-15', endDate: '2024-12-31' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    // January: 31 - 15 + 1 = 17 days → 17/31
+    const january = Math.round(15000 * (17 / 31));
+    const rest = 11 * 15000;
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(january + rest);
+  });
+
+  it('move-out on 15th of last month', () => {
+    const tenancy = makeTenancy({ startDate: '2024-01-01', endDate: '2024-12-15' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    // December: 15 days → 15/31
+    const december = Math.round(15000 * (15 / 31));
+    const rest = 11 * 15000;
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(rest + december);
+  });
+
+  it('start and end inside same month', () => {
+    const tenancy = makeTenancy({ startDate: '2024-03-10', endDate: '2024-03-20' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    // March: 20 - 10 + 1 = 11 days → 11/31
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(Math.round(15000 * (11 / 31)));
+  });
+
+  it('tenancy entirely outside billing period returns 0', () => {
+    const tenancy = makeTenancy({ startDate: '2025-01-01', endDate: '2025-12-31' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(0);
+  });
+
+  it('February in 28-day year', () => {
+    const tenancy = makeTenancy({ startDate: '2023-02-01', endDate: '2023-02-28' });
+    const period = makeBillingPeriod({ startDate: '2023-01-01', endDate: '2023-12-31' });
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(15000);
+  });
+
+  it('February in 29-day leap year', () => {
+    const tenancy = makeTenancy({ startDate: '2024-02-01', endDate: '2024-02-29' });
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(15000);
+  });
+
+  it('open-ended tenancy bills through billingPeriod.endDate', () => {
+    const tenancy = makeTenancy({ startDate: '2024-01-01' }); // no endDate
+    const period = makeBillingPeriod({ startDate: '2024-01-01', endDate: '2024-06-30' });
+    expect(computePrepaymentTotalCents(tenancy, period)).toBe(6 * 15000);
+  });
+});
+
+// ------------------------------------------------------------------
+// personen allocation
+// ------------------------------------------------------------------
+
+describe('personen allocation', () => {
+  const property = makeProperty();
+  const unit = makeUnit();
+
+  it('personen with 2 persons out of 6 total → ~0.333', () => {
+    const tenancy = makeTenancy({ numberOfPersons: 2 });
+    const t2 = makeTenancy({ id: 't2', unitId: 'unit-2', numberOfPersons: 4 });
+    const input: import('../allocationEngine').AllocationInput = {
+      key: { type: 'personen' },
+      unit,
+      property,
+      tenancy,
+      activeTenanciesInPeriod: [tenancy, t2],
+    };
+    expect(computeSharePercent(input)).toBeCloseTo(0.3333, 3);
+  });
+
+  it('personen with all tenancies having 0 persons → ZERO_DENOMINATOR', () => {
+    const tenancy = makeTenancy({ numberOfPersons: 0 });
+    const t2 = makeTenancy({ id: 't2', unitId: 'unit-2', numberOfPersons: 0 });
+    const input: import('../allocationEngine').AllocationInput = {
+      key: { type: 'personen' },
+      unit,
+      property,
+      tenancy,
+      activeTenanciesInPeriod: [tenancy, t2],
+    };
+    try {
+      computeSharePercent(input);
+      throw new Error('should have thrown');
+    } catch (e: any) {
+      expect(e.code).toBe('ZERO_DENOMINATOR');
+    }
+  });
+
+  it('emits PERSONEN_STATIC_ASSUMPTION info when personen key used', () => {
+    const tenancy = makeTenancy({ numberOfPersons: 2 });
+    const t2 = makeTenancy({ id: 't2', unitId: 'unit-2', numberOfPersons: 4 });
+    const abrechnung: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property,
+      landlord: makeLandlord(),
+      billingPeriod: makeBillingPeriod(),
+      units: [unit, makeUnit({ id: 'unit-2', areaSqm: 80 })],
+      tenancies: [tenancy, t2],
+      costPositions: [
+        makeCostPosition({ allocationKey: { type: 'personen' }, totalCents: 60000 }),
+      ],
+      createdAt: '2024-01-01',
+    };
+    const issues = validateAbrechnung(abrechnung);
+    expect(issues.some((i) => i.code === 'PERSONEN_STATIC_ASSUMPTION' && i.severity === 'info')).toBe(true);
+  });
+});
+
+// ------------------------------------------------------------------
+// HeizkVO validation
+// ------------------------------------------------------------------
+
+describe('HeizkVO validation', () => {
+  function makeBaseAbrechnung(): NebenkostenAbrechnung {
+    return {
+      id: 'nk-1',
+      property: makeProperty(),
+      landlord: makeLandlord(),
+      billingPeriod: makeBillingPeriod(),
+      units: [makeUnit()],
+      tenancies: [makeTenancy()],
+      costPositions: [makeCostPosition()],
+      createdAt: '2024-01-01',
+    };
+  }
+
+  it('heizung with wohnflaeche key → HEIZKOSTEN_NOT_VERBRAUCH', () => {
+    const a = makeBaseAbrechnung();
+    a.costPositions = [makeCostPosition({ categoryKey: 'heizung', allocationKey: { type: 'wohnflaeche' } })];
+    const issues = validateAbrechnung(a);
+    expect(issues.some((i) => i.code === 'HEIZKOSTEN_NOT_VERBRAUCH' && i.severity === 'warning')).toBe(true);
+  });
+
+  it('heizung with verbrauch key + values → no HEIZKOSTEN_NOT_VERBRAUCH', () => {
+    const a = makeBaseAbrechnung();
+    a.costPositions = [
+      makeCostPosition({
+        categoryKey: 'heizung',
+        allocationKey: { type: 'verbrauch' },
+        consumptionTenantValue: 30,
+        consumptionTotalValue: 100,
+      }),
+    ];
+    const issues = validateAbrechnung(a);
+    expect(issues.some((i) => i.code === 'HEIZKOSTEN_NOT_VERBRAUCH')).toBe(false);
+  });
+
+  it('heizung with verbrauch key + missing consumptionTotalValue → HEIZKOSTEN_VERBRAUCH_MISSING error', () => {
+    const a = makeBaseAbrechnung();
+    a.costPositions = [
+      makeCostPosition({
+        categoryKey: 'heizung',
+        allocationKey: { type: 'verbrauch' },
+      }),
+    ];
+    const issues = validateAbrechnung(a);
+    expect(issues.some((i) => i.code === 'HEIZKOSTEN_VERBRAUCH_MISSING' && i.severity === 'error')).toBe(true);
+  });
+
+  it('warmwasser with verbrauch key + zero consumptionTotalValue → HEIZKOSTEN_VERBRAUCH_MISSING error', () => {
+    const a = makeBaseAbrechnung();
+    a.costPositions = [
+      makeCostPosition({
+        categoryKey: 'warmwasser',
+        allocationKey: { type: 'verbrauch' },
+        consumptionTotalValue: 0,
+      }),
+    ];
+    const issues = validateAbrechnung(a);
+    expect(issues.some((i) => i.code === 'HEIZKOSTEN_VERBRAUCH_MISSING' && i.severity === 'error')).toBe(true);
+  });
+});
+
+// ------------------------------------------------------------------
+// Fristen validation
+// ------------------------------------------------------------------
+
+describe('Fristen validation', () => {
+  it('valid abrechnung includes ABRECHNUNGSFRIST_HINWEIS info', () => {
+    const a: NebenkostenAbrechnung = {
+      id: 'nk-1',
+      property: makeProperty(),
+      landlord: makeLandlord(),
+      billingPeriod: makeBillingPeriod(),
+      units: [makeUnit()],
+      tenancies: [makeTenancy()],
+      costPositions: [makeCostPosition()],
+      createdAt: '2024-01-01',
+    };
+    const issues = validateAbrechnung(a);
+    expect(issues.some((i) => i.code === 'ABRECHNUNGSFRIST_HINWEIS' && i.severity === 'info')).toBe(true);
   });
 });

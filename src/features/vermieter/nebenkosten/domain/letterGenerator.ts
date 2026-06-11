@@ -1,5 +1,5 @@
 /**
- * D-3.0 — Letter Generator
+ * D-3.0 / D-3.1b — Letter Generator
  *
  * Plain-text draft for Nebenkostenabrechnung.
  * ≤ 80 lines, no HTML, no Markdown.
@@ -49,8 +49,11 @@ export function generateLetterDraft(
   for (const item of result.lineItems) {
     const cat = COST_CATEGORIES[item.costPosition.categoryKey];
     const label = cat?.labelDe ?? item.costPosition.descriptionDe;
+    const excludedNote = item.costPosition.includeInCalculation
+      ? ''
+      : ' (nicht umlagefähig laut BetrKV — nicht einbezogen)';
     lines.push(
-      `${label.padEnd(28)} ${formatPercent(item.sharePercent).padStart(8)}    ${formatEuro(item.tenantShareCents).padStart(12)}`,
+      `${label.padEnd(28)} ${formatPercent(item.sharePercent).padStart(8)}    ${formatEuro(item.tenantShareCents).padStart(12)}${excludedNote}`,
     );
   }
 
@@ -60,7 +63,7 @@ export function generateLetterDraft(
     `Geleistete Vorauszahlungen: ${formatEuro(result.prepaymentTotalCents).padStart(12)}`,
     '-------------------------------',
     `${resultLabel}: ${formatEuro(Math.abs(result.differenceCents)).padStart(12)}`,
-    '\nBelegeinsicht: Die Belege zu dieser Abrechnung können nach Vereinbarung eingesehen werden.',
+    '\nBelegeinsicht: Die Belege zu dieser Abrechnung stehen Ihnen auf Anfrage zur Einsicht bereit.',
     '\n---',
     'Dieser Entwurf wurde mit BriefPilot als Rechen- und Strukturhilfe erstellt.',
     'Er ersetzt keine rechtliche Beratung.',

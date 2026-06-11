@@ -1,5 +1,5 @@
 /**
- * D-3.0 — Validation
+ * D-3.0 / D-3.1b — Validation
  *
  * Validates a NebenkostenAbrechnung for structural and logical issues.
  */
@@ -159,6 +159,16 @@ export function validateAbrechnung(a: NebenkostenAbrechnung): ValidationIssue[] 
         scope: 'costPosition',
         refId: cp.id,
       });
+
+      if (cp.includeInCalculation) {
+        issues.push({
+          code: 'BLOCKED_CATEGORY_INCLUDED',
+          messageDe: `Kostenkategorie „${category.labelDe}" ist als nicht umlagefähig markiert, wurde aber manuell in die Abrechnung einbezogen. Bitte vor dem Versand rechtlich prüfen.`,
+          severity: 'warning',
+          scope: 'costPosition',
+          refId: cp.id,
+        });
+      }
     }
 
     if (cp.allocationKey.type === 'manuell') {
@@ -170,6 +180,45 @@ export function validateAbrechnung(a: NebenkostenAbrechnung): ValidationIssue[] 
         refId: cp.id,
       });
     }
+
+    if (cp.allocationKey.type === 'personen') {
+      issues.push({
+        code: 'PERSONEN_STATIC_ASSUMPTION',
+        messageDe:
+          'Personenzahl wird als statischer Wert für den gesamten Abrechnungszeitraum angenommen. Änderungen werden nicht berücksichtigt.',
+        severity: 'info',
+        scope: 'costPosition',
+        refId: cp.id,
+      });
+    }
+
+    // HeizkVO layer
+    if (category.key === 'heizung' || category.key === 'warmwasser') {
+      if (cp.allocationKey.type !== 'verbrauch') {
+        issues.push({
+          code: 'HEIZKOSTEN_NOT_VERBRAUCH',
+          messageDe:
+            'Für Heizkosten wird ein verbrauchsabhängiger Umlageschlüssel empfohlen (Heizkostenverordnung). Bitte prüfen.',
+          severity: 'warning',
+          scope: 'costPosition',
+          refId: cp.id,
+        });
+      }
+
+      if (
+        cp.allocationKey.type === 'verbrauch' &&
+        (cp.consumptionTotalValue === undefined || cp.consumptionTotalValue <= 0)
+      ) {
+        issues.push({
+          code: 'HEIZKOSTEN_VERBRAUCH_MISSING',
+          messageDe:
+            'Verbrauchswerte fehlen für Heiz-/Warmwasserkosten. Bitte ergänzen.',
+          severity: 'error',
+          scope: 'costPosition',
+          refId: cp.id,
+        });
+      }
+    }
   }
 
   const hasHeizkosten = a.costPositions.some(
@@ -180,6 +229,17 @@ export function validateAbrechnung(a: NebenkostenAbrechnung): ValidationIssue[] 
       code: 'HEIZKOSTEN_HKVO',
       messageDe: 'Heizkostenverordnung prüfen: mind. 50–70 % verbrauchsabhängig.',
       severity: 'warning',
+      scope: 'abrechnung',
+    });
+  }
+
+  // FRISTEN / INFO
+  if (a.billingPeriod) {
+    issues.push({
+      code: 'ABRECHNUNGSFRIST_HINWEIS',
+      messageDe:
+        'Betriebskostenabrechnungen müssen in der Regel innerhalb von 12 Monaten nach Ablauf des Abrechnungszeitraums zugehen (§ 556 Abs. 3 BGB). Bitte prüfen Sie das Versanddatum.',
+      severity: 'info',
       scope: 'abrechnung',
     });
   }

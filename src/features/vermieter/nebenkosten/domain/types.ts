@@ -92,6 +92,7 @@ export interface CostPosition {
   allocationKey: AllocationKey;
   consumptionTenantValue?: number;
   consumptionTotalValue?: number;
+  includeInCalculation: boolean;
 }
 
 export interface CalculationLineItem {

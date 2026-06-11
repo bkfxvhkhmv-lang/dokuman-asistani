@@ -4,7 +4,16 @@
  * No legal validity claim. This is a Rechen- und Strukturhilfe.
  */
 
-import type { CostCategory } from './types';
+import type { CostCategory, CostCategoryStatus } from './types';
+
+export function resolveIncludeInCalculation(
+  categoryStatus: CostCategoryStatus,
+  explicit?: boolean,
+): boolean {
+  if (explicit !== undefined) return explicit;
+  if (categoryStatus === 'blocked') return false;
+  return true;
+}
 
 export const COST_CATEGORIES: Record<string, CostCategory> = {
   // ALLOCABLE (umlagefähig)

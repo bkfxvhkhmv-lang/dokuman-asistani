@@ -1,5 +1,5 @@
 /**
- * D-3.0 — Calculation Engine
+ * D-3.0 / D-3.1b — Calculation Engine
  *
  * Computes tenant shares, prepayments, and differences.
  */
@@ -13,26 +13,107 @@ import type {
   CalculationLineItem,
   UnitCalculationResult,
   NebenkostenAbrechnung,
+  EuroCents,
 } from './types';
 import { COST_CATEGORIES } from './costCategories';
 import { computeSharePercent } from './allocationEngine';
 
-function monthsBetween(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const years = end.getFullYear() - start.getFullYear();
-  const months = end.getMonth() - start.getMonth();
-  const totalMonths = years * 12 + months + 1;
-  return Math.max(0, totalMonths);
+function parseISODate(iso: string): { year: number; month: number; day: number } {
+  const [yearStr, monthStr, dayStr] = iso.split('-');
+  return {
+    year: Number(yearStr),
+    month: Number(monthStr),
+    day: Number(dayStr),
+  };
 }
 
-function computePrepaymentTotalCents(
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+function daysInMonth(year: number, month: number): number {
+  switch (month) {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+      return 31;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+      return 30;
+    case 2:
+      return isLeapYear(year) ? 29 : 28;
+    default:
+      throw new Error(`Invalid month: ${month}`);
+  }
+}
+
+function dateKey(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+function compareDates(
+  a: { year: number; month: number; day: number },
+  b: { year: number; month: number; day: number },
+): number {
+  if (a.year !== b.year) return a.year - b.year;
+  if (a.month !== b.month) return a.month - b.month;
+  return a.day - b.day;
+}
+
+export function computePrepaymentTotalCents(
   tenancy: Tenancy,
   billingPeriod: BillingPeriod,
-): number {
-  const months = monthsBetween(billingPeriod.startDate, billingPeriod.endDate);
-  // TODO D-3.1: partial period pro-rata not yet implemented
-  return months * tenancy.monthlyPrepaymentCents;
+): EuroCents {
+  const start = parseISODate(tenancy.startDate);
+  const end = tenancy.endDate ? parseISODate(tenancy.endDate) : null;
+  const periodStart = parseISODate(billingPeriod.startDate);
+  const periodEnd = parseISODate(billingPeriod.endDate);
+
+  const effectiveStart = compareDates(start, periodStart) > 0 ? start : periodStart;
+  const effectiveEndCandidate = end ?? periodEnd;
+  const effectiveEnd =
+    compareDates(effectiveEndCandidate, periodEnd) < 0
+      ? effectiveEndCandidate
+      : periodEnd;
+
+  if (compareDates(effectiveStart, effectiveEnd) > 0) {
+    return 0;
+  }
+
+  let total = 0;
+  let currentYear = effectiveStart.year;
+  let currentMonth = effectiveStart.month;
+
+  while (true) {
+    const currentEndDay = daysInMonth(currentYear, currentMonth);
+    const isStartMonth =
+      currentYear === effectiveStart.year && currentMonth === effectiveStart.month;
+    const isEndMonth =
+      currentYear === effectiveEnd.year && currentMonth === effectiveEnd.month;
+
+    const startDay = isStartMonth ? effectiveStart.day : 1;
+    const endDay = isEndMonth ? effectiveEnd.day : currentEndDay;
+    const activeDays = endDay - startDay + 1;
+
+    const ratio = activeDays / currentEndDay;
+    total += Math.round(tenancy.monthlyPrepaymentCents * ratio);
+
+    if (isEndMonth) break;
+
+    currentMonth += 1;
+    if (currentMonth > 12) {
+      currentMonth = 1;
+      currentYear += 1;
+    }
+  }
+
+  return total;
 }
 
 export function calculateLineItem(
@@ -55,7 +136,9 @@ export function calculateLineItem(
     consumptionTotalValue: costPosition.consumptionTotalValue,
   });
 
-  const tenantShareCents = Math.round(sharePercent * costPosition.totalCents);
+  const tenantShareCents = costPosition.includeInCalculation
+    ? Math.round(sharePercent * costPosition.totalCents)
+    : 0;
 
   return {
     costPosition,
@@ -86,7 +169,8 @@ export function calculateUnitResult(
     );
 
   const sumTenantCostsCents = lineItems.reduce(
-    (sum, item) => sum + item.tenantShareCents,
+    (sum, item) =>
+      item.costPosition.includeInCalculation ? sum + item.tenantShareCents : sum,
     0,
   );
 

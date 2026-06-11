@@ -9,3 +9,8 @@ export type {
 export type { DokumentLike } from './dokumentToImportSource';
 export { mapDokumentToCostPositionDraft } from './mapDokumentToCostPositionDraft';
 export { dokumentToImportSource } from './dokumentToImportSource';
+export {
+  buildCostPositionFromImport,
+  parseEuroInputToCents,
+} from './buildCostPositionFromImport';
+export type { BuildCostPositionFromImportInput } from './buildCostPositionFromImport';

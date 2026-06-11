@@ -7,6 +7,7 @@ import { useStore } from '@/store';
 import { generateLetterDraft } from '@/features/vermieter/nebenkosten/domain';
 import { shareNkLetterPdf } from '@/features/vermieter/nebenkosten/export';
 import {
+  buildCostPositionFromImport,
   dokumentToImportSource,
   mapDokumentToCostPositionDraft,
 } from '@/features/vermieter/nebenkosten/import';
@@ -18,7 +19,10 @@ import {
 } from '@/features/vermieter/nebenkosten/store';
 import { buildNkGuidance, type NkRole } from '@/features/vermieter/nebenkosten/guidance';
 import { GuidanceItemCard } from './components/GuidanceItemCard';
-import { NkImportPreviewCard } from './components/NkImportPreviewCard';
+import {
+  NkImportConfirmCard,
+  type NkImportConfirmFormValues,
+} from './components/NkImportConfirmCard';
 import Icon from '@/components/Icon';
 
 function isNkRole(value: unknown): value is NkRole {
@@ -31,8 +35,9 @@ export default function NebenkostenAssistantScreen() {
   const role = isNkRole(params.role) ? params.role : 'mieter';
   const { Colors: C, S, R } = useTheme();
   const insets = useSafeAreaInsets();
-  const { state } = useNebenkostenDraft();
+  const { state, dispatch } = useNebenkostenDraft();
   const [exporting, setExporting] = useState(false);
+  const [importDismissed, setImportDismissed] = useState(false);
 
   const sourceDokId = (params.sourceDokId ?? '').trim();
 
@@ -86,6 +91,33 @@ export default function NebenkostenAssistantScreen() {
 
   const pdfButtonDisabled = !hasDraft || exporting;
 
+  const handleConfirmImport = (values: NkImportConfirmFormValues) => {
+    if (!importCandidate) return;
+
+    try {
+      const costPosition = buildCostPositionFromImport({
+        candidate: importCandidate,
+        categoryKey: values.categoryKey,
+        scope: values.scope,
+        unitId: values.unitId,
+        allocationKey: { type: values.allocationKeyType },
+        totalCents: values.totalCents,
+        includeInCalculation: values.includeInCalculation,
+      });
+      dispatch({ type: 'ADD_COST_POSITION', payload: costPosition });
+      setImportDismissed(true);
+    } catch {
+      Alert.alert(
+        'Hinweis',
+        'Kostenposition konnte nicht hinzugefügt werden. Bitte prüfen Sie die Angaben.',
+      );
+    }
+  };
+
+  const handleCancelImport = () => {
+    setImportDismissed(true);
+  };
+
   return (
     <View style={[st.container, { backgroundColor: C.bg, paddingTop: insets.top }]}>
       <View style={[st.header, { borderBottomColor: C.borderLight, paddingHorizontal: S.lg }]}>
@@ -112,9 +144,14 @@ export default function NebenkostenAssistantScreen() {
           <Text style={[st.badgeText, { color: C.primary }]}>{roleLabel}</Text>
         </View>
 
-        {importCandidate ? (
-          <NkImportPreviewCard candidate={importCandidate} />
-        ) : sourceDokId ? (
+        {importCandidate && !importDismissed ? (
+          <NkImportConfirmCard
+            candidate={importCandidate}
+            units={state.units}
+            onConfirm={handleConfirmImport}
+            onCancel={handleCancelImport}
+          />
+        ) : sourceDokId && !importDismissed ? (
           <View style={st.notFound}>
             <Text style={[st.notFoundText, { color: C.textSecondary }]}>
               Dokument nicht gefunden.

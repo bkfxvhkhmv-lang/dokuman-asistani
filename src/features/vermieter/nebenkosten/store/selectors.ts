@@ -44,3 +44,15 @@ export function selectHasMinimumDraftData(state: NebenkostenDraftState) {
 export function selectCanCalculate(state: NebenkostenDraftState) {
   return selectHasMinimumDraftData(state);
 }
+
+export function selectValidationErrors(state: NebenkostenDraftState) {
+  return state.validationIssues.filter((issue) => issue.severity === 'error');
+}
+
+export function selectValidationWarnings(state: NebenkostenDraftState) {
+  return state.validationIssues.filter((issue) => issue.severity === 'warning');
+}
+
+export function selectHasBlockingErrors(state: NebenkostenDraftState) {
+  return selectValidationErrors(state).length > 0;
+}

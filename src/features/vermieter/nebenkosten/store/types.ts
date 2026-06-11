@@ -19,6 +19,18 @@ import type {
 
 export type DraftStatus = 'idle' | 'dirty' | 'calculated';
 
+export type CalculationResult =
+  | {
+      ok: true;
+      validationIssues: ValidationIssue[];
+      results: UnitCalculationResult[];
+    }
+  | {
+      ok: false;
+      validationIssues: ValidationIssue[];
+      error: Error;
+    };
+
 export interface NebenkostenDraftState {
   landlord: Landlord | null;
   property: Property | null;

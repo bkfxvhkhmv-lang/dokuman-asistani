@@ -87,6 +87,22 @@ function ThemedNavigator() {
           contentStyle: { backgroundColor: Colors.bg },
         }}
       />
+      <Stack.Screen
+        name="nebenkosten"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
+      <Stack.Screen
+        name="nebenkosten/assistant"
+        options={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: Colors.bg },
+        }}
+      />
     </Stack>
   );
 }

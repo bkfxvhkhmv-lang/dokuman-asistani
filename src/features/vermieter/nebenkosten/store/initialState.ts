@@ -15,5 +15,6 @@ export function createInitialNebenkostenDraftState(): NebenkostenDraftState {
     results: [],
     validationIssues: [],
     status: 'idle',
+    isHydrated: false,
   };
 }

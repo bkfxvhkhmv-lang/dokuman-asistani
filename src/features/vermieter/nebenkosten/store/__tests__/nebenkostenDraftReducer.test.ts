@@ -109,6 +109,7 @@ describe('nebenkostenDraftReducer', () => {
     expect(initialState.results).toEqual([]);
     expect(initialState.validationIssues).toEqual([]);
     expect(initialState.status).toBe('idle');
+    expect(initialState.isHydrated).toBe(false);
   });
 
   it('SET_LANDLORD sets landlord and marks dirty', () => {
@@ -351,7 +352,26 @@ describe('nebenkostenDraftReducer', () => {
       payload: makeUnit(),
     });
     const next = nebenkostenDraftReducer(state, { type: 'RESET_DRAFT' });
-    expect(next).toEqual(createInitialNebenkostenDraftState());
+    expect(next).toEqual({
+      ...createInitialNebenkostenDraftState(),
+      isHydrated: true,
+    });
+  });
+
+  it('HYDRATE_DRAFT replaces state and sets isHydrated true', () => {
+    const loaded: NebenkostenDraftState = {
+      ...createInitialNebenkostenDraftState(),
+      landlord: makeLandlord(),
+      status: 'calculated',
+      isHydrated: false,
+    };
+    const next = nebenkostenDraftReducer(initialState, {
+      type: 'HYDRATE_DRAFT',
+      payload: loaded,
+    });
+    expect(next.landlord).toEqual(makeLandlord());
+    expect(next.status).toBe('calculated');
+    expect(next.isHydrated).toBe(true);
   });
 });
 

@@ -17,8 +17,11 @@ export function nebenkostenDraftReducer(
   action: NebenkostenDraftAction,
 ): NebenkostenDraftState {
   switch (action.type) {
+    case 'HYDRATE_DRAFT':
+      return { ...action.payload, isHydrated: true };
+
     case 'RESET_DRAFT':
-      return createInitialNebenkostenDraftState();
+      return { ...createInitialNebenkostenDraftState(), isHydrated: true };
 
     case 'SET_LANDLORD':
       return markDirty({ ...state, landlord: action.payload });

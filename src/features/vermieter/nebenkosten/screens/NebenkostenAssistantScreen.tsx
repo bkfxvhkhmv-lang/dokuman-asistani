@@ -3,8 +3,13 @@ import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
+import { useStore } from '@/store';
 import { generateLetterDraft } from '@/features/vermieter/nebenkosten/domain';
 import { shareNkLetterPdf } from '@/features/vermieter/nebenkosten/export';
+import {
+  dokumentToImportSource,
+  mapDokumentToCostPositionDraft,
+} from '@/features/vermieter/nebenkosten/import';
 import {
   useNebenkostenDraft,
   selectHasMinimumDraftData,
@@ -13,6 +18,7 @@ import {
 } from '@/features/vermieter/nebenkosten/store';
 import { buildNkGuidance, type NkRole } from '@/features/vermieter/nebenkosten/guidance';
 import { GuidanceItemCard } from './components/GuidanceItemCard';
+import { NkImportPreviewCard } from './components/NkImportPreviewCard';
 import Icon from '@/components/Icon';
 
 function isNkRole(value: unknown): value is NkRole {
@@ -21,12 +27,24 @@ function isNkRole(value: unknown): value is NkRole {
 
 export default function NebenkostenAssistantScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ role?: string }>();
+  const params = useLocalSearchParams<{ role?: string; sourceDokId?: string }>();
   const role = isNkRole(params.role) ? params.role : 'mieter';
   const { Colors: C, S, R } = useTheme();
   const insets = useSafeAreaInsets();
   const { state } = useNebenkostenDraft();
   const [exporting, setExporting] = useState(false);
+
+  const sourceDokId = (params.sourceDokId ?? '').trim();
+
+  const { state: appState } = useStore();
+
+  const importCandidate = useMemo(() => {
+    if (!sourceDokId) return null;
+    const dok = appState.dokumente.find((d) => d.id === sourceDokId);
+    if (!dok) return null;
+    const importSource = dokumentToImportSource(dok);
+    return mapDokumentToCostPositionDraft(importSource);
+  }, [sourceDokId, appState.dokumente]);
 
   const hasDraft = selectHasMinimumDraftData(state);
 
@@ -93,6 +111,16 @@ export default function NebenkostenAssistantScreen() {
         <View style={[st.badge, { backgroundColor: C.primaryLight, borderRadius: R.full }]}>
           <Text style={[st.badgeText, { color: C.primary }]}>{roleLabel}</Text>
         </View>
+
+        {importCandidate ? (
+          <NkImportPreviewCard candidate={importCandidate} />
+        ) : sourceDokId ? (
+          <View style={st.notFound}>
+            <Text style={[st.notFoundText, { color: C.textSecondary }]}>
+              Dokument nicht gefunden.
+            </Text>
+          </View>
+        ) : null}
 
         {!hasDraft ? (
           <View style={st.empty}>
@@ -236,5 +264,12 @@ const st = StyleSheet.create({
   disclaimer: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  notFound: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  notFoundText: {
+    fontSize: 14,
   },
 });

@@ -4,6 +4,7 @@
  * Antwort → Erledigt → Löschen
  */
 import { useMemo } from 'react';
+import { useRouter } from 'expo-router';
 import type { Dokument } from '@/store';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { ModalData } from '@/features/detail/hooks/useModalController';
@@ -13,6 +14,25 @@ import { analyzeFinanzamt } from '@/features/detail/services/finanzamtAnalysis';
 import { useT } from '@/hooks/useT';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
+
+function isNkEligibleDocument(dok: Dokument): boolean {
+  const typ = (dok.typ ?? '').toLowerCase();
+  const subtyp = (dok.subtyp ?? '').toLowerCase();
+
+  if (typ === 'rechnung' || typ === 'rechnungen' || typ === 'betriebskosten') {
+    return true;
+  }
+  if (subtyp === 'nebenkosten') {
+    return true;
+  }
+  if (
+    dok.rohText != null &&
+    /heizung|wasser|müll|grundsteuer|hausmeister|nebenkosten/i.test(dok.rohText)
+  ) {
+    return true;
+  }
+  return false;
+}
 
 interface Params {
   dok: Dokument | null | undefined;
@@ -31,6 +51,7 @@ export function useDetailMoreItems({
   setBudgetModalVisible,
   onRevertSignature,
 }: Params) {
+  const router = useRouter();
   const { t } = useT();
   return useMemo<MoreMenuItem[]>(() => {
     if (!dok) return [];
@@ -65,6 +86,25 @@ export function useDetailMoreItems({
       rows.push({
         key: 'menu_budget', icon: 'chart-bar', label: t('detail.more.budget'), group: 'advanced',
         onPress: () => setBudgetModalVisible(true),
+      });
+    }
+
+    // ── 3b. Nebenkosten Kostenposition (conditional, navigation stub) ─────────
+    if (isNkEligibleDocument(dok)) {
+      rows.push({
+        key: 'menu_nebenkosten_add',
+        icon: 'receipt',
+        label: 'Als Kostenposition übernehmen',
+        group: 'secondary',
+        onPress: () => {
+          router.push({
+            pathname: '/nebenkosten/assistant',
+            params: {
+              role: 'vermieter',
+              sourceDokId: dok.id,
+            },
+          });
+        },
       });
     }
 
@@ -132,5 +172,5 @@ export function useDetailMoreItems({
     }
 
     return rows;
-  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature, t]);
+  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature, router, t]);
 }

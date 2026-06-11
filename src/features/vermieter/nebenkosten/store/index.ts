@@ -16,4 +16,9 @@ export {
   selectPropertyCostPositions,
   selectHasMinimumDraftData,
   selectCanCalculate,
+  selectValidationErrors,
+  selectValidationWarnings,
+  selectHasBlockingErrors,
 } from './selectors';
+export { buildAbrechnungFromDraft, DraftBuildError } from './buildAbrechnungFromDraft';
+export { runNebenkostenCalculation } from './runNebenkostenCalculation';

@@ -20,6 +20,7 @@ import {
 } from '@/features/vermieter/nebenkosten/store';
 import { buildNkGuidance, type NkRole } from '@/features/vermieter/nebenkosten/guidance';
 import { GuidanceItemCard } from './components/GuidanceItemCard';
+import { getNkPdfExportBlockerMessage } from './utils/getNkPdfExportBlockerMessage';
 import {
   NkImportConfirmCard,
   type NkImportConfirmFormValues,
@@ -95,6 +96,11 @@ export default function NebenkostenAssistantScreen() {
     setExporting(true);
     try {
       const calcResult = runNebenkostenCalculation(state);
+      const blockerMessage = getNkPdfExportBlockerMessage(calcResult, state);
+      if (blockerMessage) {
+        Alert.alert('Hinweis', blockerMessage);
+        return;
+      }
       if (!calcResult.ok || calcResult.results.length === 0 || state.landlord === null) {
         Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
         return;

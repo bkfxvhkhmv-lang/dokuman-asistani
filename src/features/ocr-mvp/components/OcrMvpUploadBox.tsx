@@ -12,7 +12,7 @@ import { toUserFacingOcrMessage } from '../domain/userFacingErrors';
 
 interface Props {
   onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
-  onBatchAnalyze?: (assets: ScannedAsset[]) => void | Promise<void>;
+  onMultiFilePick?: (assets: ScannedAsset[]) => void;
   onSaveWithoutAnalysis?: (asset: ScannedAsset) => void | Promise<void>;
   onScannerPresentingChange?: (presenting: boolean) => void;
   saveWithoutAnalysisBusy?: boolean;
@@ -21,7 +21,7 @@ interface Props {
 
 export default function OcrMvpUploadBox({
   onSubmit,
-  onBatchAnalyze,
+  onMultiFilePick,
   onSaveWithoutAnalysis,
   onScannerPresentingChange,
   saveWithoutAnalysisBusy = false,
@@ -223,7 +223,7 @@ export default function OcrMvpUploadBox({
         </TouchableOpacity>
       </View>
 
-      {onBatchAnalyze && (
+      {onMultiFilePick && (
         <TouchableOpacity
           style={[st.multiFileBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
           onPress={() => {
@@ -234,10 +234,11 @@ export default function OcrMvpUploadBox({
               try {
                 const assets = await ExpoScannerProvider.pickFiles();
                 if (assets.length > 0) {
-                  await onBatchAnalyze(assets);
+                  onMultiFilePick(assets);
                 }
-              } catch (e: any) {
-                Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(e?.message, T, 'ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
+              } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : undefined;
+                Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(message, T, 'ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
               } finally {
                 setPicking(false);
                 requestAnimationFrame(() => {

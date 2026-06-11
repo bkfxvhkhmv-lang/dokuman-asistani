@@ -5,6 +5,22 @@
 export const NK_LETTER_DISCLAIMER_DE =
   'Dieser Entwurf wurde mit BriefPilot als Rechen- und Strukturhilfe erstellt. Er ersetzt keine rechtliche Beratung. Bitte prüfen Sie alle Angaben, Umlageschlüssel, Belege und Fristen vor dem Versand.';
 
+const DISCLAIMER_MARKER = 'Dieser Entwurf wurde mit BriefPilot';
+
+/**
+ * Domain letter draft appends the same disclaimer as separate lines; PDF HTML adds it once in the footer.
+ */
+export function stripNkLetterDisclaimerFromBody(letterPlainText: string): string {
+  const idx = letterPlainText.indexOf(DISCLAIMER_MARKER);
+  if (idx === -1) return letterPlainText;
+
+  let trimmed = letterPlainText.slice(0, idx).trimEnd();
+  if (trimmed.endsWith('---')) {
+    trimmed = trimmed.slice(0, -3).trimEnd();
+  }
+  return trimmed;
+}
+
 export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -15,7 +31,7 @@ export function escapeHtml(text: string): string {
 }
 
 export function buildNkLetterHtml(letterPlainText: string): string {
-  const body = escapeHtml(letterPlainText);
+  const body = escapeHtml(stripNkLetterDisclaimerFromBody(letterPlainText));
   const disclaimer = escapeHtml(NK_LETTER_DISCLAIMER_DE);
 
   return `<!DOCTYPE html>

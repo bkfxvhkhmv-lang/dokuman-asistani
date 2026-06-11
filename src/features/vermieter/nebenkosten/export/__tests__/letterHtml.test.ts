@@ -6,7 +6,23 @@ import {
   NK_LETTER_DISCLAIMER_DE,
   buildNkLetterHtml,
   escapeHtml,
+  stripNkLetterDisclaimerFromBody,
 } from '@/features/vermieter/nebenkosten/export/letterHtml';
+
+const DOMAIN_LETTER_WITH_DISCLAIMER = [
+  'Vermieter GmbH',
+  'Musterstraße 1',
+  '12345 Berlin',
+  '',
+  'Mieter Name',
+  '',
+  'Nebenkostenabrechnung 2024',
+  'KOSTENPOSITIONEN',
+  '---',
+  'Dieser Entwurf wurde mit BriefPilot als Rechen- und Strukturhilfe erstellt.',
+  'Er ersetzt keine rechtliche Beratung.',
+  'Bitte prüfen Sie alle Angaben, Umlageschlüssel, Belege und Fristen vor dem Versand.',
+].join('\n');
 
 describe('escapeHtml', () => {
   it('escapes special HTML characters', () => {
@@ -39,6 +55,21 @@ describe('buildNkLetterHtml', () => {
     const html = buildNkLetterHtml('Inhalt');
     expect(html).toContain(NK_LETTER_DISCLAIMER_DE);
     expect(html).toContain('class="footer"');
+  });
+
+  it('includes disclaimer exactly once when domain letter already contains it', () => {
+    const html = buildNkLetterHtml(DOMAIN_LETTER_WITH_DISCLAIMER);
+    const matches = html.match(/Dieser Entwurf wurde mit BriefPilot/g) ?? [];
+    expect(matches).toHaveLength(1);
+    expect(html).toContain('class="footer"');
+    expect(html).not.toContain('---');
+  });
+
+  it('stripNkLetterDisclaimerFromBody removes trailing disclaimer block', () => {
+    const stripped = stripNkLetterDisclaimerFromBody(DOMAIN_LETTER_WITH_DISCLAIMER);
+    expect(stripped).not.toContain('Dieser Entwurf wurde mit BriefPilot');
+    expect(stripped).toContain('KOSTENPOSITIONEN');
+    expect(stripped).not.toContain('---');
   });
 
   it('does not include legal certainty wording', () => {

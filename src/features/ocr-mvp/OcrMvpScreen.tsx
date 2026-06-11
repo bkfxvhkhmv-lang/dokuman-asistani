@@ -18,6 +18,7 @@ import { ocrMvpToV4Document } from './adapters/ocrMvpToV4Document';
 import { useOfflineBannerSuppression } from '@/contexts/OfflineBannerContext';
 import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
 import OcrMvpUploadBox from './components/OcrMvpUploadBox';
+import OcrMvpMultiFileConfirmCard from './components/OcrMvpMultiFileConfirmCard';
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
@@ -26,6 +27,10 @@ import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 import { useT } from '@/hooks/useT';
 import { ExpoScannerProvider } from './scanner/ExpoScannerProvider';
 import type { ScannedAsset } from './scanner/types';
+import {
+  buildQuickSaveSummaryMessage,
+  processQuickSaveBatch,
+} from './domain/processQuickSaveBatch';
 import {
   buildDraftDocument,
   findDuplicateImportByFileSize,
@@ -110,6 +115,9 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [earlyPersistedPages, setEarlyPersistedPages] = useState<ScannedPage[] | null>(null);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [saveWithoutAnalysisBusy, setSaveWithoutAnalysisBusy] = useState(false);
+  const [batchBusy, setBatchBusy] = useState(false);
+  const [batchAssets, setBatchAssets] = useState<ScannedAsset[] | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; name: string } | null>(null);
   const { setSuppressBanner } = useOfflineBannerSuppression();
   const timingRef = useRef<TimingMarks>({});
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -476,6 +484,78 @@ export default function OcrMvpScreen({ onClose }: Props) {
     [runNewAnalysisPick],
   );
 
+  const handleMultiFilePick = useCallback((assets: ScannedAsset[]) => {
+    if (assets.length === 0) return;
+    setBatchAssets(assets);
+  }, []);
+
+  const handleBatchDiscard = useCallback(() => {
+    setBatchAssets(null);
+  }, []);
+
+  const handleBatchSaveOnly = useCallback(async () => {
+    if (!batchAssets || batchAssets.length === 0 || batchBusy) return;
+
+    setBatchBusy(true);
+    setBatchProgress({ current: 0, total: batchAssets.length, name: '' });
+
+    const workingDocs = [...state.dokumente];
+    const startedAt = Date.now();
+
+    try {
+      const result = await processQuickSaveBatch(
+        batchAssets,
+        {
+          gateDocument,
+          getDocuments: () => workingDocs,
+          addDocument: (doc) => {
+            dispatch({ type: 'ADD_DOKUMENT', payload: doc });
+            workingDocs.unshift(doc);
+          },
+        },
+        {
+          onProgress: (current, total, name) => {
+            setBatchProgress({ current, total, name });
+          },
+        },
+      );
+
+      if (__DEV__) {
+        console.log(
+          `[OCR_QUICK_SAVE] total=${Date.now() - startedAt}ms saved=${result.saved} failed=${result.failed}`,
+        );
+      }
+
+      setBatchAssets(null);
+      const summary = buildQuickSaveSummaryMessage(result, T);
+      Alert.alert(
+        T('ocr.upload.batch_summary_title'),
+        summary,
+        [
+          { text: T('common.ok'), style: 'cancel' },
+          {
+            text: T('ocr.upload.batch_show_documents'),
+            onPress: () => {
+              if (onClose) {
+                onClose();
+              }
+              router.replace('/(tabs)/index');
+            },
+          },
+        ],
+      );
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : undefined;
+      Alert.alert(
+        T('ocr.upload.scan_error_title'),
+        toUserFacingOcrMessage(message, T, 'ocr.upload.scan_error_body'),
+      );
+    } finally {
+      setBatchBusy(false);
+      setBatchProgress(null);
+    }
+  }, [batchAssets, batchBusy, state.dokumente, gateDocument, dispatch, T, onClose, router]);
+
   useEffect(() => {
     if (status === 'done' && result) {
       setTiming('resultVisible');
@@ -503,7 +583,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   }, [endScannerSession]);
 
   useEffect(() => {
-    const shouldKeepAwake = scannerOpen || status === 'uploading' || status === 'processing';
+    const shouldKeepAwake = scannerOpen || status === 'uploading' || status === 'processing' || batchBusy;
     if (!shouldKeepAwake) {
       void deactivateKeepAwake(OCR_KEEP_AWAKE_TAG).catch(() => {});
       return;
@@ -518,28 +598,28 @@ export default function OcrMvpScreen({ onClose }: Props) {
     return () => {
       void deactivateKeepAwake(OCR_KEEP_AWAKE_TAG).catch(() => {});
     };
-  }, [scannerOpen, status]);
+  }, [scannerOpen, status, batchBusy]);
 
   useEffect(() => {
-    const suppressPrivacyGate = scannerOpen || status === 'uploading' || status === 'processing';
+    const suppressPrivacyGate = scannerOpen || status === 'uploading' || status === 'processing' || batchBusy;
     setPrivacyGateBypassed(suppressPrivacyGate);
     return () => setPrivacyGateBypassed(false);
-  }, [scannerOpen, status]);
+  }, [scannerOpen, status, batchBusy]);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
-    if (!scannerOpen || status === 'uploading' || status === 'processing') return;
+    if (!scannerOpen || status === 'uploading' || status === 'processing' || batchBusy) return;
 
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       endScannerSession();
       return true;
     });
     return () => sub.remove();
-  }, [scannerOpen, status, endScannerSession]);
+  }, [scannerOpen, status, batchBusy, endScannerSession]);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
-    if (status !== 'uploading' && status !== 'processing') return;
+    if (status !== 'uploading' && status !== 'processing' && !batchBusy) return;
 
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       Alert.alert(
@@ -553,10 +633,10 @@ export default function OcrMvpScreen({ onClose }: Props) {
       return true;
     });
     return () => sub.remove();
-  }, [status, T, exitDuringAnalysis]);
+  }, [status, batchBusy, T, exitDuringAnalysis]);
 
   const st = styles(Colors);
-  const isActive = status === 'uploading' || status === 'processing';
+  const isActive = status === 'uploading' || status === 'processing' || batchBusy;
   const showScannerShell = scannerOpen && !isActive;
 
   return (
@@ -580,8 +660,21 @@ export default function OcrMvpScreen({ onClose }: Props) {
         </View>
       )}
 
+      {batchBusy && batchProgress && (
+        <View style={st.centeredState}>
+          <ActivityIndicator color={Colors.primary} size="large" />
+          <Text style={[st.batchProgressLabel, { color: Colors.text }]}>
+            {T('ocr.upload.batch_progress', {
+              current: batchProgress.current,
+              total: batchProgress.total,
+              name: batchProgress.name,
+            })}
+          </Text>
+        </View>
+      )}
+
       <ScrollView
-        style={[st.scroll, (status === 'uploading' || status === 'processing') && { display: 'none' }]}
+        style={[st.scroll, isActive && { display: 'none' }]}
         contentContainerStyle={st.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
@@ -653,12 +746,22 @@ export default function OcrMvpScreen({ onClose }: Props) {
               </View>
             )}
 
-            <OcrMvpUploadBox
-              onSubmit={handleSubmit}
-              onSaveWithoutAnalysis={handleSaveWithoutAnalysisFromAsset}
-              saveWithoutAnalysisBusy={saveWithoutAnalysisBusy}
-              onScannerPresentingChange={handleScannerPresentingChange}
-            />
+            {batchAssets && !batchBusy ? (
+              <OcrMvpMultiFileConfirmCard
+                assets={batchAssets}
+                onSaveOnly={() => void handleBatchSaveOnly()}
+                onDiscard={handleBatchDiscard}
+              />
+            ) : (
+              <OcrMvpUploadBox
+                onSubmit={handleSubmit}
+                onMultiFilePick={handleMultiFilePick}
+                onSaveWithoutAnalysis={handleSaveWithoutAnalysisFromAsset}
+                saveWithoutAnalysisBusy={saveWithoutAnalysisBusy}
+                batchBusy={batchBusy}
+                onScannerPresentingChange={handleScannerPresentingChange}
+              />
+            )}
           </View>
         )}
       </ScrollView>
@@ -716,6 +819,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelAnalysisLabel: { color: C.textSecondary, fontSize: 15, fontWeight: '600' },
+  batchProgressLabel: { marginTop: 16, fontSize: 15, fontWeight: '600', textAlign: 'center', paddingHorizontal: 24 },
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 40 },
   checkingBox:   { alignItems: 'center', padding: 48, gap: 16 },

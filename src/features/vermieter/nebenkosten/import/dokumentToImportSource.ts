@@ -19,6 +19,10 @@ export interface DokumentLike {
   rohText?: string | null;
   zusammenfassung?: string | null;
   confidence?: number | null;
+  customTitle?: string | null;
+  aiDisplayTitle?: string | null;
+  titel?: string | null;
+  dateiName?: string | null;
 }
 
 export function dokumentToImportSource(dok: DokumentLike): NkDokumentImportSource {
@@ -34,5 +38,9 @@ export function dokumentToImportSource(dok: DokumentLike): NkDokumentImportSourc
     rohText: dok.rohText ?? null,
     zusammenfassung: dok.zusammenfassung ?? null,
     confidence: dok.confidence ?? null,
+    customTitle: dok.customTitle ?? null,
+    aiDisplayTitle: dok.aiDisplayTitle ?? null,
+    titel: dok.titel ?? null,
+    dateiName: dok.dateiName ?? null,
   };
 }

@@ -14,6 +14,10 @@ export interface NkDokumentImportSource {
   rohText?: string | null;
   zusammenfassung?: string | null;
   confidence?: number | null;
+  customTitle?: string | null;
+  aiDisplayTitle?: string | null;
+  titel?: string | null;
+  dateiName?: string | null;
 }
 
 export interface NkCostPositionImportCandidate {

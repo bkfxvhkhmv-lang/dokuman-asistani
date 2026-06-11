@@ -31,14 +31,54 @@ describe('mapDokumentToCostPositionDraft', () => {
     expect(result.currency).toBe('EUR');
   });
 
-  it('builds description from absender and typ', () => {
+  it('prefers document title fields for description in priority order', () => {
+    const result = mapDokumentToCostPositionDraft(
+      makeSource({
+        customTitle: 'Custom Title',
+        aiDisplayTitle: 'AI Display Title',
+        titel: 'Schornsteinfeger 30.',
+        dateiName: 'schornsteinfeger.pdf',
+      }),
+    );
+    expect(result.descriptionDe).toBe('Custom Title');
+  });
+
+  it('falls back to aiDisplayTitle when customTitle is absent', () => {
+    const result = mapDokumentToCostPositionDraft(
+      makeSource({
+        aiDisplayTitle: 'AI Display Title',
+        titel: 'Schornsteinfeger 30.',
+        dateiName: 'schornsteinfeger.pdf',
+      }),
+    );
+    expect(result.descriptionDe).toBe('AI Display Title');
+  });
+
+  it('falls back to titel when customTitle and aiDisplayTitle are absent', () => {
+    const result = mapDokumentToCostPositionDraft(
+      makeSource({
+        titel: 'Schornsteinfeger 30.',
+        dateiName: 'schornsteinfeger.pdf',
+      }),
+    );
+    expect(result.descriptionDe).toBe('Schornsteinfeger 30.');
+  });
+
+  it('falls back to dateiName when other title fields are absent', () => {
+    const result = mapDokumentToCostPositionDraft(
+      makeSource({ dateiName: 'schornsteinfeger.pdf' }),
+    );
+    expect(result.descriptionDe).toBe('schornsteinfeger.pdf');
+  });
+
+  it('builds description from absender and typ when no title fields exist', () => {
     const result = mapDokumentToCostPositionDraft(
       makeSource({ absender: 'Stadtwerke', typ: 'Rechnung' }),
     );
     expect(result.descriptionDe).toBe('Stadtwerke — Rechnung');
   });
 
-  it('uses fallback description when no absender or summary', () => {
+  it('uses fallback description when no title, absender, or summary', () => {
     const result = mapDokumentToCostPositionDraft(makeSource());
     expect(result.descriptionDe).toBe('Kostenposition aus Dokument');
   });

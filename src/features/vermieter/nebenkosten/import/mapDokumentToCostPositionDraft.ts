@@ -114,6 +114,16 @@ function firstZusammenfassungLine(zusammenfassung: string | null | undefined): s
 }
 
 function buildDescriptionDe(dok: NkDokumentImportSource): string {
+  const title = (
+    dok.customTitle?.trim() ||
+    dok.aiDisplayTitle?.trim() ||
+    dok.titel?.trim() ||
+    dok.dateiName?.trim()
+  );
+  if (title) {
+    return truncateDescription(title);
+  }
+
   const absender = dok.absender?.trim();
   const typLabel = (dok.subtyp ?? dok.typ ?? '').trim();
 
@@ -134,13 +144,17 @@ function buildDescriptionDe(dok: NkDokumentImportSource): string {
 
 function buildSearchText(dok: NkDokumentImportSource): string {
   return [
+    dok.customTitle,
+    dok.aiDisplayTitle,
+    dok.titel,
+    dok.dateiName,
     dok.typ,
     dok.subtyp,
     dok.absender,
     dok.zusammenfassung,
     dok.rohText,
   ]
-    .filter(Boolean)
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
     .join(' ');
 }
 

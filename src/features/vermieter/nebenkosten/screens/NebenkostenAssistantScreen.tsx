@@ -14,6 +14,7 @@ import {
 import {
   useNebenkostenDraft,
   selectHasMinimumDraftData,
+  selectIsSetupComplete,
   buildAbrechnungFromDraft,
   runNebenkostenCalculation,
 } from '@/features/vermieter/nebenkosten/store';
@@ -23,6 +24,10 @@ import {
   NkImportConfirmCard,
   type NkImportConfirmFormValues,
 } from './components/NkImportConfirmCard';
+import {
+  NkMinimalSetupCard,
+  type NkMinimalSetupSavePayload,
+} from './components/NkMinimalSetupCard';
 import Icon from '@/components/Icon';
 
 function isNkRole(value: unknown): value is NkRole {
@@ -52,6 +57,7 @@ export default function NebenkostenAssistantScreen() {
   }, [sourceDokId, appState.dokumente]);
 
   const hasDraft = selectHasMinimumDraftData(state);
+  const isSetupComplete = selectIsSetupComplete(state);
 
   const guidance = useMemo(
     () => buildNkGuidance(role, state.validationIssues, state.results),
@@ -61,7 +67,26 @@ export default function NebenkostenAssistantScreen() {
   const roleLabel = role === 'vermieter' ? 'Vermieter' : 'Mieter';
 
   const handleNewDraft = () => {
-    Alert.alert('Hinweis', 'Abrechnungserstellung folgt in Kürze.');
+    if (role === 'vermieter' && !isSetupComplete) {
+      Alert.alert('Hinweis', 'Bitte zuerst die Grunddaten oben anlegen.');
+      return;
+    }
+    if (role === 'vermieter' && isSetupComplete && !hasDraft) {
+      Alert.alert(
+        'Hinweis',
+        'Noch keine Kostenpositionen vorhanden. Übernehmen Sie passende Belege als Kostenpositionen.',
+      );
+    }
+  };
+
+  const handleSaveSetup = (payload: NkMinimalSetupSavePayload) => {
+    if (selectIsSetupComplete(state)) return;
+
+    dispatch({ type: 'SET_LANDLORD', payload: payload.landlord });
+    dispatch({ type: 'SET_PROPERTY', payload: payload.property });
+    dispatch({ type: 'SET_BILLING_PERIOD', payload: payload.billingPeriod });
+    dispatch({ type: 'ADD_UNIT', payload: payload.unit });
+    dispatch({ type: 'ADD_TENANCY', payload: payload.tenancy });
   };
 
   const handleSharePdf = async () => {
@@ -144,6 +169,10 @@ export default function NebenkostenAssistantScreen() {
           <Text style={[st.badgeText, { color: C.primary }]}>{roleLabel}</Text>
         </View>
 
+        {role === 'vermieter' && !isSetupComplete ? (
+          <NkMinimalSetupCard onSave={handleSaveSetup} />
+        ) : null}
+
         {role === 'vermieter' && importCandidate && !importDismissed ? (
           <NkImportConfirmCard
             candidate={importCandidate}
@@ -161,9 +190,13 @@ export default function NebenkostenAssistantScreen() {
 
         {!hasDraft ? (
           <View style={st.empty}>
-            <Text style={[st.emptyTitle, { color: C.text }]}>Noch keine Abrechnung</Text>
+            <Text style={[st.emptyTitle, { color: C.text }]}>
+              {isSetupComplete ? 'Noch keine Kostenpositionen' : 'Noch keine Abrechnung'}
+            </Text>
             <Text style={[st.emptyBody, { color: C.textSecondary }]}>
-              Tippen Sie auf „Neu“, um eine Abrechnung zu beginnen und passende Hinweise zu erhalten.
+              {isSetupComplete
+                ? 'Übernehmen Sie passende Belege als Kostenpositionen, um Hinweise zu erhalten.'
+                : 'Legen Sie zuerst die Grunddaten oben an. Kostenpositionen können danach aus Dokumenten übernommen werden.'}
             </Text>
           </View>
         ) : (

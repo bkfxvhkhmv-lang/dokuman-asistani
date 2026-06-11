@@ -41,6 +41,16 @@ export function selectHasMinimumDraftData(state: NebenkostenDraftState) {
   );
 }
 
+export function selectIsSetupComplete(state: NebenkostenDraftState) {
+  return (
+    state.landlord !== null &&
+    state.property !== null &&
+    state.billingPeriod !== null &&
+    state.units.length > 0 &&
+    state.tenancies.length > 0
+  );
+}
+
 export function selectCanCalculate(state: NebenkostenDraftState) {
   return selectHasMinimumDraftData(state);
 }

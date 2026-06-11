@@ -2,6 +2,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { scanWithVisionKit, visionKitAvailable } from '@/modules/scanner/engine/VisionKitScanner';
 import { generatePdfFromImages } from '@/core/pdf/js-pdf-generate/generatePdfFromImages';
+import { mapPickerAssetsToScannedAssets } from './mapPickerAssets';
+import { DOCUMENT_PICKER_MIME_TYPES } from './uploadConstants';
 import type { ScannedAsset, ScannerProvider } from './types';
 
 /**
@@ -22,19 +24,21 @@ async function normalizeImageOrientation(uri: string): Promise<string> {
 export const ExpoScannerProvider: ScannerProvider = {
   async pickFile(): Promise<ScannedAsset | null> {
     const res = await DocumentPicker.getDocumentAsync({
-      type: ['application/pdf', 'image/jpeg', 'image/png'],
+      type: [...DOCUMENT_PICKER_MIME_TYPES],
       copyToCacheDirectory: true,
     });
     if (res.canceled || res.assets.length === 0) return null;
-    const asset = res.assets[0];
-    const mime = asset.mimeType ?? 'application/pdf';
-    return {
-      uri: asset.uri,
-      name: asset.name ?? 'document',
-      mimeType: mime,
-      source: 'file',
-      displayName: mime === 'application/pdf' ? (asset.name ?? 'Dokument') : 'Bild ausgewählt',
-    };
+    return mapPickerAssetsToScannedAssets(res.assets)[0] ?? null;
+  },
+
+  async pickFiles(): Promise<ScannedAsset[]> {
+    const res = await DocumentPicker.getDocumentAsync({
+      type: [...DOCUMENT_PICKER_MIME_TYPES],
+      copyToCacheDirectory: true,
+      multiple: true,
+    });
+    if (res.canceled || res.assets.length === 0) return [];
+    return mapPickerAssetsToScannedAssets(res.assets);
   },
 
   async takePhoto(): Promise<ScannedAsset | null> {

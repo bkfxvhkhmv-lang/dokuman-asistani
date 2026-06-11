@@ -12,16 +12,20 @@ import { toUserFacingOcrMessage } from '../domain/userFacingErrors';
 
 interface Props {
   onSubmit: (fileUri: string, fileName: string, mimeType: string, forceType?: OcrMvpForceType, previewUri?: string, source?: string, pageCount?: number) => void;
+  onBatchAnalyze?: (assets: ScannedAsset[]) => void | Promise<void>;
   onSaveWithoutAnalysis?: (asset: ScannedAsset) => void | Promise<void>;
   onScannerPresentingChange?: (presenting: boolean) => void;
   saveWithoutAnalysisBusy?: boolean;
+  batchBusy?: boolean;
 }
 
 export default function OcrMvpUploadBox({
   onSubmit,
+  onBatchAnalyze,
   onSaveWithoutAnalysis,
   onScannerPresentingChange,
   saveWithoutAnalysisBusy = false,
+  batchBusy = false,
 }: Props) {
   const { Colors: C } = useTheme();
   const { t: T } = useT();
@@ -180,7 +184,7 @@ export default function OcrMvpUploadBox({
         style={[st.primaryCard, { backgroundColor: C.bgCard, borderColor: C.primary + '30' }]}
         onPress={() => withPicking(() => ExpoScannerProvider.takePhotoWithScanner())}
         activeOpacity={0.8}
-        disabled={picking}
+        disabled={picking || batchBusy}
       >
         {picking ? (
           <ActivityIndicator color={C.primary} size="large" />
@@ -200,7 +204,7 @@ export default function OcrMvpUploadBox({
           style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
           onPress={() => withPicking(() => ExpoScannerProvider.pickFile())}
           activeOpacity={0.75}
-          disabled={picking}
+          disabled={picking || batchBusy}
         >
           <Icon name="document-outline" size={18} color={C.textSecondary} />
           <Text style={[st.secondaryBtnLabel, { color: C.text }]}>{T('ocr.upload.file_label')}</Text>
@@ -211,13 +215,47 @@ export default function OcrMvpUploadBox({
           style={[st.secondaryBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
           onPress={() => withPicking(() => ExpoScannerProvider.pickFromLibrary())}
           activeOpacity={0.75}
-          disabled={picking}
+          disabled={picking || batchBusy}
         >
           <Icon name="images-outline" size={18} color={C.textSecondary} />
           <Text style={[st.secondaryBtnLabel, { color: C.text }]}>{T('ocr.upload.photo_label')}</Text>
           <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>{T('ocr.upload.photo_hint')}</Text>
         </TouchableOpacity>
       </View>
+
+      {onBatchAnalyze && (
+        <TouchableOpacity
+          style={[st.multiFileBtn, { borderColor: C.border, backgroundColor: C.bgCard }]}
+          onPress={() => {
+            if (picking || batchBusy) return;
+            setPicking(true);
+            onScannerPresentingChange?.(true);
+            void (async () => {
+              try {
+                const assets = await ExpoScannerProvider.pickFiles();
+                if (assets.length > 0) {
+                  await onBatchAnalyze(assets);
+                }
+              } catch (e: any) {
+                Alert.alert(T('ocr.upload.scan_error_title'), toUserFacingOcrMessage(e?.message, T, 'ocr.upload.scan_error_body'), [{ text: T('common.ok') }]);
+              } finally {
+                setPicking(false);
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    onScannerPresentingChange?.(false);
+                  });
+                });
+              }
+            })();
+          }}
+          activeOpacity={0.75}
+          disabled={picking || batchBusy}
+        >
+          <Icon name="documents-outline" size={18} color={C.textSecondary} />
+          <Text style={[st.secondaryBtnLabel, { color: C.text }]}>{T('ocr.upload.multi_files_label')}</Text>
+          <Text style={[st.secondaryBtnHint, { color: C.textTertiary }]}>{T('ocr.upload.multi_files_hint')}</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -273,4 +311,7 @@ const styles = (C: ReturnType<typeof useTheme>['Colors']) => StyleSheet.create({
     borderWidth: 1, borderRadius: 14, paddingVertical: 12, alignItems: 'center', marginTop: -4,
   },
   discardBtnLabel:  { fontSize: 13, fontWeight: '600' },
+  multiFileBtn: {
+    borderWidth: 1, borderRadius: 14, paddingVertical: 16, alignItems: 'center', gap: 6,
+  },
 });

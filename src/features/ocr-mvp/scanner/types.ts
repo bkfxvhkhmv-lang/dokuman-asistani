@@ -15,6 +15,7 @@ export interface ScannedAsset {
 
 export interface ScannerProvider {
   pickFile(): Promise<ScannedAsset | null>;
+  pickFiles(): Promise<ScannedAsset[]>;
   pickFromLibrary(): Promise<ScannedAsset | null>;
   takePhoto(): Promise<ScannedAsset | null>;
   /** Uses native document scanner (VisionKit on iOS). Falls back to takePhoto(). */

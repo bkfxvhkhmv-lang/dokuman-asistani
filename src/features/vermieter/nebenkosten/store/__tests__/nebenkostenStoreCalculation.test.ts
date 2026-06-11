@@ -85,6 +85,7 @@ function makeCostPosition(overrides?: Partial<CostPosition>): CostPosition {
     totalCents: 120_000,
     scope: 'property',
     allocationKey: { type: 'wohnflaeche' },
+    includeInCalculation: true,
     ...overrides,
     id: `cp-${overrides?.id ?? '1'}`,
   };

@@ -8,6 +8,11 @@ export * from './types';
 export * from './currencyUtils';
 export * from './costCategories';
 export * from './allocationEngine';
-export * from './calculationEngine';
+export {
+  calculateLineItem,
+  calculateUnitResult,
+  calculateAbrechnung,
+  computePrepaymentTotalCents,
+} from './calculationEngine';
 export * from './validation';
 export * from './letterGenerator';

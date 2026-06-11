@@ -32,7 +32,9 @@ export function computeSharePercent(input: AllocationInput): number {
     }
 
     case 'personen': {
-      // TODO D-3.1: deeper person-period edge cases deferred
+      // MVP: numberOfPersons is treated as static for the entire billing period.
+      // Mid-period person count changes are not supported.
+      // See NK compliance matrix Karar 3.
       const totalPersons = activeTenanciesInPeriod.reduce(
         (sum: number, t: Tenancy) => sum + t.numberOfPersons,
         0,

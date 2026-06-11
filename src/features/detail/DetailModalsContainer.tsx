@@ -34,9 +34,7 @@ import EinspruchSheet from '@/features/detail/detail-modals/EinspruchSheet';
 import LoeschenModal from '@/features/detail/modals/LoeschenModal';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types'; // re-exported for DetailActionsTab
 
-const ReplyAssistantDevPreview = __DEV__
-  ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
-  : null;
+import ReplyAssistantPreview from '@/features/reply-assistant/components/ReplyAssistantPreview';
 
 function inferReplyCategory(
   typ: string | null | undefined,
@@ -87,7 +85,7 @@ export default function DetailModalsContainer({
 
   const { t: T } = useT();
   const replyAssistantCategory = inferReplyCategory(dok?.typ, dok?.absender, dok?.titel);
-  const useDevReplyAssistantForAppeal = __DEV__ && !!replyAssistantCategory && !!ReplyAssistantDevPreview;
+  const useReplyAssistantForAppeal = !!replyAssistantCategory && !!ReplyAssistantPreview;
 
   const handleExcelDownload = useCallback(async () => {
     if (!dok.ocrJobId) return;
@@ -217,8 +215,8 @@ export default function DetailModalsContainer({
         data={modal.activeModal?.data}
       />
 
-      {useDevReplyAssistantForAppeal && modal.isOpen('einspruch') ? (
-        <ReplyAssistantDevPreview
+      {useReplyAssistantForAppeal && modal.isOpen('einspruch') ? (
+        <ReplyAssistantPreview
           autoOpen
           hideLauncher
           onClose={modal.close}

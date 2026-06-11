@@ -8,9 +8,7 @@ import { useTheme } from '@/ThemeContext';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import { useT } from '@/hooks/useT';
 
-const ReplyAssistantDevPreview = __DEV__
-  ? require('@/features/reply-assistant/components/ReplyAssistantDevPreview').default
-  : null;
+import ReplyAssistantPreview from '@/features/reply-assistant/components/ReplyAssistantPreview';
 
 function inferReplyCategory(
   typ: string | null | undefined,
@@ -230,9 +228,9 @@ export default function DetailActionsTab({
           </View>
         )}
 
-        {__DEV__ && ReplyAssistantDevPreview && detail?.dok?.typ && (
+        {ReplyAssistantPreview && detail?.dok?.typ && (
           <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
-            <ReplyAssistantDevPreview
+            <ReplyAssistantPreview
               category={inferReplyCategory(detail.dok.typ, detail.dok.absender, detail.dok.titel)}
             />
           </View>

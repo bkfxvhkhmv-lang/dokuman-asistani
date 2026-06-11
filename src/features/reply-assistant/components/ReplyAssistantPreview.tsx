@@ -27,10 +27,6 @@ import { renderBriefkopf } from '@/features/reply-assistant/domain/renderBriefko
 import { getReplyTemplateCandidates } from '@/features/reply-assistant/templates/matchCandidates';
 import { setPrivacyGateBypassed } from '@/hooks/privacyGateBypass';
 
-if (!__DEV__) {
-  throw new Error('ReplyAssistantDevPreview must only be used in __DEV__ builds');
-}
-
 interface Props {
   category?: string;
   institutionType?: string;
@@ -62,7 +58,7 @@ function computeFillCannotRender(
   return templateMissing.length > 0 || senderMissing || empfaengerMissing;
 }
 
-export default function ReplyAssistantDevPreview({
+export default function ReplyAssistantPreview({
   category,
   institutionType,
   documentType,

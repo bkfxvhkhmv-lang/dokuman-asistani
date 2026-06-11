@@ -15,6 +15,7 @@ export {
   selectCostPositionsForUnit,
   selectPropertyCostPositions,
   selectHasMinimumDraftData,
+  selectIsSetupComplete,
   selectCanCalculate,
   selectValidationErrors,
   selectValidationWarnings,

@@ -1,11 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
-import { useNebenkostenDraft } from '@/features/vermieter/nebenkosten/store';
+import { generateLetterDraft } from '@/features/vermieter/nebenkosten/domain';
+import { shareNkLetterPdf } from '@/features/vermieter/nebenkosten/export';
+import {
+  useNebenkostenDraft,
+  selectHasMinimumDraftData,
+  buildAbrechnungFromDraft,
+  runNebenkostenCalculation,
+} from '@/features/vermieter/nebenkosten/store';
 import { buildNkGuidance, type NkRole } from '@/features/vermieter/nebenkosten/guidance';
-import { selectHasMinimumDraftData } from '@/features/vermieter/nebenkosten/store';
 import { GuidanceItemCard } from './components/GuidanceItemCard';
 import Icon from '@/components/Icon';
 
@@ -20,6 +26,7 @@ export default function NebenkostenAssistantScreen() {
   const { Colors: C, S, R } = useTheme();
   const insets = useSafeAreaInsets();
   const { state } = useNebenkostenDraft();
+  const [exporting, setExporting] = useState(false);
 
   const hasDraft = selectHasMinimumDraftData(state);
 
@@ -33,6 +40,33 @@ export default function NebenkostenAssistantScreen() {
   const handleNewDraft = () => {
     Alert.alert('Hinweis', 'Abrechnungserstellung folgt in Kürze.');
   };
+
+  const handleSharePdf = async () => {
+    if (exporting || !hasDraft) return;
+
+    setExporting(true);
+    try {
+      const calcResult = runNebenkostenCalculation(state);
+      if (!calcResult.ok || calcResult.results.length === 0 || state.landlord === null) {
+        Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+        return;
+      }
+
+      const abrechnung = buildAbrechnungFromDraft(state);
+      const letter = generateLetterDraft(calcResult.results[0], abrechnung, state.landlord);
+      const shareResult = await shareNkLetterPdf(letter);
+
+      if (!shareResult.ok) {
+        Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+      }
+    } catch {
+      Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const pdfButtonDisabled = !hasDraft || exporting;
 
   return (
     <View style={[st.container, { backgroundColor: C.bg, paddingTop: insets.top }]}>
@@ -78,6 +112,28 @@ export default function NebenkostenAssistantScreen() {
             )}
           </View>
         )}
+
+        {role === 'vermieter' ? (
+          <Pressable
+            onPress={handleSharePdf}
+            disabled={pdfButtonDisabled}
+            style={({ pressed }) => [
+              st.pdfButton,
+              {
+                borderColor: C.primary,
+                borderRadius: R.md,
+                opacity: pdfButtonDisabled ? 0.5 : pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={exporting ? 'PDF wird erstellt' : 'Als PDF teilen'}
+            accessibilityState={{ disabled: pdfButtonDisabled }}
+          >
+            <Text style={[st.pdfButtonText, { color: C.primary }]}>
+              {exporting ? 'PDF wird erstellt…' : 'Als PDF teilen'}
+            </Text>
+          </Pressable>
+        ) : null}
 
         <Pressable
           onPress={handleNewDraft}
@@ -157,6 +213,16 @@ const st = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 24,
+  },
+  pdfButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1.5,
+  },
+  pdfButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
   },
   newButton: {
     paddingVertical: 14,

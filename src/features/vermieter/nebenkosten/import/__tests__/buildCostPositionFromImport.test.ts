@@ -2,7 +2,12 @@
  * D-3.5c-b — buildCostPositionFromImport tests
  */
 
-import { buildCostPositionFromImport, parseEuroInputToCents } from '@/features/vermieter/nebenkosten/import/buildCostPositionFromImport';
+import {
+  buildCostPositionFromImport,
+  needsHeatingConsumptionInputs,
+  parseConsumptionInput,
+  parseEuroInputToCents,
+} from '@/features/vermieter/nebenkosten/import/buildCostPositionFromImport';
 import type { NkCostPositionImportCandidate } from '@/features/vermieter/nebenkosten/import/types';
 
 function makeCandidate(
@@ -164,6 +169,50 @@ describe('buildCostPositionFromImport', () => {
     buildCostPositionFromImport(input);
     expect(JSON.stringify(input)).toBe(snapshot);
   });
+
+  it('includes consumption values when provided', () => {
+    const result = buildCostPositionFromImport({
+      candidate: makeCandidate(),
+      categoryKey: 'heizung',
+      scope: 'property',
+      allocationKey: { type: 'verbrauch' },
+      totalCents: 12050,
+      includeInCalculation: true,
+      consumptionTenantValue: 30,
+      consumptionTotalValue: 100,
+      id: 'cp-test-10',
+    });
+
+    expect(result.consumptionTenantValue).toBe(30);
+    expect(result.consumptionTotalValue).toBe(100);
+  });
+
+  it('omits consumption fields when not provided', () => {
+    const result = buildCostPositionFromImport({
+      candidate: makeCandidate(),
+      categoryKey: 'schornstein',
+      scope: 'property',
+      allocationKey: { type: 'wohneinheit' },
+      totalCents: 3000,
+      includeInCalculation: true,
+      id: 'cp-test-11',
+    });
+
+    expect(result.consumptionTenantValue).toBeUndefined();
+    expect(result.consumptionTotalValue).toBeUndefined();
+  });
+});
+
+describe('needsHeatingConsumptionInputs', () => {
+  it('is true for heizung/warmwasser with verbrauch', () => {
+    expect(needsHeatingConsumptionInputs('heizung', 'verbrauch')).toBe(true);
+    expect(needsHeatingConsumptionInputs('warmwasser', 'verbrauch')).toBe(true);
+  });
+
+  it('is false for other category or allocation combinations', () => {
+    expect(needsHeatingConsumptionInputs('heizung', 'wohnflaeche')).toBe(false);
+    expect(needsHeatingConsumptionInputs('schornstein', 'verbrauch')).toBe(false);
+  });
 });
 
 describe('parseEuroInputToCents', () => {
@@ -175,5 +224,19 @@ describe('parseEuroInputToCents', () => {
   it('returns null for invalid input', () => {
     expect(parseEuroInputToCents('')).toBeNull();
     expect(parseEuroInputToCents('abc')).toBeNull();
+  });
+});
+
+describe('parseConsumptionInput', () => {
+  it('parses non-negative decimal values', () => {
+    expect(parseConsumptionInput('30')).toBe(30);
+    expect(parseConsumptionInput('1.234,5')).toBe(1234.5);
+    expect(parseConsumptionInput('0')).toBe(0);
+  });
+
+  it('returns null for invalid or negative input', () => {
+    expect(parseConsumptionInput('')).toBeNull();
+    expect(parseConsumptionInput('-1')).toBeNull();
+    expect(parseConsumptionInput('abc')).toBeNull();
   });
 });

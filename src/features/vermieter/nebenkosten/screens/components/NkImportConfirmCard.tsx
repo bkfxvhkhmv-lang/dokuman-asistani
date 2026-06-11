@@ -10,7 +10,11 @@ import {
   COST_CATEGORIES,
   resolveIncludeInCalculation,
 } from '@/features/vermieter/nebenkosten/domain/costCategories';
-import { parseEuroInputToCents } from '@/features/vermieter/nebenkosten/import/buildCostPositionFromImport';
+import {
+  parseConsumptionInput,
+  parseEuroInputToCents,
+  needsHeatingConsumptionInputs,
+} from '@/features/vermieter/nebenkosten/import/buildCostPositionFromImport';
 import type { NkCostPositionImportCandidate } from '@/features/vermieter/nebenkosten/import/types';
 
 const ALLOCATION_OPTIONS: AllocationKeyType[] = [
@@ -29,6 +33,8 @@ export interface NkImportConfirmFormValues {
   allocationKeyType: AllocationKeyType;
   totalCents: number;
   includeInCalculation: boolean;
+  consumptionTenantValue?: number;
+  consumptionTotalValue?: number;
 }
 
 export interface NkImportConfirmCardProps {
@@ -63,6 +69,8 @@ export function NkImportConfirmCard({
     COST_CATEGORIES[categoryKey]?.defaultAllocationKey ?? 'wohnflaeche',
   );
   const [amountText, setAmountText] = useState(initialAmountText(candidate.totalCents));
+  const [tenantConsumptionText, setTenantConsumptionText] = useState('');
+  const [totalConsumptionText, setTotalConsumptionText] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const selectedCategory = COST_CATEGORIES[categoryKey];
@@ -70,6 +78,7 @@ export function NkImportConfirmCard({
     ? resolveIncludeInCalculation(selectedCategory.status)
     : true;
   const hasUnits = units.length > 0;
+  const showConsumptionFields = needsHeatingConsumptionInputs(categoryKey, allocationKeyType);
 
   const handleScopeSelect = (option: 'property' | 'unit') => {
     if (option === 'unit' && !hasUnits) return;
@@ -94,6 +103,29 @@ export function NkImportConfirmCard({
       setValidationError('Bitte eine Einheit auswählen.');
       return;
     }
+
+    let consumptionTenantValue: number | undefined;
+    let consumptionTotalValue: number | undefined;
+
+    if (showConsumptionFields) {
+      const tenantValue = parseConsumptionInput(tenantConsumptionText);
+      const totalValue = parseConsumptionInput(totalConsumptionText);
+      if (tenantValue === null || totalValue === null) {
+        setValidationError('Bitte gültige Verbrauchswerte eingeben.');
+        return;
+      }
+      if (totalValue <= 0) {
+        setValidationError('Gesamtverbrauch muss größer als 0 sein.');
+        return;
+      }
+      if (tenantValue > totalValue) {
+        setValidationError('Mieter-Verbrauch darf Gesamtverbrauch nicht überschreiten.');
+        return;
+      }
+      consumptionTenantValue = tenantValue;
+      consumptionTotalValue = totalValue;
+    }
+
     setValidationError(null);
     onConfirm({
       categoryKey,
@@ -102,6 +134,8 @@ export function NkImportConfirmCard({
       allocationKeyType,
       totalCents,
       includeInCalculation,
+      consumptionTenantValue,
+      consumptionTotalValue,
     });
   };
 
@@ -237,6 +271,32 @@ export function NkImportConfirmCard({
         ))}
       </View>
 
+      {showConsumptionFields ? (
+        <>
+          <Text style={[st.consumptionHint, { color: C.textSecondary }]}>
+            Für Heiz-/Warmwasserkosten werden Verbrauchswerte benötigt.
+          </Text>
+          <Text style={[st.label, { color: C.textTertiary }]}>Verbrauch Mieter/Einheit</Text>
+          <TextInput
+            value={tenantConsumptionText}
+            onChangeText={setTenantConsumptionText}
+            keyboardType="decimal-pad"
+            placeholder="0"
+            placeholderTextColor={C.textTertiary}
+            style={[st.input, { color: C.text, borderColor: C.borderLight, backgroundColor: C.bgInput }]}
+          />
+          <Text style={[st.label, { color: C.textTertiary }]}>Gesamtverbrauch</Text>
+          <TextInput
+            value={totalConsumptionText}
+            onChangeText={setTotalConsumptionText}
+            keyboardType="decimal-pad"
+            placeholder="0"
+            placeholderTextColor={C.textTertiary}
+            style={[st.input, { color: C.text, borderColor: C.borderLight, backgroundColor: C.bgInput }]}
+          />
+        </>
+      ) : null}
+
       {validationError ? (
         <Text style={[st.error, { color: C.danger }]}>{validationError}</Text>
       ) : null}
@@ -319,6 +379,12 @@ const st = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     marginBottom: 8,
+  },
+  consumptionHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 8,
+    marginBottom: 4,
   },
   error: {
     fontSize: 13,

@@ -134,6 +134,8 @@ export default function NebenkostenAssistantScreen() {
         allocationKey: { type: values.allocationKeyType },
         totalCents: values.totalCents,
         includeInCalculation: values.includeInCalculation,
+        consumptionTenantValue: values.consumptionTenantValue,
+        consumptionTotalValue: values.consumptionTotalValue,
       });
       dispatch({ type: 'ADD_COST_POSITION', payload: costPosition });
       setImportDismissed(true);

@@ -9,7 +9,11 @@ import { normalizeSender } from '@/utils/senderNormalization';
 // ── Title humanization (shared across app) ───────────────────────────────────
 
 function safeDecode(text: string): string {
-  try { return decodeURIComponent(text); } catch { return text; }
+  try {
+    return decodeURIComponent(text).normalize('NFC');
+  } catch {
+    return text.normalize('NFC');
+  }
 }
 
 const FILE_EXT_RE = /\.(pdf|jpg|jpeg|png|xlsx|csv|docx|doc|txt)$/i;
@@ -86,7 +90,7 @@ export function safeDisplayDocumentTitleForExport(value: string | null | undefin
   if (!value || value.trim().length === 0) return t(lang, 'display.fallback.unknown_document');
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { decoded = value; }
-  const normalized = decoded.replace(/\s+/g, ' ').trim();
+  const normalized = decoded.normalize('NFC').replace(/\s+/g, ' ').trim();
   return normalized.length > 0 ? normalized : t(lang, 'display.fallback.unknown_document');
 }
 

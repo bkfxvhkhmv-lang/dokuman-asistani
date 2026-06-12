@@ -17,6 +17,14 @@ describe('humanizeTitle', () => {
     expect(humanizeTitle(null)).toBeNull();
     expect(humanizeTitle(undefined)).toBeNull();
   });
+
+  it('decodes percent-encoded combining characters to NFC', () => {
+    expect(humanizeTitle('Abfallgebu%CC%88hren')).toBe('Abfallgebühren');
+  });
+
+  it('does not throw on malformed percent strings', () => {
+    expect(humanizeTitle('%E0%A4%A')).toBeTruthy();
+  });
 });
 
 describe('safeDisplayTitel', () => {

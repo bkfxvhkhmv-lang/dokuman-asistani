@@ -51,18 +51,6 @@ export default function SmartSummaryCard({
     mittel: T('summary.mode_brief'),
     detailliert: T('summary.mode_detailed'),
   };
-  const sourceLabel: Record<string, string> = {
-    lokal: T('summary.source.offline'),
-    ki_cloud: T('summary.source.cloud'),
-    ki_cache: T('summary.source.cached'),
-  };
-
-  const QUELLE_COLOR: Record<string, string> = {
-    lokal:    C.success,
-    ki_cloud: C.primaryDark,
-    ki_cache: C.primary,
-  };
-  const sourceColor = result ? QUELLE_COLOR[result.quelle] || C.primary : C.primary;
 
   return (
     <View style={{ backgroundColor: C.bgInput, borderRadius: R.lg, padding: S.lg,
@@ -74,17 +62,6 @@ export default function SmartSummaryCard({
           <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>{T('summary.title')}</Text>
           <AiSparkle size={10} />
         </View>
-        {result && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4,
-            backgroundColor: sourceColor + '18', borderRadius: 999,
-            paddingHorizontal: 8, paddingVertical: 3,
-            borderWidth: 1, borderColor: sourceColor + '44' }}>
-            <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: sourceColor }} />
-            <Text style={{ fontSize: 9, fontWeight: '700', color: sourceColor }}>
-              {sourceLabel[result.quelle] ?? result.quelle}
-            </Text>
-          </View>
-        )}
       </View>
 
       {/* Mode selector */}

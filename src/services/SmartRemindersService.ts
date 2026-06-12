@@ -9,6 +9,7 @@
  * - Offline-first: all scheduling is local
  */
 
+import Constants from 'expo-constants';
 import type { Dokument } from '@/store';
 import {
   ensureAndroidDefaultNotificationChannel,
@@ -16,8 +17,6 @@ import {
 } from '@/services/SmartNotificationsService';
 import { getTageVerbleibend, HATIRLATICI_SABLONLARI, type HatirlaticiSablon } from '@/utils';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
-import * as Notifications from 'expo-notifications';
-import { SchedulableTriggerInputTypes } from 'expo-notifications';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -40,6 +39,37 @@ export interface ScheduledReminder {
   dokumentId: string;
   datum:      string;
   label:      string;
+}
+
+type NotificationsModule = {
+  scheduleNotificationAsync: (input: unknown) => Promise<string>;
+  cancelScheduledNotificationAsync: (id: string) => Promise<void>;
+  getAllScheduledNotificationsAsync: () => Promise<Array<{
+    identifier: string;
+    content: { data?: unknown };
+  }>>;
+};
+
+type NotificationsRuntime = {
+  Notifications: NotificationsModule;
+  SchedulableTriggerInputTypes: {
+    DATE: string;
+  };
+};
+
+const isExpoGo = Constants.appOwnership === 'expo';
+
+async function getNotificationsRuntime(): Promise<NotificationsRuntime | null> {
+  if (isExpoGo) return null;
+  try {
+    const mod = await import('expo-notifications');
+    const Notifications = (mod.default ?? mod) as unknown as NotificationsModule;
+    const SchedulableTriggerInputTypes = mod.SchedulableTriggerInputTypes as { DATE: string } | undefined;
+    if (!Notifications || !SchedulableTriggerInputTypes?.DATE) return null;
+    return { Notifications, SchedulableTriggerInputTypes };
+  } catch {
+    return null;
+  }
 }
 
 // ── Optimal reminder times per doc type ───────────────────────────────────────
@@ -151,6 +181,9 @@ export async function scheduleReminder(
 ): Promise<ScheduledReminder | null> {
   if (suggestion.datum <= new Date()) return null;
   try {
+    const runtime = await getNotificationsRuntime();
+    if (!runtime) return null;
+    const { Notifications, SchedulableTriggerInputTypes } = runtime;
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
@@ -183,6 +216,9 @@ export async function scheduleTemplateReminder(
   if (datum <= new Date()) return null;
   const displayTitle = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
   try {
+    const runtime = await getNotificationsRuntime();
+    if (!runtime) return null;
+    const { Notifications, SchedulableTriggerInputTypes } = runtime;
     await ensureAndroidDefaultNotificationChannel();
     const id = await Notifications.scheduleNotificationAsync({
       content: withAndroidNotificationChannel({
@@ -203,6 +239,9 @@ export async function scheduleTemplateReminder(
 
 export async function cancelReminder(notifId: string): Promise<void> {
   try {
+    const runtime = await getNotificationsRuntime();
+    if (!runtime) return;
+    const { Notifications } = runtime;
     await Notifications.cancelScheduledNotificationAsync(notifId);
   } catch {}
 }
@@ -211,6 +250,9 @@ export async function cancelReminder(notifId: string): Promise<void> {
 
 export async function getPendingRemindersForDoc(dokId: string): Promise<string[]> {
   try {
+    const runtime = await getNotificationsRuntime();
+    if (!runtime) return [];
+    const { Notifications } = runtime;
     const all = await Notifications.getAllScheduledNotificationsAsync();
     return all
       .filter(n => (n.content.data as any)?.dokId === dokId)

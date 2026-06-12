@@ -100,6 +100,7 @@ export default function Detailbildschirm() {
     analyzeStatus,
     analyzeError,
     analyzeEligible,
+    isAnalyzing,
   } = L;
 
   useEffect(() => {
@@ -242,7 +243,7 @@ export default function Detailbildschirm() {
         </View>
       )}
 
-      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && actionPlan?.primary?.key !== 'review' && (
+      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && !isAnalyzing && actionPlan?.primary?.key !== 'review' && (
         <View style={{
           backgroundColor: C.primaryLight,
           paddingHorizontal: 16,
@@ -260,7 +261,7 @@ export default function Detailbildschirm() {
         </View>
       )}
 
-      {!isSimpleMode && (
+      {!isSimpleMode && !isAnalyzing && (
       <>
       <DetailScrollProgressBar
         headerProgress={headerProgress}
@@ -354,6 +355,7 @@ export default function Detailbildschirm() {
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}
             scrollBottomPadding={footerPad}
+            isAnalyzing={isAnalyzing}
           />
         )}
       </Animated.View>

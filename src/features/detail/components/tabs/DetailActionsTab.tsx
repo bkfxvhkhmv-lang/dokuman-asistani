@@ -39,6 +39,7 @@ type Props = {
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
   scrollBottomPadding?: number;
+  isAnalyzing?: boolean;
 };
 
 // Section definition — order and key membership decide display
@@ -139,6 +140,7 @@ export default function DetailActionsTab({
   onScrollContentSize,
   onScrollLayout,
   scrollBottomPadding = 132,
+  isAnalyzing = false,
 }: Props) {
   const { Colors: C, R } = useTheme();
   const { t } = useT();
@@ -159,6 +161,22 @@ export default function DetailActionsTab({
     .filter(sec => sec.items.length > 0);
 
   const hasContent = renderedSections.length > 0 || fallback.length > 0;
+
+  if (isAnalyzing) {
+    return (
+      <Fragment>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: scrollBottomPadding }}
+          scrollEventThrottle={16}
+          onScroll={onTabScroll}
+          onContentSizeChange={onScrollContentSize}
+          onLayout={onScrollLayout}
+        />
+        <PremiumToast config={smartReminders.toastConfig ?? null} onHide={smartReminders.hideToast} />
+      </Fragment>
+    );
+  }
 
   return (
     <Fragment>

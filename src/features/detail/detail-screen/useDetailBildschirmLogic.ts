@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 import { safeBack } from '@/navigation/safeBack';
@@ -139,6 +139,32 @@ export function useDetailBildschirmLogic() {
     startAnalyze: onAnalyzeSavedDocument,
   } = useAnalyzeSavedDocument(detail.dok, detail.dispatch);
 
+  const isAnalyzing = analyzeStatus === 'uploading' || analyzeStatus === 'processing';
+
+  const switchedToOverviewAfterAnalyzeRef = useRef(false);
+  useEffect(() => {
+    if (analyzeStatus === 'uploading' || analyzeStatus === 'processing') {
+      switchedToOverviewAfterAnalyzeRef.current = false;
+      return;
+    }
+
+    const hasAnalysisContent =
+      Boolean(detail.dok?.rohText?.trim()) ||
+      Boolean(detail.dok?.zusammenfassung?.trim());
+
+    const OVERVIEW_TAB_ID = 'analiz';
+
+    if (
+      analyzeStatus === 'done' &&
+      aktifTab !== OVERVIEW_TAB_ID &&
+      !switchedToOverviewAfterAnalyzeRef.current &&
+      hasAnalysisContent
+    ) {
+      switchedToOverviewAfterAnalyzeRef.current = true;
+      handleTabPress(OVERVIEW_TAB_ID);
+    }
+  }, [analyzeStatus, aktifTab, detail.dok?.rohText, detail.dok?.zusammenfassung, handleTabPress]);
+
   const moreItems = useDetailMoreItems({
     dok: detail.dok,
     actions,
@@ -199,5 +225,6 @@ export function useDetailBildschirmLogic() {
     analyzeStatus,
     analyzeError,
     analyzeEligible,
+    isAnalyzing,
   };
 }

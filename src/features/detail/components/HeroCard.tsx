@@ -60,9 +60,12 @@ export default function HeroCard({
   const workflowTone = workflowPalette[dok.workflowColor ?? ''] || workflowPalette.blue;
   const reviewLabel = getReviewLabel(dok);
   const typeLabel = translateDocumentTypeLabel(getDetailTypeLabel(dok.aiDocumentType ?? dok.typ, dok.rohText, dok.titel), lang);
+  const resolvedSender = resolveDocumentSender(dok);
   const displayTitle = translateLegacyBusinessLabel(resolveDocumentTitle(dok), lang);
   const workflowStampLabel = translateLegacyBusinessLabel(dok.workflowStamp, lang);
   const workflowTimelineLabel = translateLegacyBusinessLabel(dok.workflowTimeline, lang);
+  const typeHeader = resolvedSender ? `${typeLabel.toUpperCase()} · ${resolvedSender}` : typeLabel.toUpperCase();
+  const dateLine = `${resolvedSender ? `${resolvedSender} · ` : ''}${formatDatum(dok.datum)}`;
 
   return (
     <View style={{ marginHorizontal: S.md, marginTop: S.sm, marginBottom: S.md, borderRadius: 20, overflow: 'hidden', ...Shadow.sm }}>
@@ -76,7 +79,7 @@ export default function HeroCard({
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 11, fontWeight: '600', color: 'rgba(255,255,255,0.75)', letterSpacing: 0.5, marginBottom: 3 }}>
-              {typeLabel.toUpperCase()}{(() => { const s = resolveDocumentSender(dok); return s ? ` · ${s}` : ''; })()}
+              {typeHeader}
             </Text>
             <Text style={{ fontSize: 17, fontWeight: '700', color: '#fff', lineHeight: 23 }} numberOfLines={2}>{displayTitle}</Text>
           </View>
@@ -130,7 +133,7 @@ export default function HeroCard({
 
       <View style={{ backgroundColor: C.bgCard, paddingHorizontal: S.lg, paddingBottom: S.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.borderLight }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: S.sm }}>
-          <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{(() => { const s = resolveDocumentSender(dok); return s ? `${s} · ` : ''; })()}{formatDatum(dok.datum)}</Text>
+          <Text style={{ fontSize: 12, color: C.textSecondary, flex: 1 }}>{dateLine}</Text>
           <TouchableOpacity onPress={onKontaktVerknuepfen}
             hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
@@ -42,7 +42,10 @@ export default function DetailsPanel({
 
   if (!dok) return null;
 
-  const groups = groupDocumentFields(dok, extrahierteFelder);
+  const groups = useMemo(
+    () => groupDocumentFields(dok, extrahierteFelder),
+    [dok, extrahierteFelder],
+  );
   const confidencePct = dok.confidence ?? 100;
 
   const belegDatum   = dok.dokumentDatum ? formatDatum(dok.dokumentDatum) : null;

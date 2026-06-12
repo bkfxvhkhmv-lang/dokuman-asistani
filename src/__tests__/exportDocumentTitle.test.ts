@@ -32,4 +32,16 @@ describe('safeDisplayDocumentTitleForExport', () => {
   it('returns original if decodeURIComponent would throw (malformed)', () => {
     expect(safeDisplayDocumentTitleForExport('Steuer%GGBescheid')).toBe('Steuer%GGBescheid');
   });
+
+  it('rejects page-only placeholder titles', () => {
+    expect(safeDisplayDocumentTitleForExport('page-1')).toBe('Unbekanntes Dokument');
+  });
+
+  it('rejects footer/legal title pollution', () => {
+    expect(safeDisplayDocumentTitleForExport('Vorsitzender des Aufsichtsrats Dr. Marc Zimmermann')).toBe('Unbekanntes Dokument');
+  });
+
+  it('rejects contact-line OCR fragments after decoding', () => {
+    expect(safeDisplayDocumentTitleForExport('ummer%20fu%CC%88r%20Ru%CC%88ckfragen')).toBe('Unbekanntes Dokument');
+  });
 });

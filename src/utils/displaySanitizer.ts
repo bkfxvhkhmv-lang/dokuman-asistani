@@ -97,7 +97,7 @@ function formatDisplayDate(date?: string | null): string | null {
   return `${day}.${month}.${year}`;
 }
 
-function isBadDisplayTitleCandidate(text: string): boolean {
+export function isLikelyBadDocumentTitle(text: string): boolean {
   const normalized = normalizeWhitespace(text);
   if (!normalized) return true;
   if (PAGE_ONLY_RE.test(normalized)) return true;
@@ -158,7 +158,9 @@ export function safeDisplayDocumentTitleForExport(value: string | null | undefin
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { decoded = value; }
   const normalized = decoded.normalize('NFC').replace(/\s+/g, ' ').trim();
-  return normalized.length > 0 ? normalized : t(lang, 'display.fallback.unknown_document');
+  if (!normalized.length) return t(lang, 'display.fallback.unknown_document');
+  if (isLikelyBadDocumentTitle(normalized)) return t(lang, 'display.fallback.unknown_document');
+  return normalized;
 }
 
 // ── Absender / Titel display sanitization ────────────────────────────────────
@@ -213,19 +215,19 @@ export function resolveDocumentTitle(dok: {
   // customTitle and aiDisplayTitle are already clean user/AI strings —
   // bypass OCR humanization (which would mangle hyphens, apply title-case, etc.)
   const customTitle = normalizeWhitespace(safeDecode(dok.customTitle ?? ''));
-  if (customTitle && !isBadDisplayTitleCandidate(customTitle)) return customTitle;
+  if (customTitle && !isLikelyBadDocumentTitle(customTitle)) return customTitle;
 
   const aiTitle = normalizeWhitespace(safeDecode(dok.aiDisplayTitle ?? ''));
-  if (aiTitle && !isBadDisplayTitleCandidate(aiTitle)) return aiTitle;
+  if (aiTitle && !isLikelyBadDocumentTitle(aiTitle)) return aiTitle;
 
   // Raw OCR titel goes through full sanitization pipeline
   const rawHumanized = normalizeWhitespace(humanizeTitle(dok.titel) ?? dok.titel ?? '');
-  if (isBadDisplayTitleCandidate(rawHumanized)) {
+  if (isLikelyBadDocumentTitle(rawHumanized)) {
     return buildSafeDocumentTitleFallback(dok);
   }
 
   const candidate = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
-  if (!isBadDisplayTitleCandidate(candidate)) return candidate;
+  if (!isLikelyBadDocumentTitle(candidate)) return candidate;
 
   return buildSafeDocumentTitleFallback(dok);
 }
@@ -269,7 +271,7 @@ export function safeDisplayTitel(
   }
   const humanized = humanizeTitle(titel);
   const candidate = (humanized ?? titel.trim()).trim();
-  if (isBadDisplayTitleCandidate(candidate)) {
+  if (isLikelyBadDocumentTitle(candidate)) {
     return fallbackType || t(lang, 'display.fallback.new_document');
   }
   return candidate;

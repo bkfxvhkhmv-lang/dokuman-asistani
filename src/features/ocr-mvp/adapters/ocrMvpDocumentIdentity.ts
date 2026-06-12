@@ -1,5 +1,6 @@
 import type { OcrMvpActionSummary } from '@/services/ocrMvpApi';
 import { normalizeCanonical } from '@/utils/senderNormalization';
+import { humanizeTitle, isLikelyBadDocumentTitle } from '@/utils/displaySanitizer';
 export { humanizeTitle } from '@/utils/displaySanitizer';
 
 // Filename-like patterns that are never meaningful document titles.
@@ -12,6 +13,8 @@ export function isMeaningfulTitle(title: string | null | undefined): boolean {
   const t = title.trim();
   if (t.length < 4) return false;
   if (REJECT_TITLE_RE.test(t)) return false;
+  const normalized = (humanizeTitle(t) ?? t).trim();
+  if (isLikelyBadDocumentTitle(normalized)) return false;
   return true;
 }
 

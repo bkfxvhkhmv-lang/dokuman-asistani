@@ -2,7 +2,6 @@
  * Display-only sanitization for OCR-extracted fields.
  * Never modifies stored data — only what the user sees in cards/lists.
  */
-import { getLangSync } from '@/i18n/langStore';
 import { t } from '@/i18n/translations';
 import { normalizeSender } from '@/utils/senderNormalization';
 
@@ -59,9 +58,18 @@ function toTitleCase(text: string): string {
     .join(' ');
 }
 
+function getDisplayLang(): string {
+  try {
+    const mod = require('@/i18n/langStore') as { getLangSync?: () => string };
+    return mod.getLangSync?.() ?? 'de';
+  } catch {
+    return 'de';
+  }
+}
+
 export function humanizeTitle(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const lang = getLangSync();
+  const lang = getDisplayLang();
   let text = safeDecode(raw.trim());
   text = text.replace(FILE_EXT_RE, '');
   for (const { re, label } of TECH_FILENAME_MAP) {
@@ -86,7 +94,7 @@ export function humanizeTitle(raw: string | null | undefined): string | null {
  * Only decodes and normalizes — does not infer missing spaces or reformat.
  */
 export function safeDisplayDocumentTitleForExport(value: string | null | undefined): string {
-  const lang = getLangSync();
+  const lang = getDisplayLang();
   if (!value || value.trim().length === 0) return t(lang, 'display.fallback.unknown_document');
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { decoded = value; }
@@ -175,7 +183,7 @@ export function safeDisplayTitel(
   typ?: string | null,
   confidence?: number | null,
 ): string {
-  const lang = getLangSync();
+  const lang = getDisplayLang();
   if (!titel || titel.trim().length === 0) return typ || t(lang, 'display.fallback.unknown_document');
   if (confidence !== null && confidence !== undefined && confidence < 45) {
     return typ || t(lang, 'display.fallback.unknown_document');

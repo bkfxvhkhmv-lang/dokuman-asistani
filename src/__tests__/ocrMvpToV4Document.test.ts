@@ -1,3 +1,16 @@
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    getAllKeys: jest.fn(() => Promise.resolve([])),
+    multiGet: jest.fn(() => Promise.resolve([])),
+    multiRemove: jest.fn(),
+    clear: jest.fn(),
+  },
+}));
+
 import { ocrMvpToV4Document } from '@/features/ocr-mvp/adapters/ocrMvpToV4Document';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
@@ -215,5 +228,37 @@ describe('ocrMvpToV4Document deadline normalization', () => {
       },
     });
     expect(draft.document.betrag).toBe(156.00);
+  });
+
+  it('does not persist page placeholder titles from OCR into the saved document title', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-title-page',
+      status: 'done',
+      document_type: 'letter',
+      confidence: 0.85,
+      action_summary: {
+        kind: 'letter',
+        title: 'page-1',
+        sender: 'Jobcenter Saarlouis',
+        document_date: '2026-06-13',
+      },
+    });
+    expect(draft.document.titel).toBe('Jobcenter Saarlouis · Behördenbrief · 13.06.2026');
+  });
+
+  it('does not persist footer/contact-line OCR fragments as titles', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-title-footer',
+      status: 'done',
+      document_type: 'insurance',
+      confidence: 0.88,
+      action_summary: {
+        kind: 'insurance',
+        title: 'Telefonnummer für Rückfragen: 0800 123456',
+        sender: 'AXA',
+        document_date: '2026-06-13',
+      },
+    });
+    expect(draft.document.titel).toBe('AXA · Versicherung · 13.06.2026');
   });
 });

@@ -40,6 +40,16 @@ const RESERVED_DISPLAY_TITLES = new Set([
   'bis',
 ]);
 
+const UNKNOWN_TYPE_RE = /^unbekannt(?:es)?(?: dokument)?$/i;
+const PAGE_ONLY_RE = /^page[\s_-]*\d+$/i;
+const FOOTER_TITLE_PATTERNS: RegExp[] = [
+  /^vorsitzender des aufsichtsrats\b/i,
+  /^vorstand\b/i,
+  /^handelsregister\b/i,
+  /(?:telefon(?:nummer)?|(?:tele)?nummer|ummer)\s+f[üu]r\s+r[üu]ckfragen/i,
+  /^f[üu]r\s+r[üu]ckfragen\b/i,
+];
+
 // "{KindLabel} vom DD.MM.YYYY" or "Formular · DD.MM.YYYY" — no meaningful identity.
 const GENERIC_DATE_ONLY_RE =
   /^(?:Dokument|Rechnung|Nebenkostenabrechnung|Behördenbrief|Versicherung|Formular|Angebot)(?: vom | · )\d{1,2}\.\d{1,2}(?:\.\d{4})?$/;
@@ -65,6 +75,55 @@ function getDisplayLang(): string {
   } catch {
     return 'de';
   }
+}
+
+function normalizeWhitespace(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function getSafeTypeLabel(typ?: string | null): string | null {
+  const candidate = normalizeWhitespace(typ ?? '');
+  if (!candidate || UNKNOWN_TYPE_RE.test(candidate)) return null;
+  return candidate;
+}
+
+function formatDisplayDate(date?: string | null): string | null {
+  if (!date) return null;
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const day = String(parsed.getDate()).padStart(2, '0');
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const year = String(parsed.getFullYear());
+  return `${day}.${month}.${year}`;
+}
+
+export function isLikelyBadDocumentTitle(text: string): boolean {
+  const normalized = normalizeWhitespace(text);
+  if (!normalized) return true;
+  if (PAGE_ONLY_RE.test(normalized)) return true;
+  if (RESERVED_DISPLAY_TITLES.has(normalized.toLowerCase())) return true;
+  if (GENERIC_DATE_ONLY_RE.test(normalized)) return true;
+  return FOOTER_TITLE_PATTERNS.some(re => re.test(normalized));
+}
+
+function buildSafeDocumentTitleFallback(input: {
+  typ?: string | null;
+  absender?: string | null;
+  rohText?: string | null;
+  datum?: string | null;
+}): string {
+  const lang = getDisplayLang();
+  const typeLabel = getSafeTypeLabel(input.typ);
+  const sender = safeDisplayAbsender(input.absender, null, input.rohText);
+  const displayDate = formatDisplayDate(input.datum);
+
+  if (sender && typeLabel) return `${sender} · ${typeLabel}`;
+  if (typeLabel && displayDate) return `${typeLabel} vom ${displayDate}`;
+  if (typeLabel) return typeLabel;
+  if (sender && displayDate) return `${sender} · ${displayDate}`;
+  if (sender) return sender;
+  if (displayDate) return `${t(lang, 'display.fallback.document')} vom ${displayDate}`;
+  return t(lang, 'display.fallback.unknown_document');
 }
 
 export function humanizeTitle(raw: string | null | undefined): string | null {
@@ -99,7 +158,9 @@ export function safeDisplayDocumentTitleForExport(value: string | null | undefin
   let decoded = value;
   try { decoded = decodeURIComponent(value); } catch { decoded = value; }
   const normalized = decoded.normalize('NFC').replace(/\s+/g, ' ').trim();
-  return normalized.length > 0 ? normalized : t(lang, 'display.fallback.unknown_document');
+  if (!normalized.length) return t(lang, 'display.fallback.unknown_document');
+  if (isLikelyBadDocumentTitle(normalized)) return t(lang, 'display.fallback.unknown_document');
+  return normalized;
 }
 
 // ── Absender / Titel display sanitization ────────────────────────────────────
@@ -147,13 +208,28 @@ export function resolveDocumentTitle(dok: {
   confidence?: number | null;
   customTitle?: string | null;
   aiDisplayTitle?: string;
+  absender?: string | null;
+  rohText?: string | null;
+  datum?: string | null;
 }): string {
   // customTitle and aiDisplayTitle are already clean user/AI strings —
   // bypass OCR humanization (which would mangle hyphens, apply title-case, etc.)
-  if (dok.customTitle?.trim()) return dok.customTitle.trim();
-  if (dok.aiDisplayTitle?.trim()) return dok.aiDisplayTitle.trim();
+  const customTitle = normalizeWhitespace(safeDecode(dok.customTitle ?? ''));
+  if (customTitle && !isLikelyBadDocumentTitle(customTitle)) return customTitle;
+
+  const aiTitle = normalizeWhitespace(safeDecode(dok.aiDisplayTitle ?? ''));
+  if (aiTitle && !isLikelyBadDocumentTitle(aiTitle)) return aiTitle;
+
   // Raw OCR titel goes through full sanitization pipeline
-  return safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+  const rawHumanized = normalizeWhitespace(humanizeTitle(dok.titel) ?? dok.titel ?? '');
+  if (isLikelyBadDocumentTitle(rawHumanized)) {
+    return buildSafeDocumentTitleFallback(dok);
+  }
+
+  const candidate = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
+  if (!isLikelyBadDocumentTitle(candidate)) return candidate;
+
+  return buildSafeDocumentTitleFallback(dok);
 }
 
 /**
@@ -184,26 +260,19 @@ export function safeDisplayTitel(
   confidence?: number | null,
 ): string {
   const lang = getDisplayLang();
-  if (!titel || titel.trim().length === 0) return typ || t(lang, 'display.fallback.unknown_document');
+  const fallbackType = getSafeTypeLabel(typ);
+  if (!titel || titel.trim().length === 0) return fallbackType || t(lang, 'display.fallback.unknown_document');
   if (confidence !== null && confidence !== undefined && confidence < 45) {
-    return typ || t(lang, 'display.fallback.unknown_document');
+    return fallbackType || t(lang, 'display.fallback.unknown_document');
   }
   // Stored scan IDs (e.g. "Scan 1780169901922") — use document type as title instead.
   if (/^Scan[\s_]+\d{6,}$/i.test(titel.trim())) {
-    const trimmedTyp = typ?.trim();
-    return (trimmedTyp && !/^unbekannt$/i.test(trimmedTyp)) ? trimmedTyp : t(lang, 'display.fallback.new_document');
+    return fallbackType || t(lang, 'display.fallback.new_document');
   }
   const humanized = humanizeTitle(titel);
   const candidate = (humanized ?? titel.trim()).trim();
-  if (RESERVED_DISPLAY_TITLES.has(candidate.toLowerCase())) {
-    return typ || t(lang, 'display.fallback.unknown_document');
-  }
-  if (GENERIC_DATE_ONLY_RE.test(candidate)) {
-    const fallbackTyp = typ?.trim();
-    if (fallbackTyp && fallbackTyp.length > 0 && !/^unbekannt$/i.test(fallbackTyp)) {
-      return fallbackTyp;
-    }
-    return t(lang, 'display.fallback.new_document');
+  if (isLikelyBadDocumentTitle(candidate)) {
+    return fallbackType || t(lang, 'display.fallback.new_document');
   }
   return candidate;
 }

@@ -1,4 +1,4 @@
-import { safeDisplayTitel, humanizeTitle, sanitizeOcrTitle } from '@/utils/displaySanitizer';
+import { safeDisplayTitel, humanizeTitle, sanitizeOcrTitle, resolveDocumentTitle } from '@/utils/displaySanitizer';
 
 describe('humanizeTitle', () => {
   it('decodes URL-encoded title', () => {
@@ -55,6 +55,30 @@ describe('safeDisplayTitel', () => {
   it('returns humanized title for normal confidence', () => {
     expect(safeDisplayTitel('Steuer%20B%2030', 'Rechnung', 80)).toBe('Steuer B 30');
   });
+
+  it('rejects page-only OCR titles and falls back to document type', () => {
+    expect(safeDisplayTitel('page-1', 'Rechnung', 90)).toBe('Rechnung');
+    expect(safeDisplayTitel('Page 1', 'Vertrag', 90)).toBe('Vertrag');
+    expect(safeDisplayTitel('page_1', 'Bescheid', 90)).toBe('Bescheid');
+  });
+
+  it('rejects footer/legal role strings as titles', () => {
+    expect(
+      safeDisplayTitel('Vorsitzender des Aufsichtsrats: Dr. Marc Daniel Zimmermann', 'Versicherung', 90),
+    ).toBe('Versicherung');
+    expect(
+      safeDisplayTitel('Handelsregister Amtsgericht Köln HRB 12345', 'Versicherung', 90),
+    ).toBe('Versicherung');
+  });
+
+  it('rejects contact-line OCR fragments as titles', () => {
+    expect(
+      safeDisplayTitel('Telefonnummer für Rückfragen: 0800 123456', 'Rechnung', 90),
+    ).toBe('Rechnung');
+    expect(
+      safeDisplayTitel('ummer%20fu%CC%88r%20Ru%CC%88ckfragen', 'Rechnung', 90),
+    ).toBe('Rechnung');
+  });
 });
 
 describe('sanitizeOcrTitle', () => {
@@ -102,5 +126,41 @@ describe('humanizeTitle — sanitization integrated', () => {
     const result = humanizeTitle('sim de ist eine Marke der Drillisch Online GmbH');
     expect(result).toBe('Sim De');
     expect(result).not.toContain('Drillisch');
+  });
+});
+
+describe('resolveDocumentTitle', () => {
+  it('falls back to sender + type for rejected raw OCR titles', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'page-1',
+        typ: 'Versicherung',
+        absender: 'AXA easy Versicherung AG',
+        datum: '2026-06-12T00:00:00.000Z',
+      }),
+    ).toBe('AXA · Versicherung');
+  });
+
+  it('falls back to type + date when sender is not useful', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Telefonnummer für Rückfragen',
+        typ: 'Rechnung',
+        absender: 'Unbekannt',
+        datum: '2026-06-12T00:00:00.000Z',
+      }),
+    ).toBe('Rechnung vom 12.06.2026');
+  });
+
+  it('rejects bad ai/custom titles and still uses safe fallback', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'page-1',
+        customTitle: 'Vorstand: Max Mustermann',
+        aiDisplayTitle: 'Handelsregister Köln',
+        typ: 'Bescheid',
+        absender: 'Jobcenter',
+      }),
+    ).toBe('Jobcenter · Bescheid');
   });
 });

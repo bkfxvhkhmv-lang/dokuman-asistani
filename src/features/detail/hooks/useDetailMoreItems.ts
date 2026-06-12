@@ -51,6 +51,7 @@ interface Params {
   partnerEmailEnabled: boolean;
   setBudgetModalVisible: (v: boolean) => void;
   onRevertSignature?: () => void;
+  onAnalyzeSavedDocument?: () => void | Promise<void>;
 }
 
 export function useDetailMoreItems({
@@ -60,6 +61,7 @@ export function useDetailMoreItems({
   partnerEmailEnabled,
   setBudgetModalVisible,
   onRevertSignature,
+  onAnalyzeSavedDocument,
 }: Params) {
   const router = useRouter();
   const { t } = useT();
@@ -75,6 +77,18 @@ export function useDetailMoreItems({
     const aktiv = dok.aktionen ?? [];
     const rows: MoreMenuItem[] = [];
     const isFinanzamtReply = analyzeFinanzamt(dok).isFinanzamt;
+
+    // ── 0. Mit KI analysieren (only for saved documents without OCR) ──────────
+    if (!dok.rohText && dok.uri && onAnalyzeSavedDocument) {
+      rows.push({
+        key: 'menu_analyze_saved',
+        icon: 'sparkle',
+        label: 'Mit KI analysieren',
+        group: 'secondary',
+        subtitle: '1 Analyse wird verwendet',
+        onPress: tapAsync(onAnalyzeSavedDocument),
+      });
+    }
 
     // ── 1. Exportieren ────────────────────────────────────────────────────────
     rows.push({
@@ -182,5 +196,5 @@ export function useDetailMoreItems({
     }
 
     return rows;
-  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature, router, t]);
+  }, [dok, actions, openModal, partnerEmailEnabled, setBudgetModalVisible, onRevertSignature, onAnalyzeSavedDocument, router, t]);
 }

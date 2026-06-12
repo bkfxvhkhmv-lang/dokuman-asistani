@@ -20,6 +20,7 @@ import BudgetGrafikModal from '@/components/BudgetGrafikModal';
 import DocumentPagesViewer from '@/features/detail/components/DocumentPagesViewer';
 import DetailDeadlineBanner, { shouldShowDetailDeadlineBanner } from '@/features/detail/components/DetailDeadlineBanner';
 import { pagesForViewer } from '@/features/detail/utils/pagesForViewer';
+import OcrMvpStatusCard from '@/features/ocr-mvp/components/OcrMvpStatusCard';
 
 import { useDetailBildschirmLogic } from '@/features/detail/detail-screen/useDetailBildschirmLogic';
 import { DocumentNotFoundView } from '@/features/detail/detail-screen/DocumentNotFoundView';
@@ -96,6 +97,9 @@ export default function Detailbildschirm() {
     beginActionSession,
     smartLinks,
     allDoksMap,
+    analyzeStatus,
+    analyzeError,
+    analyzeEligible,
   } = L;
 
   useEffect(() => {
@@ -214,6 +218,29 @@ export default function Detailbildschirm() {
         primary={C.primary}
         headerShadowOpacity={headerShadowOpacity}
       />
+
+      {(analyzeStatus === 'uploading' || analyzeStatus === 'processing') && (
+        <View style={{ paddingVertical: 12, backgroundColor: C.bg }}>
+          <OcrMvpStatusCard status={analyzeStatus} previewUri={dok.pages?.[0]?.uri} />
+        </View>
+      )}
+
+      {analyzeEligible && analyzeStatus === 'error' && analyzeError && (
+        <View style={{
+          backgroundColor: `${C.danger}10`,
+          paddingHorizontal: 16,
+          paddingVertical: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          borderBottomWidth: 0.5,
+          borderBottomColor: C.borderLight,
+        }}>
+          <Text style={{ fontSize: 13, color: C.danger, flex: 1 }} numberOfLines={2}>
+            {analyzeError}
+          </Text>
+        </View>
+      )}
 
       {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && actionPlan?.primary?.key !== 'review' && (
         <View style={{

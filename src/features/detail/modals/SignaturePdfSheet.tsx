@@ -11,8 +11,8 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import Constants from 'expo-constants';
 import Svg, { Polyline } from 'react-native-svg';
-import Pdf from 'react-native-pdf';
 import { captureRef } from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Haptics from 'expo-haptics';
@@ -42,6 +42,29 @@ type PageSize = { width: number; height: number };
 type SignatureBox = { x: number; y: number; width: number; height: number };
 
 type Rect = { x: number; y: number; width: number; height: number };
+
+type PdfComponentProps = {
+  source: { uri: string; cache: boolean };
+  page: number;
+  style: { flex: number; width: string; height: string };
+  fitPolicy: number;
+  scrollEnabled: boolean;
+  onError: (error: unknown) => void;
+};
+
+type PdfComponentType = React.ComponentType<PdfComponentProps>;
+
+const isExpoGo = Constants.appOwnership === 'expo';
+
+function loadPdfComponent(): PdfComponentType | null {
+  if (isExpoGo) return null;
+  try {
+    const mod = require('react-native-pdf') as { default?: PdfComponentType };
+    return mod.default ?? null;
+  } catch {
+    return null;
+  }
+}
 
 async function inspectPdfPages(pdfUri: string): Promise<PageSize[]> {
   const rawPdf = await readUriBytes(pdfUri);
@@ -99,6 +122,7 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
   const { Colors: C } = useTheme();
   const { t: T } = useT();
   const { width: screenW } = useWindowDimensions();
+  const PdfView = useMemo(() => loadPdfComponent(), []);
   const padRef = useRef<View>(null);
   const previewRef = useRef<View>(null);
   const dragStartRef = useRef<SignatureBox | null>(null);
@@ -424,6 +448,8 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
     </View>
   );
 
+  const pdfPreviewUnavailable = !PdfView;
+
   return (
     <AppSheet
       visible={visible}
@@ -510,54 +536,64 @@ export default function SignaturePdfSheet({ visible, onClose, dok, onDone }: Pro
             }}
           >
             {pdfUri ? (
-              <>
-                <Pdf
-                  source={{ uri: pdfUri, cache: true }}
-                  page={pageIndex + 1}
-                  style={{ flex: 1, width: '100%', height: '100%' }}
-                  fitPolicy={2}
-                  scrollEnabled={false}
-                  onError={(e) => setPdfError(String((e as any)?.message ?? e))}
-                />
-                {!!signatureUri && !!signatureBox && (
-                  <View
-                    {...placementResponder.panHandlers}
-                    hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-                    style={{
-                      position: 'absolute',
-                      left: signatureBox.x,
-                      top: signatureBox.y,
-                      width: signatureBox.width,
-                      height: signatureBox.height,
-                      borderWidth: capturingPreview ? 0 : 1.5,
-                      borderColor: C.primary,
-                      borderStyle: 'dashed',
-                      backgroundColor: capturingPreview ? 'transparent' : 'rgba(255,255,255,0.06)',
-                      transform: [{ rotate: `${rotation}deg` }],
-                    }}
-                  >
-                    <Image
-                      source={{ uri: signatureUri }}
-                      style={{ width: '100%', height: '100%' }}
-                      resizeMode="contain"
-                    />
-                    {/* Corner handles for visual feedback */}
-                    {!capturingPreview && [
-                      { top: -4, left: -4 },
-                      { top: -4, right: -4 },
-                      { bottom: -4, left: -4 },
-                      { bottom: -4, right: -4 },
-                    ].map((pos, i) => (
-                      <View key={i} style={{
-                        position: 'absolute', ...pos,
-                        width: 10, height: 10,
-                        borderRadius: 2,
-                        backgroundColor: C.primary,
-                      }} />
-                    ))}
-                  </View>
-                )}
-              </>
+              pdfPreviewUnavailable ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 10 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: C.text, textAlign: 'center' }}>
+                    PDF-Vorschau ist in Expo Go nicht verfugbar.
+                  </Text>
+                  <Text style={{ fontSize: 13, lineHeight: 19, color: C.textSecondary, textAlign: 'center' }}>
+                    Bitte verwende einen Development Build oder ein natives Build fur diese Funktion.
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <PdfView
+                    source={{ uri: pdfUri, cache: true }}
+                    page={pageIndex + 1}
+                    style={{ flex: 1, width: '100%', height: '100%' }}
+                    fitPolicy={2}
+                    scrollEnabled={false}
+                    onError={(e) => setPdfError(String((e as any)?.message ?? e))}
+                  />
+                  {!!signatureUri && !!signatureBox && (
+                    <View
+                      {...placementResponder.panHandlers}
+                      hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                      style={{
+                        position: 'absolute',
+                        left: signatureBox.x,
+                        top: signatureBox.y,
+                        width: signatureBox.width,
+                        height: signatureBox.height,
+                        borderWidth: capturingPreview ? 0 : 1.5,
+                        borderColor: C.primary,
+                        borderStyle: 'dashed',
+                        backgroundColor: capturingPreview ? 'transparent' : 'rgba(255,255,255,0.06)',
+                        transform: [{ rotate: `${rotation}deg` }],
+                      }}
+                    >
+                      <Image
+                        source={{ uri: signatureUri }}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="contain"
+                      />
+                      {!capturingPreview && [
+                        { top: -4, left: -4 },
+                        { top: -4, right: -4 },
+                        { bottom: -4, left: -4 },
+                        { bottom: -4, right: -4 },
+                      ].map((pos, i) => (
+                        <View key={i} style={{
+                          position: 'absolute', ...pos,
+                          width: 10, height: 10,
+                          borderRadius: 2,
+                          backgroundColor: C.primary,
+                        }} />
+                      ))}
+                    </View>
+                  )}
+                </>
+              )
             ) : (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator color={C.primary} />

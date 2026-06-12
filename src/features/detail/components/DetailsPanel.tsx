@@ -28,6 +28,8 @@ export default function DetailsPanel({
   onOpenFullscreen,
   onEdit,
   onExport,
+  onSign,
+  onErledigt,
   onLoeschen,
   isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
@@ -232,13 +234,13 @@ export default function DetailsPanel({
         </View>
       )}
 
-      {/* ── Aktionsleiste: Bearbeiten | Exportieren ───────────────────────── */}
-      {(onEdit || onExport) && (
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24 }}>
+      {/* ── Aktionsleiste: Bearbeiten | Exportieren | Signieren ───────────── */}
+      {(onEdit || onExport || onSign) && (
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
           {onEdit && (
             <TouchableOpacity
               onPress={onEdit}
-              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border }}
             >
               <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('common.edit')}</Text>
@@ -247,13 +249,32 @@ export default function DetailsPanel({
           {onExport && (
             <TouchableOpacity
               onPress={onExport}
-              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
             >
               <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('export.sheet.title')}</Text>
             </TouchableOpacity>
           )}
+          {onSign && (
+            <TouchableOpacity
+              onPress={onSign}
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+                alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.more.sign_pdf')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
+      )}
+
+      {onErledigt && (
+        <TouchableOpacity
+          onPress={onErledigt}
+          style={{ alignItems: 'center', marginTop: 16, paddingVertical: 12,
+            borderWidth: 1, borderColor: C.border, borderRadius: R.md ?? R.lg, backgroundColor: C.bgCard }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.action.mark_done')}</Text>
+        </TouchableOpacity>
       )}
 
       {/* ── Löschen — destruktiv, bewusst klein ──────────────────────────── */}

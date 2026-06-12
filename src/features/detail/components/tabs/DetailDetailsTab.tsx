@@ -16,6 +16,8 @@ type Props = {
   scrollBottomPadding?: number;
   onEdit?: () => void;
   onExport?: () => void;
+  onSign?: () => void;
+  onErledigt?: () => void;
   onLoeschen?: () => void;
 };
 
@@ -30,6 +32,8 @@ export default function DetailDetailsTab({
   scrollBottomPadding = 132,
   onEdit,
   onExport,
+  onSign,
+  onErledigt,
   onLoeschen,
 }: Props) {
   return (
@@ -52,6 +56,8 @@ export default function DetailDetailsTab({
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
         onEdit={onEdit}
         onExport={onExport}
+        onSign={onSign}
+        onErledigt={onErledigt}
         onLoeschen={onLoeschen}
         isUnanalysedQuickSaved={isUnanalysedQuickSaved}
       />

@@ -12,7 +12,6 @@ import DetailHeader from '@/features/detail/components/DetailHeader';
 import DetailProcessTracker from '@/features/detail/components/DetailProcessTracker';
 import OzetTab from '@/features/detail/components/OzetTab';
 import DetailAnalysisTab from '@/features/detail/components/tabs/DetailAnalysisTab';
-import DetailActionsTab from '@/features/detail/components/tabs/DetailActionsTab';
 import DetailDetailsTab from '@/features/detail/components/tabs/DetailDetailsTab';
 
 import FloatingActionPulse from '@/components/FloatingActionPulse';
@@ -64,7 +63,6 @@ export default function Detailbildschirm() {
     detail,
     modal,
     actions,
-    smartActions,
     smartReminders,
     smartSummary,
     smartRisk,
@@ -91,7 +89,6 @@ export default function Detailbildschirm() {
     panResponder,
     actionPlan,
     pulseUrgency,
-    moreItems,
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,
@@ -150,7 +147,6 @@ export default function Detailbildschirm() {
   /** Keinen zweiten Kalender-CTA, wenn bereits der untere Hinweis „Frist ins Kalender“ gilt. Auf Aktionen-Tab übernimmt die große Karte den Hauptschritt — kein FAB. */
   const showPrimaryFab = useMemo(() => {
     if (isSimpleMode) return false;
-    if (aktifTab === 'eylem') return false;
     if (!pipelineCompleted) return false;
     if (!actionPlan?.primary?.onPress) return false;
     if (showDeadlineStrip && actionPlan.primary.key === 'kalender') return false;
@@ -245,24 +241,6 @@ export default function Detailbildschirm() {
         </View>
       )}
 
-      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && !isAnalyzing && !isUnanalysedQuickSaved && actionPlan?.primary?.key !== 'review' && (
-        <View style={{
-          backgroundColor: C.primaryLight,
-          paddingHorizontal: 16,
-          paddingVertical: 7,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 8,
-          borderBottomWidth: 0.5,
-          borderBottomColor: C.borderLight,
-        }}>
-          <View style={{ width: 3, height: 14, borderRadius: 2, backgroundColor: C.primary }} />
-          <Text style={{ fontSize: 12, fontWeight: '600', color: C.primaryDark, flex: 1 }} numberOfLines={1}>
-            {naechsterSchrittZeile}
-          </Text>
-        </View>
-      )}
-
       {!isSimpleMode && !isAnalyzing && (
       <>
       <DetailScrollProgressBar
@@ -323,6 +301,8 @@ export default function Detailbildschirm() {
             scrollBottomPadding={footerPad}
             onEdit={actions.handleEdit}
             onExport={() => modal.open('exportieren')}
+            onSign={dok.uri && !dok.unsignedUri ? () => modal.open('signatur') : undefined}
+            onErledigt={actions.handleErledigt}
             onLoeschen={actions.handleLoeschen}
             isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
@@ -348,23 +328,6 @@ export default function Detailbildschirm() {
             isAnalyzing={isAnalyzing}
             onAnalyzePress={onAnalyzeSavedDocument}
             analyzeCtaDisabled={!analyzeEligible}
-          />
-        )}
-
-{aktifTab === 'eylem' && (
-          <DetailActionsTab
-            smartActions={smartActions}
-            smartReminders={smartReminders}
-            handleSmartAction={handleSmartAction}
-            detail={detail}
-            actionPlan={actionPlan}
-            moreItems={moreItems}
-            onTabScroll={onTabScroll}
-            onScrollContentSize={onScrollContentSize}
-            onScrollLayout={onScrollLayout}
-            scrollBottomPadding={footerPad}
-            isAnalyzing={isAnalyzing}
-            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
         )}
       </Animated.View>

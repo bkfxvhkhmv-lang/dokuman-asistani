@@ -27,7 +27,8 @@ interface UseDetailScreenAnimationsResult {
 }
 
 export function useDetailScreenAnimations(initialTab = 'analiz'): UseDetailScreenAnimationsResult {
-  const [aktifTab, setAktifTab] = useState(initialTab);
+  const normalizedInitialTab = initialTab === 'eylem' ? 'analiz' : initialTab;
+  const [aktifTab, setAktifTab] = useState(normalizedInitialTab);
 
   // ── Scroll-linked header ──────────────────────────────────────────────────
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -100,7 +101,6 @@ export function useDetailScreenAnimations(initialTab = 'analiz'): UseDetailScree
     // Analytics
     import('@/services/BetaAnalytics').then(({ BetaAnalytics }) => {
       if (tabId === 'analiz') void BetaAnalytics.trackEvent('analyse_viewed');
-      if (tabId === 'eylem')  void BetaAnalytics.trackEvent('actions_viewed');
     });
 
     Animated.parallel([

@@ -29,10 +29,9 @@ export function DetailStickyTabBar({
   const { t: T } = useT();
 
   const tabLabel = (id: string, fallback: string): string => {
-    if (id === 'ozet')   return T('detail.tab.overview');
     if (id === 'analiz') return T('detail.tab.analysis');
+    if (id === 'ozet')   return T('detail.tab.overview');
     if (id === 'detay')  return T('detail.tab.details');
-    if (id === 'eylem')  return T('detail.tab.actions');
     return fallback;
   };
 

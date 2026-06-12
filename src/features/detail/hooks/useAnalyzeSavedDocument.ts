@@ -6,6 +6,7 @@ import { ocrMvpToV4Document } from '@/features/ocr-mvp/adapters/ocrMvpToV4Docume
 import { buildAnalyzedDocumentUpdate } from '@/features/detail/hooks/buildAnalyzedDocumentUpdate';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
 import { buildAnalyseFileFromDocument } from '@/features/detail/utils/buildAnalyseFileFromDocument';
+import { toUserFacingAnalyseErrorMessage } from '@/features/detail/utils/toUserFacingAnalyseErrorMessage';
 import { useT } from '@/hooks/useT';
 
 export interface UseAnalyzeSavedDocumentReturn {
@@ -95,15 +96,11 @@ export function useAnalyzeSavedDocument(
 
   useEffect(() => {
     if (status === 'error' || status === 'timeout') {
-      const message =
-        error ??
-        (status === 'timeout'
-          ? t('ocr.error.timeout.body')
-          : t('ocr.error.generic.body'));
+      const message = toUserFacingAnalyseErrorMessage(error, status);
       Alert.alert('Analysefehler', message);
       reset();
     }
-  }, [error, reset, status, t]);
+  }, [error, reset, status]);
 
   return {
     isEligible,

@@ -29,19 +29,24 @@ function isNkEligibleDocument(dok: Dokument): boolean {
   const nkPattern =
     /heizung|wasser|müll|muell|grundsteuer|hausmeister|nebenkosten|betriebskosten|schornstein|schornsteinfeger|versicherung|gebäudeversicherung|gebaeudeversicherung|abfall|abfallgebühren|abfallgebuehren|strom|elektro|heizöl|heizoel|wartung|reinigung/i;
 
-  const searchableText = [
+  const cheapSearchableText = [
     dok.titel,
     dok.dateiName,
     dok.customTitle,
     dok.aiDisplayTitle,
     dok.zusammenfassung,
     dok.absender,
-    dok.rohText,
   ]
     .filter((value): value is string => typeof value === 'string' && value.length > 0)
     .join(' ');
 
-  return nkPattern.test(searchableText);
+  if (nkPattern.test(cheapSearchableText)) {
+    return true;
+  }
+
+  return typeof dok.rohText === 'string' && dok.rohText.length > 0
+    ? nkPattern.test(dok.rohText)
+    : false;
 }
 
 interface Params {

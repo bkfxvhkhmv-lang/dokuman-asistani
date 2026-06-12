@@ -28,7 +28,10 @@ export default function DetailsPanel({
   onOpenFullscreen,
   onEdit,
   onExport,
+  onSign,
+  onErledigt,
   onLoeschen,
+  isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
 
@@ -51,7 +54,9 @@ export default function DetailsPanel({
   const wichtigsteRows: { icon: string; label: string; value: string; status?: FieldStatus; aiSparkle?: boolean }[] = [
     {
       icon: 'buildings', label: T('field.sender'), value: resolveDocumentSender(dok) || dok.absender || '',
-      status: !dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined),
+      status: isUnanalysedQuickSaved
+        ? undefined
+        : (!dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined)),
     },
     ...(showBeideDaten
       ? [
@@ -61,18 +66,20 @@ export default function DetailsPanel({
       : [{
           icon: 'calendar-blank', label: T('field.date'),
           value: belegDatum ?? erfasstDatum ?? '',
-          status: !dok.dokumentDatum ? 'pruefen' as FieldStatus : undefined,
+          status: isUnanalysedQuickSaved || dok.dokumentDatum ? undefined : ('pruefen' as FieldStatus),
         }]
     ),
     // Betrag: 'fehlt' only for payment-relevant document types
     ...(dok.betrag != null || /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? [{
       icon: 'currency-eur', label: T('field.amount'),
       value: dok.betrag != null ? (formatBetrag(dok.betrag as number, dok.waehrung) ?? '') : '',
-      status: (dok.betrag == null && /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '')) ? 'fehlt' as FieldStatus : undefined,
+      status: isUnanalysedQuickSaved || dok.betrag != null
+        ? undefined
+        : (/rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? ('fehlt' as FieldStatus) : undefined),
     }] : []),
     ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
-    // AI-inferred reference fields — always mark for review
-    ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle })),
+    // AI-inferred reference fields — always mark for review (but not for unanalysed quick-saves)
+    ...(isUnanalysedQuickSaved ? [] : groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle }))),
   ];
 
   const hasContent = !!(dok.uri || groups.wichtigste.length > 0 || groups.zahlung.length > 0 || groups.weitere.length > 0 || dok.rohText);
@@ -96,7 +103,7 @@ export default function DetailsPanel({
             value={f.value}
             isLast={i === wichtigsteRows.length - 1}
             status={f.status}
-            aiSparkle={f.aiSparkle}
+            aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
             showEditAffordance
             onPress={f.status && onEdit ? onEdit : undefined}
           />
@@ -115,8 +122,8 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
-              status={f.aiSparkle ? 'pruefen' : undefined}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
+              status={!isUnanalysedQuickSaved && f.aiSparkle ? 'pruefen' : undefined}
               isLast={i === groups.zahlung.length - 1}
             />
           ))}
@@ -132,7 +139,7 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
               isLast={i === groups.kontakt.length - 1}
             />
           ))}
@@ -148,7 +155,7 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
               isLast={i === groups.vertrag.length - 1}
             />
           ))}
@@ -178,7 +185,7 @@ export default function DetailsPanel({
                   icon={f.icon}
                   label={f.label}
                   value={f.value}
-                  aiSparkle={f.aiSparkle}
+                  aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
                   isLast={i === groups.weitere.length - 1}
                 />
               ))}
@@ -227,13 +234,13 @@ export default function DetailsPanel({
         </View>
       )}
 
-      {/* ── Aktionsleiste: Bearbeiten | Exportieren ───────────────────────── */}
-      {(onEdit || onExport) && (
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24 }}>
+      {/* ── Aktionsleiste: Bearbeiten | Exportieren | Signieren ───────────── */}
+      {(onEdit || onExport || onSign) && (
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
           {onEdit && (
             <TouchableOpacity
               onPress={onEdit}
-              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border }}
             >
               <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('common.edit')}</Text>
@@ -242,13 +249,32 @@ export default function DetailsPanel({
           {onExport && (
             <TouchableOpacity
               onPress={onExport}
-              style={{ flex: 1, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
                 alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
             >
               <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('export.sheet.title')}</Text>
             </TouchableOpacity>
           )}
+          {onSign && (
+            <TouchableOpacity
+              onPress={onSign}
+              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
+                alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.more.sign_pdf')}</Text>
+            </TouchableOpacity>
+          )}
         </View>
+      )}
+
+      {onErledigt && (
+        <TouchableOpacity
+          onPress={onErledigt}
+          style={{ alignItems: 'center', marginTop: 16, paddingVertical: 12,
+            borderWidth: 1, borderColor: C.border, borderRadius: R.md ?? R.lg, backgroundColor: C.bgCard }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.action.mark_done')}</Text>
+        </TouchableOpacity>
       )}
 
       {/* ── Löschen — destruktiv, bewusst klein ──────────────────────────── */}

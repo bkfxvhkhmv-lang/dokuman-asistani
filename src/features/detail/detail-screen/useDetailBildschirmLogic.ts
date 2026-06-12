@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
 import { safeBack } from '@/navigation/safeBack';
@@ -16,6 +16,7 @@ import { getDetailActionPlan } from '@/features/detail/components/ActionsPanel';
 import { runDetailSmartAction } from '@/features/detail/services/detailSmartRouting';
 import { useDetailMoreItems } from '@/features/detail/hooks/useDetailMoreItems';
 import { useAnalyzeSavedDocument } from '@/features/detail/hooks/useAnalyzeSavedDocument';
+import { isUnanalysedQuickSaved as checkUnanalysedQuickSaved } from '@/features/detail/utils/isUnanalysedQuickSaved';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { PulseUrgency } from '@/components/FloatingActionPulse';
 
@@ -103,7 +104,7 @@ export function useDetailBildschirmLogic() {
     };
   }, [actions, modal, detail.dok]);
 
-  const actionPlan = useMemo(
+  const rawActionPlan = useMemo(
     () =>
       detail.dok
         ? getDetailActionPlan(detail.dok, detail.digitalTwin, actionHandlers, detail.state)
@@ -138,6 +139,35 @@ export function useDetailBildschirmLogic() {
     isEligible: analyzeEligible,
     startAnalyze: onAnalyzeSavedDocument,
   } = useAnalyzeSavedDocument(detail.dok, detail.dispatch);
+
+  const isAnalyzing = analyzeStatus === 'uploading' || analyzeStatus === 'processing';
+  const isUnanalysedQuickSaved = checkUnanalysedQuickSaved(detail.dok, analyzeStatus);
+
+  const actionPlan = isUnanalysedQuickSaved ? null : rawActionPlan;
+
+  const switchedToOverviewAfterAnalyzeRef = useRef(false);
+  useEffect(() => {
+    if (analyzeStatus === 'uploading' || analyzeStatus === 'processing') {
+      switchedToOverviewAfterAnalyzeRef.current = false;
+      return;
+    }
+
+    const hasAnalysisContent =
+      Boolean(detail.dok?.rohText?.trim()) ||
+      Boolean(detail.dok?.zusammenfassung?.trim());
+
+    const OVERVIEW_TAB_ID = 'analiz';
+
+    if (
+      analyzeStatus === 'done' &&
+      aktifTab !== OVERVIEW_TAB_ID &&
+      !switchedToOverviewAfterAnalyzeRef.current &&
+      hasAnalysisContent
+    ) {
+      switchedToOverviewAfterAnalyzeRef.current = true;
+      handleTabPress(OVERVIEW_TAB_ID);
+    }
+  }, [analyzeStatus, aktifTab, detail.dok?.rohText, detail.dok?.zusammenfassung, handleTabPress]);
 
   const moreItems = useDetailMoreItems({
     dok: detail.dok,
@@ -199,5 +229,8 @@ export function useDetailBildschirmLogic() {
     analyzeStatus,
     analyzeError,
     analyzeEligible,
+    isAnalyzing,
+    isUnanalysedQuickSaved,
+    onAnalyzeSavedDocument,
   };
 }

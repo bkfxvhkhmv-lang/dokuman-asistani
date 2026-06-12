@@ -42,6 +42,7 @@ export default function OzetTab({
   onSimpleHilfe,
   onRetryPipelineAnalysis,
   onKlassifikationBearbeiten,
+  isUnanalysedQuickSaved = false,
 }: OzetTabProps) {
   const { t } = useT();
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -90,7 +91,7 @@ export default function OzetTab({
             deferPrimaryActions={pipelinePhase !== 'completed'}
           />
           <BesserErkennenCard dok={dok} />
-          <DocumentSpeechSection dok={dok} prominent />
+          {!isUnanalysedQuickSaved ? <DocumentSpeechSection dok={dok} prominent /> : null}
           {dok.warnung ? <WarnhinweisKarte text={dok.warnung} /> : null}
         </>
       ) : (
@@ -133,7 +134,7 @@ export default function OzetTab({
             />
           ) : null}
 
-          <DocumentSpeechSection dok={dok} prominent />
+          {!isUnanalysedQuickSaved ? <DocumentSpeechSection dok={dok} prominent /> : null}
 
           {dok.pages && dok.pages.length > 0 && onOpenPages && (
             <PagesPreviewCard pages={dok.pages} onOpen={onOpenPages} />

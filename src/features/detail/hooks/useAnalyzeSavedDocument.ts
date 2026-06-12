@@ -100,7 +100,7 @@ export function useAnalyzeSavedDocument(
       Alert.alert('Analysefehler', message);
       reset();
     }
-  }, [error, reset, status]);
+  }, [error, errorKind, reset, status]);
 
   return {
     isEligible,

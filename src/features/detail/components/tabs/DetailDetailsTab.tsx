@@ -8,6 +8,7 @@ import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 type Props = {
   detail: any;
   actionPlan?: ActionPlan | null;
+  isUnanalysedQuickSaved?: boolean;
   onTabScroll: (e: any) => void;
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
@@ -15,12 +16,15 @@ type Props = {
   scrollBottomPadding?: number;
   onEdit?: () => void;
   onExport?: () => void;
+  onSign?: () => void;
+  onErledigt?: () => void;
   onLoeschen?: () => void;
 };
 
 export default function DetailDetailsTab({
   detail,
   actionPlan = null,
+  isUnanalysedQuickSaved = false,
   onTabScroll,
   onScrollContentSize,
   onScrollLayout,
@@ -28,6 +32,8 @@ export default function DetailDetailsTab({
   scrollBottomPadding = 132,
   onEdit,
   onExport,
+  onSign,
+  onErledigt,
   onLoeschen,
 }: Props) {
   return (
@@ -50,9 +56,12 @@ export default function DetailDetailsTab({
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
         onEdit={onEdit}
         onExport={onExport}
+        onSign={onSign}
+        onErledigt={onErledigt}
         onLoeschen={onLoeschen}
+        isUnanalysedQuickSaved={isUnanalysedQuickSaved}
       />
-      {detail.dok ? (
+      {detail.dok && !isUnanalysedQuickSaved ? (
         <DocumentSpeechSection dok={detail.dok} prominent />
       ) : null}
     </ScrollView>

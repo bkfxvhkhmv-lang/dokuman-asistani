@@ -11,5 +11,9 @@ export interface DetailsPanelProps {
   graph?: BeziehungsGraph;
   onEdit?: () => void;
   onExport?: () => void;
+  onSign?: () => void;
+  onErledigt?: () => void;
   onLoeschen?: () => void;
+  /** Suppresses review/missing badges when the document has not been analysed yet. */
+  isUnanalysedQuickSaved?: boolean;
 }

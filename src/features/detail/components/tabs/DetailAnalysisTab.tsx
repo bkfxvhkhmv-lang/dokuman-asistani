@@ -10,6 +10,7 @@ import SmartRiskPanel from '@/components/SmartRiskPanel';
 import SmartLinksPanel from '@/components/SmartLinksPanel';
 import AnalyseHeaderCard from '@/features/detail/components/AnalyseHeaderCard';
 import NaechsterSchrittCard from '@/features/detail/components/NaechsterSchrittCard';
+import UnanalysedDocumentCard from '@/features/detail/components/UnanalysedDocumentCard';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 const ENABLE_RELEASE_DIGITAL_TWIN_PANEL = false;
@@ -32,6 +33,10 @@ type Props = {
   onScrollLayout: (e: any) => void;
   scrollBottomPadding?: number;
   actionPlan: ActionPlan | null;
+  isUnanalysedQuickSaved?: boolean;
+  isAnalyzing?: boolean;
+  onAnalyzePress?: () => void;
+  analyzeCtaDisabled?: boolean;
 };
 
 export default function DetailAnalysisTab({
@@ -49,7 +54,42 @@ export default function DetailAnalysisTab({
   onScrollLayout,
   scrollBottomPadding = 132,
   actionPlan,
+  isUnanalysedQuickSaved = false,
+  isAnalyzing = false,
+  onAnalyzePress,
+  analyzeCtaDisabled = false,
 }: Props) {
+  if (isAnalyzing) {
+    return (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: scrollBottomPadding }}
+        scrollEventThrottle={16}
+        onScroll={onTabScroll}
+        onContentSizeChange={onScrollContentSize}
+        onLayout={onScrollLayout}
+      />
+    );
+  }
+
+  if (isUnanalysedQuickSaved) {
+    return (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 12, paddingBottom: scrollBottomPadding }}
+        scrollEventThrottle={16}
+        onScroll={onTabScroll}
+        onContentSizeChange={onScrollContentSize}
+        onLayout={onScrollLayout}
+      >
+        <UnanalysedDocumentCard
+          onPress={() => onAnalyzePress?.()}
+          disabled={analyzeCtaDisabled}
+        />
+      </ScrollView>
+    );
+  }
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}

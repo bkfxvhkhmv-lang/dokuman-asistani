@@ -15,6 +15,7 @@ import { useDocumentRisk } from '@/hooks/useSmartRiskEngine';
 import { getDetailActionPlan } from '@/features/detail/components/ActionsPanel';
 import { runDetailSmartAction } from '@/features/detail/services/detailSmartRouting';
 import { useDetailMoreItems } from '@/features/detail/hooks/useDetailMoreItems';
+import { useAnalyzeSavedDocument } from '@/features/detail/hooks/useAnalyzeSavedDocument';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { PulseUrgency } from '@/components/FloatingActionPulse';
 
@@ -100,7 +101,7 @@ export function useDetailBildschirmLogic() {
       onHilfe: () => modal.open('hilfe'),
       onEdit: actions.handleEdit,
     };
-  }, [actions, modal, modal.anonModus, detail.dok]);
+  }, [actions, modal, detail.dok]);
 
   const actionPlan = useMemo(
     () =>
@@ -131,6 +132,13 @@ export function useDetailBildschirmLogic() {
       }
     : undefined;
 
+  const {
+    status: analyzeStatus,
+    error: analyzeError,
+    isEligible: analyzeEligible,
+    startAnalyze: onAnalyzeSavedDocument,
+  } = useAnalyzeSavedDocument(detail.dok, detail.dispatch);
+
   const moreItems = useDetailMoreItems({
     dok: detail.dok,
     actions,
@@ -138,6 +146,7 @@ export function useDetailBildschirmLogic() {
     partnerEmailEnabled,
     setBudgetModalVisible,
     onRevertSignature,
+    onAnalyzeSavedDocument,
   }) as MoreMenuItem[];
 
   const handleOzetAktion = handleSmartAction;
@@ -187,5 +196,8 @@ export function useDetailBildschirmLogic() {
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,
+    analyzeStatus,
+    analyzeError,
+    analyzeEligible,
   };
 }

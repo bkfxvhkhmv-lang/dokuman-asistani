@@ -5,6 +5,7 @@ import { useOcrMvpJob, type OcrMvpStatus, type OcrMvpErrorKind } from '@/hooks/u
 import { ocrMvpToV4Document } from '@/features/ocr-mvp/adapters/ocrMvpToV4Document';
 import { buildAnalyzedDocumentUpdate } from '@/features/detail/hooks/buildAnalyzedDocumentUpdate';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
+import { buildAnalyseFileFromDocument } from '@/features/detail/utils/buildAnalyseFileFromDocument';
 import { useT } from '@/hooks/useT';
 
 export interface UseAnalyzeSavedDocumentReturn {
@@ -71,12 +72,17 @@ export function useAnalyzeSavedDocument(
           onPress: async () => {
             if (!(await gateOcr())) return;
 
-            const fileUri = dok.uri!;
-            const name = dok.dateiName ?? dok.customTitle ?? dok.titel ?? 'document.jpg';
-            const mimeType = inferMimeType(name);
+            const file = buildAnalyseFileFromDocument(dok);
+            if (!file) {
+              Alert.alert(
+                'Analysefehler',
+                'Dieses Dokument kann derzeit nicht analysiert werden. Der Dateityp konnte nicht erkannt werden. Bitte laden Sie eine PDF-, JPG- oder PNG-Datei erneut hoch.',
+              );
+              return;
+            }
 
             void startJob(
-              { uri: fileUri, name, mimeType },
+              file,
               undefined,
               { pageCount: dok.pages?.length ?? 1 },
             );
@@ -106,13 +112,4 @@ export function useAnalyzeSavedDocument(
     errorKind,
     startAnalyze,
   };
-}
-
-function inferMimeType(name: string): string {
-  const lower = name.toLowerCase();
-  if (lower.endsWith('.pdf')) return 'application/pdf';
-  if (lower.endsWith('.png')) return 'image/png';
-  if (lower.endsWith('.webp')) return 'image/webp';
-  if (lower.endsWith('.heic')) return 'image/heic';
-  return 'image/jpeg';
 }

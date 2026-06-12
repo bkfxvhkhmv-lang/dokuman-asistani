@@ -12,4 +12,6 @@ export interface DetailsPanelProps {
   onEdit?: () => void;
   onExport?: () => void;
   onLoeschen?: () => void;
+  /** Suppresses review/missing badges when the document has not been analysed yet. */
+  isUnanalysedQuickSaved?: boolean;
 }

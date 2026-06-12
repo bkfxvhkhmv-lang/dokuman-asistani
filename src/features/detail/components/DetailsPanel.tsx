@@ -29,6 +29,7 @@ export default function DetailsPanel({
   onEdit,
   onExport,
   onLoeschen,
+  isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
 
@@ -51,7 +52,9 @@ export default function DetailsPanel({
   const wichtigsteRows: { icon: string; label: string; value: string; status?: FieldStatus; aiSparkle?: boolean }[] = [
     {
       icon: 'buildings', label: T('field.sender'), value: resolveDocumentSender(dok) || dok.absender || '',
-      status: !dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined),
+      status: isUnanalysedQuickSaved
+        ? undefined
+        : (!dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined)),
     },
     ...(showBeideDaten
       ? [
@@ -61,18 +64,20 @@ export default function DetailsPanel({
       : [{
           icon: 'calendar-blank', label: T('field.date'),
           value: belegDatum ?? erfasstDatum ?? '',
-          status: !dok.dokumentDatum ? 'pruefen' as FieldStatus : undefined,
+          status: isUnanalysedQuickSaved || dok.dokumentDatum ? undefined : ('pruefen' as FieldStatus),
         }]
     ),
     // Betrag: 'fehlt' only for payment-relevant document types
     ...(dok.betrag != null || /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? [{
       icon: 'currency-eur', label: T('field.amount'),
       value: dok.betrag != null ? (formatBetrag(dok.betrag as number, dok.waehrung) ?? '') : '',
-      status: (dok.betrag == null && /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '')) ? 'fehlt' as FieldStatus : undefined,
+      status: isUnanalysedQuickSaved || dok.betrag != null
+        ? undefined
+        : (/rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? ('fehlt' as FieldStatus) : undefined),
     }] : []),
     ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
-    // AI-inferred reference fields — always mark for review
-    ...groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle })),
+    // AI-inferred reference fields — always mark for review (but not for unanalysed quick-saves)
+    ...(isUnanalysedQuickSaved ? [] : groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle }))),
   ];
 
   const hasContent = !!(dok.uri || groups.wichtigste.length > 0 || groups.zahlung.length > 0 || groups.weitere.length > 0 || dok.rohText);
@@ -96,7 +101,7 @@ export default function DetailsPanel({
             value={f.value}
             isLast={i === wichtigsteRows.length - 1}
             status={f.status}
-            aiSparkle={f.aiSparkle}
+            aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
             showEditAffordance
             onPress={f.status && onEdit ? onEdit : undefined}
           />
@@ -115,8 +120,8 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
-              status={f.aiSparkle ? 'pruefen' : undefined}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
+              status={!isUnanalysedQuickSaved && f.aiSparkle ? 'pruefen' : undefined}
               isLast={i === groups.zahlung.length - 1}
             />
           ))}
@@ -132,7 +137,7 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
               isLast={i === groups.kontakt.length - 1}
             />
           ))}
@@ -148,7 +153,7 @@ export default function DetailsPanel({
               icon={f.icon}
               label={f.label}
               value={f.value}
-              aiSparkle={f.aiSparkle}
+              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
               isLast={i === groups.vertrag.length - 1}
             />
           ))}
@@ -178,7 +183,7 @@ export default function DetailsPanel({
                   icon={f.icon}
                   label={f.label}
                   value={f.value}
-                  aiSparkle={f.aiSparkle}
+                  aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
                   isLast={i === groups.weitere.length - 1}
                 />
               ))}

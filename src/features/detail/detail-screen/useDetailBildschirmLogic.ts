@@ -16,6 +16,7 @@ import { getDetailActionPlan } from '@/features/detail/components/ActionsPanel';
 import { runDetailSmartAction } from '@/features/detail/services/detailSmartRouting';
 import { useDetailMoreItems } from '@/features/detail/hooks/useDetailMoreItems';
 import { useAnalyzeSavedDocument } from '@/features/detail/hooks/useAnalyzeSavedDocument';
+import { isUnanalysedQuickSaved as checkUnanalysedQuickSaved } from '@/features/detail/utils/isUnanalysedQuickSaved';
 import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { PulseUrgency } from '@/components/FloatingActionPulse';
 
@@ -103,7 +104,7 @@ export function useDetailBildschirmLogic() {
     };
   }, [actions, modal, detail.dok]);
 
-  const actionPlan = useMemo(
+  const rawActionPlan = useMemo(
     () =>
       detail.dok
         ? getDetailActionPlan(detail.dok, detail.digitalTwin, actionHandlers, detail.state)
@@ -140,6 +141,9 @@ export function useDetailBildschirmLogic() {
   } = useAnalyzeSavedDocument(detail.dok, detail.dispatch);
 
   const isAnalyzing = analyzeStatus === 'uploading' || analyzeStatus === 'processing';
+  const isUnanalysedQuickSaved = checkUnanalysedQuickSaved(detail.dok, analyzeStatus);
+
+  const actionPlan = isUnanalysedQuickSaved ? null : rawActionPlan;
 
   const switchedToOverviewAfterAnalyzeRef = useRef(false);
   useEffect(() => {
@@ -226,5 +230,7 @@ export function useDetailBildschirmLogic() {
     analyzeError,
     analyzeEligible,
     isAnalyzing,
+    isUnanalysedQuickSaved,
+    onAnalyzeSavedDocument,
   };
 }

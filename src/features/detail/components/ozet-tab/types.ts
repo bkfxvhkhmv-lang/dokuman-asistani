@@ -41,4 +41,5 @@ export interface OzetTabProps {
   onRetryPipelineAnalysis?: () => void;
   /** Kategorie / Nutzer-Ordner — öffnet Bearbeiten (Klassifikation). */
   onKlassifikationBearbeiten?: () => void;
+  isUnanalysedQuickSaved?: boolean;
 }

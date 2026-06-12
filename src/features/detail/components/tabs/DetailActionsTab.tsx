@@ -40,6 +40,7 @@ type Props = {
   onScrollLayout: (e: any) => void;
   scrollBottomPadding?: number;
   isAnalyzing?: boolean;
+  isUnanalysedQuickSaved?: boolean;
 };
 
 // Section definition — order and key membership decide display
@@ -141,6 +142,7 @@ export default function DetailActionsTab({
   onScrollLayout,
   scrollBottomPadding = 132,
   isAnalyzing = false,
+  isUnanalysedQuickSaved = false,
 }: Props) {
   const { Colors: C, R } = useTheme();
   const { t } = useT();
@@ -188,11 +190,13 @@ export default function DetailActionsTab({
         onContentSizeChange={onScrollContentSize}
         onLayout={onScrollLayout}
       >
-        <ActionsPanel
-          dok={detail.dok}
-          digitalTwin={detail.digitalTwin}
-          actionPlan={actionPlan}
-        />
+        {!isUnanalysedQuickSaved && (
+          <ActionsPanel
+            dok={detail.dok}
+            digitalTwin={detail.digitalTwin}
+            actionPlan={actionPlan}
+          />
+        )}
 
         {hasContent && (
           <View style={{ marginTop: 4 }}>
@@ -246,7 +250,7 @@ export default function DetailActionsTab({
           </View>
         )}
 
-        {ReplyAssistantPreview && detail?.dok?.typ && (
+        {!isUnanalysedQuickSaved && ReplyAssistantPreview && detail?.dok?.typ && (
           <View style={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 8 }}>
             <ReplyAssistantPreview
               category={inferReplyCategory(detail.dok.typ, detail.dok.absender, detail.dok.titel)}

@@ -101,6 +101,8 @@ export default function Detailbildschirm() {
     analyzeError,
     analyzeEligible,
     isAnalyzing,
+    isUnanalysedQuickSaved,
+    onAnalyzeSavedDocument,
   } = L;
 
   useEffect(() => {
@@ -243,7 +245,7 @@ export default function Detailbildschirm() {
         </View>
       )}
 
-      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && !isAnalyzing && actionPlan?.primary?.key !== 'review' && (
+      {naechsterSchrittZeile && aktifTab !== 'eylem' && !isSimpleMode && !isAnalyzing && !isUnanalysedQuickSaved && actionPlan?.primary?.key !== 'review' && (
         <View style={{
           backgroundColor: C.primaryLight,
           paddingHorizontal: 16,
@@ -306,6 +308,7 @@ export default function Detailbildschirm() {
             onSimpleHilfe={() => modal.open('hilfe')}
             onRetryPipelineAnalysis={onRetryPipelineAnalysis}
             onKlassifikationBearbeiten={() => actions.handleEditKlassifikation()}
+            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
         )}
 
@@ -321,6 +324,7 @@ export default function Detailbildschirm() {
             onEdit={actions.handleEdit}
             onExport={() => modal.open('exportieren')}
             onLoeschen={actions.handleLoeschen}
+            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
         )}
 
@@ -340,6 +344,10 @@ export default function Detailbildschirm() {
             onScrollLayout={onScrollLayout}
             scrollBottomPadding={footerPad}
             actionPlan={actionPlan}
+            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
+            isAnalyzing={isAnalyzing}
+            onAnalyzePress={onAnalyzeSavedDocument}
+            analyzeCtaDisabled={!analyzeEligible}
           />
         )}
 
@@ -356,6 +364,7 @@ export default function Detailbildschirm() {
             onScrollLayout={onScrollLayout}
             scrollBottomPadding={footerPad}
             isAnalyzing={isAnalyzing}
+            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
         )}
       </Animated.View>

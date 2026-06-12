@@ -9,6 +9,7 @@ import {
 } from '@/services/SmartSummaryService';
 import type { Dokument } from '@/store';
 import { useLangPreference } from '@/hooks/useLangPreference';
+import { isUnanalysedQuickSaved } from '@/features/detail/utils/isUnanalysedQuickSaved';
 
 export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode = 'mittel') {
   const [mode, setMode] = useState<SummaryMode>(defaultMode);
@@ -20,6 +21,7 @@ export function useSmartSummary(dok: Dokument | null, defaultMode: SummaryMode =
   // Build local summary instantly on mount
   useEffect(() => {
     if (!dok) { setResult(null); return; }
+    if (isUnanalysedQuickSaved(dok)) { setResult(null); return; }
     setResult(buildLocalSummary(dok, mode));
   }, [dok, mode]);
 

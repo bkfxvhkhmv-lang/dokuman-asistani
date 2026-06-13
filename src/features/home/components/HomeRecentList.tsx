@@ -7,7 +7,7 @@ import { useTheme } from '@/ThemeContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { TransitionStore } from '@/navigation/transitionStore';
 import { prefetchDocumentData } from '@/hooks/queryHooks';
-import Reanimated, { FadeIn, Layout } from 'react-native-reanimated';
+import Reanimated, { FadeIn } from 'react-native-reanimated';
 import SwipeableDokumentKarte from '@/components/SwipeableDokumentKarte';
 import StackedDokumentKarte from '@/components/StackedDokumentKarte';
 import OptimisticDokumentKarte from '@/components/OptimisticDokumentKarte';
@@ -30,7 +30,6 @@ function StaggeredRow({ index, children }: { index: number; children: React.Reac
   return (
     <Reanimated.View
       style={animatedStyle}
-      layout={Layout.springify().damping(18).stiffness(200)}
     >
       {children}
     </Reanimated.View>

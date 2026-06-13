@@ -294,6 +294,7 @@ export default function Detailbildschirm() {
           <DetailDetailsTab
             detail={detail}
             actionPlan={actionPlan}
+            suspendPreview={pagesViewer.visible}
             onTabScroll={onTabScroll}
             onScrollContentSize={onScrollContentSize}
             onScrollLayout={onScrollLayout}

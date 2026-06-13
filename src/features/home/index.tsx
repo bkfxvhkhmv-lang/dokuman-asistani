@@ -11,12 +11,7 @@ import useHomeData from '@/features/home/hooks/useHomeData';
 import { setTabBarCollapsed } from '@/navigation/tabBarVisibility';
 import { HomeSkeletonLoader } from '@/components/SkeletonLoader';
 import { buildBudgetSnapshot } from '@/services/BudgetEngine';
-import HotCardSection from '@/features/home/components/HotCardSection';
-import HomePullDigest from '@/features/home/components/HomePullDigest';
 import { buildHotDocs } from '@/services/PriorityService';
-import type { HotDoc } from '@/services/PriorityService';
-import ContextualActionStrip from '@/features/home/components/ContextualActionStrip';
-import SkiaRefreshIndicator from '@/components/SkiaRefreshIndicator';
 import { generateDigest } from '@/services/DigestAIService';
 import type { DigestResult } from '@/services/DigestAIService';
 import { analyzeAllTargets } from '@/services/TargetService';
@@ -24,8 +19,6 @@ import DashboardSummary from '@/design/components/DashboardSummary';
 import AppBottomSheet from '@/components/AppBottomSheet';
 import PdfMergeDragModal from '@/components/PdfMergeDragModal';
 import HomeSelectionBar from '@/features/home/components/HomeSelectionBar';
-import HomeStatsRow from '@/features/home/components/HomeStatsRow';
-import HomeSuggestionsStrip from '@/features/home/components/HomeSuggestionsStrip';
 import { useHomeSuggestions } from '@/hooks/useSmartSuggestions';
 import SmartTimelinePanel from '@/components/SmartTimelinePanel';
 import { useTimelineView } from '@/hooks/useSmartTimeline';
@@ -62,8 +55,7 @@ export default function Home() {
     () => (shouldComputeHotDocs ? buildHotDocs(data.sichtbareDocs) : []),
     [shouldComputeHotDocs, data.sichtbareDocs],
   );
-  const { suggestions: homeSuggestions, handleHomeSuggestion } =
-    useHomeSuggestions(shouldComputeSuggestions ? (data.alleDocs ?? []) : []);
+  useHomeSuggestions(shouldComputeSuggestions ? (data.alleDocs ?? []) : []);
   const { view: timelineView, wochenZusammenfassung } =
     useTimelineView(shouldComputeTimeline ? (data.alleDocs ?? []) : []);
   const [timelineVisible, setTimelineVisible] = useState(false);
@@ -73,11 +65,6 @@ export default function Home() {
   const [refreshing, setRefreshing]           = useState(false);
   const [digestVisible, setDigestVisible]     = useState(false);
   const [digest, setDigest]                   = useState<DigestResult | null>(null);
-  const [dismissedHotIds, setDismissedHotIds] = useState<Set<string>>(new Set());
-  const activeStrip = useMemo(
-    () => hotDocs.slice(1).find(h => !dismissedHotIds.has(h.dok.id)) ?? null,
-    [hotDocs, dismissedHotIds],
-  );
   const reviewDocs = useMemo(
     () => (data.aufgaben ?? []).filter((d: any) => needsManualReview(d)),
     [data.aufgaben],
@@ -198,38 +185,6 @@ export default function Home() {
         onFrist={openTimeline}
       />
 
-      {ENABLE_RELEASE_STATS_ROW && (
-        <HomeStatsRow
-          colors={data.Colors}
-          shadow={data.Shadow}
-          stats={data.dashStats}
-          spacing={data.S}
-        />
-      )}
-
-      {ENABLE_RELEASE_SUGGESTIONS_STRIP && homeSuggestions.length > 0 && (
-        <HomeSuggestionsStrip
-          suggestions={homeSuggestions}
-          onPress={handleHomeSuggestion}
-        />
-      )}
-
-      {ENABLE_RELEASE_PULL_DIGEST && (
-        <HomePullDigest
-          digest={digest}
-          visible={digestVisible}
-          onDismiss={() => { setDigestVisible(false); setDigest(null); }}
-        />
-      )}
-
-      {ENABLE_HOT && (
-        <HotCardSection
-          hotDocs={hotDocs.slice(0, 1)}
-          onPress={(h: HotDoc) => router.push({ pathname: '/detail', params: { dokId: h.dok.id } })}
-        />
-      )}
-
-
       <HomeTriage
         docs={data.aufgaben}
         onPress={handleTriagePress}
@@ -251,26 +206,6 @@ export default function Home() {
         : <HomeRecentList data={data} />
       }
     </ScrollView>
-
-      {ENABLE_CONTEXT_STRIP && activeStrip && (
-        <View style={{ position: 'absolute', bottom: 108, left: 16, right: 16 }}>
-          <ContextualActionStrip
-            key={activeStrip.dok.id}
-            hotDoc={activeStrip}
-            onAction={(h) => {
-              setDismissedHotIds(prev => new Set(prev).add(h.dok.id));
-              router.push({ pathname: '/detail', params: { dokId: h.dok.id } });
-            }}
-            onDismiss={() =>
-              setDismissedHotIds(prev => new Set(prev).add(activeStrip.dok.id))
-            }
-          />
-        </View>
-      )}
-      {/* #41 Skia pull-to-refresh aura */}
-      {ENABLE_RELEASE_SKIA_REFRESH_INDICATOR && (
-        <SkiaRefreshIndicator refreshing={refreshing} topOffset={60} />
-      )}
 
       <AppBottomSheet
         visible={!!data.sheetConfig}

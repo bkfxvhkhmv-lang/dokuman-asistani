@@ -7,17 +7,14 @@ import { useDocumentDetail } from '@/features/detail/hooks/useDocumentDetail';
 import { useDetailScreenAnimations } from '@/features/detail/hooks/useDetailScreenAnimations';
 import { useModalController } from '@/features/detail/hooks/useModalController';
 import { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
-import { useSmartActions } from '@/hooks/useSmartActions';
 import { useSmartLinking } from '@/hooks/useSmartLinking';
 import { useSmartReminders } from '@/hooks/useSmartReminders';
 import { useSmartSummary } from '@/hooks/useSmartSummary';
 import { useDocumentRisk } from '@/hooks/useSmartRiskEngine';
 import { getDetailActionPlan } from '@/features/detail/components/ActionsPanel';
 import { runDetailSmartAction } from '@/features/detail/services/detailSmartRouting';
-import { useDetailMoreItems } from '@/features/detail/hooks/useDetailMoreItems';
 import { useAnalyzeSavedDocument } from '@/features/detail/hooks/useAnalyzeSavedDocument';
 import { isUnanalysedQuickSaved as checkUnanalysedQuickSaved } from '@/features/detail/utils/isUnanalysedQuickSaved';
-import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { PulseUrgency } from '@/components/FloatingActionPulse';
 
 export function useDetailBildschirmLogic() {
@@ -65,7 +62,6 @@ export function useDetailBildschirmLogic() {
     onActionSessionStart: beginActionSession,
   });
 
-  const smartActions = useSmartActions(detail.dok ?? null);
   const smartLinks = useSmartLinking(detail.dok ?? null, detail.state.dokumente);
   const smartReminders = useSmartReminders(detail.dok ?? null);
   const smartSummary = useSmartSummary(detail.dok ?? null);
@@ -120,19 +116,6 @@ export function useDetailBildschirmLogic() {
         ? 'medium'
         : 'low';
 
-  const partnerEmailEnabled =
-    !!(detail.state?.einstellungen?.partnerEmail && String(detail.state.einstellungen.partnerEmail).trim());
-
-  const onRevertSignature = detail.dok?.unsignedUri
-    ? () => {
-        const orig = detail.dok!.unsignedUri!;
-        detail.dispatch?.({
-          type: 'UPDATE_DOKUMENT',
-          payload: { id: detail.dok!.id, uri: orig, fileRelativePath: null, unsignedUri: null, signedPreviewUri: null },
-        });
-      }
-    : undefined;
-
   const {
     status: analyzeStatus,
     error: analyzeError,
@@ -169,16 +152,6 @@ export function useDetailBildschirmLogic() {
     }
   }, [analyzeStatus, aktifTab, detail.dok?.rohText, detail.dok?.zusammenfassung, handleTabPress]);
 
-  const moreItems = useDetailMoreItems({
-    dok: detail.dok,
-    actions,
-    openModal: modal.open,
-    partnerEmailEnabled,
-    setBudgetModalVisible,
-    onRevertSignature,
-    onAnalyzeSavedDocument,
-  }) as MoreMenuItem[];
-
   const handleOzetAktion = handleSmartAction;
 
   const handlePrimaryAction = () => {
@@ -191,7 +164,6 @@ export function useDetailBildschirmLogic() {
     detail,
     modal,
     actions,
-    smartActions,
     smartLinks,
     smartReminders,
     smartSummary,
@@ -222,7 +194,6 @@ export function useDetailBildschirmLogic() {
     panResponder,
     actionPlan,
     pulseUrgency,
-    moreItems,
     handleOzetAktion,
     handlePrimaryAction,
     beginActionSession,

@@ -72,14 +72,16 @@ export default function DocumentPagesViewer({
     setVerifying(true);
     (async () => {
       const missing = new Set<string>();
-      for (const p of sortedPages) {
-        try {
-          const info = await FileSystem.getInfoAsync(p.uri);
-          if (!info.exists) missing.add(p.id);
-        } catch {
-          missing.add(p.id);
-        }
-      }
+      await Promise.all(
+        sortedPages.map(async (p) => {
+          try {
+            const info = await FileSystem.getInfoAsync(p.uri);
+            if (!info.exists) missing.add(p.id);
+          } catch {
+            missing.add(p.id);
+          }
+        })
+      );
       if (!cancelled) {
         setMissingPages(missing);
         setVerifying(false);
@@ -185,16 +187,24 @@ export default function DocumentPagesViewer({
                 style={st.swiper}
                 contentContainerStyle={{ alignItems: 'center' }}
               >
-                {sortedPages.map((page, idx) => (
-                  <ViewerPageSlide
-                    key={page.id}
-                    uri={page.uri}
-                    isMissing={missingPages.has(page.id)}
-                    availableHeight={contentHeight}
-                    onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
-                    rotation={rotations[idx] ?? 0}
-                  />
-                ))}
+                {sortedPages.map((page, idx) => {
+                  const isInWindow = Math.abs(idx - active) <= 1;
+                  return isInWindow ? (
+                    <ViewerPageSlide
+                      key={page.id}
+                      uri={page.uri}
+                      isMissing={missingPages.has(page.id)}
+                      availableHeight={contentHeight}
+                      onPdfPageCount={(n) => setPdfPageCounts(prev => ({ ...prev, [idx]: n }))}
+                      rotation={rotations[idx] ?? 0}
+                    />
+                  ) : (
+                    <View
+                      key={page.id}
+                      style={{ width: SCREEN_W, height: contentHeight }}
+                    />
+                  );
+                })}
               </ScrollView>
             )}
 

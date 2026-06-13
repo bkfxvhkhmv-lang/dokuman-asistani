@@ -17,13 +17,25 @@ interface Props {
 
 const WINDOW = Dimensions.get('window');
 
+// Simple deterministic hash to reuse cache files for the same source URI.
+function hashUri(uri: string): string {
+  let h = 0;
+  for (let i = 0; i < uri.length; i++) {
+    h = ((h << 5) - h) + uri.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h).toString(16);
+}
+
 // Android: PdfRendererView requires a file:// URI — resolve content:// by copying to cache.
 async function resolveAndroidPdfUri(uri: string): Promise<string> {
   if (uri.startsWith('file://') || uri.startsWith('/')) {
     return uri.startsWith('/') ? `file://${uri}` : uri;
   }
   if (uri.startsWith('content://')) {
-    const dest = `${FileSystem.cacheDirectory}briefpilot_pdf_${Date.now()}.pdf`;
+    const dest = `${FileSystem.cacheDirectory}briefpilot_pdf_${hashUri(uri)}.pdf`;
+    const info = await FileSystem.getInfoAsync(dest);
+    if (info.exists) return dest;
     await FileSystem.copyAsync({ from: uri, to: dest });
     return dest;
   }

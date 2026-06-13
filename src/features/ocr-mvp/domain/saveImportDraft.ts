@@ -3,6 +3,19 @@ import { generateId } from '@/utils/formatters';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import type { Dokument, ScannedPage } from '@/store';
 
+export function isDocumentPickerCacheUri(uri?: string | null): boolean {
+  return typeof uri === 'string' && uri.includes('/cache/DocumentPicker/');
+}
+
+export async function cleanupDocumentPickerCacheUri(uri?: string | null): Promise<void> {
+  if (!isDocumentPickerCacheUri(uri)) return;
+  try {
+    await FileSystem.deleteAsync(uri!, { idempotent: true });
+  } catch (error) {
+    if (__DEV__) console.warn('[DocumentPicker] cache cleanup failed', error);
+  }
+}
+
 function getFileSize(info: FileSystem.FileInfo): number | undefined {
   if (info.exists && typeof (info as { size?: unknown }).size === 'number') {
     return (info as { size: number }).size;
@@ -82,5 +95,6 @@ export async function persistImportSource(
   if (!pages.length) {
     throw new Error('Import konnte nicht gespeichert werden.');
   }
+  await cleanupDocumentPickerCacheUri(sourceUri);
   return { docId, pages };
 }

@@ -41,6 +41,11 @@ const ENABLE_RELEASE_SUGGESTIONS_STRIP = false;
 const ENABLE_RELEASE_PULL_DIGEST = false;
 const ENABLE_RELEASE_SKIA_REFRESH_INDICATOR = false;
 
+const shouldComputeHotDocs = ENABLE_HOT || ENABLE_RELEASE_PULL_DIGEST;
+const shouldComputeTargets = ENABLE_RELEASE_STATS_ROW || ENABLE_RELEASE_PULL_DIGEST;
+const shouldComputeSuggestions = ENABLE_RELEASE_SUGGESTIONS_STRIP;
+const shouldComputeDigest = ENABLE_RELEASE_PULL_DIGEST;
+const shouldComputeTimeline = false;
 
 export default function Home() {
   const data = useHomeData();
@@ -53,9 +58,14 @@ export default function Home() {
   const tabBarHeight = useBottomTabBarHeight();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const budget  = useMemo(() => buildBudgetSnapshot(data.sichtbareDocs), [data.sichtbareDocs]);
-  const hotDocs = useMemo(() => buildHotDocs(data.sichtbareDocs),        [data.sichtbareDocs]);
-  const { suggestions: homeSuggestions, handleHomeSuggestion } = useHomeSuggestions(data.alleDocs ?? []);
-  const { view: timelineView, wochenZusammenfassung } = useTimelineView(data.alleDocs ?? []);
+  const hotDocs = useMemo(
+    () => (shouldComputeHotDocs ? buildHotDocs(data.sichtbareDocs) : []),
+    [shouldComputeHotDocs, data.sichtbareDocs],
+  );
+  const { suggestions: homeSuggestions, handleHomeSuggestion } =
+    useHomeSuggestions(shouldComputeSuggestions ? (data.alleDocs ?? []) : []);
+  const { view: timelineView, wochenZusammenfassung } =
+    useTimelineView(shouldComputeTimeline ? (data.alleDocs ?? []) : []);
   const [timelineVisible, setTimelineVisible] = useState(false);
   const openTimeline  = useCallback(() => setTimelineVisible(true),  []);
   const closeTimeline = useCallback(() => setTimelineVisible(false), []);
@@ -74,20 +84,25 @@ export default function Home() {
   );
 
   const targets = useMemo(
-    () => analyzeAllTargets(data.state.einstellungen.budgetTargets ?? [], data.sichtbareDocs),
-    [data.state.einstellungen.budgetTargets, data.sichtbareDocs],
+    () =>
+      shouldComputeTargets
+        ? analyzeAllTargets(data.state.einstellungen.budgetTargets ?? [], data.sichtbareDocs)
+        : [],
+    [shouldComputeTargets, data.state.einstellungen.budgetTargets, data.sichtbareDocs],
   );
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    setDigest(null);          // show shimmer immediately
-    setDigestVisible(true);
+    if (shouldComputeDigest) {
+      setDigest(null);
+      setDigestVisible(true);
+    }
     await data.runSync();
     setRefreshing(false);
-    // Generate digest in background — updates banner when ready
+    if (!shouldComputeDigest) return;
     generateDigest(data.sichtbareDocs, hotDocs, budget, targets)
       .then(result => setDigest(result))
       .catch(() => setDigest({ text: 'Analyse erfolgreich abgeschlossen.', source: 'local', severity: 'ok', icon: '✅' }));
-  }, [data, hotDocs, budget, targets]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [data, hotDocs, budget, targets, shouldComputeDigest]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExportierenRoute = useCallback(() => {
     const ids = JSON.stringify([...data.secilenIds]);

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { StatusBar, View, StyleSheet, Platform } from 'react-native';
-import { initNativeScannerBridge } from '../src/modules/scanner/engine/NativeScannerBridge';
 import HeroTransitionOverlay from '../src/navigation/HeroTransitionOverlay';
 import SperrBildschirm from '../src/components/SperrBildschirm';
 import { usePrivacyGate } from '../src/hooks/usePrivacyGate';
@@ -159,7 +158,6 @@ const priv = StyleSheet.create({
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
-    initNativeScannerBridge();
   }, []);
 
   return (

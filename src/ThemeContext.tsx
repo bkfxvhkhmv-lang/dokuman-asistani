@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -117,7 +117,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const hitSlopScale  = isSimpleMode ? 1.6 : 1.0;
   const animationsEnabled = !isSimpleMode;
 
-  const theme: Theme = {
+  const theme: Theme = useMemo(() => ({
     ...buildTheme(isDark),
     toggleTheme,
     isSimpleMode,
@@ -125,7 +125,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     fs,
     hitSlopScale,
     animationsEnabled,
-  };
+  }), [
+    isDark,
+    toggleTheme,
+    isSimpleMode,
+    toggleSimpleMode,
+    fs,
+    hitSlopScale,
+    animationsEnabled,
+  ]);
 
   return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

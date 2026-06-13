@@ -55,13 +55,13 @@ function HomeRecentListInner({ data }: { data: any }) {
   const queryClient      = useQueryClient();
 
   // Predictive pre-fetch — after list stabilises for 800ms, warm the cache
-  // for the top 3 visible docs so detail opens are instant.
+  // for the top visible doc so detail opens are instant.
   const sectionDokIds = useMemo(
-    () => ((data as any).sichtbareDocs ?? []).slice(0, 3).map((d: any) => d.id).join(','),
+    () => ((data as any).sichtbareDocs ?? []).slice(0, 1).map((d: any) => d.id).join(','),
     [(data as any).sichtbareDocs],
   );
   useEffect(() => {
-    const topDocs = ((data as any).sichtbareDocs ?? []).slice(0, 3);
+    const topDocs = ((data as any).sichtbareDocs ?? []).slice(0, 1);
     if (topDocs.length === 0) return;
     const timer = setTimeout(() => {
       topDocs.forEach((dok: any) => prefetchDocumentData(queryClient, dok));

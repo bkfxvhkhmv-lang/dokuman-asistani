@@ -35,6 +35,52 @@ export const TYP_META: Record<string, { icon: string; farbe: string }> = {
   Sonstiges:      { icon: 'file',           farbe: '#888'    },
 };
 
+type DashStats = {
+  diesenMonat: number;
+  wichtig: number;
+  mitDeadline: number;
+  mahnungen: number;
+  vertraege: number;
+  duplikate: number;
+  fehlend: number;
+};
+
+function computeDashStats(docs: Dokument[], isTaskVisible: (d: Dokument) => boolean): DashStats {
+  const heute = new Date();
+  heute.setHours(0, 0, 0, 0);
+  const monatsAnfang = new Date(heute.getFullYear(), heute.getMonth(), 1);
+
+  const stats: DashStats = {
+    diesenMonat: 0,
+    wichtig: 0,
+    mitDeadline: 0,
+    mahnungen: 0,
+    vertraege: 0,
+    duplikate: 0,
+    fehlend: 0,
+  };
+
+  for (const d of docs) {
+    const taskVisible = isTaskVisible(d);
+
+    if (new Date(d.datum) >= monatsAnfang) stats.diesenMonat++;
+    if (d.risiko === 'hoch' && taskVisible) stats.wichtig++;
+    if (d.frist && taskVisible) stats.mitDeadline++;
+    if (d.typ === 'Mahnung' && taskVisible) stats.mahnungen++;
+    if (d.typ === 'Vertrag') stats.vertraege++;
+    if ((d as any)._duplikat) stats.duplikate++;
+    if (
+      taskVisible &&
+      ['Rechnung', 'Mahnung', 'Bußgeld'].includes(d.typ) &&
+      (!d.betrag || !d.frist)
+    ) {
+      stats.fehlend++;
+    }
+  }
+
+  return stats;
+}
+
 export function useHomeState() {
   const { state, dispatch } = useStore();
   const { Colors, RiskColors, Shadow, S, R, isDark } = useTheme();
@@ -147,20 +193,10 @@ export function useHomeState() {
     [zahlungsDocs]
   );
 
-  const dashStats = useMemo(() => {
-    const heute = new Date(); heute.setHours(0, 0, 0, 0);
-    const monatsAnfang = new Date(heute.getFullYear(), heute.getMonth(), 1);
-    const docs = sichtbareDocs;
-    return {
-      diesenMonat: docs.filter(d => new Date(d.datum) >= monatsAnfang).length,
-      wichtig:     docs.filter(d => d.risiko === 'hoch' && isTaskVisible(d)).length,
-      mitDeadline: docs.filter(d => d.frist && isTaskVisible(d)).length,
-      mahnungen:   docs.filter(d => d.typ === 'Mahnung' && isTaskVisible(d)).length,
-      vertraege:   docs.filter(d => d.typ === 'Vertrag').length,
-      duplikate:   docs.filter(d => (d as any)._duplikat).length,
-      fehlend:     docs.filter(d => isTaskVisible(d) && ['Rechnung','Mahnung','Bußgeld'].includes(d.typ) && (!d.betrag || !d.frist)).length,
-    };
-  }, [sichtbareDocs, isTaskVisible]);
+  const dashStats = useMemo(
+    () => computeDashStats(sichtbareDocs, isTaskVisible),
+    [sichtbareDocs, isTaskVisible]
+  );
 
   const handleSwipeErledigt = useCallback((dok: Dokument) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

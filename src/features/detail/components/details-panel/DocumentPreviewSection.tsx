@@ -42,7 +42,7 @@ export function DocumentPreviewSection({ dok, onOpenFullscreen }: Props) {
           />
         ) : (
           <Pdf
-            source={{ uri: dok.uri, cache: true }}
+            source={{ uri: dok.uri, cache: false }}
             style={{ width: imgSize.w || 300, height: imgSize.h || 300 }}
             page={1}
             fitPolicy={2}

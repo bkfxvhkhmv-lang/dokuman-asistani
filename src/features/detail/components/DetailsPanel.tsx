@@ -31,6 +31,7 @@ export default function DetailsPanel({
   onSign,
   onErledigt,
   onLoeschen,
+  suspendPreview = false,
   isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
@@ -91,10 +92,12 @@ export default function DetailsPanel({
     <View style={{ padding: S.md, paddingBottom: 16 }}>
 
       {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
-      <DocumentPreviewSection
-        dok={dok}
-        onOpenFullscreen={onOpenFullscreen}
-      />
+      {!suspendPreview ? (
+        <DocumentPreviewSection
+          dok={dok}
+          onOpenFullscreen={onOpenFullscreen}
+        />
+      ) : null}
 
       {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
       <SectionCard title={T('detail.section.doc_data')}>

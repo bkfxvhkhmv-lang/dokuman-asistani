@@ -14,6 +14,7 @@ export interface DetailsPanelProps {
   onSign?: () => void;
   onErledigt?: () => void;
   onLoeschen?: () => void;
+  suspendPreview?: boolean;
   /** Suppresses review/missing badges when the document has not been analysed yet. */
   isUnanalysedQuickSaved?: boolean;
 }

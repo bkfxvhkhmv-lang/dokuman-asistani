@@ -9,6 +9,7 @@ type Props = {
   detail: any;
   actionPlan?: ActionPlan | null;
   isUnanalysedQuickSaved?: boolean;
+  suspendPreview?: boolean;
   onTabScroll: (e: any) => void;
   onScrollContentSize: (w: number, h: number) => void;
   onScrollLayout: (e: any) => void;
@@ -25,6 +26,7 @@ export default function DetailDetailsTab({
   detail,
   actionPlan = null,
   isUnanalysedQuickSaved = false,
+  suspendPreview = false,
   onTabScroll,
   onScrollContentSize,
   onScrollLayout,
@@ -53,6 +55,7 @@ export default function DetailDetailsTab({
         aehnlicheDoks={detail.aehnlicheDoks}
         ocrRisiken={detail.ocrRisiken}
         graph={detail.graph}
+        suspendPreview={suspendPreview}
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
         onEdit={onEdit}
         onExport={onExport}

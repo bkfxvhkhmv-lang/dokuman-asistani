@@ -30,7 +30,7 @@ import { detailScreenStyles as st } from '@/features/detail/detail-screen/detail
 import { deriveNaechsterSchrittZeile } from '@/utils/detailNextStep';
 import { safeBack } from '@/navigation/safeBack';
 import { setTabBarHidden } from '@/navigation/tabBarVisibility';
-import { useStore } from '@/store';
+import { useStoreDispatch } from '@/store/Provider';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
 import { useT } from '@/hooks/useT';
@@ -44,7 +44,7 @@ export default function Detailbildschirm() {
   const { Colors: C, isSimpleMode } = useTheme();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 49;
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   const L = useDetailBildschirmLogic();
 
   useFocusEffect(

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { shouldLabel, labelDocument, type AiLabelerResult } from '@/services/AiLabelerService';
 import type { Dokument } from '@/store/types';
-import { useStore } from '@/store';
+import { useStoreDispatch } from '@/store/Provider';
 import { getLangSync } from '@/i18n/langStore';
 import { t } from '@/i18n/translations';
 
@@ -17,7 +17,7 @@ import { t } from '@/i18n/translations';
  * - customTitle is never modified here; display priority is handled elsewhere.
  */
 export function useAiLabeler(dok: Dokument) {
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<AiLabelerResult | null>(null);
   const [error, setError] = useState<string | null>(null);

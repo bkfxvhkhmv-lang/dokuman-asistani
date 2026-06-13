@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useStore, type Dokument } from '@/store';
+import type { Dokument } from '@/store';
+import { useStoreDispatch } from '@/store/Provider';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import type { PipelineUiPhase } from '@/utils/documentPipelineStatus';
@@ -31,7 +32,7 @@ type Props = {
 export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnalysis }: Props) {
   const { Colors: C, S, R, fs } = useTheme();
   const { t: T } = useT();
-  const { dispatch } = useStore();
+  const dispatch = useStoreDispatch();
   const { sync, status: syncStatus } = useSyncEngine();
   const [busy, setBusy] = useState(false);
 

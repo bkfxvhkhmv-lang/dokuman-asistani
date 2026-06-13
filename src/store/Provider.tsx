@@ -29,6 +29,7 @@ interface StoreContextValue {
 }
 
 const Ctx = createContext<StoreContextValue | null>(null);
+const DispatchCtx = createContext<Dispatch<StoreAction> | null>(null);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(rootReducer, INITIAL_STATE);
@@ -69,11 +70,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     prevUserRef.current = user;
   }, [user, storeHydrated, dispatch]);
 
-  return <Ctx.Provider value={{ state, dispatch, storeHydrated }}>{children}</Ctx.Provider>;
+  return (
+    <DispatchCtx.Provider value={dispatch}>
+      <Ctx.Provider value={{ state, dispatch, storeHydrated }}>{children}</Ctx.Provider>
+    </DispatchCtx.Provider>
+  );
 }
 
 export function useStore(): StoreContextValue {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useStore must be used within StoreProvider');
   return ctx;
+}
+
+export function useStoreDispatch(): Dispatch<StoreAction> {
+  const dispatch = useContext(DispatchCtx);
+  if (!dispatch) throw new Error('useStoreDispatch must be used within StoreProvider');
+  return dispatch;
 }

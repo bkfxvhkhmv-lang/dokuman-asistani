@@ -11,11 +11,13 @@
  *
  * Boylece persistence katmani Provider'dan ayri test edilebilir.
  */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { StoreState } from '@/store/types';
 import { STORE_KEY } from '@/store/initialState';
+
+const PERSIST_DEBOUNCE_MS = 1500;
 
 /**
  * Extracts the path relative to documentDirectory from an absolute sandbox URI.
@@ -102,12 +104,29 @@ export function usePersistOnChange(
   state: StoreState,
   hydratedRef: { readonly current: boolean },
 ): void {
+  const persistTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (!hydratedRef.current) return;
-    // _duplikat calisma zamani UI flag'i — kalici degil.
-    const { _duplikat: _omit, ...save } = state;
-    AsyncStorage.setItem(STORE_KEY, JSON.stringify(save)).catch(e =>
-      console.warn('[Store] persistence write error', e),
-    );
+
+    if (persistTimerRef.current) {
+      clearTimeout(persistTimerRef.current);
+    }
+
+    persistTimerRef.current = setTimeout(() => {
+      // _duplikat calisma zamani UI flag'i — kalici degil.
+      const { _duplikat: _omit, ...save } = state;
+      AsyncStorage.setItem(STORE_KEY, JSON.stringify(save)).catch(e =>
+        console.warn('[Store] persistence write error', e),
+      );
+      persistTimerRef.current = null;
+    }, PERSIST_DEBOUNCE_MS);
+
+    return () => {
+      if (persistTimerRef.current) {
+        clearTimeout(persistTimerRef.current);
+        persistTimerRef.current = null;
+      }
+    };
   }, [state, hydratedRef]);
 }

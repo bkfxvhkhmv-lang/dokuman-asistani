@@ -101,7 +101,7 @@ export default function AutoFillReviewModal({
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 4, gap: 10 }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>
-                🤖 KI-Erkennung prüfen
+                KI-Erkennung prüfen
               </Text>
               <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>
                 Alles stimmt? Tippe auf ein Feld zum Bearbeiten.

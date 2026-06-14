@@ -226,7 +226,6 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           alignSelf: 'center', marginTop: 12, marginBottom: 16 }} />
 
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16, gap: 10 }}>
-          <Text style={{ fontSize: 22 }}>🤖</Text>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>{t('modal.understand_doc.title')}</Text>
             <Text style={{ fontSize: 11, color: C.textSecondary }}>{t('modal.understand_doc.sub')}</Text>
@@ -271,7 +270,6 @@ export default function BelgeAciklamaModal({ visible, onClose, dok }: BelgeAcikl
           contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {!aciklama && !yukleniyor && !hata && (
             <View style={{ alignItems: 'center', paddingVertical: 32 }}>
-              <Text style={{ fontSize: 48, marginBottom: 16 }}>🤖</Text>
               <Text style={{ fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 8, textAlign: 'center' }}>
                 {t('modal.understand_doc.prompt')}
               </Text>

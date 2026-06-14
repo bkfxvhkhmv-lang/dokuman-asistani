@@ -123,7 +123,7 @@ export function useDetailMoreItems({
       rows.push({
         key: 'menu_nebenkosten_add',
         icon: 'receipt',
-        label: 'Als Kostenposition übernehmen',
+        label: 'Nebenkosten prüfen',
         group: 'secondary',
         onPress: () => {
           router.push({

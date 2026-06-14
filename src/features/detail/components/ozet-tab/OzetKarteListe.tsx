@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG } from '@/theme';
+import Icon from '@/components/Icon';
 import type { OzetKarte } from '@/utils/types';
 
 interface Props {
@@ -22,7 +23,7 @@ export default function OzetKarteListe({ kartlar, onOzetAktion, suppressAktionKe
         <View key={i} style={{ borderRadius: R.md, padding: S.md, marginBottom: 8,
           backgroundColor: C.bgCard, borderWidth: 0.5, borderColor: C.border, ...Shadow.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Text style={{ fontSize: 18 }}>{karte.icon}</Text>
+            <Icon name={karte.icon} size={20} color={C.textSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: C.text }}>{karte.titel}</Text>
               <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>{karte.inhalt}</Text>

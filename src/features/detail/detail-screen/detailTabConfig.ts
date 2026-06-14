@@ -1,8 +1,8 @@
 /** Sticky Unterleiste Tabs — DetailAnsicht */
 
 export const DETAIL_SCREEN_TABS = [
-  { id: 'analiz', label: 'Überblick', icon: 'analytics-outline' as const },
-  { id: 'ozet', label: 'Dokument', icon: 'document-text-outline' as const },
+  { id: 'analiz', label: 'detail.tab.analysis', icon: 'analytics-outline' as const },
+  { id: 'ozet', label: 'detail.tab.overview', icon: 'document-text-outline' as const },
 ] as const;
 
 /** Einfacher Modus: nur eine Ansicht ohne weitere Tabs */

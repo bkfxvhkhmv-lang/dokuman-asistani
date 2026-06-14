@@ -1,0 +1,76 @@
+Applications Graphics Acceleration Info:
+Uptime: 526311877 Realtime: 664611334
+
+** Graphics info for pid 9276 [com.briefpilot.app] **
+
+Stats since: 515726128483831ns
+Total frames rendered: 384619
+Janky frames: 7779 (2.02%)
+Janky frames (legacy): 105184 (27.35%)
+50th percentile: 10ms
+90th percentile: 13ms
+95th percentile: 15ms
+99th percentile: 36ms
+Number Missed Vsync: 3117
+Number High input latency: 146284
+Number Slow UI thread: 5944
+Number Slow bitmap uploads: 3925
+Number Slow issue draw commands: 1078
+Number Frame deadline missed: 7779
+Number Frame deadline missed (legacy): 88688
+HISTOGRAM: 5ms=9146 6ms=13438 7ms=32098 8ms=53660 9ms=80959 10ms=72990 11ms=50694 12ms=28572 13ms=14439 14ms=7178 15ms=3735 16ms=2415 17ms=1704 18ms=1348 19ms=1085 20ms=908 21ms=758 22ms=642 23ms=609 24ms=505 25ms=496 26ms=460 27ms=429 28ms=369 29ms=335 30ms=337 31ms=325 32ms=581 34ms=553 36ms=413 38ms=375 40ms=327 42ms=297 44ms=251 46ms=227 48ms=418 53ms=287 57ms=221 61ms=170 65ms=155 69ms=148 73ms=88 77ms=70 81ms=50 85ms=40 89ms=46 93ms=33 97ms=32 101ms=22 105ms=20 109ms=12 113ms=13 117ms=9 121ms=8 125ms=13 129ms=8 133ms=4 150ms=50 200ms=17 250ms=1 300ms=3 350ms=1 400ms=4 450ms=5 500ms=5 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=2 1200ms=0 1250ms=0 1300ms=1 1350ms=0 1400ms=0 1450ms=1 1500ms=0 1550ms=1 1600ms=0 1650ms=0 1700ms=0 1750ms=2 1800ms=0 1850ms=1 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 4ms
+90th gpu percentile: 4ms
+95th gpu percentile: 5ms
+99th gpu percentile: 6ms
+GPU HISTOGRAM: 1ms=1222 2ms=37632 3ms=63176 4ms=261929 5ms=16446 6ms=2927 7ms=601 8ms=350 9ms=103 10ms=96 11ms=75 12ms=36 13ms=11 14ms=6 15ms=4 16ms=3 17ms=0 18ms=0 19ms=0 20ms=1 21ms=0 22ms=1 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (Vulkan)
+Memory policy:
+  Max surface area: 2073600
+  Max resource usage: 99.53MB (x48)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 1 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 2.26 MB (1 entry)
+  Glyph Count: 420 
+Total CPU memory usage:
+  2373620 bytes, 2.26 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 1.61 MB (1 entry)
+    StencilAttachment: 131.00 KB (8 entries)
+    Buffer Object: 11.50 KB (5 entries)
+  Image:
+    Surface: 1.84 MB (153 entries)
+  Scratch:
+    Buffer Object: 623.88 KB (22 entries)
+    Surface: 49.30 MB (189 entries)
+Total GPU memory usage:
+  56095044 bytes, 53.50 MB (8.66 MB is purgeable)
+Pipeline Cache: inactive
+GraphicBufferAllocator buffers:
+            Handle |         Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+0xb40000755bf862b0 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#46(BLAST Consumer)46
+0xb40000755c79c670 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#46(BLAST Consumer)46
+0xb40000755cdc9e90 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#46(BLAST Consumer)46
+0xb40000755ce7a150 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#46(BLAST Consumer)46
+0xb40000755cf83330 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#46(BLAST Consumer)46
+Total allocated by GraphicBufferAllocator (estimate): 40162.50 KB
+Imported gralloc buffers:
+Total imported by gralloc: 0KiB
+
+Profile data in ms:
+
+	com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@5c8623b (visibility=0)
+View hierarchy:
+
+  com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@5c8623b
+  1300 views, 2611,72 kB of render nodes
+
+
+Total ViewRootImpl   : 1
+Total attached Views : 1300
+Total RenderNode     : 2611,72 kB (used) / 8747,47 kB (capacity)
+

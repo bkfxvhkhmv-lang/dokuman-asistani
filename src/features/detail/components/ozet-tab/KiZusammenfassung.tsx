@@ -52,7 +52,7 @@ export default function KiZusammenfassung({
         <View key={i} style={{ marginTop: 8, padding: 8, backgroundColor: C.primaryLight, borderRadius: 8 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark, marginBottom: 4 }}>{`"${q.ozetSatz}"`}</Text>
           <Text style={{ fontSize: 10, color: C.textTertiary, fontStyle: 'italic' }}>
-            {T('common.source')}: {q.quelle} ({q.konfidenz}%)
+            {T('common.source')}: {q.quelle}
           </Text>
         </View>
       ))}

@@ -99,13 +99,13 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
                 </Text>
               ) : null}
             </View>
-            {modelUsed && (
+            {modelUsed && (isLocal || isCloud) && (
               <View style={[st.modelBadge, {
-                backgroundColor: isLocal ? C.successLight : isCloud ? C.primaryLight : C.bgInput,
+                backgroundColor: isLocal ? C.successLight : C.primaryLight,
               }]}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isLocal ? C.success : isCloud ? C.primary : C.textTertiary }} />
-                <Text style={{ fontSize: 10, fontWeight: '600', color: isLocal ? C.success : isCloud ? C.primary : C.textTertiary }}>
-                  {isLocal ? 'Local AI' : isCloud ? 'Cloud AI' : 'Offline-Modus'}
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: isLocal ? C.success : C.primary }} />
+                <Text style={{ fontSize: 10, fontWeight: '600', color: isLocal ? C.success : C.primary }}>
+                  {isLocal ? 'Local AI' : 'Cloud AI'}
                 </Text>
               </View>
             )}

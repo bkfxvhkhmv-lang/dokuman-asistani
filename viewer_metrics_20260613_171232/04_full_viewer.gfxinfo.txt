@@ -1,0 +1,83 @@
+Applications Graphics Acceleration Info:
+Uptime: 517681784 Realtime: 655981241
+
+** Graphics info for pid 9276 [com.briefpilot.app] **
+
+Stats since: 515726128483831ns
+Total frames rendered: 15205
+Janky frames: 160 (1.05%)
+Janky frames (legacy): 2462 (16.19%)
+50th percentile: 8ms
+90th percentile: 10ms
+95th percentile: 11ms
+99th percentile: 25ms
+Number Missed Vsync: 79
+Number High input latency: 8845
+Number Slow UI thread: 148
+Number Slow bitmap uploads: 7
+Number Slow issue draw commands: 31
+Number Frame deadline missed: 160
+Number Frame deadline missed (legacy): 881
+HISTOGRAM: 5ms=1535 6ms=1876 7ms=2697 8ms=3652 9ms=3323 10ms=993 11ms=381 12ms=168 13ms=106 14ms=64 15ms=61 16ms=38 17ms=29 18ms=22 19ms=21 20ms=19 21ms=23 22ms=17 23ms=12 24ms=8 25ms=11 26ms=10 27ms=9 28ms=8 29ms=8 30ms=7 31ms=6 32ms=12 34ms=6 36ms=9 38ms=12 40ms=11 42ms=6 44ms=2 46ms=2 48ms=10 53ms=3 57ms=5 61ms=2 65ms=4 69ms=1 73ms=1 77ms=0 81ms=2 85ms=0 89ms=1 93ms=0 97ms=1 101ms=1 105ms=0 109ms=1 113ms=0 117ms=1 121ms=0 125ms=0 129ms=0 133ms=0 150ms=5 200ms=1 250ms=0 300ms=0 350ms=0 400ms=0 450ms=0 500ms=0 550ms=0 600ms=0 650ms=0 700ms=0 750ms=0 800ms=0 850ms=0 900ms=0 950ms=0 1000ms=0 1050ms=0 1100ms=0 1150ms=0 1200ms=0 1250ms=0 1300ms=0 1350ms=0 1400ms=0 1450ms=0 1500ms=0 1550ms=0 1600ms=0 1650ms=0 1700ms=0 1750ms=1 1800ms=0 1850ms=1 1900ms=0 1950ms=0 2000ms=0 2050ms=0 2100ms=0 2150ms=0 2200ms=0 2250ms=0 2300ms=0 2350ms=0 2400ms=0 2450ms=0 2500ms=0 2550ms=0 2600ms=0 2650ms=0 2700ms=0 2750ms=0 2800ms=0 2850ms=0 2900ms=0 2950ms=0 3000ms=0 3050ms=0 3100ms=0 3150ms=0 3200ms=0 3250ms=0 3300ms=0 3350ms=0 3400ms=0 3450ms=0 3500ms=0 3550ms=0 3600ms=0 3650ms=0 3700ms=0 3750ms=0 3800ms=0 3850ms=0 3900ms=0 3950ms=0 4000ms=0 4050ms=0 4100ms=0 4150ms=0 4200ms=0 4250ms=0 4300ms=0 4350ms=0 4400ms=0 4450ms=0 4500ms=0 4550ms=0 4600ms=0 4650ms=0 4700ms=0 4750ms=0 4800ms=0 4850ms=0 4900ms=0 4950ms=0
+50th gpu percentile: 3ms
+90th gpu percentile: 3ms
+95th gpu percentile: 4ms
+99th gpu percentile: 5ms
+GPU HISTOGRAM: 1ms=271 2ms=6495 3ms=7260 4ms=804 5ms=236 6ms=59 7ms=25 8ms=39 9ms=11 10ms=4 11ms=1 12ms=0 13ms=0 14ms=0 15ms=0 16ms=0 17ms=0 18ms=0 19ms=0 20ms=0 21ms=0 22ms=0 23ms=0 24ms=0 25ms=0 4950ms=0
+
+Pipeline=Skia (Vulkan)
+Memory policy:
+  Max surface area: 2073600
+  Max resource usage: 99.53MB (x48)
+  Background retention: 50% (altUiHidden = true)
+  GPU Context timeout: 10
+Contexts: 2 (stopped = 0)
+CPU Caches:
+  Glyph Cache: 2.02 MB (1 entry)
+  Glyph Count: 379 
+Total CPU memory usage:
+  2116901 bytes, 2.02 MB (0.00 bytes is purgeable)
+GPU Caches:
+  Other:
+    Other: 152.16 KB (1 entry)
+  Image:
+    Surface: 14.20 MB (30 entries)
+  Scratch:
+    Surface: 80.55 MB (80 entries)
+    Buffer Object: 12.95 MB (16 entries)
+Total GPU memory usage:
+  113093720 bytes, 107.85 MB (904.61 KB is purgeable)
+Pipeline Cache: inactive
+GraphicBufferAllocator buffers:
+            Handle |         Size |     W (Stride) x H | Layers |   Format |      Usage | Requestor
+0xb40000755c0ce730 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#8(BLAST Consumer)8
+0xb40000755c10cc10 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#8(BLAST Consumer)8
+0xb40000755cf81a70 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#5(BLAST Consumer)5
+0xb40000755cf83330 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#5(BLAST Consumer)5
+0xb40000755cf89630 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#8(BLAST Consumer)8
+0xb40000755cf8aad0 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#5(BLAST Consumer)5
+0xb40000755cf8ca70 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#8(BLAST Consumer)8
+0xb40000755cf8f7d0 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#5(BLAST Consumer)5
+0xb40000755cf918d0 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#5(BLAST Consumer)5
+0xb40000755cf96cb0 |  8032.50 KiB |  960 ( 960) x 2142 |      1 |        1 | 0x     b00 | VRI[MainActivity]#8(BLAST Consumer)8
+Total allocated by GraphicBufferAllocator (estimate): 80325.00 KB
+Imported gralloc buffers:
+Total imported by gralloc: 0KiB
+
+Profile data in ms:
+
+	com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@a551c75 (visibility=0)
+	com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@3ec360f (visibility=0)
+View hierarchy:
+
+  com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@a551c75
+  100 views, 214,02 kB of render nodes
+
+  com.briefpilot.app/com.briefpilot.app.MainActivity/android.view.ViewRootImpl@3ec360f
+  29 views, 58,80 kB of render nodes
+
+
+Total ViewRootImpl   : 2
+Total attached Views : 129
+Total RenderNode     : 272,82 kB (used) / 883,84 kB (capacity)
+

@@ -86,7 +86,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
       <View style={[st.sheet, { backgroundColor: C.bgCard }]}>
         <View style={[st.handle, { backgroundColor: C.border }]} />
         <Text style={[st.title, { color: C.text }]}>PDF zusammenführen</Text>
-        <Text style={[st.hint, { color: C.textSecondary }]}>☰ Satırı basılı tutup sürükleyin</Text>
+        <Text style={[st.hint, { color: C.textSecondary }]}>☰ Zeile gedrückt halten und ziehen</Text>
         <View style={{ height: Math.min(reihenfolge.length * ITEM_H, ITEM_H * 6), marginBottom: 16 }}>
           {reihenfolge.map((dok, i) => {
             const isDragging = dragIndex === i;

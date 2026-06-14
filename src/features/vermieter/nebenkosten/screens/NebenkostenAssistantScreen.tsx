@@ -71,7 +71,7 @@ export default function NebenkostenAssistantScreen() {
     if (role === 'mieter') {
       Alert.alert(
         'Hinweis',
-        'Wenn Sie eine Nebenkostenabrechnung erhalten haben, scannen Sie das Dokument und prüfen Sie die Hinweise in der Analyse.',
+        'Scannen Sie Ihre Nebenkostenabrechnung, um Hinweise zur Prüfung zu erhalten.',
       );
       return;
     }
@@ -221,7 +221,9 @@ export default function NebenkostenAssistantScreen() {
             </Text>
             <Text style={[st.emptyBody, { color: C.textSecondary }]}>
               {role === 'mieter'
-                ? 'Wenn Sie eine Nebenkostenabrechnung erhalten haben, scannen Sie das Dokument und prüfen Sie die Hinweise in der Analyse.'
+                ? sourceDokId
+                  ? 'Dieses Dokument wurde als Nebenkostenabrechnung erkannt. Öffnen Sie die Dokumentenansicht, um Analyse und Hinweise zu prüfen.'
+                  : 'Scannen Sie Ihre Nebenkostenabrechnung, um Hinweise zur Prüfung zu erhalten.'
                 : isSetupComplete
                   ? 'Übernehmen Sie passende Belege als Kostenpositionen, um Hinweise zu erhalten.'
                   : 'Legen Sie zuerst die Grunddaten oben an. Kostenpositionen können danach aus Dokumenten übernommen werden.'}

@@ -95,4 +95,39 @@ describe('resolveDocumentSender — aiSender > normalized absender', () => {
       aiSender: '',
     })).toBe('Vodafone');
   });
+
+  it('rejects footer/legal role strings as sender', () => {
+    expect(resolveDocumentSender({
+      absender: 'Vorsitzender des Aufsichtsrats: Dr. Marc Zimmermann',
+    })).toBe('');
+    expect(resolveDocumentSender({
+      absender: 'Handelsregister Amtsgericht Köln HRB 12345',
+    })).toBe('');
+    expect(resolveDocumentSender({
+      absender: 'Telefonnummer für Rückfragen: 0800 123456',
+    })).toBe('');
+    expect(resolveDocumentSender({
+      absender: 'Geschäftsführer: Max Mustermann',
+    })).toBe('');
+  });
+
+  it('keeps normal senders unchanged', () => {
+    expect(resolveDocumentSender({ absender: 'Vodafone Deutschland GmbH' })).toBe('Vodafone');
+    expect(resolveDocumentSender({ absender: 'Stadt Köln' })).toBe('Stadt Köln');
+    expect(resolveDocumentSender({ absender: 'Deutsche Telekom AG' })).toBe('Deutsche Telekom');
+  });
+
+  it('aiSender still wins over a bad absender', () => {
+    expect(resolveDocumentSender({
+      absender: 'Vorsitzender des Aufsichtsrats',
+      aiSender: 'BWW Energie',
+    })).toBe('BWW Energie');
+  });
+
+  it('recovers sender from rohText when stored absender is footer/legal', () => {
+    expect(resolveDocumentSender({
+      absender: 'Vorsitzender des Aufsichtsrats',
+      rohText: 'Kreisjugendamt Karlsruhe\nJugendamt',
+    })).toMatch(/kreisjugendamt karlsruhe/i);
+  });
 });

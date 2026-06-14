@@ -55,6 +55,18 @@ const FOOTER_TITLE_PATTERNS: RegExp[] = [
   /^f[üu]r\s+r[üu]ckfragen\b/i,
 ];
 
+// Same patterns applied to sender field — footer/legal lines should never be displayed as Absender.
+const FOOTER_SENDER_PATTERNS: RegExp[] = [
+  /^vorsitzender\s+des\s+aufsichtsrats\b/i,
+  /^vorstand\b/i,
+  /^handelsregister\b/i,
+  /(?:telefon(?:nummer)?|(?:tele)?nummer|ummer)\s+f[üu]r\s+r[üu]ckfragen/i,
+  /^f[üu]r\s+r[üu]ckfragen\b/i,
+  /^geschäftsführer\b/i,
+  /^aufsichtsrat\b/i,
+  /^vertretungsberechtigt\b/i,
+];
+
 // "{KindLabel} vom DD.MM.YYYY" or "Formular · DD.MM.YYYY" — no meaningful identity.
 const GENERIC_DATE_ONLY_RE =
   /^(?:Dokument|Rechnung|Nebenkostenabrechnung|Behördenbrief|Versicherung|Formular|Angebot)(?: vom | · )\d{1,2}\.\d{1,2}(?:\.\d{4})?$/;
@@ -109,6 +121,12 @@ export function isLikelyBadDocumentTitle(text: string): boolean {
   if (RESERVED_DISPLAY_TITLES.has(normalized.toLowerCase())) return true;
   if (GENERIC_DATE_ONLY_RE.test(normalized)) return true;
   return FOOTER_TITLE_PATTERNS.some(re => re.test(normalized));
+}
+
+export function isLikelyBadDocumentSender(text: string): boolean {
+  const normalized = normalizeWhitespace(text);
+  if (!normalized) return true;
+  return FOOTER_SENDER_PATTERNS.some(re => re.test(normalized));
 }
 
 function buildSafeDocumentTitleFallback(input: {
@@ -194,6 +212,14 @@ export function safeDisplayAbsender(
 ): string {
   const raw = absender?.trim() ?? '';
   if (raw && isLikelyGarbled(raw)) return '';
+  if (raw && isLikelyBadDocumentSender(raw)) {
+    // Footer/legal stored sender: try to recover a real sender from raw text before giving up.
+    if (rohText) {
+      const recovered = normalizeSender(null, rohText);
+      if (recovered) return recovered;
+    }
+    return '';
+  }
   return normalizeSender(raw || null, rohText);
 }
 

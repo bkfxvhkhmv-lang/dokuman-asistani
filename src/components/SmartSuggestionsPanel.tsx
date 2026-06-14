@@ -23,7 +23,7 @@ function SuggestionChip({ s, onPress, C, R, palette }: { s: Suggestion; onPress:
         borderRadius: R.lg, marginBottom: 8,
         backgroundColor: col.bg,
         borderWidth: 1, borderColor: col.border }}>
-      <Text style={{ fontSize: 20 }}>{s.icon}</Text>
+      {s.icon ? <Text style={{ fontSize: 20 }}>{s.icon}</Text> : null}
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 13, fontWeight: '700', color: col.text }}>{s.titel}</Text>
         <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 1 }} numberOfLines={1}>
@@ -54,7 +54,7 @@ function CompactChip({ s, onPress, C, R, palette }: { s: Suggestion; onPress: ()
         paddingHorizontal: 12, paddingVertical: 8,
         borderWidth: 1, borderColor: col.border,
         marginRight: 8 }}>
-      <Text style={{ fontSize: 14 }}>{s.icon}</Text>
+      {s.icon ? <Text style={{ fontSize: 14 }}>{s.icon}</Text> : null}
       <Text style={{ fontSize: 12, fontWeight: '700', color: col.text }}>{s.titel}</Text>
       {s.badge && (
         <View style={{ backgroundColor: col.border, borderRadius: 999, paddingHorizontal: 5, paddingVertical: 1 }}>
@@ -111,7 +111,7 @@ export default function SmartSuggestionsPanel({
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <Text style={{ fontSize: 12, fontWeight: '700', color: C.textTertiary, letterSpacing: 0.6, flex: 1 }}>
-          ⚡ EMPFEHLUNGEN
+          EMPFEHLUNGEN
         </Text>
         {suggestions.length > maxVisible && (
           <TouchableOpacity onPress={() => setExpanded(v => !v)}>

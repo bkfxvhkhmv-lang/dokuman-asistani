@@ -15,7 +15,7 @@ const TREND_ICON: Record<RiskTrend, string> = {
   worse: 'arrow-up', stable: 'minus', better: 'arrow-down',
 };
 
-function ScoreGauge({ score, color, bg, textColor }: { score: number; color: string; bg: string; textColor: string }) {
+function ScoreGauge({ color, bg, textColor }: { color: string; bg: string; textColor: string }) {
   const { t: T } = useT();
   return (
     <View style={{ alignItems: 'center' }}>
@@ -23,7 +23,7 @@ function ScoreGauge({ score, color, bg, textColor }: { score: number; color: str
         borderWidth: 5, borderColor: color,
         backgroundColor: bg,
         alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ fontSize: 18, fontWeight: '900', color }}>{score}</Text>
+        <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: color }} />
       </View>
       <Text style={{ fontSize: 9, fontWeight: '700', color: textColor, marginTop: 4, textAlign: 'center' }}>
         {T('risk.title')}
@@ -76,7 +76,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
       <View style={{ backgroundColor: bg, borderRadius: R.lg, borderWidth: 1, borderColor: border + '77' }}>
         {/* Header row */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12 }}>
-          <ScoreGauge score={result.gesamtScore} color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
+          <ScoreGauge color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13, fontWeight: '800', color: textColor }}>{displayLabel}</Text>
             <Text style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }} numberOfLines={2}>
@@ -126,7 +126,7 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
 
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-        <ScoreGauge score={result.gesamtScore} color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
+        <ScoreGauge color={gaugeColor} bg={gaugeBg} textColor={gaugeText} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Text style={{ fontSize: 14, fontWeight: '800', color: textColor, flex: 1 }}>
@@ -196,14 +196,9 @@ export default function SmartRiskPanel({ result, onAktion, compact = false }: Sm
           <Text style={{ fontSize: 11, fontWeight: '700', color: textColor, marginBottom: 6 }}>{T('risk.factors')}</Text>
           {result.faktoren.map(f => (
             <View key={f.id} style={{ marginBottom: 8 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                  <Text style={{ fontSize: 13, width: 18, textAlign: 'center' }}>{f.icon}</Text>
-                  <Text style={{ fontSize: 11, color: C.text }}>{T(f.beschreibungKey, f.beschreibungParams)}</Text>
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: factorColor(f.score) }}>
-                  {f.score}
-                </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                <Text style={{ fontSize: 13, width: 18, textAlign: 'center' }}>{f.icon}</Text>
+                <Text style={{ fontSize: 11, color: C.text, flex: 1 }}>{T(f.beschreibungKey, f.beschreibungParams)}</Text>
               </View>
               <View style={{ height: 4, backgroundColor: C.border, borderRadius: 2, overflow: 'hidden' }}>
                 <View style={{ height: 4, borderRadius: 2, width: `${f.score}%`,

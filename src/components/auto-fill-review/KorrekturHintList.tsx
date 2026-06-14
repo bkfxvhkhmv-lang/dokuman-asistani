@@ -16,7 +16,7 @@ export function KorrekturHintList({ autoFillResult, R }: KorrekturHintListProps)
       marginBottom: 14, borderWidth: 1, borderColor: '#EF9F27',
     }}>
       <Text style={{ fontSize: 12, fontWeight: '700', color: '#633806', marginBottom: 6 }}>
-        ⚠️ Bitte prüfen
+        Bitte prüfen
       </Text>
       {items.map((k, i) => (
         <Text key={i} style={{ fontSize: 12, color: '#633806', marginTop: 2 }}>

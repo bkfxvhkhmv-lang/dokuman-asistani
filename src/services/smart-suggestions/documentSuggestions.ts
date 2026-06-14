@@ -14,7 +14,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Sofort zahlen',
         `Zahlung überfällig! ${(dok.betrag as number).toFixed(2)} € sofort überweisen.`,
-        '🚨', 'kritisch', 98, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
+        '', 'kritisch', 98, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
         'Frist ist abgelaufen',
         { badge: 'Überfällig!' },
       ));
@@ -22,7 +22,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         `Frist in ${tage} Tag${tage !== 1 ? 'en' : ''} — ${(dok.betrag as number).toFixed(2)} € überweisen.`,
-        '€', 'kritisch', 95, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
+        '', 'kritisch', 95, 'zahlen', canPreparePayment ? 'Jetzt zahlen' : 'Zahlungsdaten prüfen',
         `Nur noch ${tage} Tage`,
         { badge: `${tage} Tage`, verfallsdatum: dok.frist ?? undefined },
       ));
@@ -30,7 +30,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Diese Woche zahlen',
         `Frist in ${tage} Tagen — ${(dok.betrag as number).toFixed(2)} € überweisen.`,
-        '€', 'hoch', 80, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
+        '', 'hoch', 80, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         `Frist in ${tage} Tagen`,
         { badge: `${tage} Tage` },
       ));
@@ -38,7 +38,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'zahlen', 'Zahlung planen',
         `Rechnung über ${(dok.betrag as number).toFixed(2)} € noch offen.`,
-        '€', 'mittel', 55, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
+        '', 'mittel', 55, 'zahlen', canPreparePayment ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen',
         'Offene Zahlung',
       ));
     }
@@ -51,7 +51,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'einspruch', 'Einspruch prüfen',
         `${dok.typ === 'Bußgeld' ? '14 Tage' : '1 Monat'} Einspruchsfrist beachten.`,
-        '✍️', fristAbEingang <= 5 ? 'kritisch' : 'hoch', 88, 'einspruch', 'Einspruch erstellen',
+        '', fristAbEingang <= 5 ? 'kritisch' : 'hoch', 88, 'einspruch', 'Einspruch erstellen',
         `Einspruchsfrist: ${einspruchTage} Tage`,
         { badge: `${einspruchTage}T Frist` },
       ));
@@ -59,7 +59,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'einspruch', 'Einspruch möglich',
         `Sie können fristgerecht Einspruch einlegen.`,
-        '✍️', 'mittel', 60, 'einspruch', 'Einspruch erstellen',
+        '', 'mittel', 60, 'einspruch', 'Einspruch erstellen',
         'Einspruchsoption',
       ));
     }
@@ -71,7 +71,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'erinnerung', 'Erinnerung einrichten',
         `Erinnerung ${tage <= 7 ? '1 Tag' : '3 Tage'} vor der Frist.`,
-        '🔔', tage <= 7 ? 'hoch' : 'mittel', 72, 'erinnerung', 'Erinnerung setzen',
+        '', tage <= 7 ? 'hoch' : 'mittel', 72, 'erinnerung', 'Erinnerung setzen',
         'Frist ohne Erinnerung',
         { badge: `${tage <= 7 ? '1T' : '3T'} vorher` },
       ));
@@ -82,7 +82,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
     suggestions.push(makeSuggestion(
       'kalender', 'Im Kalender eintragen',
       `Frist am ${new Date(dok.frist).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })} im Kalender sichern.`,
-      '📅', 'mittel', 65, 'kalender', 'Zum Kalender',
+      '', 'mittel', 65, 'kalender', 'Zum Kalender',
       'Frist vorhanden',
     ));
   }
@@ -91,7 +91,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
     suggestions.push(makeSuggestion(
       'pdf_export', 'Als PDF exportieren',
       'Professionellen Dokumentenexport erstellen.',
-      '📄', 'niedrig', 40, 'pdf_export', 'PDF erstellen',
+      '', 'niedrig', 40, 'pdf_export', 'PDF erstellen',
       'Dokument hat Inhalt',
     ));
   }
@@ -100,7 +100,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
     suggestions.push(makeSuggestion(
       'teilen', 'Dokument teilen',
       'Dieses Dokument sicher mit jemandem teilen.',
-      '⬆', 'niedrig', 35, 'teilen', 'Teilen',
+      '', 'niedrig', 35, 'teilen', 'Teilen',
       'Immer verfügbar',
     ));
   }
@@ -109,7 +109,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
     suggestions.push(makeSuggestion(
       'archivieren', 'Archivieren',
       'Erledigt — Dokument kann archiviert werden.',
-      '📁', 'niedrig', 30, 'archivieren', 'Archivieren',
+      '', 'niedrig', 30, 'archivieren', 'Archivieren',
       'Dokument erledigt',
     ));
   }
@@ -118,7 +118,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
     suggestions.push(makeSuggestion(
       'erklären', 'Dokument verstehen',
       'KI fasst zusammen — du wählst die Sprache.',
-      '🧠', 'mittel', 58, 'erklären', 'KI-Zusammenfassung öffnen',
+      '', 'mittel', 58, 'erklären', 'KI-Zusammenfassung öffnen',
       'Noch nicht erklärt',
     ));
   }
@@ -133,7 +133,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'kündigen', 'Vertrag kündigen?',
         `Kündigungsfrist ca. ${fristTage} Tage — rechtzeitig entscheiden.`,
-        '✂️', 'mittel', 65, 'kündigen', 'Kündigung prüfen',
+        '', 'mittel', 65, 'kündigen', 'Kündigung prüfen',
         `Vertrag läuft ab`,
         { badge: `${fristTage}T Frist` },
       ));
@@ -141,7 +141,7 @@ export function runSmartSuggestions(dok: Dokument): SuggestionsResult {
       suggestions.push(makeSuggestion(
         'verlängern', 'Vertrag prüfen',
         'Laufzeit und Konditionen prüfen.',
-        '📋', 'niedrig', 38, 'verlängern', 'Vertrag anzeigen',
+        '', 'niedrig', 38, 'verlängern', 'Vertrag anzeigen',
         'Vertragsdokument',
       ));
     }

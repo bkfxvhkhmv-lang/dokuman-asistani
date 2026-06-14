@@ -8,8 +8,8 @@ export const CONFIDENCE_COLORS = {
 } as const;
 
 export const CONFIDENCE_LABEL: Record<FieldConfidence, string> = {
-  hoch:    'Sicher',
-  mittel:  'Wahrscheinlich',
-  niedrig: 'Unsicher',
-  fehlt:   'Nicht erkannt',
+  hoch:    'Plausibel',
+  mittel:  'Prüfen',
+  niedrig: 'Prüfung empfohlen',
+  fehlt:   'Keine Angabe',
 };

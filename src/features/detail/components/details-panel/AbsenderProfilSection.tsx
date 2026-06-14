@@ -12,6 +12,11 @@ export function AbsenderProfilSection({ institution }: Props) {
   const { Colors: C } = useTheme();
   const { t: T } = useT();
   if (institution.totalDocs <= 0) return null;
+  const confidenceLabel = institution.confidence === 'high'
+    ? 'Verifiziert'
+    : institution.confidence === 'medium'
+      ? 'Einige Angaben sollten geprüft werden'
+      : 'Prüfung empfohlen';
 
   return (
     <SectionCard title={T('detail.section.sender')}>
@@ -26,8 +31,7 @@ export function AbsenderProfilSection({ institution }: Props) {
           <Text style={{ fontSize: 10, fontWeight: '700',
             color: institution.confidence === 'high'   ? '#22C55E' :
                    institution.confidence === 'medium' ? '#F59E0B' : C.textSecondary }}>
-            {institution.confidence === 'high' ? 'Hohe Konfidenz' :
-             institution.confidence === 'medium' ? 'Mittlere Konfidenz' : 'Geringe Konfidenz'}
+            {confidenceLabel}
           </Text>
         </View>
         <Text style={{ fontSize: 11, color: C.textTertiary }}>

@@ -7,15 +7,21 @@ interface OverallConfidenceBarProps {
 }
 
 export function OverallConfidenceBar({ percent, C }: OverallConfidenceBarProps) {
+  const confidenceLabel = percent >= 75
+    ? 'Plausibel'
+    : percent >= 50
+      ? 'Einige Angaben sollten geprüft werden'
+      : 'Prüfung empfohlen';
+
   return (
     <View style={{ marginHorizontal: 20, marginBottom: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-        <Text style={{ fontSize: 11, color: C.textTertiary }}>Erkennungs-Genauigkeit</Text>
+        <Text style={{ fontSize: 11, color: C.textTertiary }}>Prüfstatus</Text>
         <Text style={{
           fontSize: 11, fontWeight: '700',
           color: percent >= 75 ? '#1D9E75' : percent >= 50 ? '#BA7517' : '#E24B4A',
         }}>
-          {percent}%
+          {confidenceLabel}
         </Text>
       </View>
       <View style={{ height: 6, backgroundColor: C.border, borderRadius: 3, overflow: 'hidden' }}>

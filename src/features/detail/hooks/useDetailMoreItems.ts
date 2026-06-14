@@ -127,9 +127,8 @@ export function useDetailMoreItems({
         group: 'secondary',
         onPress: () => {
           router.push({
-            pathname: '/nebenkosten/assistant',
+            pathname: '/nebenkosten',
             params: {
-              role: 'vermieter',
               sourceDokId: dok.id,
             },
           });

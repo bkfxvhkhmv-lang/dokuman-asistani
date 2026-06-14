@@ -70,3 +70,13 @@ android/app/src/main/res/raw/
 # Python cache
 __pycache__/
 *.py[cod]
+
+# IDE / local dev
+.idea/
+
+# Local performance metrics reports
+home_metrics*
+viewer_metrics*
+
+# Local AI/design notes (not part of shipped docs)
+docs/ai/performance-risk-model.md

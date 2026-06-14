@@ -163,4 +163,54 @@ describe('resolveDocumentTitle', () => {
       }),
     ).toBe('Jobcenter · Bescheid');
   });
+
+  it('rejects Page 1 / page-1 / page_1 in customTitle and aiDisplayTitle', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'page-1',
+        customTitle: 'Page 1',
+        typ: 'Rechnung',
+      }),
+    ).toBe('Rechnung');
+    expect(
+      resolveDocumentTitle({
+        titel: 'page-1',
+        aiDisplayTitle: 'page-1',
+        typ: 'Rechnung',
+      }),
+    ).toBe('Rechnung');
+    expect(
+      resolveDocumentTitle({
+        titel: 'page-1',
+        aiDisplayTitle: 'page_1',
+        typ: 'Rechnung',
+      }),
+    ).toBe('Rechnung');
+  });
+
+  it('decodes URL-encoded title for display', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Steuer%20B%2030',
+        typ: 'Bescheid',
+      }),
+    ).toBe('Steuer B 30');
+  });
+});
+
+describe('humanizeTitle — hash-like suffix stripping', () => {
+  it('strips underscore-separated hex suffixes', () => {
+    expect(humanizeTitle('Gutschrift_980880e7')).toBe('Gutschrift');
+  });
+
+  it('strips space-separated hex suffixes', () => {
+    expect(humanizeTitle('Gutschrift 980880e7')).toBe('Gutschrift');
+    expect(humanizeTitle('Kostenbescheid 1044f560')).toBe('Kostenbescheid');
+  });
+
+  it('does not strip plain numeric amounts, dates, or postal codes', () => {
+    expect(humanizeTitle('Rechnung 123456')).toBe('Rechnung 123456');
+    expect(humanizeTitle('Rechnung 2024')).toBe('Rechnung 2024');
+    expect(humanizeTitle('Bonn 53113')).toBe('Bonn 53113');
+  });
 });

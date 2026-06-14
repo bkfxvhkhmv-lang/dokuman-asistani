@@ -4,6 +4,7 @@ import type { ModalController } from '@/features/detail/hooks/useModalController
 import { erkenneLernvorschlag } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
 import { postCorrectionEvent } from '@/services/ocrMvpApi';
+import { humanizeTitle } from '@/utils/displaySanitizer';
 
 type OpenConfirm = (
   title: string,
@@ -19,7 +20,8 @@ export function runHandleEdit(
   if (!dok) return;
   modal.setEditTyp(dok.typ);
   modal.setEditRisiko(dok.risiko);
-  modal.setEditTitel(dok.titel || '');
+  // Show a decoded/humanized title in the edit form; store is only updated when the user explicitly saves.
+  modal.setEditTitel(humanizeTitle(dok.titel) ?? dok.titel ?? '');
   modal.setEditAbsender(dok.absender || '');
   modal.setEditBetrag(dok.betrag ? String(dok.betrag) : '');
   modal.setEditFrist(dok.frist ? dok.frist.slice(0, 10) : '');

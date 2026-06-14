@@ -1,16 +1,12 @@
 /**
  * AutoWorkflowEngine
- * Belge tipine + kuruma + risk seviyesine göre otomatik workflow üretir.
- *
- * Örnek: Jobcenter mektubu geldiğinde otomatik workflow:
- *   1. Özet çıkar  2. Deadline tespit et  3. Takvime ekle
- *   4. Bildirim gönder  5. Gerekirse itiraz taslağı
+ * Generiert automatische Workflows basierend auf Dokumenttyp, Institution und Risikostufe.
  */
 import { InstitutionBehaviorModel } from '@/core/intelligence/InstitutionBehaviorModel';
 import { RuleEngineV4 } from '@/core/rules/RuleEngineV4';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 
-// ── Tipler ────────────────────────────────────────────────────────────────────
+// ── Typen ─────────────────────────────────────────────────────────────────────
 
 export type WorkflowStepType =
   | 'notify'
@@ -29,7 +25,7 @@ export interface WorkflowStep {
   type:        WorkflowStepType;
   label:       string;
   emoji:       string;
-  auto:        boolean;        // true → otomatik çalıştır, false → kullanıcı onayı ister
+  auto:        boolean;        // true → automatisch ausführen, false → Benutzerbestätigung erforderlich
   payload?:    Record<string, any>;
 }
 
@@ -38,12 +34,12 @@ export interface GeneratedWorkflow {
   title:       string;
   description: string;
   steps:       WorkflowStep[];
-  trigger:     string;         // hangi kural bunu tetikledi
+  trigger:     string;         // welche Regel diesen Workflow ausgelöst hat
   priority:    'high' | 'medium' | 'low';
   generatedAt: string;
 }
 
-// ── Workflow şablonları ───────────────────────────────────────────────────────
+// ── Workflow-Vorlagen ─────────────────────────────────────────────────────────
 
 type WorkflowTemplate = {
   trigger:     string;
@@ -60,73 +56,73 @@ const TEMPLATES: Record<string, WorkflowTemplate> = {
   mahnung: {
     trigger: 'Mahnung erkannt',
     priority: 'high',
-    description: 'Mahnung için hızlı aksiyon gerekiyor',
+    description: 'Mahnung erfordert schnelles Handeln',
     steps: [
-      { type: 'notify',         label: 'Acil bildirim gönder',    emoji: '🔔', auto: true },
-      { type: 'calendar',       label: 'Frist takvime ekle',      emoji: '📅', auto: true },
-      { type: 'payment_prefill',label: 'Ödeme bilgilerini doldur',emoji: '💶', auto: false },
-      { type: 'einspruch_draft',label: 'Einspruch taslağı oluştur',emoji: '✍️', auto: false },
-      { type: 'escalate',       label: 'Danışmana ilet',          emoji: '🆘', auto: false },
+      { type: 'notify',         label: 'Dringende Benachrichtigung senden', emoji: '🔔', auto: true },
+      { type: 'calendar',       label: 'Frist im Kalender eintragen',       emoji: '📅', auto: true },
+      { type: 'payment_prefill',label: 'Zahlungsdaten ausfüllen',           emoji: '💶', auto: false },
+      { type: 'einspruch_draft',label: 'Einspruchentwurf erstellen',        emoji: '✍️', auto: false },
+      { type: 'escalate',       label: 'An Berater weiterleiten',           emoji: '🆘', auto: false },
     ],
   },
   finanzamt: {
-    trigger: 'Finanzamt mektubu',
+    trigger: 'Finanzamt-Schreiben erkannt',
     priority: 'high',
-    description: 'Steuerbescheid → genellikle 30 gün içinde işlem gerekir',
+    description: 'Steuerbescheid → in der Regel innerhalb von 30 Tagen handeln',
     steps: [
-      { type: 'notify',         label: 'Bildirim gönder',         emoji: '🔔', auto: true },
-      { type: 'calendar',       label: 'Frist takvime ekle',      emoji: '📅', auto: true },
-      { type: 'ai_explain',     label: 'AI açıklaması al',        emoji: '🧠', auto: true },
-      { type: 'einspruch_draft',label: 'Einspruch taslağı',       emoji: '✍️', auto: false },
-      { type: 'task_create',    label: 'Görev oluştur: Steuerberater kontrol et', emoji: '✅', auto: false,
+      { type: 'notify',         label: 'Benachrichtigung senden',           emoji: '🔔', auto: true },
+      { type: 'calendar',       label: 'Frist im Kalender eintragen',       emoji: '📅', auto: true },
+      { type: 'ai_explain',     label: 'KI-Erklärung abrufen',             emoji: '🧠', auto: true },
+      { type: 'einspruch_draft',label: 'Einspruchentwurf',                  emoji: '✍️', auto: false },
+      { type: 'task_create',    label: 'Aufgabe erstellen: Steuerberater prüfen', emoji: '✅', auto: false,
         payload: { titel: 'Steuerberater für diesen Bescheid kontaktieren' } },
     ],
   },
   bussgeld: {
     trigger: 'Bußgeldbescheid',
     priority: 'high',
-    description: 'Bußgeld → 14 gün içinde ödeme veya Einspruch',
+    description: 'Bußgeld → innerhalb von 14 Tagen zahlen oder Einspruch einlegen',
     steps: [
-      { type: 'notify',         label: 'Acil bildirim',           emoji: '🔔', auto: true },
-      { type: 'calendar',       label: 'Frist takvime ekle',      emoji: '📅', auto: true },
-      { type: 'payment_prefill',label: 'Ödeme bilgilerini doldur',emoji: '💶', auto: false },
-      { type: 'einspruch_draft',label: 'Einspruch değerlendir',   emoji: '✍️', auto: false },
+      { type: 'notify',         label: 'Dringende Benachrichtigung',        emoji: '🔔', auto: true },
+      { type: 'calendar',       label: 'Frist im Kalender eintragen',       emoji: '📅', auto: true },
+      { type: 'payment_prefill',label: 'Zahlungsdaten ausfüllen',           emoji: '💶', auto: false },
+      { type: 'einspruch_draft',label: 'Einspruch prüfen',                  emoji: '✍️', auto: false },
     ],
   },
   rechnung: {
     trigger: 'Rechnung erkannt',
     priority: 'medium',
-    description: 'Fatura → ödeme zamanında yapılmalı',
+    description: 'Rechnung → Zahlung rechtzeitig vornehmen',
     steps: [
-      { type: 'calendar',       label: 'Ödeme tarihi takvime ekle',emoji: '📅', auto: true },
-      { type: 'payment_prefill',label: 'Ödeme bilgilerini doldur', emoji: '💶', auto: false },
-      { type: 'label',          label: 'Etiket: Rechnung',         emoji: '🏷', auto: true,
+      { type: 'calendar',       label: 'Zahlungsdatum im Kalender eintragen', emoji: '📅', auto: true },
+      { type: 'payment_prefill',label: 'Zahlungsdaten ausfüllen',             emoji: '💶', auto: false },
+      { type: 'label',          label: 'Etikett: Rechnung',                   emoji: '🏷', auto: true,
         payload: { etikett: 'Rechnung' } },
     ],
   },
   behörde: {
     trigger: 'Behördenpost erkannt',
     priority: 'medium',
-    description: 'Resmi yazı → okuyup arşivle, gerekirse aksiyon al',
+    description: 'Behördenpost → lesen, archivieren und bei Bedarf reagieren',
     steps: [
-      { type: 'ai_explain',     label: 'AI açıklaması al',        emoji: '🧠', auto: true },
-      { type: 'calendar',       label: 'Tarihleri takvime ekle',  emoji: '📅', auto: false },
-      { type: 'archive',        label: 'Arşivle',                 emoji: '🗂', auto: false },
+      { type: 'ai_explain',     label: 'KI-Erklärung abrufen',             emoji: '🧠', auto: true },
+      { type: 'calendar',       label: 'Termine im Kalender eintragen',    emoji: '📅', auto: false },
+      { type: 'archive',        label: 'Archivieren',                       emoji: '🗂', auto: false },
     ],
   },
   default: {
-    trigger: 'Yeni belge',
+    trigger: 'Neues Dokument',
     priority: 'low',
-    description: 'Standart belge işleme akışı',
+    description: 'Standard-Dokumentenverarbeitung',
     steps: [
-      { type: 'ai_explain',     label: 'AI açıklaması al',        emoji: '🧠', auto: true },
-      { type: 'label',          label: 'Etiket ekle',             emoji: '🏷', auto: false },
-      { type: 'archive',        label: 'Arşivle',                 emoji: '🗂', auto: false },
+      { type: 'ai_explain',     label: 'KI-Erklärung abrufen',             emoji: '🧠', auto: true },
+      { type: 'label',          label: 'Etikett hinzufügen',               emoji: '🏷', auto: false },
+      { type: 'archive',        label: 'Archivieren',                       emoji: '🗂', auto: false },
     ],
   },
 };
 
-// ── Yardımcı ─────────────────────────────────────────────────────────────────
+// ── Hilfsfunktion ─────────────────────────────────────────────────────────────
 
 function selectTemplate(dok: Record<string, any>): [string, WorkflowTemplate] {
   const text = [dok.absender, dok.rohText, dok.titel, dok.zusammenfassung, dok.typ]
@@ -141,26 +137,26 @@ function selectTemplate(dok: Record<string, any>): [string, WorkflowTemplate] {
   return ['default', TEMPLATES.default];
 }
 
-// ── Ana sınıf ─────────────────────────────────────────────────────────────────
+// ── Hauptklasse ───────────────────────────────────────────────────────────────
 
 export class AutoWorkflowEngine {
 
   static async generate(dok: Record<string, any>): Promise<GeneratedWorkflow> {
     const [templateKey, template] = selectTemplate(dok);
 
-    // Kurumdan öğrenilen bilgiyle adımları zenginleştir
+    // Schritte mit Institutionsdaten anreichern
     let extraSteps: Omit<WorkflowStep, 'id'>[] = [];
     if (dok.absender) {
       const sug = await InstitutionBehaviorModel.getSuggestion(dok.absender);
       if (sug?.likelyActions.includes('kalender') && !template.steps.find(s => s.type === 'calendar')) {
-        extraSteps.push({ type: 'calendar', label: 'Frist takvime ekle (kurumdan öğrenildi)', emoji: '📅', auto: false });
+        extraSteps.push({ type: 'calendar', label: 'Frist im Kalender eintragen (aus Institutionsdaten)', emoji: '📅', auto: false });
       }
     }
 
-    // Partner paylaşımı: kuruma göre ekle
+    // Partner-Benachrichtigung bei hoher Dringlichkeit hinzufügen
     const urgency = RuleEngineV4.urgencyScore(dok);
     if (urgency >= 70 && template.priority === 'high') {
-      extraSteps.push({ type: 'share_partner', label: 'Partnere bildir', emoji: '👥', auto: false });
+      extraSteps.push({ type: 'share_partner', label: 'Partner benachrichtigen', emoji: '👥', auto: false });
     }
 
     const allSteps = [...template.steps, ...extraSteps].map((s, i) => ({
@@ -170,7 +166,7 @@ export class AutoWorkflowEngine {
 
     return {
       docId:       dok.id,
-      title:       `${template.steps[0]?.emoji ?? '📋'} ${displayTitleFor(dok) || 'Belge'}`,
+      title:       `${template.steps[0]?.emoji ?? '📋'} ${displayTitleFor(dok) || 'Dokument'}`,
       description: template.description,
       steps:       allSteps,
       trigger:     template.trigger,
@@ -179,7 +175,7 @@ export class AutoWorkflowEngine {
     };
   }
 
-  // ── Otomatik adımları çalıştır (aksiyon map'i enjekte edilir) ─────────────────
+  // ── Automatische Schritte ausführen (Action-Map wird injiziert) ───────────────
 
   static async executeAutoSteps(
     workflow: GeneratedWorkflow,
@@ -193,7 +189,7 @@ export class AutoWorkflowEngine {
           await handler(step.payload);
           executed.push(step.id);
         } catch {
-          // sessizce atla, kullanıcıya göster
+          // Fehler ignorieren
         }
       }
     }

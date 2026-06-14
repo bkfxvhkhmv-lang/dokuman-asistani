@@ -6,7 +6,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import type { ThemeColors } from '@/ThemeContext';
 import { formatBetrag } from '@/utils';
-import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { resolveDocumentSender, safeDisplayTitel } from '@/utils/displaySanitizer';
 import { TYP_IKON } from '@/components/budget-grafik/types';
 import type { Dokument } from '@/store';
 
@@ -79,7 +79,7 @@ export default function SeciliAyDetay({
         >
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 12, color: C.text }} numberOfLines={1}>
-              {TYP_IKON[d.typ] || '📂'} {d.absender || safeDisplayTitel(d.titel, d.typ, d.confidence)}
+              {TYP_IKON[d.typ] || '📂'} {resolveDocumentSender(d) || safeDisplayTitel(d.titel, d.typ, d.confidence)}
             </Text>
             <Text style={{ fontSize: 10, color: C.textTertiary }}>{d.typ}</Text>
           </View>

@@ -48,6 +48,7 @@ export default function DetailsPanel({
     [dok, extrahierteFelder],
   );
   const confidencePct = dok.confidence ?? 100;
+  const displaySender = resolveDocumentSender(dok);
 
   const belegDatum   = dok.dokumentDatum ? formatDatum(dok.dokumentDatum) : null;
   const erfasstDatum = formatDatum(dok.datum);
@@ -57,10 +58,10 @@ export default function DetailsPanel({
 
   const wichtigsteRows: { icon: string; label: string; value: string; status?: FieldStatus; aiSparkle?: boolean }[] = [
     {
-      icon: 'buildings', label: T('field.sender'), value: resolveDocumentSender(dok) || dok.absender || '',
+      icon: 'buildings', label: T('field.sender'), value: displaySender,
       status: isUnanalysedQuickSaved
         ? undefined
-        : (!dok.absender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined)),
+        : (!displaySender && !dok.aiSender ? 'fehlt' : (lowConfidence && !dok.aiSender ? 'pruefen' : undefined)),
     },
     ...(showBeideDaten
       ? [

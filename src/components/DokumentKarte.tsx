@@ -102,7 +102,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
   const isUrgent    = !dok.erledigt && (tage !== null && tage <= 7 || dok.risiko === 'hoch' || /mahnung/i.test(displayType));
   const isDone      = dok.erledigt;
   const a11yLabel = [
-    localizedType, displayTitel, displayAbsender || dok.absender,
+    localizedType, displayTitel, displayAbsender,
     dok.isDemo ? T('demo.trust_label') : null,
     isDone ? T('doc.done') : tageText ? `Frist: ${tageText}` : null,
     typeof dok.betrag === 'number' && dok.betrag > 0 ? `${dok.betrag.toFixed(2)} Euro` : null,
@@ -159,7 +159,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
             {displayTitel}
           </Text>
           <Text style={[styles.absender, { color: Colors.textSecondary, fontSize: fs(12) }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
-            {displayAbsender}
+            {displayAbsender || localizedType}
           </Text>
         </View>
 

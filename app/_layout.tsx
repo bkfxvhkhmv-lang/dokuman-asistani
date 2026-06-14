@@ -87,7 +87,7 @@ function ThemedNavigator() {
         }}
       />
       <Stack.Screen
-        name="nebenkosten"
+        name="nebenkosten/index"
         options={{
           headerShown: false,
           animation: 'slide_from_right',

@@ -13,6 +13,11 @@ interface CategoryBadgeProps {
 
 export function CategoryBadge({ result, C, R, onAlt }: CategoryBadgeProps) {
   const [showAlts, setShowAlts] = useState(false);
+  const confidenceLabel = result.confidence >= 80
+    ? 'Plausibel'
+    : result.confidence >= 55
+      ? 'Einige Angaben prüfen'
+      : 'Prüfung empfohlen';
   return (
     <View style={{
       backgroundColor: C.primaryLight, borderRadius: R.lg, padding: 14, marginBottom: 16,
@@ -21,7 +26,7 @@ export function CategoryBadge({ result, C, R, onAlt }: CategoryBadgeProps) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark, marginBottom: 2 }}>
-            KI-ERKENNUNG
+            DOKUMENTTYP
           </Text>
           <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>
             {result.institution?.icon ? `${result.institution.icon} ` : ''}{result.typ}
@@ -42,7 +47,7 @@ export function CategoryBadge({ result, C, R, onAlt }: CategoryBadgeProps) {
               fontSize: 12, fontWeight: '800',
               color: result.confidence >= 80 ? '#1D9E75' : result.confidence >= 55 ? '#BA7517' : '#E24B4A',
             }}>
-              {result.confidence}%
+              {confidenceLabel}
             </Text>
           </View>
           {result.alternatives.length > 0 && (
@@ -55,7 +60,6 @@ export function CategoryBadge({ result, C, R, onAlt }: CategoryBadgeProps) {
 
       {result.hatirlatma && (
         <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ fontSize: 11 }}>💡</Text>
           <Text style={{ fontSize: 12, color: C.primaryDark }}>{result.hatirlatma}</Text>
         </View>
       )}
@@ -73,7 +77,7 @@ export function CategoryBadge({ result, C, R, onAlt }: CategoryBadgeProps) {
           <Text style={{ fontSize: 13, color: C.text }}>
             {alt.typ}{alt.subtyp ? ` · ${alt.subtyp}` : ''}
           </Text>
-          <Text style={{ fontSize: 12, color: C.textTertiary }}>{alt.score}% →</Text>
+          <Text style={{ fontSize: 12, color: C.textTertiary }}>→</Text>
         </TouchableOpacity>
       ))}
     </View>

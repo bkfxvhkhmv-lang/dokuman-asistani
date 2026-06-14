@@ -66,7 +66,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
               backgroundColor: dok.confidence >= 80 ? C.successLight : dok.confidence >= 55 ? C.warningLight : C.dangerLight }}>
               <Text style={{ fontSize: 11, fontWeight: '700',
                 color: dok.confidence >= 80 ? C.success : dok.confidence >= 55 ? C.warning : C.danger }}>
-                {dok.confidence >= 80 ? 'KI-geprüft' : reviewLabel ?? 'Automatisch erkannt'}
+                {dok.confidence >= 80 ? T('detail.trust.ai_checked') : reviewLabel ?? T('detail.trust.auto')}
               </Text>
             </View>
           )}
@@ -74,7 +74,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
             hitSlop={HIT_SLOP_LG}
             style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: C.bgInput, borderWidth: 0.5, borderColor: C.border, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Icon name="envelope-simple" size={12} color={C.textSecondary} />
-            <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>E-Mail</Text>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: C.textSecondary }}>{T('common.email')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -105,7 +105,7 @@ export default function AIBox({ dok, onMailTaslak, ozetQuellenSichtbar, setOzetQ
               <View style={{ padding: 8, backgroundColor: C.primaryLight, borderRadius: 8 }}>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: C.primaryDark, marginBottom: 4 }}>"{q.ozetSatz}"</Text>
                 <Text style={{ fontSize: 10, color: C.textTertiary, fontStyle: 'italic', lineHeight: 15 }}>
-                  Quelle: {q.quelle} ({q.konfidenz}% Übereinstimmung)
+                  {T('common.source')}: {q.quelle}
                 </Text>
               </View>
             </View>

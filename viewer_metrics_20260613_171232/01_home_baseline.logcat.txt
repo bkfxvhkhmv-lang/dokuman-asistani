@@ -1,0 +1,273 @@
+06-13 16:42:18.262  1936  3586 W ProcessStats: Tracking association SourceState{b4ff81c com.google.android.gms.persistent/10126 BFgs #598681} whose proc state 4 is better than process ProcessState{1461c13 com.google.android.gms/10126 pkg=com.google.android.gms} proc state 14 (0 skipped)
+06-13 16:43:39.652  1936  2597 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #598730} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (5 skipped)
+06-13 16:43:40.256  1936  2005 D CompatConfig: Found a config file: /apex/com.android.mediaprovider/etc/compatconfig/framework-pdf-v-platform-compat-config.xml
+06-13 16:43:40.937  9276  9435 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+06-13 16:43:50.147  1936  3568 W ProcessStats: Tracking association SourceState{fc09cee system/1000 ImpBg #598888} whose proc state 6 is better than process ProcessState{fada0c1 com.google.android.apps.nbu.files/10187 pkg=com.google.android.apps.nbu.files} proc state 14 (23 skipped)
+06-13 16:44:10.887  1936  2282 W ProcessStats: Tracking association SourceState{8ef020a com.google.android.googlequicksearchbox:googleapp/10139 BFgs #598967} whose proc state 4 is better than process ProcessState{ca9a5ea com.google.android.adservices.api/10293 pkg=com.google.android.adservices.api} proc state 14 (8 skipped)
+06-13 16:44:26.745  1936  1964 W ProcessStats: Tracking association SourceState{8ef020a com.google.android.googlequicksearchbox:googleapp/10139 BFgs #599011} whose proc state 4 is better than process ProcessState{ca9a5ea com.google.android.adservices.api/10293 pkg=com.google.android.adservices.api} proc state 14 (1 skipped)
+06-13 16:44:49.070  1936  1995 W ProcessStats: Tracking association SourceState{c465d80 system/1000 BFgs #599031} whose proc state 4 is better than process ProcessState{596f24c com.google.android.tts/10223 pkg=com.google.android.tts} proc state 14 (1 skipped)
+06-13 16:45:07.037  1936  1995 W ProcessStats: Tracking association SourceState{c465d80 system/1000 BFgs #599037} whose proc state 4 is better than process ProcessState{596f24c com.google.android.tts/10223 pkg=com.google.android.tts} proc state 14 (1 skipped)
+06-13 16:45:26.455  1936  1936 W ProcessStats: Tracking association SourceState{c465d80 system/1000 BFgs #599042} whose proc state 4 is better than process ProcessState{596f24c com.google.android.tts/10223 pkg=com.google.android.tts} proc state 14 (1 skipped)
+06-13 16:45:41.539  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599044} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (1 skipped)
+06-13 16:46:00.659  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599045} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (1 skipped)
+06-13 16:46:14.407  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599048} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (1 skipped)
+06-13 16:46:38.427  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599049} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (1 skipped)
+06-13 16:46:55.418  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599051} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (3 skipped)
+06-13 16:47:16.003  1936  1995 W ProcessStats: Tracking association SourceState{c465d80 system/1000 BFgs #599057} whose proc state 4 is better than process ProcessState{596f24c com.google.android.tts/10223 pkg=com.google.android.tts} proc state 14 (2 skipped)
+06-13 16:47:42.063  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599074} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (10 skipped)
+06-13 16:48:35.694  1936  1995 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599083} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (2 skipped)
+06-13 16:48:57.604  1936  1995 W ProcessStats: Tracking association SourceState{c465d80 system/1000 BFgs #599090} whose proc state 4 is better than process ProcessState{596f24c com.google.android.tts/10223 pkg=com.google.android.tts} proc state 14 (3 skipped)
+06-13 16:49:31.928  1936 10912 W ProcessStats: Tracking association SourceState{4103827 com.google.android.pixelsystemservice/10267 ImpFg #599098} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (1 skipped)
+06-13 16:50:42.876  1936  1936 W ProcessStats: Tracking association SourceState{ea0d96c com.google.android.apps.messaging:rcs/10181 BFgs #599120} whose proc state 4 is better than process ProcessState{11281dd com.google.android.apps.messaging/10181 pkg=com.google.android.apps.messaging} proc state 14 (0 skipped)
+06-13 16:51:26.475  1936  3134 W ProcessStats: Tracking association SourceState{dc72437 system/1000 ImpBg #599151} whose proc state 6 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (3 skipped)
+06-13 16:52:19.015  1936  2597 W ProcessStats: Tracking association SourceState{61d5010 com.google.android.apps.pixel.agent/10134 ImpBg #599168} whose proc state 6 is better than process ProcessState{2dcd174 com.google.android.gms.unstable/10126 pkg=com.google.android.gms} proc state 14 (0 skipped)
+06-13 16:54:32.208  1936  3134 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599191} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (1 skipped)
+06-13 16:55:17.743  1936  3285 W ProcessStats: Tracking association SourceState{1218ef0 com.google.android.googlequicksearchbox:interactor/10139 BFgs #599195} whose proc state 4 is better than process ProcessState{7eae856 com.google.android.googlequicksearchbox:search/10139 pkg=com.google.android.googlequicksearchbox} proc state 14 (0 skipped)
+06-13 16:56:12.310  1936  3134 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599216} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (14 skipped)
+06-13 16:56:26.490  1936  3134 W ProcessStats: Tracking association SourceState{6ad8f36 system/1000 ImpBg #599224} whose proc state 6 is better than process ProcessState{1dc70fe com.google.android.apps.work.clouddpc/10227 pkg=com.google.android.apps.work.clouddpc} proc state 14 (0 skipped)
+06-13 16:58:02.413  1936  4873 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599248} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (0 skipped)
+06-13 16:59:11.866  1936  1936 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599257} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (0 skipped)
+06-13 16:59:42.532  1936  4873 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599297} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (9 skipped)
+06-13 17:00:00.036  1936  2006 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599298} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (0 skipped)
+06-13 17:01:12.645  1936  4873 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599317} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (0 skipped)
+06-13 17:02:18.395  1936  4873 W ProcessStats: Tracking association SourceState{b4ff81c com.google.android.gms.persistent/10126 BFgs #599330} whose proc state 4 is better than process ProcessState{1461c13 com.google.android.gms/10126 pkg=com.google.android.gms} proc state 8 (0 skipped)
+06-13 17:02:29.686  1936 10549 W ProcessStats: Tracking association SourceState{b4ff81c com.google.android.gms.persistent/10126 BFgs #599343} whose proc state 4 is better than process ProcessState{1461c13 com.google.android.gms/10126 pkg=com.google.android.gms} proc state 8 (13 skipped)
+06-13 17:02:56.561  1936 10912 W ProcessStats: Tracking association SourceState{8ef020a com.google.android.googlequicksearchbox:googleapp/10139 Receivr #599354} whose proc state 10 is better than process ProcessState{ca9a5ea com.google.android.adservices.api/10293 pkg=com.google.android.adservices.api} proc state 14 (1 skipped)
+06-13 17:02:57.323  1936 11465 I StorageManagerService: Set smart idle maintenance: latest write amount: 230, average write amount: 305, min segment threshold: 512, dirty reclaim rate: 0.5, segment reclaim weight: 2.0, period(min): 60, min gc sleep time(ms): 5000, target dirty ratio: 80
+06-13 17:03:07.294  1936  2016 W ProcessStats: Tracking association SourceState{ae47272 system/1000 ImpBg #599396} whose proc state 6 is better than process ProcessState{3c922d0 com.whatsapp/10300 pkg=com.whatsapp} proc state 14 (46 skipped)
+06-13 17:04:08.937  1936  5392 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599412} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (3 skipped)
+06-13 17:04:22.878  1936  4873 W ProcessStats: Tracking association SourceState{be0a051 com.google.android.gms.persistent/10126 BFgs #599419} whose proc state 4 is better than process ProcessState{2dcd174 com.google.android.gms.unstable/10126 pkg=com.google.android.gms} proc state 14 (2 skipped)
+06-13 17:04:33.798  1936  5392 W ProcessStats: Tracking association SourceState{be0a051 com.google.android.gms.persistent/10126 BFgs #599424} whose proc state 4 is better than process ProcessState{2dcd174 com.google.android.gms.unstable/10126 pkg=com.google.android.gms} proc state 14 (4 skipped)
+06-13 17:04:52.955  1936  4873 W ProcessStats: Tracking association SourceState{be0a051 com.google.android.gms.persistent/10126 BFgs #599427} whose proc state 4 is better than process ProcessState{2dcd174 com.google.android.gms.unstable/10126 pkg=com.google.android.gms} proc state 14 (2 skipped)
+06-13 17:07:21.332 10635 11508 I .gms.persistent: Explicit concurrent mark compact GC freed 12MB AllocSpace bytes, 2(48KB) LOS objects, 50% free, 29MB/59MB, paused 2.150ms,7.490ms total 930.013ms
+06-13 17:07:43.214  1936 10549 W ProcessStats: Tracking association SourceState{c1fb8ac system/1000 ImpBg #599444} whose proc state 6 is better than process ProcessState{7d7e531 com.google.android.apps.turbo:aab/10170 pkg=com.google.android.apps.turbo} proc state 14 (2 skipped)
+06-13 17:07:43.391 29578 11536 I FcClientStatsdLogManager: Sending FL diagnosis log. [CONTEXT ratelimit_period="60 MINUTES" skipped=64 ]
+06-13 17:07:43.393  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:07:43.527 16812 16812 I FcClientStatsdLogManager: Sending FL diagnosis log. [CONTEXT ratelimit_period="60 MINUTES" skipped=17 ]
+06-13 17:07:43.600 29003 29009 W .apps.turbo:aab: Reducing the number of considered missed Gc histogram windows from 325 to 100
+06-13 17:07:43.757  3894  4990 I id.gms.unstable: Explicit concurrent mark compact GC freed 936KB AllocSpace bytes, 1(68KB) LOS objects, 67% free, 3955KB/11MB, paused 916us,3.675ms total 239.298ms
+06-13 17:07:43.884 29578 29582 W .android.as.oss: Reducing the number of considered missed Gc histogram windows from 2261 to 100
+06-13 17:07:43.985  9276  9276 I Choreographer: Skipped 60 frames!  The application may be doing too much work on its main thread.
+06-13 17:07:44.181 27224 27228 W .android.aicore: Reducing the number of considered missed Gc histogram windows from 1769 to 100
+06-13 17:07:44.540  9276  9276 I Choreographer: Skipped 45 frames!  The application may be doing too much work on its main thread.
+06-13 17:07:45.215  9276  9276 I Choreographer: Skipped 56 frames!  The application may be doing too much work on its main thread.
+06-13 17:07:46.421   325   330 W pps.pixel.agent: Reducing the number of considered missed Gc histogram windows from 1049 to 100
+06-13 17:07:54.758  2982  3085 D ControlsListingControllerImpl: Subscribing callback, service count: 1
+06-13 17:07:54.768  2982  3085 D ControlsListingControllerImpl: Unsubscribing callback
+06-13 17:08:10.727  1936  2005 W ProcessStats: Tracking association SourceState{16b820b com.google.android.as/10157 BFgs #599508} whose proc state 4 is better than process ProcessState{7269330 android.process.acore/10088 pkg=com.android.providers.contacts (sub)} proc state 14 (24 skipped)
+06-13 17:08:43.662  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:09:03.361  1936  4874 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599518} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (0 skipped)
+06-13 17:09:12.315 16812 11602 I FcClientStatsdLogManager: Sending FL Training log. [CONTEXT ratelimit_period="60 MINUTES" skipped=3 ]
+06-13 17:09:13.890  1936 10929 W ProcessStats: Tracking association SourceState{83c91ec system/1000 ImpFg #599523} whose proc state 5 is better than process ProcessState{bbd8254 com.google.android.rkpdapp/10277 pkg=com.google.android.rkpdapp} proc state 14 (1 skipped)
+06-13 17:10:03.533  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:19.301  3188  3188 D GRIL-BluetoothSar: setBluetoothModeBasedTxPowerCap invoked with parameters: chain0Cap:[62, 62, 42, 62] chain1Cap:[62, 62, 43, 62] beamformingCap:[62, 62, 30, 62, 62, 62, 30, 62]
+06-13 17:10:20.346  1936  1936 W ProcessStats: Tracking association SourceState{1befc08 com.android.settings/1000 Service #599534} whose proc state 8 is better than process ProcessState{beb0908 com.google.android.apps.wellbeing/10189 pkg=com.google.android.apps.wellbeing} proc state 15 (0 skipped)
+06-13 17:10:20.354  2982  2982 D DLIndicator: onDozingChanged(false)
+06-13 17:10:20.392  2982  3089 D SystemEventDataSource: updatedEventData: SystemEventData(intentAction=android.intent.action.SCREEN_ON, plugged=EventData(value=1), batteryScale=EventData(value=100), batteryLevel=EventData(value=100), chargingStatus=EventData(value=1), maxChargingCurrent=EventData(value=1950000), maxChargingVoltage=EventData(value=5000000), batteryStatus=EventData(value=5), halEventData=HalEventData(dockDefendStatus=EventData(value=-3), tempDefendEventData=EventData(value=false), dwellDefendEventData=EventData(value=false)), settingsEventData=SettingsEventData(dockDefenderBypass=EventData(value=0), chargingLimitSettings=EventData(value=0), dndState=EventData(value=false), airplaneState=EventData(value=false)), frameworkApiEventData=FrameworkApiEventData(batterySaverState=EventData(value=false), extremeBatterySaverState=EventData(value=false)))
+06-13 17:10:20.400  3163  3605 I bt_shim_scanner: system/main/shim/le_scanning_manager.cc:380 BatchScanReadReports: in shim layer
+06-13 17:10:20.427  3163  3605 I bt_shim_scanner: system/main/shim/le_scanning_manager.cc:380 BatchScanReadReports: in shim layer
+06-13 17:10:20.429  3163  3605 W BtScan.ScanRadioStats: recordScanRadioStop(caller=configureRegularScanParams): No scan radio to stop
+06-13 17:10:20.543   675 29798 I hwc-display: [0] presentDisplay is skipped by mSkipFrame
+06-13 17:10:20.562  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:20.611  1443  1357 I GCH_CameraDeviceSession: Initialize: measure buffer allocation time: 0 
+06-13 17:10:20.623  1443  1357 I GCH_CameraDeviceSession: Create: Created a device session for camera 1 with 2 physical cameras: 8 7 
+06-13 17:10:20.624  1443 11678 I GCH_CameraDevice: Pinning memory config is set to 0 shared libraries.
+06-13 17:10:20.627  1443  1357 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: 4, severity: 0, value: 0.000000
+06-13 17:10:20.627  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:20.627  1443  1913 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: 5, severity: 0, value: 26.993160
+06-13 17:10:20.630  1443  1913 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: -1, severity: 0, value: 26.993160
+06-13 17:10:20.630  1443  1913 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: -1, severity: 0, value: 30.878038
+06-13 17:10:20.630  1443  1913 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: 3, severity: 0, value: 26.993160
+06-13 17:10:20.630  1443  1913 I GCH_CameraDeviceSession: NotifyThrottling: temperature type: 2, severity: 0, value: 27.000002
+06-13 17:10:20.658  1443  1357 I GCH_HalUtils: ======== App stream configuration ========
+06-13 17:10:20.658  1443  1357 I GCH_HalUtils: == stream num: 1, operation_mode:0
+06-13 17:10:20.658  1443  1357 I GCH_HalUtils: ==== [0]stream_id 0, type 0, format 35, res 1600x1200, usage 16384, is_phy 1, phy_cam_id 7, group_id -1
+06-13 17:10:20.658  1443  1357 I GCH_HalUtils: ======== App stream configuration ========
+06-13 17:10:20.658  1443  1357 I GCH_ZslSnapshotCaptureSession: IsStreamConfigurationSupported: support logical stream only
+06-13 17:10:20.659  1443  1357 I GCH_ResultDispatcher: [Cam1_ResultDispatcher] ResultDispatcher: SetRealtimeThread OK
+06-13 17:10:20.672  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:20.677  1443  2480 I Lyric   : top_level_graph_utils.cc:41: Sobek session enabled (from GCA) : 0 for camera Front
+06-13 17:10:20.769  1443  1357 I GCH_CameraDeviceSession: RegisterStreamsIntoCacheManagerLocked: [sbc] Registered stream 0 into SBC manager.
+06-13 17:10:20.774  1443  1357 I GCH_CameraDeviceSession: ProcessCaptureRequest: [sbc] Stream 0 1st req arrived, notify SBC Manager.
+06-13 17:10:20.775  1443  2477 I Lyric   : multicam_node.cc:1737: Frame number: 0, Lead cam: 7, Zoom ratio: 1.00, APP requested streams:  [0(GCH/Lyric), 7]
+06-13 17:10:20.781  1443  2483 I Lyric   : multicam_node.cc:1737: Frame number: 1, Lead cam: 7, Zoom ratio: 1.00, APP requested streams:  [0(GCH/Lyric), 7]
+06-13 17:10:20.785  1443  1919 I G3ACoordinator: awb_session_config_parser_lyric.cc:210: Map sensor name [TAOTIEFRONT] binning_factor [2 2] mode_index [5] to GCam sensor ID [1]
+06-13 17:10:20.792  1443  1918 I G3ACoordinator: ae_session_config_parser_lyric.cc:276: Map sensor name [TAOTIEFRONT], binning_factor [2, 2] and mode_index [5] to GCam sensor ID [1]
+06-13 17:10:20.814  1443  2477 I GAF     : roi_tracking_config_generator.cc:202: 10 calls in 17488 sec(s): GAfRoiTrackingConfigRoi tracking is disabled as roi type is not saliency.
+06-13 17:10:20.841  1443  2485 I Lyric   : zuma_csis_phy_link_context.cc:961: Zuma CsisPhyLinkContext_6 IspConfigCh0 with virtual channel: 0, parallel mode: 0, size: {width: 1656, height: 1240}, format: raw_10
+06-13 17:10:20.876  1443 11690 I GCH_AidlCameraDeviceSession: ProcessCaptureResult: First frame done
+06-13 17:10:21.163  1443 11690 I GCH_CameraDeviceSession: UpdatePendingRequest: [sbc] All inflight requests/streams cleared. Notified SBC for flushing.
+06-13 17:10:21.163  1443 11702 I GCH_CameraDeviceSession: operator(): [sbc] Flushed buf[0xb400007e24d7e6b0] bid[4] strm[0] frm[xx]
+06-13 17:10:21.328  2982  2982 I ReverseChargingControl: handleIntentForReverseCharging(): rtx=0 wlc=0 plgac=1 ac=1 acrtx=0 extra=1 this=com.google.android.systemui.reversecharging.ReverseChargingController@7bd59a0
+06-13 17:10:21.330  2982  3086 D SystemEventDataSource: updatedEventData: SystemEventData(intentAction=android.intent.action.BATTERY_CHANGED, plugged=EventData(value=1), batteryScale=EventData(value=100), batteryLevel=EventData(value=100), chargingStatus=EventData(value=1), maxChargingCurrent=EventData(value=1950000), maxChargingVoltage=EventData(value=5000000), batteryStatus=EventData(value=5), halEventData=HalEventData(dockDefendStatus=EventData(value=-3), tempDefendEventData=EventData(value=false), dwellDefendEventData=EventData(value=false)), settingsEventData=SettingsEventData(dockDefenderBypass=EventData(value=0), chargingLimitSettings=EventData(value=0), dndState=EventData(value=false), airplaneState=EventData(value=false)), frameworkApiEventData=FrameworkApiEventData(batterySaverState=EventData(value=false), extremeBatterySaverState=EventData(value=false)))
+06-13 17:10:21.389 22782 30484 I gle.android.gms: Explicit concurrent mark compact GC freed 588KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 14MB/28MB, paused 950us,14.004ms total 628.974ms
+06-13 17:10:21.669  1936  3281 D LauncherAppsService: getActivityLaunchIntent callingPackage=com.android.systemui component=ComponentInfo{com.zhiliaoapp.musically/com.ss.android.ugc.aweme.splash.SplashActivity} user=UserHandle{0}
+06-13 17:10:21.687  9276  9276 D pdf_document_jni: Creating FPDF_DOCUMENT from fd: 167
+06-13 17:10:21.866 10635 11638 I NearbyMediums: In ScanningCancellationFlag, service-id=NearbySharing has become the first scanner. The flag has been reset.
+06-13 17:10:21.921 10635 11632 I NearbyConnections: [InstantConnectionPcpMgr] In invalidateTxAdvertisementScanning(by pre_updateAdvertising) tx advertisement scanning skipped or stopped for endpointId: serviceId:NearbySharing isScreenUnlocked:true isAdvertising:true powerLevel:LOW isTxScanning:false
+06-13 17:10:21.932 10635 11632 I NearbyMediums: [DeviceCapabilities] Get wifi usable channels from cache for mode WFD_GC (tryToRefreshCache:false channels:[2412..2472, 5180..5320, 5500..5700, 5745..5805])
+06-13 17:10:21.934 10635 11632 I NearbyConnections: In generateRxInstantConnectionAdvBytes() advertisingMediums:[WIFI_DIRECT, WIFI_HOTSPOT, WIFI_AWARE, WIFI_LAN, BLE] capabilitiesSize:5 apFreq:5540 wfdGcUsableOrAvailableChs:[2412..2472, 5180..5320, 5500..5700, 5745..5805] wfdGoUsableOrAvailableChs:[2412..2472, 5180..5240, 5500..5560, 5745..5805] hsStaUsableOrAvailableChs:[2412..2472, 5180..5320, 5500..5700, 5745..5825, 5955..6415] awareUsableOrAvailableChs:[2412..2472, 5180..5240, 5500..5560, 5745..5805, 5955..6415] rxAdvertisement(size:63):A0:17:D1:06:3D:AD:A3:47:37:04:45:4D:D0:91:3E:9D:65:28:A4:F4:42:61:AD:A4:FE:27:1D:BE:EA:50:CD:C3:27:48:84:15:05:3F:00:00:84:15:06:25:00:00:84:15:04:7F:1F:00:84:15:07:25:1F:00:83:15:01:15:A4
+06-13 17:10:21.990 10635 11632 I NearbyMediums: Started BLE Legacy advertising. Regular Header Advertised : false, Fast Advertised : true, AdvertisingSettings : BleAdvertisingSetting{powerLevel= BALANCED_POWER, isConnectable= false, isPrivateGatt= true}, isAcceptingConnection : false
+06-13 17:10:22.012  2982  3085 D ControlsListingControllerImpl: Unsubscribing callback
+06-13 17:10:22.013  2982  3085 D ControlsListingControllerImpl: Unsubscribing callback
+06-13 17:10:22.015  2982  3085 D ControlsListingControllerImpl: Unsubscribing callback
+06-13 17:10:22.015  2982  2994 W ndroid.systemui: Reducing the number of considered missed Gc histogram windows from 160 to 100
+06-13 17:10:23.801  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:23.847  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:26.967  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:27.026  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:30.158  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:30.231  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:30.301 22782 22782 D BoundBrokerSvc: onRebind: Intent { act=com.google.android.gms.onboardingconsent.api.ConsentManagerApiService.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsApiService }
+06-13 17:10:31.018  9315  9320 W earchbox:search: Reducing the number of considered missed Gc histogram windows from 160 to 100
+06-13 17:10:31.165  9315  9357 I earchbox:search: Waiting for a blocking GC ProfileSaver
+06-13 17:10:31.444  9315  9357 I earchbox:search: WaitForGcToComplete blocked ProfileSaver on Background for 278.976ms
+06-13 17:10:31.944  9315  9414 I bvgc    : (REDACTED) Updating user context. Event: %s
+06-13 17:10:33.057  9315  9399 I avor    : #getOobeStatus: OptedIn [CONTEXT ratelimit_period="10 SECONDS" skipped=17 ]
+06-13 17:10:33.361  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:33.421  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:36.585  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:36.644  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:39.825  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:39.890  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:41.033  9315  9398 E fger    : 	at tk_trace.PropagatingContext(Started After:0)
+06-13 17:10:41.033  9315  9413 E fger    : 	at tk_trace.PropagatingContext(Started After:0)
+06-13 17:10:41.036  9315  9414 E fger    : 	at tk_trace.PropagatingContext(Started After:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.036  9315  9414 E fger    : 		at tk_trace.PropagatingContext 199 ms(Unknown Source:0)
+06-13 17:10:41.664  3188  3188 D GRIL-BluetoothSar: setBluetoothModeBasedTxPowerCap invoked with parameters: chain0Cap:[76, 68, 42, 76] chain1Cap:[76, 68, 43, 76] beamformingCap:[66, 66, 30, 62, 66, 66, 30, 62]
+06-13 17:10:43.024  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:43.087  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:45.364 22782 22782 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.onboardingconsent.api.ConsentManagerApiService.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsApiService }
+06-13 17:10:46.265  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:46.328  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:49.464  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:49.528  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:52.711  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:52.803  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:55.988  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:56.048  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:10:58.783  2982  2982 I ReverseChargingControl: handleIntentForReverseCharging(): rtx=0 wlc=0 plgac=1 ac=1 acrtx=0 extra=1 this=com.google.android.systemui.reversecharging.ReverseChargingController@7bd59a0
+06-13 17:10:58.798  2982  3087 D SystemEventDataSource: updatedEventData: SystemEventData(intentAction=android.intent.action.BATTERY_CHANGED, plugged=EventData(value=1), batteryScale=EventData(value=100), batteryLevel=EventData(value=100), chargingStatus=EventData(value=1), maxChargingCurrent=EventData(value=1950000), maxChargingVoltage=EventData(value=5000000), batteryStatus=EventData(value=5), halEventData=HalEventData(dockDefendStatus=EventData(value=-3), tempDefendEventData=EventData(value=false), dwellDefendEventData=EventData(value=false)), settingsEventData=SettingsEventData(dockDefenderBypass=EventData(value=0), chargingLimitSettings=EventData(value=0), dndState=EventData(value=false), airplaneState=EventData(value=false)), frameworkApiEventData=FrameworkApiEventData(batterySaverState=EventData(value=false), extremeBatterySaverState=EventData(value=false)))
+06-13 17:10:59.181  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:10:59.249  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:02.426  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:02.485  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:05.666  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:05.728  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:08.863  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:08.926  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:12.057  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:12.123  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:13.739  1936  1958 I system_server: Background young concurrent mark compact GC freed 88MB AllocSpace bytes, 60(6836KB) LOS objects, 49% free, 95MB/190MB, paused 1.712ms,11.001ms total 261.071ms
+06-13 17:11:15.287  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:15.348  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:18.478  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:18.544  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:20.485  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:21.671  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:21.732  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:24.866  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:24.929  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:28.059  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:28.118  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:31.248  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:31.312  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:34.445  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:34.508  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:37.670  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:37.732  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:40.910  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:40.971  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:44.107  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:44.168  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:47.343  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:47.403  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:50.579  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:50.640  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:53.772  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:53.835  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:11:56.966  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:11:57.027  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:00.202  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:00.264  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:03.440  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:03.504  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:03.570  1936  3281 W ProcessStats: Tracking association SourceState{e621748 com.google.android.pixelsystemservice/10267 ImpFg #599677} whose proc state 5 is better than process ProcessState{cbf57f6 com.google.android.apps.turbo/10170 pkg=com.google.android.apps.turbo} proc state 14 (7 skipped)
+06-13 17:12:06.694  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:06.755  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:09.934  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:09.994  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:13.123  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:13.180  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:16.312  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:16.373  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:18.354 22782 22782 D BoundBrokerSvc: onRebind: Intent { act=com.google.android.gms.onboardingconsent.api.ConsentManagerApiService.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsApiService }
+06-13 17:12:18.359  1936 10929 W ProcessStats: Tracking association SourceState{b4ff81c com.google.android.gms.persistent/10126 BFgs #599683} whose proc state 4 is better than process ProcessState{1461c13 com.google.android.gms/10126 pkg=com.google.android.gms} proc state 14 (0 skipped)
+06-13 17:12:19.501  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:19.563  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:22.754  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:22.813  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:25.990  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:26.049  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:29.232  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:29.293  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:32.468  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:32.532  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:33.390  1936  3134 W ProcessStats: Tracking association SourceState{b4ff81c com.google.android.gms.persistent/10126 BFgs #599697} whose proc state 4 is better than process ProcessState{1461c13 com.google.android.gms/10126 pkg=com.google.android.gms} proc state 14 (13 skipped)
+06-13 17:12:33.394 22782 22782 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.onboardingconsent.api.ConsentManagerApiService.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.GmsApiService }
+06-13 17:12:35.708  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:35.769  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:38.908  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:38.971  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:42.153  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:42.214  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:45.395  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:45.455  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:48.591  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:48.653  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:51.786  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:51.847  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:55.025  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:55.086  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:12:58.262  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:12:58.324  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:01.456  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:01.516  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:03.689  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:04.642  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:04.708  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:07.890  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:07.954  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:11.131  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:11.189  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:14.323  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:14.387  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:17.575  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:17.636  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:20.814  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:20.876  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:24.014  1494  1572 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:24.080  1494  1572 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:27.188  1494  2958 I WifiHAL : In GetCachedScanResultsCommand::handleResponse
+06-13 17:13:27.232  1494  2958 D WifiHAL : In DebugCommand::handleResponse, mType:GET_FEATURE
+06-13 17:13:28.403  6519  6585 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=478f9b04-33ff-4fda-9226-330c640a21f2, tags={ com.hp.sdd.common.library.logging.LogCleaner,cleaner } ]
+06-13 17:13:28.524 10484 10484 I Choreographer: Skipped 81 frames!  The application may be doing too much work on its main thread.
+06-13 17:13:28.649  9276  9473 I .briefpilot.app: Explicit concurrent mark compact GC freed 19MB AllocSpace bytes, 22(816KB) LOS objects, 75% free, 13MB/52MB, paused 610us,4.068ms total 75.415ms
+06-13 17:13:28.649  9276  9473 W .briefpilot.app: Reducing the number of considered missed Gc histogram windows from 145 to 100
+06-13 17:13:28.823  9276  9292 D pdf_document_jni: Deleting Document: 0xb40000774bdcead0
+06-13 17:13:28.823  9276  9292 D pdf_document_jni: Destroyed Document: 0xb40000774bdcead0
+06-13 17:13:29.573   835   904 I id.gms.learning: Explicit concurrent mark compact GC freed 576KB AllocSpace bytes, 0(0B) LOS objects, 65% free, 4311KB/12MB, paused 4.416ms,3.360ms total 1.582s
+06-13 17:13:29.573   835   904 W id.gms.learning: Reducing the number of considered missed Gc histogram windows from 185 to 100
+06-13 17:13:29.827 20469 20473 W y.kleinanzeigen: Reducing the number of considered missed Gc histogram windows from 500 to 100
+06-13 17:13:29.960 18393 18397 W ndroid.shopping: Reducing the number of considered missed Gc histogram windows from 635 to 100
+06-13 17:13:29.969 32645  6132 I .android.gms.ui: Explicit concurrent mark compact GC freed 672KB AllocSpace bytes, 0(0B) LOS objects, 50% free, 16MB/32MB, paused 3.645ms,8.562ms total 1.886s
+06-13 17:13:29.969 32645  6132 W .android.gms.ui: Reducing the number of considered missed Gc histogram windows from 184 to 100

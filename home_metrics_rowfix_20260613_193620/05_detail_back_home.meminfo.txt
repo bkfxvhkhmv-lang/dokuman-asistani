@@ -1,0 +1,67 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 526420213 Realtime: 664719671
+
+** MEMINFO in pid 9276 [com.briefpilot.app] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap   772885   772880        0        4   775748  1062148   782740   273969
+  Dalvik Heap    97202    95728     1412        0   103012   136488    38184    98304
+ Dalvik Other    22218     6456        8        0    38492                           
+        Stack     4004     4004        0        0     4012                           
+       Ashmem        8        0        0        0      948                           
+    Other dev       13        0        8        0      404                           
+     .so mmap    10782      300     6504        3    59052                           
+    .jar mmap     2639        0      672        0    54484                           
+    .apk mmap    38754     2364    34348        4    53512                           
+    .ttf mmap     1737        0      700        0     3976                           
+    .dex mmap    30154        0    30124        0    31036                           
+    .oat mmap       10        0        0        0     2088                           
+    .art mmap     7643     7456      104        0    22552                           
+   Other mmap      958        4      404        0     2996                           
+   EGL mtrack    40840    40840        0        0    40840                           
+    GL mtrack    86984    86984        0        0    86984                           
+      Unknown    77235    76400      760        2    86512                           
+        TOTAL  1194079  1093416    75044       13  1366648  1198636   820924   372273
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:   103288                         125564
+         Native Heap:   772880                         775748
+                Code:    75284                         235924
+               Stack:     4004                           4012
+            Graphics:   127824                         127824
+       Private Other:    85180
+              System:    25619
+             Unknown:                                   97576
+ 
+           TOTAL PSS:  1194079            TOTAL RSS:  1366648       TOTAL SWAP PSS:       13
+ 
+ Objects
+               Views:     6579         ViewRootImpl:        2
+         AppContexts:        9           Activities:        3
+              Assets:       33        AssetManagers:        0
+       Local Binders:       70        Proxy Binders:       86
+       Parcel memory:       16         Parcel count:       64
+    Death Recipients:        1             WebViews:        0
+ 
+ Native Allocations
+                         Count                       Total(kB)
+                        ------                         ------
+   Bitmap (malloced):     1062                          25335
+    Other (malloced):    38564                           3689
+ Other (nonmalloced):      201                            131
+ 
+ SQL
+         MEMORY_USED:      136
+  PAGECACHE_OVERFLOW:       76          MALLOC_SIZE:      141
+ 
+ DATABASES
+      pgsz     dbsz   Lookaside(b) cache hits cache misses cache size  Dbname
+PER CONNECTION STATS
+         4       64             34    76    43     3  /data/user/0/com.briefpilot.app/databases/RKStorage
+POOL STATS
+     cache hits  cache misses    cache size  Dbname
+             76            44             3  /data/user/0/com.briefpilot.app/databases/RKStorage
+ 

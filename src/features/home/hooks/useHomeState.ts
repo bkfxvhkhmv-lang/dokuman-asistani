@@ -6,7 +6,7 @@ import { useTheme } from '@/ThemeContext';
 import { useAuth } from '@/providers/AuthContext';
 import { useSyncEngine } from '@/hooks/useSyncEngine';
 import { useSheet } from '@/hooks/useSheet';
-import { sortByRisiko, getTageVerbleibend, getUngelesen, filterDokumente, exportiereTopluPDF } from '@/utils';
+import { sortByRisiko, getTageVerbleibend, getUngelesen, filterDokumente } from '@/utils';
 import { collectSteuerpaketDokumente } from '@/services/export/steuerpaketExport';
 import type { Dokument } from '@/store';
 
@@ -245,6 +245,7 @@ export function useHomeState() {
     }
     if (secilen.length > 1) { setMergeReihenfolge(secilen); setPdfMergeModal(true); return; }
     try {
+      const { exportiereTopluPDF } = await import('@/utils/exporters');
       await exportiereTopluPDF(secilen);
       setSecilenModus(false);
       setSecilenIds(new Set());
@@ -313,6 +314,7 @@ export function useHomeState() {
       );
       return;
     }
+    const { exportiereTopluPDF } = await import('@/utils/exporters');
     await exportiereTopluPDF(paket);
     setSecilenModus(false); setSecilenIds(new Set());
   }, [state.dokumente, secilenIds, alert]);

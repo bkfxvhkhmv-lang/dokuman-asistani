@@ -31,14 +31,14 @@ export default function NebenkostenRoleScreen() {
 
         <View style={st.cards}>
           <RoleCard
-            icon="🏠"
+            icon="V"
             titleDe="Ich bin Vermieter"
             subtitleDe="Abrechnung erstellen und prüfen"
             onPress={() => handleRoleSelect('vermieter')}
             testID="role-card-vermieter"
           />
           <RoleCard
-            icon="🔑"
+            icon="M"
             titleDe="Ich bin Mieter"
             subtitleDe="Abrechnung prüfen und Rückfragen vorbereiten"
             onPress={() => handleRoleSelect('mieter')}

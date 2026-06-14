@@ -26,6 +26,15 @@ const ALLOCATION_OPTIONS: AllocationKeyType[] = [
   'manuell',
 ];
 
+const ALLOCATION_LABELS: Record<AllocationKeyType, string> = {
+  wohnflaeche: 'Wohnfläche',
+  personen: 'Personen',
+  wohneinheit: 'Wohneinheit',
+  verbrauch: 'Verbrauch',
+  direkt: 'Direkt',
+  manuell: 'Manuell',
+};
+
 export interface NkImportConfirmFormValues {
   categoryKey: string;
   scope: 'property' | 'unit';
@@ -265,7 +274,7 @@ export function NkImportConfirmCard({
             ]}
           >
             <Text style={[st.chipText, { color: allocationKeyType === option ? C.primary : C.text }]}>
-              {option}
+              {ALLOCATION_LABELS[option]}
             </Text>
           </Pressable>
         ))}

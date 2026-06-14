@@ -68,6 +68,13 @@ export default function NebenkostenAssistantScreen() {
   const roleLabel = role === 'vermieter' ? 'Vermieter' : 'Mieter';
 
   const handleNewDraft = () => {
+    if (role === 'mieter') {
+      Alert.alert(
+        'Hinweis',
+        'Wenn Sie eine Nebenkostenabrechnung erhalten haben, scannen Sie das Dokument und prüfen Sie die Hinweise in der Analyse.',
+      );
+      return;
+    }
     if (role === 'vermieter' && !isSetupComplete) {
       Alert.alert('Hinweis', 'Bitte zuerst die Grunddaten oben anlegen.');
       return;
@@ -77,7 +84,12 @@ export default function NebenkostenAssistantScreen() {
         'Hinweis',
         'Noch keine Kostenpositionen vorhanden. Übernehmen Sie passende Belege als Kostenpositionen.',
       );
+      return;
     }
+    Alert.alert(
+      'Hinweis',
+      'Neue Positionen können aktuell über passende Dokumente als Kostenpositionen übernommen werden.',
+    );
   };
 
   const handleSaveSetup = (payload: NkMinimalSetupSavePayload) => {
@@ -113,7 +125,8 @@ export default function NebenkostenAssistantScreen() {
       if (!shareResult.ok) {
         Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
       }
-    } catch {
+    } catch (error) {
+      console.error('[NK] PDF export/share failed', error);
       Alert.alert('Hinweis', 'PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut.');
     } finally {
       setExporting(false);
@@ -139,7 +152,8 @@ export default function NebenkostenAssistantScreen() {
       });
       dispatch({ type: 'ADD_COST_POSITION', payload: costPosition });
       setImportDismissed(true);
-    } catch {
+    } catch (error) {
+      console.error('[NK] cost position import failed', error);
       Alert.alert(
         'Hinweis',
         'Kostenposition konnte nicht hinzugefügt werden. Bitte prüfen Sie die Angaben.',
@@ -199,12 +213,18 @@ export default function NebenkostenAssistantScreen() {
         {!hasDraft ? (
           <View style={st.empty}>
             <Text style={[st.emptyTitle, { color: C.text }]}>
-              {isSetupComplete ? 'Noch keine Kostenpositionen' : 'Noch keine Abrechnung'}
+              {role === 'mieter'
+                ? 'Nebenkostenabrechnung prüfen'
+                : isSetupComplete
+                  ? 'Noch keine Kostenpositionen'
+                  : 'Noch keine Abrechnung'}
             </Text>
             <Text style={[st.emptyBody, { color: C.textSecondary }]}>
-              {isSetupComplete
-                ? 'Übernehmen Sie passende Belege als Kostenpositionen, um Hinweise zu erhalten.'
-                : 'Legen Sie zuerst die Grunddaten oben an. Kostenpositionen können danach aus Dokumenten übernommen werden.'}
+              {role === 'mieter'
+                ? 'Wenn Sie eine Nebenkostenabrechnung erhalten haben, scannen Sie das Dokument und prüfen Sie die Hinweise in der Analyse.'
+                : isSetupComplete
+                  ? 'Übernehmen Sie passende Belege als Kostenpositionen, um Hinweise zu erhalten.'
+                  : 'Legen Sie zuerst die Grunddaten oben an. Kostenpositionen können danach aus Dokumenten übernommen werden.'}
             </Text>
           </View>
         ) : (
@@ -241,21 +261,23 @@ export default function NebenkostenAssistantScreen() {
           </Pressable>
         ) : null}
 
-        <Pressable
-          onPress={handleNewDraft}
-          style={({ pressed }) => [
-            st.newButton,
-            {
-              backgroundColor: C.primary,
-              borderRadius: R.md,
-              opacity: pressed ? 0.85 : 1,
-            },
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Neue Abrechnung"
-        >
-          <Text style={[st.newButtonText, { color: C.textInverse }]}>+ Neu</Text>
-        </Pressable>
+        {role === 'vermieter' ? (
+          <Pressable
+            onPress={handleNewDraft}
+            style={({ pressed }) => [
+              st.newButton,
+              {
+                backgroundColor: C.primary,
+                borderRadius: R.md,
+                opacity: pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Neue Abrechnung"
+          >
+            <Text style={[st.newButtonText, { color: C.textInverse }]}>+ Neu</Text>
+          </Pressable>
+        ) : null}
 
         <Text style={[st.disclaimer, { color: C.textTertiary }]}>
           Rechen- und Strukturhilfe. Keine Rechtsberatung.

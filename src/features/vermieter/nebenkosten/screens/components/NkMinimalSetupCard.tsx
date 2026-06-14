@@ -74,6 +74,18 @@ function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(parsed);
 }
 
+function normalizeDateInput(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (isValidIsoDate(trimmed)) return trimmed;
+
+  const deMatch = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmed);
+  if (!deMatch) return null;
+
+  const isoValue = `${deMatch[3]}-${deMatch[2]}-${deMatch[1]}`;
+  return isValidIsoDate(isoValue) ? isoValue : null;
+}
+
 /** Accepts German decimal input, e.g. "75,5" → 75.5 */
 export function parseGermanDecimalInput(value: string): number | null {
   const trimmed = value.trim();
@@ -135,8 +147,8 @@ export function NkMinimalSetupCard({ onSave }: NkMinimalSetupCardProps) {
     const name = landlordName.trim();
     const objectAddress = propertyAddressLine.trim();
     const areaSqm = parseGermanDecimalInput(areaSqmText);
-    const start = billingStart.trim();
-    const end = billingEnd.trim();
+    const start = normalizeDateInput(billingStart);
+    const end = normalizeDateInput(billingEnd);
     const label = unitLabel.trim();
     const tenant = tenantName.trim();
     const prepaymentCents = parseEuroInputToCents(prepaymentText);
@@ -154,12 +166,12 @@ export function NkMinimalSetupCard({ onSave }: NkMinimalSetupCardProps) {
       setValidationError('Bitte eine gültige Wohnfläche in m² eingeben.');
       return;
     }
-    if (!isValidIsoDate(start)) {
-      setValidationError('Bitte ein gültiges Startdatum im Format JJJJ-MM-TT eingeben.');
+    if (!start) {
+      setValidationError('Bitte ein gültiges Startdatum im Format TT.MM.JJJJ eingeben.');
       return;
     }
-    if (!isValidIsoDate(end)) {
-      setValidationError('Bitte ein gültiges Enddatum im Format JJJJ-MM-TT eingeben.');
+    if (!end) {
+      setValidationError('Bitte ein gültiges Enddatum im Format TT.MM.JJJJ eingeben.');
       return;
     }
     if (Date.parse(end) < Date.parse(start)) {
@@ -278,11 +290,11 @@ export function NkMinimalSetupCard({ onSave }: NkMinimalSetupCardProps) {
       <FieldInput
         value={billingStart}
         onChangeText={setBillingStart}
-        placeholder="2024-01-01"
+        placeholder="TT.MM.JJJJ"
       />
 
       <FieldLabel>Abrechnungszeitraum Ende</FieldLabel>
-      <FieldInput value={billingEnd} onChangeText={setBillingEnd} placeholder="2024-12-31" />
+      <FieldInput value={billingEnd} onChangeText={setBillingEnd} placeholder="TT.MM.JJJJ" />
 
       <FieldLabel>Einheit</FieldLabel>
       <FieldInput value={unitLabel} onChangeText={setUnitLabel} placeholder="Wohnung 1" />

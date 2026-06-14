@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useMemo, useState, useCallback } from 'react';
-import { ScrollView, View, RefreshControl, Text, Animated, Modal, TouchableOpacity, StyleSheet } from 'react-native';
+import { FlatList, ScrollView, View, RefreshControl, Text, Animated, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { styles } from '@/features/home/styles';
 import HomeHeader from '@/features/home/components/HomeHeader';
-import HomeRecentList from '@/features/home/components/HomeRecentList';
 import HomeUrgencyBanner from '@/features/home/components/HomeUrgencyBanner';
 import useHomeData from '@/features/home/hooks/useHomeData';
 import { setTabBarCollapsed } from '@/navigation/tabBarVisibility';
@@ -26,6 +25,13 @@ import { useTheme } from '@/ThemeContext';
 import HomeTriage from '@/features/home/components/HomeTriage';
 import { needsManualReview } from '@/utils/documentGuards';
 import { setTabBarHidden } from '@/navigation/tabBarVisibility';
+import { useHomeRecentListState } from '@/features/home/hooks/useHomeRecentListState';
+import { HomeFeedRow, useHomeFeedRowHandlers } from '@/features/home/components/HomeFeedRow';
+import { HomeRecentListChrome, useHomeFeedPrefetch } from '@/features/home/components/HomeRecentListChrome';
+import { getHomeFeedFlatListProps } from '@/features/home/feed/homeFeedFlatListConfig';
+import type { HomeFeedItem } from '@/features/home/feed/homeFeedTypes';
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<HomeFeedItem>);
 
 const ENABLE_HOT = false;
 const ENABLE_CONTEXT_STRIP = false;
@@ -43,7 +49,6 @@ const shouldComputeTimeline = false;
 export default function Home() {
   const data = useHomeData();
   const router = useRouter();
-  const activeTab = data.aktiv;
   const lastOffsetRef = useRef(0);
   const collapsedRef  = useRef(false);
 
@@ -153,15 +158,124 @@ export default function Home() {
     lastOffsetRef.current = offsetY;
   };
 
+  const listState = useHomeRecentListState(data);
+  const { feed, listQuery, setListQuery, setShowAll } = listState;
+  const { openFromList, navigateWithHero } = useHomeFeedRowHandlers(data);
+  useHomeFeedPrefetch(feed.prefetchDocIds, data.sichtbareDocs);
+
+  const showSkeleton = data.initialLaden && (data.alleDocs?.length ?? 0) === 0;
+  const feedItems = feed.emptyReason || showSkeleton ? [] : feed.items;
+
+  const listHeader = useMemo(
+    () => (
+      <View style={styles.content}>
+        <HomeHeader data={data} scrollY={scrollY} />
+        <DashboardSummary
+          urgent={data.dringend.length}
+          openTasks={data.aufgaben.length}
+          amountOpen={data.zahlungsSumme}
+          nextDeadlineDays={data.naechsteTage ?? undefined}
+          nextDeadlineTitle={data.naechste?.titel ?? data.naechste?.absender ?? undefined}
+          onPruefe={() => data.handleTabPress('Dokumente')}
+          onFrist={openTimeline}
+        />
+        <HomeTriage
+          docs={data.aufgaben}
+          onPress={handleTriagePress}
+          onScanPress={() => router.push('/(tabs)/Kamera')}
+        />
+        <HomeUrgencyBanner
+          colors={data.Colors}
+          riskColors={data.RiskColors}
+          document={data.naechste?.id === hotDocs[0]?.dok.id ? null : data.naechste}
+          daysLeft={data.naechsteTage}
+          extraCount={Math.max((data.kalDocs?.length ?? 0) - 1, 0)}
+          onPress={() => data.naechste?.id && router.push({ pathname: '/detail', params: { dokId: data.naechste!.id } })}
+        />
+        {showSkeleton ? (
+          <HomeSkeletonLoader />
+        ) : (
+          <HomeRecentListChrome
+            data={data}
+            feed={feed}
+            listQuery={listQuery}
+            onListQueryChange={setListQuery}
+            onShowAll={() => setShowAll(true)}
+            headerOnly
+          />
+        )}
+      </View>
+    ),
+    [
+      data,
+      scrollY,
+      openTimeline,
+      handleTriagePress,
+      router,
+      hotDocs,
+      feed,
+      listQuery,
+      setListQuery,
+      setShowAll,
+      showSkeleton,
+    ],
+  );
+
+  const listFooter = useMemo(
+    () => (
+      <View style={{ paddingBottom: data.secilenModus ? bottomInset + 140 : tabBarHeight + bottomInset + 24 }}>
+        {!showSkeleton && (
+          <HomeRecentListChrome
+            data={data}
+            feed={feed}
+            listQuery={listQuery}
+            onListQueryChange={setListQuery}
+            onShowAll={() => setShowAll(true)}
+            expandFooterOnly
+          />
+        )}
+      </View>
+    ),
+    [data, feed, listQuery, setListQuery, setShowAll, showSkeleton, bottomInset, tabBarHeight],
+  );
+
+  const listEmpty = useMemo(() => {
+    if (showSkeleton) return null;
+    if (!feed.emptyReason) return null;
+    return (
+      <HomeRecentListChrome
+        data={data}
+        feed={feed}
+        listQuery={listQuery}
+        onListQueryChange={setListQuery}
+        onShowAll={() => setShowAll(true)}
+      />
+    );
+  }, [showSkeleton, feed, data, listQuery, setListQuery, setShowAll]);
+
+  const renderFeedItem = useCallback(
+    ({ item }: { item: HomeFeedItem }) => (
+      <HomeFeedRow item={item} data={data} onOpen={openFromList} onNavigate={navigateWithHero} />
+    ),
+    [data, openFromList, navigateWithHero],
+  );
+
+  const keyExtractor = useCallback((item: HomeFeedItem) => item.key, []);
+
   return (
     <View style={[styles.container, { backgroundColor: data.Colors.bg }]}>
-    <ScrollView
+    <AnimatedFlatList
       style={{ flex: 1 }}
-      contentContainerStyle={[styles.content, { paddingBottom: data.secilenModus ? bottomInset + 140 : tabBarHeight + bottomInset + 24 }]}
+      data={feedItems}
+      renderItem={renderFeedItem}
+      keyExtractor={keyExtractor}
+      ListHeaderComponent={listHeader}
+      ListFooterComponent={listFooter}
+      ListEmptyComponent={listEmpty}
       showsVerticalScrollIndicator={false}
       onScroll={Animated.event(
         [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-        { useNativeDriver: false, listener: handleScroll }
+        { useNativeDriver: false, listener: handleScroll },
       )}
       scrollEventThrottle={16}
       refreshControl={
@@ -172,40 +286,8 @@ export default function Home() {
           colors={['transparent']}
         />
       }
-    >
-      <HomeHeader data={data} scrollY={scrollY} />
-
-      <DashboardSummary
-        urgent={data.dringend.length}
-        openTasks={data.aufgaben.length}
-        amountOpen={data.zahlungsSumme}
-        nextDeadlineDays={data.naechsteTage ?? undefined}
-        nextDeadlineTitle={data.naechste?.titel ?? data.naechste?.absender ?? undefined}
-        onPruefe={() => data.handleTabPress('Dokumente')}
-        onFrist={openTimeline}
-      />
-
-      <HomeTriage
-        docs={data.aufgaben}
-        onPress={handleTriagePress}
-        onScanPress={() => router.push('/(tabs)/Kamera')}
-      />
-
-      {/* UrgencyBanner only when naechste is NOT already shown in HotCardSection */}
-      <HomeUrgencyBanner
-        colors={data.Colors}
-        riskColors={data.RiskColors}
-        document={data.naechste?.id === hotDocs[0]?.dok.id ? null : data.naechste}
-        daysLeft={data.naechsteTage}
-        extraCount={Math.max((data.kalDocs?.length ?? 0) - 1, 0)}
-        onPress={() => data.naechste?.id && router.push({ pathname: '/detail', params: { dokId: data.naechste!.id } })}
-      />
-
-      {data.initialLaden && (data.alleDocs?.length ?? 0) === 0
-        ? <HomeSkeletonLoader />
-        : <HomeRecentList data={data} />
-      }
-    </ScrollView>
+      {...getHomeFeedFlatListProps(feed.useStacking)}
+    />
 
       <AppBottomSheet
         visible={!!data.sheetConfig}

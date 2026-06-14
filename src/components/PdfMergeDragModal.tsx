@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
-import { exportiereTopluPDF } from '@/utils';
+
 import { uploadDocumentV4 } from '@/services/v4Api';
 import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
@@ -62,6 +62,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
 
   const handleExport = async () => {
     try {
+      const { exportiereTopluPDF } = await import('@/utils/exporters');
       const uri = await exportiereTopluPDF(reihenfolge);
       if (uri) {
         const filename = `merged_${Date.now()}.pdf`;

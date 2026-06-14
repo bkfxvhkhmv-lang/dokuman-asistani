@@ -70,12 +70,11 @@ function AnzahlDiagramm({ monatsGruppen, C }: DiagrammProps) {
   );
 }
 
-function KennzahlKarte({ icon, wert, label, farbe, C }: { icon: string; wert: string | number; label: string; farbe?: string; C: ThemeColors }) {
+function KennzahlKarte({ wert, label, farbe, C }: { wert: string | number; label: string; farbe?: string; C: ThemeColors }) {
   return (
     <View style={{ flex: 1, backgroundColor: C.bgInput, borderRadius: 14, padding: 14,
       alignItems: 'center', borderWidth: 0.5, borderColor: C.border }}>
-      <Text style={{ fontSize: 22 }}>{icon}</Text>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: farbe || C.text, marginTop: 4 }}>{wert}</Text>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: farbe || C.text }}>{wert}</Text>
       <Text style={{ fontSize: 10, color: C.textTertiary, textAlign: 'center', marginTop: 2 }}>{label}</Text>
     </View>
   );
@@ -141,11 +140,11 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
           ) : (
             <>
               <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-                <KennzahlKarte icon="📄" wert={ozet.gesamtAnzahl} label="Dokumente" C={C} />
-                <KennzahlKarte icon="💶"
+                <KennzahlKarte wert={ozet.gesamtAnzahl} label="Dokumente" C={C} />
+                <KennzahlKarte
                   wert={ozet.gesamtBetrag > 0 ? (formatBetrag(ozet.gesamtBetrag) ?? '–') : '–'}
                   label="Gesamtbetrag" farbe={C.danger} C={C} />
-                <KennzahlKarte icon="✅" wert={`${ozet.bezahlQuote}%`} label="Bezahlt" farbe={C.success} C={C} />
+                <KennzahlKarte wert={`${ozet.bezahlQuote}%`} label="Bezahlt" farbe={C.success} C={C} />
               </View>
 
               {ozet.offeneBetraege > 0 && (
@@ -186,17 +185,20 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
                   Risikoverteilung
                 </Text>
                 {([
-                  { key: 'hoch', label: 'Hoch', farbe: C.danger, icon: '🔴' },
-                  { key: 'mittel', label: 'Mittel', farbe: C.warning, icon: '🟡' },
-                  { key: 'niedrig', label: 'Niedrig', farbe: C.success, icon: '🟢' },
-                ] as const).map(({ key, label, farbe, icon }) => {
+                  { key: 'hoch', label: 'Hoch', farbe: C.danger },
+                  { key: 'mittel', label: 'Mittel', farbe: C.warning },
+                  { key: 'niedrig', label: 'Niedrig', farbe: C.success },
+                ] as const).map(({ key, label, farbe }) => {
                   const anzahl = (ozet.risikoVerteilung as Record<string, number>)[key] || 0;
                   const prozent = ozet.gesamtAnzahl > 0
                     ? Math.round((anzahl / ozet.gesamtAnzahl) * 100) : 0;
                   return (
                     <View key={key} style={{ marginBottom: 8 }}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <Text style={{ fontSize: 12, color: C.text }}>{icon} {label}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: farbe }} />
+                          <Text style={{ fontSize: 12, color: C.text }}>{label}</Text>
+                        </View>
                         <Text style={{ fontSize: 12, color: C.textSecondary }}>{anzahl} ({prozent}%)</Text>
                       </View>
                       <View style={{ height: 6, backgroundColor: C.border, borderRadius: 3 }}>

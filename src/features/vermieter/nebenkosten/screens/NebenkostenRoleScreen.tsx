@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
 import { RoleCard } from './components/RoleCard';
@@ -8,11 +8,16 @@ import type { NkRole } from '@/features/vermieter/nebenkosten/guidance';
 
 export default function NebenkostenRoleScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ sourceDokId?: string }>();
   const { Colors: C, S } = useTheme();
   const insets = useSafeAreaInsets();
+  const sourceDokId = (params.sourceDokId ?? '').trim();
 
   const handleRoleSelect = (role: NkRole) => {
-    router.push({ pathname: '/nebenkosten/assistant', params: { role } });
+    router.push({
+      pathname: '/nebenkosten/assistant',
+      params: sourceDokId ? { role, sourceDokId } : { role },
+    });
   };
 
   return (

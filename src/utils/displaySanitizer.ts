@@ -25,7 +25,12 @@ const TECH_FILENAME_MAP: { re: RegExp; label: string }[] = [
   { re: /^Scan\s+\d{6,}$/i,   label: 'display.fallback.analyzed_document' },
 ];
 
-const TECH_SUFFIX_RE = /_[a-z]{2}[0-9a-f]{4,}$/i;
+/**
+ * Matches trailing hash-like tokens such as `980880e7` or `1044f560`.
+ * Requires at least one hex letter (a-f) to avoid stripping plain numeric
+ * amounts, dates, or postal codes. Applied after `_` / `-` → space folding.
+ */
+const HASH_SUFFIX_RE = /\s+(?=[0-9a-f]*[a-f])[0-9a-f]{6,}$/i;
 
 const ABBREV_MAP: [RegExp, string][] = [
   [/\bsgb[\s_-]?ii\b/gi, 'SGB II'],
@@ -134,8 +139,8 @@ export function humanizeTitle(raw: string | null | undefined): string | null {
   for (const { re, label } of TECH_FILENAME_MAP) {
     if (re.test(text)) return t(lang, label);
   }
-  text = text.replace(TECH_SUFFIX_RE, '');
   text = text.replace(/[_-]/g, ' ');
+  text = text.replace(HASH_SUFFIX_RE, '');
   for (const [re, expanded] of ABBREV_MAP) {
     text = text.replace(re, expanded);
   }

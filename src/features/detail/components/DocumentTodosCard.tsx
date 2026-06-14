@@ -20,12 +20,15 @@ export default function DocumentTodosCard({ dok }: { dok: Dokument }) {
       borderColor: `${C.primary}33`,
     }}>
       <Text style={{ fontSize: fs(11), fontWeight: '800', color: C.textTertiary, letterSpacing: 0.6, marginBottom: 10 }}>
-        📌 NÄCHSTE SCHRITTE
+        Nächste Schritte
       </Text>
       {lines.map((line, i) => (
-        <Text key={i} style={{ fontSize: fs(13), color: C.text, lineHeight: fs(13) * 1.45, marginBottom: 6 }}>
-          • {line}
-        </Text>
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+          <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: C.textTertiary, marginTop: fs(13) * 0.55 }} />
+          <Text style={{ flex: 1, fontSize: fs(13), color: C.text, lineHeight: fs(13) * 1.45 }}>
+            {line}
+          </Text>
+        </View>
       ))}
     </View>
   );

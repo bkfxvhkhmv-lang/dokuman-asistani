@@ -14,7 +14,7 @@ import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import { HIT_SLOP } from '@/theme';
 import type { Dokument } from '@/store';
-import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { resolveDocumentSender, safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface Action {
   key:     string;
@@ -47,6 +47,7 @@ export default function DocumentContextSheet({
   const { t: T } = useT();
 
   if (!dok) return null;
+  const displaySender = resolveDocumentSender(dok);
 
   const actions: Action[] = [
     {
@@ -95,7 +96,7 @@ export default function DocumentContextSheet({
       visible={!!dok}
       onClose={onClose}
       title={safeDisplayTitel(dok.titel, dok.typ || 'Unbekanntes Dokument', dok.confidence)}
-      subtitle={dok.absender}
+      subtitle={displaySender || undefined}
     >
       <View style={st.list}>
         {actions.map((action, i) => {

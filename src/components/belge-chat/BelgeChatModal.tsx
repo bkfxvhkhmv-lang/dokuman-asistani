@@ -15,6 +15,7 @@ import type { ChatMessage } from './chatTypes';
 import { TypingIndicator } from './TypingIndicator';
 import { getChipsForTyp } from './typChips';
 import { useT } from '@/hooks/useT';
+import { resolveDocumentSender } from '@/utils/displaySanitizer';
 
 interface BelgeChatModalProps {
   visible: boolean;
@@ -35,6 +36,7 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
   const scrollRef = useRef<ScrollView>(null);
   const mountedRef = useRef(true);
   const chips = getChipsForTyp(dok);
+  const displaySender = dok ? resolveDocumentSender(dok) : '';
 
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false; }; }, []);
 
@@ -93,9 +95,9 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
           <View style={[st.header, { borderColor: C.border }]}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 15, fontWeight: '700', color: C.text }}>{T('chat.document_title')}</Text>
-              {dok?.absender ? (
+              {displaySender ? (
                 <Text style={{ fontSize: 11, color: C.textTertiary, marginTop: 1 }} numberOfLines={1}>
-                  {dok.absender} · {dok.typ}
+                  {displaySender} · {dok?.typ}
                 </Text>
               ) : null}
             </View>

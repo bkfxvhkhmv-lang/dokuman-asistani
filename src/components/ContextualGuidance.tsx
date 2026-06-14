@@ -4,7 +4,7 @@ import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { ColorPalette } from '@/theme';
 import type { Dokument } from '@/store';
-import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { resolveDocumentSender, safeDisplayTitel } from '@/utils/displaySanitizer';
 
 interface GuidanceCard {
   id: string;
@@ -26,7 +26,7 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
   if (kritisch.length > 0) {
     cards.push({ id: 'kritisch', icon: 'warning-circle',
       title: `${kritisch.length} dringende${kritisch.length === 1 ? 's Dokument' : ' Dokumente'}`,
-      sub: kritisch.slice(0, 2).map(d => d.absender || safeDisplayTitel(d.titel, d.typ, d.confidence)).join(', '),
+      sub: kritisch.slice(0, 2).map(d => resolveDocumentSender(d) || safeDisplayTitel(d.titel, d.typ, d.confidence)).join(', '),
       color: C.danger, bg: C.dangerLight, action: () => {}, actionLabel: 'Jetzt ansehen', priority: 10 });
   }
 
@@ -63,7 +63,7 @@ function buildCards(docs: Dokument[], router: { push: (route: any) => void }, C:
     cards.push({ id: 'deadline', icon: 'calendar-blank',
       title: `${dieseWoche.length} Frist${dieseWoche.length === 1 ? '' : 'en'} diese Woche`,
       sub: dieseWoche
-        .map(d => d.absender || safeDisplayTitel(d.titel, d.typ, d.confidence))
+        .map(d => resolveDocumentSender(d) || safeDisplayTitel(d.titel, d.typ, d.confidence))
         .slice(0, 2)
         .join(', '),
       color: C.success, bg: C.successLight,

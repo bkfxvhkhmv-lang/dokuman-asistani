@@ -33,6 +33,7 @@ import { setTabBarHidden } from '@/navigation/tabBarVisibility';
 import { useStoreDispatch } from '@/store/Provider';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
+import { resolveDocumentSender } from '@/utils/displaySanitizer';
 import { useT } from '@/hooks/useT';
 
 const ENABLE_RELEASE_FLOATING_ACTION_PULSE = false;
@@ -141,6 +142,7 @@ export default function Detailbildschirm() {
   );
 
   const viewerPages = useMemo(() => pagesForViewer(dok), [dok]);
+  const displaySender = useMemo(() => resolveDocumentSender(dok), [dok]);
   const detailTabs = isSimpleMode ? DETAIL_SIMPLE_SCREEN_TABS : DETAIL_SCREEN_TABS;
   const pipelineCompleted = useMemo(() => getDocumentPipelineInfo(dok).phase === 'completed', [dok]);
   const showDeadlineStrip = useMemo(() => shouldShowDetailDeadlineBanner(dok), [dok]);
@@ -337,7 +339,7 @@ export default function Detailbildschirm() {
         <FloatingActionPulse
           visible={releaseShowPrimaryFab}
           label={actionPlan?.primary ? t(actionPlan.primary.labelKey) : ''}
-          sublabel={dok.absender || dok.typ || undefined}
+          sublabel={displaySender || dok.typ || undefined}
           urgency={pulseUrgency}
           onPress={handlePrimaryAction}
           extraBottomInset={showDeadlineStrip ? 76 : 0}

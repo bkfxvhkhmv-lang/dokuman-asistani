@@ -19,33 +19,33 @@ export function buildKernPunkte(dok: Dokument): string[] {
   const punkte: string[] = [];
   const absender = getSender(dok);
 
-  punkte.push(absender ? `📄 ${dok.typ} von ${absender}` : `📄 ${dok.typ}`);
+  punkte.push(absender ? `${dok.typ} von ${absender}` : `${dok.typ}`);
 
   const zahlen: string[] = [];
   if (betragStr)              zahlen.push(`Betrag: ${betragStr}`);
   if (fristStr)               zahlen.push(`Frist: ${fristStr}`);
   if ((dok as any).aktenzeichen) zahlen.push(`AZ: ${(dok as any).aktenzeichen}`);
-  if (zahlen.length > 0) punkte.push(`💡 ${zahlen.join(' · ')}`);
+  if (zahlen.length > 0) punkte.push(zahlen.join(' · '));
   else if (dok.typ === 'Rechnung' || dok.typ === 'Mahnung' || dok.typ === 'Bußgeld') {
-    if (dok.frist) punkte.push(`💡 Betrag nicht erkannt · Frist: ${fristStr}`);
-    else punkte.push('💡 Betrag nicht erkannt');
+    if (dok.frist) punkte.push(`Betrag nicht erkannt · Frist: ${fristStr}`);
+    else punkte.push('Betrag nicht erkannt');
   } else if (dok.frist) {
-    punkte.push(`💡 Frist: ${fristStr}`);
+    punkte.push(`Frist: ${fristStr}`);
   } else {
-    punkte.push('💡 Wichtige Angaben nicht erkannt');
+    punkte.push('Wichtige Angaben nicht erkannt');
   }
 
   const risiken = analysiereAllgemeinRisiken(dok);
   if (risiken.length > 0) {
-    punkte.push(`⚠️ ${risiken[0].text}`);
+    punkte.push(risiken[0].text);
   } else if (dok.erledigt) {
-    punkte.push(`✅ Bereits erledigt`);
+    punkte.push('Bereits erledigt');
   } else if (dok.aktionen?.includes('zahlen') && canOfferPaymentAction(dok.betrag)) {
-    punkte.push(hasCompletePaymentTarget(dok) ? '💶 Zahlung vorbereiten' : '💶 Zahlungsdaten prüfen');
+    punkte.push(hasCompletePaymentTarget(dok) ? 'Zahlung vorbereiten' : 'Zahlungsdaten prüfen');
   } else if (dok.aktionen?.includes('einspruch')) {
-    punkte.push(`✍️ Einspruchoption prüfen`);
+    punkte.push('Einspruchoption prüfen');
   } else {
-    punkte.push(`📌 Dokument prüfen und ggf. archivieren`);
+    punkte.push('Dokument prüfen und ggf. archivieren');
   }
 
   return punkte.slice(0, 3);

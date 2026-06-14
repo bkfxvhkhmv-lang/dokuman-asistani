@@ -124,10 +124,11 @@ export function BesserErkennenCard({ dok }: Props) {
             </Text>
           )}
 
-          {/* Confidence indicator */}
+          {/* Review hint */}
           <Text style={{ fontSize: 10, color: C.textTertiary }}>
-            {t('besser.suggest.confidence', { n: suggestion.response.confidence })}
-            {suggestion.response.needsUserConfirmation ? ` · ${t('besser.suggest.check')}` : ''}
+            {suggestion.response.needsUserConfirmation
+              ? 'Einige Angaben sollten geprüft werden'
+              : 'KI-geprüft'}
           </Text>
 
           {/* Action buttons */}

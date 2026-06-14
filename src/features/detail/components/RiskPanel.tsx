@@ -89,7 +89,6 @@ export default function RiskPanel({
               <View style={{ width: 70, height: 6, backgroundColor: C.borderLight, borderRadius: 3, overflow: 'hidden' }}>
                 <View style={{ height: 6, width: `${hukukiSkor}%`, backgroundColor: hukukiSkorColor, borderRadius: 3 }} />
               </View>
-              <Text style={{ fontSize: 12, fontWeight: '800', color: hukukiSkorColor }}>{hukukiSkor}</Text>
             </View>
           </View>
           {hukukiRisiken.map((r, i) => (

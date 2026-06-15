@@ -6,4 +6,5 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testMatch: ['**/__tests__/**/*.(ts|tsx|js)'],
   coveragePathIgnorePatterns: ['/node_modules/', '/src.bak/'],
+  setupFiles: ['./jest.setup.js'],
 };

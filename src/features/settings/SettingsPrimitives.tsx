@@ -75,11 +75,11 @@ export function FlatRow({ icon, label, sub, right, onPress, disabled }: FlatRowP
           <View style={{ width: 29 }} />
         )}
         <View style={{ flex: 1 }}>
-          <Text style={{ color: C.text, fontSize: fs(16), fontWeight: '400', letterSpacing: -0.2 }}>
+          <Text style={{ color: C.text, fontSize: fs(17), fontWeight: '500', letterSpacing: -0.2 }}>
             {label}
           </Text>
           {sub ? (
-            <Text style={{ fontSize: fs(13), color: C.textTertiary, marginTop: 2, letterSpacing: 0.1 }}>
+            <Text style={{ fontSize: fs(14), color: C.textTertiary, marginTop: 3, lineHeight: fs(14) * 1.35, letterSpacing: 0.05 }}>
               {sub}
             </Text>
           ) : null}
@@ -92,9 +92,9 @@ export function FlatRow({ icon, label, sub, right, onPress, disabled }: FlatRowP
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    paddingVertical: sub ? 10 : 12,
+    paddingVertical: sub ? 12 : 13,
     paddingHorizontal: 16,
-    minHeight: sub ? undefined : 48,
+    minHeight: sub ? undefined : 50,
   };
   if (onPress) {
     return (
@@ -109,7 +109,7 @@ export function FlatRow({ icon, label, sub, right, onPress, disabled }: FlatRowP
 export function SettingsSectionTitle({ label }: { label: string }) {
   const { Colors: C, fs } = useTheme();
   return (
-    <Text style={[sheet.title, { color: C.textSecondary, fontSize: fs(11) }]} accessibilityRole="header">
+    <Text style={[sheet.title, { color: C.textSecondary, fontSize: fs(12) }]} accessibilityRole="header">
       {label}
     </Text>
   );
@@ -119,7 +119,7 @@ export function SettingsSectionBlock({ title, children }: { title: string; child
   const { Colors: C, fs } = useTheme();
   return (
     <View style={sheet.block}>
-      <Text style={[sheet.blockCaps, { color: C.primary, fontSize: fs(10) }]}>
+      <Text style={[sheet.blockCaps, { color: C.primary, fontSize: fs(11) }]}>
         {title}
       </Text>
       <View>{children}</View>
@@ -130,11 +130,11 @@ export function SettingsSectionBlock({ title, children }: { title: string; child
 const sheet = StyleSheet.create({
   title: {
     fontWeight: '800',
-    letterSpacing: 0.85,
+    letterSpacing: 0.7,
     textTransform: 'uppercase',
     marginBottom: 8,
     marginTop: 4,
   },
   block: { gap: 12 },
-  blockCaps: { fontWeight: '800', letterSpacing: 0.7 },
+  blockCaps: { fontWeight: '800', letterSpacing: 0.6 },
 });

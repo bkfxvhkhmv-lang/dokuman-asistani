@@ -176,9 +176,9 @@ const st = StyleSheet.create({
   },
   header: {
     marginHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 12,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
   allLink: {
@@ -191,14 +191,16 @@ const st = StyleSheet.create({
   dedupeHint: {
     marginHorizontal: 16,
     marginBottom: 8,
-    lineHeight: 17,
+    lineHeight: 19,
   },
   allLinkLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   title: {
-    fontWeight: '700',
-    letterSpacing: -0.3,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    lineHeight: 22,
   },
 });

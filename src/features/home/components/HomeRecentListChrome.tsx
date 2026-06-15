@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
+import { useStore } from '@/store';
 import { AppInput } from '@/design/components';
 import EmptyState from '@/components/EmptyState';
 import { prefetchDocumentData } from '@/hooks/queryHooks';
@@ -34,6 +35,7 @@ export function HomeRecentListChrome({
   const { fs } = useTheme();
   const { t: T } = useT();
   const router = useRouter();
+  const { dispatch } = useStore();
 
   if (expandFooterOnly) {
     if (!feed.showExpandAffordance) return null;
@@ -57,6 +59,7 @@ export function HomeRecentListChrome({
 
   if (!headerOnly && feed.emptyReason === 'tab-empty') {
     const showScanCta = feed.emptyVariant === 'docs' || feed.emptyVariant === 'folder';
+    const showDemoCta = feed.emptyVariant === 'docs';
     return (
       <EmptyState
         variant={feed.emptyVariant}
@@ -66,6 +69,14 @@ export function HomeRecentListChrome({
             ? {
                 label: T('home.triage.scan_new'),
                 onPress: () => router.push('/(tabs)/Kamera'),
+              }
+            : undefined
+        }
+        secondaryAction={
+          showDemoCta
+            ? {
+                label: T('home.try_demo'),
+                onPress: () => dispatch({ type: 'RESET_DEMO' }),
               }
             : undefined
         }

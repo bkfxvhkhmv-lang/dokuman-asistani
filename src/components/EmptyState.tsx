@@ -73,11 +73,12 @@ function buildVariants(T: (k: string) => string): Record<EmptyVariant, VariantCo
 // ── Component ──────────────────────────────────────────────────────────────
 
 interface EmptyStateProps {
-  variant?:  EmptyVariant;
-  title?:    string;
-  subtitle?: string;
-  action?:   { label: string; onPress: () => void };
-  compact?:  boolean;
+  variant?:        EmptyVariant;
+  title?:          string;
+  subtitle?:       string;
+  action?:         { label: string; onPress: () => void };
+  secondaryAction?: { label: string; onPress: () => void };
+  compact?:        boolean;
 }
 
 export default function EmptyState({
@@ -85,6 +86,7 @@ export default function EmptyState({
   title,
   subtitle,
   action,
+  secondaryAction,
   compact = false,
 }: EmptyStateProps) {
   const { Colors } = useTheme();
@@ -125,6 +127,19 @@ export default function EmptyState({
           <Text style={[st.btnText, { color: tint }]}>{action.label}</Text>
         </TouchableOpacity>
       )}
+      {secondaryAction && (
+        <TouchableOpacity
+          onPress={secondaryAction.onPress}
+          activeOpacity={0.6}
+          accessibilityRole="button"
+          accessibilityLabel={secondaryAction.label}
+          style={st.secondaryBtn}
+        >
+          <Text style={[st.secondaryBtnText, { color: Colors.textTertiary }]}>
+            {secondaryAction.label}
+          </Text>
+        </TouchableOpacity>
+      )}
     </Animated.View>
   );
 }
@@ -153,6 +168,8 @@ const st = StyleSheet.create({
     borderRadius: 10, borderWidth: 1,
   },
   btnText:        { fontSize: 13, fontWeight: '600', letterSpacing: -0.1 },
+  secondaryBtn:   { marginTop: 14, paddingVertical: 6 },
+  secondaryBtnText: { fontSize: 13, fontWeight: '500', letterSpacing: -0.1 },
   compact:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 20 },
   compactDot:     { width: 32, height: 32, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   compactDotInner: { width: 10, height: 10, borderRadius: 5 },

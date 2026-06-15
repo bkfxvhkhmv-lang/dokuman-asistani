@@ -54,7 +54,7 @@ export default function Home() {
 
   const { Colors: C } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
-  const { bottom: bottomInset } = useSafeAreaInsets();
+  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
   const budget  = useMemo(() => buildBudgetSnapshot(data.sichtbareDocs), [data.sichtbareDocs]);
   const hotDocs = useMemo(
     () => (shouldComputeHotDocs ? buildHotDocs(data.sichtbareDocs) : []),
@@ -168,7 +168,7 @@ export default function Home() {
 
   const listHeader = useMemo(
     () => (
-      <View style={styles.content}>
+      <View style={[styles.content, { marginTop: -topInset }]}>
         <HomeHeader data={data} scrollY={scrollY} />
         <DashboardSummary
           urgent={data.dringend.length}
@@ -218,6 +218,7 @@ export default function Home() {
       setListQuery,
       setShowAll,
       showSkeleton,
+      topInset,
     ],
   );
 
@@ -263,7 +264,7 @@ export default function Home() {
   const keyExtractor = useCallback((item: HomeFeedItem) => item.key, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: data.Colors.bg }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: data.Colors.bg }]} edges={['top', 'left', 'right']}>
     <AnimatedFlatList
       style={{ flex: 1 }}
       data={feedItems}
@@ -341,7 +342,7 @@ export default function Home() {
         </SafeAreaView>
       </Modal>
 
-    </View>
+    </SafeAreaView>
   );
 }
 

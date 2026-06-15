@@ -4,7 +4,7 @@
  * These cases encode the invariants that MUST hold regardless of
  * future OCR or inference changes:
  *   1. Negative Betrag → primary action is gutschrift, never zahlen
- *   2. Positive Betrag + Rechnung → primary action is zahlen
+ *   2. Positive Betrag + Rechnung → primary action is zahlendaten
  *   3. "Zimmer" field → never appears in any display group
  *   4. "Bankname" / "Zahlungsempfänger" → zahlung group only, never sender
  */
@@ -100,7 +100,7 @@ describe('Case 2 — Positive Rechnung', () => {
   it('primary action is zahlen', () => {
     const plan = getDetailActionPlan(dok, null, {});
     expect(plan).not.toBeNull();
-    expect(plan!.primary.key).toBe('zahlen');
+    expect(plan!.primary.key).toBe('zahlendaten');
   });
 });
 

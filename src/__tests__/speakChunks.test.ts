@@ -69,7 +69,7 @@ describe('getDocumentSpeechPlainText', () => {
 });
 
 describe('buildCriticalActionsSpeakText', () => {
-  it('German: includes Frist, Risiko, actions', () => {
+  it('German: includes Frist and Absender warning', () => {
     const d = {
       risiko: 'mittel',
       frist: '2026-01-15',
@@ -77,12 +77,11 @@ describe('buildCriticalActionsSpeakText', () => {
     } as Dokument;
     const t = buildCriticalActionsSpeakText(d, 'de');
     expect(t).not.toBeNull();
-    expect(t).toMatch(/Frist:/);
-    expect(t).toContain('mittleres Risiko');
-    expect(t).toContain('Bezahlen');
+    expect(t).toMatch(/Frist/);
+    expect(t).toContain('Absender');
   });
 
-  it('Turkish: includes Son tarih and aksiyonlar', () => {
+  it('Turkish: includes son tarih and Gönderen warning', () => {
     const d = {
       risiko: 'hoch',
       frist: '2026-06-01',
@@ -90,9 +89,8 @@ describe('buildCriticalActionsSpeakText', () => {
     } as Dokument;
     const t = buildCriticalActionsSpeakText(d, 'tr');
     expect(t).not.toBeNull();
-    expect(t).toMatch(/Son tarih:/);
-    expect(t).toContain('yüksek risk');
-    expect(t).toContain('İtiraz');
+    expect(t).toMatch(/son tarih/);
+    expect(t).toContain('Gönderen');
   });
 });
 

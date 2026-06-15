@@ -41,7 +41,7 @@ export default function HomeHeaderCluster({
       {/* Top row — sticky compact title */}
       <View style={st.topRow}>
         <View style={st.titleArea}>
-          <Text style={[st.greeting, { color: colors.textSecondary, fontSize: fs(13) }]}>
+          <Text style={[st.greeting, { color: colors.text, fontSize: fs(26) }]}>
             {T('home.title')}
           </Text>
           {/* Sticky compact title — fades in on scroll */}
@@ -102,7 +102,7 @@ const st = StyleSheet.create({
   wrap:        { paddingHorizontal: 20, paddingBottom: 10 },
   topRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
   titleArea:   { flex: 1 },
-  greeting:    { fontWeight: '600', letterSpacing: 0.1 },
+  greeting:    { fontWeight: '800', letterSpacing: -0.5 },
   stickyTitle: { fontWeight: '800', letterSpacing: -0.4, marginTop: 2 },
   metaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 10 },
   urgentPill:  { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1 },

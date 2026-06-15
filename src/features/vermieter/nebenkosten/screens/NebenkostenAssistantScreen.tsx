@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/ThemeContext';
@@ -274,9 +274,11 @@ export default function NebenkostenAssistantScreen() {
             accessibilityLabel={exporting ? 'PDF wird erstellt' : 'Als PDF teilen'}
             accessibilityState={{ disabled: pdfButtonDisabled }}
           >
-            <Text style={[st.pdfButtonText, { color: C.primary }]}>
-              {exporting ? 'PDF wird erstellt…' : 'Als PDF teilen'}
-            </Text>
+            {exporting ? (
+              <ActivityIndicator size="small" color={C.primary} />
+            ) : (
+              <Text style={[st.pdfButtonText, { color: C.primary }]}>Als PDF teilen</Text>
+            )}
           </Pressable>
         ) : null}
 

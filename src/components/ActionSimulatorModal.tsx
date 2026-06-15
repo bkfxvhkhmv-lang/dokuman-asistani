@@ -3,6 +3,7 @@ import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet } from 'rea
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import type { Dokument } from '@/store';
+import { HIT_SLOP_LG, NAV_HIT_TARGET } from '@/theme';
 
 interface SimStep { icon: string; text: string }
 interface SimResult {
@@ -112,11 +113,11 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
     <Modal visible={visible} animationType="fade" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={[st.container, { backgroundColor: C.bg }]}>
         <View style={[st.header, { borderBottomColor: C.border }]}>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP_LG} style={st.headerAction}>
             <Text style={{ fontSize: 15, color: C.primary, fontWeight: '500' }}>{T('common.close')}</Text>
           </TouchableOpacity>
           <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>{T('action_sim.title')}</Text>
-          <View style={{ width: 72 }} />
+          <View style={st.headerAction} />
         </View>
         <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
           <Text style={{ fontSize: 13, color: C.textSecondary, marginBottom: S.lg, lineHeight: 20 }}>
@@ -189,4 +190,5 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
 const st = StyleSheet.create({
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 0.5 },
+  headerAction: { minWidth: NAV_HIT_TARGET, minHeight: NAV_HIT_TARGET, alignItems: 'center', justifyContent: 'center' },
 });

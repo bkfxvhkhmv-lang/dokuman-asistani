@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/ThemeContext';
-import { HIT_SLOP_LG } from '@/theme';
+import { HIT_SLOP_LG, NAV_HIT_TARGET } from '@/theme';
 import { useT } from '@/hooks/useT';
 import DemoTrustLabel from '@/components/DemoTrustLabel';
 
@@ -35,7 +35,7 @@ export default function DetailHeader({
       }}>
         <TouchableOpacity
           onPress={onBack}
-          style={{ paddingVertical: 4, paddingRight: 8 }}
+          style={{ minHeight: NAV_HIT_TARGET, paddingRight: 10, alignItems: 'center', justifyContent: 'center' }}
           hitSlop={HIT_SLOP_LG}
           accessibilityRole="button"
           accessibilityLabel={T('common.back')}

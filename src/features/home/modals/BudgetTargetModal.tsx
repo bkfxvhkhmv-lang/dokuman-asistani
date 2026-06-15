@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import { useStore } from '@/store';
-import { HIT_SLOP } from '@/theme';
+import { HIT_SLOP, NAV_HIT_TARGET } from '@/theme';
 import { analyzeAllTargets, TARGET_STATUS_COLOR, type TargetAnalysis } from '@/services/TargetService';
 import { formatBetrag } from '@/utils';
 import type { BudgetTarget, Dokument } from '@/store';
@@ -83,7 +83,7 @@ export default function BudgetTargetModal({ visible, onClose, docs }: Props) {
         {/* Header */}
         <View style={st.header}>
           <Text style={[st.title, { color: Colors.text }]}>{T('budget.targets.title')}</Text>
-          <TouchableOpacity onPress={onClose}>
+          <TouchableOpacity onPress={onClose} hitSlop={HIT_SLOP} style={st.closeTouchTarget}>
             <Text style={[st.closeBtn, { color: Colors.primary }]}>Fertig</Text>
           </TouchableOpacity>
         </View>
@@ -192,6 +192,7 @@ const st = StyleSheet.create({
   header:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16 },
   title:           { fontSize: 17, fontWeight: '700' },
   closeBtn:        { fontSize: 16, fontWeight: '600' },
+  closeTouchTarget:{ minWidth: NAV_HIT_TARGET, minHeight: NAV_HIT_TARGET, alignItems: 'center', justifyContent: 'center' },
   scroll:          { paddingHorizontal: 16, gap: 12 },
   intro:           { fontSize: 13, lineHeight: 19, marginBottom: 4 },
   row:             { borderRadius: 16, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderWidth: 0.5 },

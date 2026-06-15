@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
-import { HIT_SLOP_LG } from '@/theme';
+import { HIT_SLOP_LG, NAV_HIT_TARGET } from '@/theme';
 import { chatWithDocument } from '@/services/v4Api';
 import type { Dokument } from '@/store';
 
@@ -111,7 +111,13 @@ export default function BelgeChatModal({ visible, onClose, dok, lang = 'de', ini
                 </Text>
               </View>
             )}
-            <TouchableOpacity onPress={handleClose} style={{ padding: 10 }} hitSlop={HIT_SLOP_LG} accessibilityRole="button" accessibilityLabel={T('common.close')}>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={{ width: NAV_HIT_TARGET, height: NAV_HIT_TARGET, alignItems: 'center', justifyContent: 'center' }}
+              hitSlop={HIT_SLOP_LG}
+              accessibilityRole="button"
+              accessibilityLabel={T('common.close')}
+            >
               <Icon name="close" size={20} color={C.textSecondary} />
             </TouchableOpacity>
           </View>

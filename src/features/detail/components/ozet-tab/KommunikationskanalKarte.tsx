@@ -20,7 +20,7 @@ export default function KommunikationskanalKarte({ profile }: Props) {
       <Text style={{ fontSize: 10, fontWeight: '700', color: C.primaryDark, letterSpacing: 0.8, marginBottom: 4 }}>EMPFOHLENER KOMMUNIKATIONSKANAL</Text>
       <Text style={{ fontSize: 12, fontWeight: '600', color: C.primaryDark }}>{channelLabel}</Text>
       {profile.requiresAttachment && (
-        <Text style={{ fontSize: 11, color: C.primary, marginTop: 4 }}>📎 Anhang erforderlich</Text>
+        <Text style={{ fontSize: 11, color: C.primary, marginTop: 4 }}>Anhang erforderlich</Text>
       )}
     </View>
   );

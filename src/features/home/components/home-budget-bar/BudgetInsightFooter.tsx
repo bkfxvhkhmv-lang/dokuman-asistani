@@ -19,7 +19,6 @@ export function BudgetInsightFooter({ insight, hasTarget }: Props) {
             : insight.severity === 'mittel' ? '#FFB703'
             : Colors.textSecondary,
         }]}>
-          {insight.type === 'anomalie' ? '⚠️ ' : insight.type === 'vorhersage' ? '🔮 ' : '💡 '}
           {insight.text}
         </Text>
       </View>
@@ -30,7 +29,7 @@ export function BudgetInsightFooter({ insight, hasTarget }: Props) {
     return (
       <View style={[st.insightRow, { borderTopColor: 'rgba(0,0,0,0.07)' }]}>
         <Text style={[st.insightText, { color: Colors.primary }]}>
-          🎯 Monatsziel setzen — Tippe hier
+          Monatsziel setzen — tippen zum Starten
         </Text>
       </View>
     );

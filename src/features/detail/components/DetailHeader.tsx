@@ -67,7 +67,7 @@ export default function DetailHeader({
           backgroundColor: C.warningLight, borderWidth: 0.5, borderColor: C.warning,
         }}>
           <Text style={{ fontSize: 11, color: C.warningText, fontWeight: '600' }}>
-            🕵️ Anonymisierungsmodus aktiv — Namen, Beträge und IBAN werden beim Teilen maskiert
+            Anonymisierungsmodus aktiv — Namen, Beträge und IBAN werden beim Teilen maskiert
           </Text>
         </View>
       )}

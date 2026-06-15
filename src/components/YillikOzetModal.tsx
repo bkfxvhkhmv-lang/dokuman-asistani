@@ -114,7 +114,7 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
 
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 }}>
           <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: C.text }}>
-            📊  Jahresrückblick
+            Jahresrückblick
           </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {yillar.map(y => (
@@ -132,7 +132,6 @@ export default function YillikOzetModal({ visible, onClose, docs }: YillikOzetMo
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           {ozet.gesamtAnzahl === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 48 }}>
-              <Text style={{ fontSize: 24 }}>📭</Text>
               <Text style={{ fontSize: 15, color: C.textSecondary, marginTop: 12 }}>
                 Keine Dokumente für {seciliYil}
               </Text>

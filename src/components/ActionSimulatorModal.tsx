@@ -21,10 +21,10 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
     zahlen: {
       title: T('action_sim.pay.title'),
       steps: [
-        { icon: '✅', text: T('action_sim.pay.step_1', { amount, sender }) },
-        { icon: '📋', text: T('action_sim.pay.step_2') },
-        { icon: '📧', text: T('action_sim.pay.step_3') },
-        { icon: '🔒', text: T('action_sim.pay.step_4') },
+        { icon: '', text: T('action_sim.pay.step_1', { amount, sender }) },
+        { icon: '', text: T('action_sim.pay.step_2') },
+        { icon: '', text: T('action_sim.pay.step_3') },
+        { icon: '', text: T('action_sim.pay.step_4') },
       ],
       risk: 'low',
       riskLabel: T('action_sim.risk.low'),
@@ -33,11 +33,11 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
     einspruch: {
       title: T('action_sim.appeal.title'),
       steps: [
-        { icon: '📝', text: T('action_sim.appeal.step_1') },
-        { icon: '⏳', text: T('action_sim.appeal.step_2') },
-        { icon: '📬', text: T('action_sim.appeal.step_3') },
-        { icon: '⚖️', text: T('action_sim.appeal.step_4') },
-        { icon: '💡', text: T('action_sim.appeal.step_5') },
+        { icon: '', text: T('action_sim.appeal.step_1') },
+        { icon: '', text: T('action_sim.appeal.step_2') },
+        { icon: '', text: T('action_sim.appeal.step_3') },
+        { icon: '', text: T('action_sim.appeal.step_4') },
+        { icon: '', text: T('action_sim.appeal.step_5') },
       ],
       risk: 'medium',
       riskLabel: T('action_sim.risk.medium'),
@@ -46,11 +46,11 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
     ignorieren: {
       title: T('action_sim.ignore.title'),
       steps: [
-        { icon: '⚠️', text: T('action_sim.ignore.step_1') },
-        { icon: '💸', text: T('action_sim.ignore.step_2', { amount }) },
-        { icon: '📬', text: T('action_sim.ignore.step_3') },
-        { icon: '🏛️', text: T('action_sim.ignore.step_4') },
-        { icon: '❌', text: T('action_sim.ignore.step_5') },
+        { icon: '', text: T('action_sim.ignore.step_1') },
+        { icon: '', text: T('action_sim.ignore.step_2', { amount }) },
+        { icon: '', text: T('action_sim.ignore.step_3') },
+        { icon: '', text: T('action_sim.ignore.step_4') },
+        { icon: '', text: T('action_sim.ignore.step_5') },
       ],
       risk: 'high',
       riskLabel: T('action_sim.risk.high'),
@@ -59,10 +59,10 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
     erledigt: {
       title: T('action_sim.done.title'),
       steps: [
-        { icon: '✅', text: T('action_sim.done.step_1') },
-        { icon: '🔕', text: T('action_sim.done.step_2') },
-        { icon: '📊', text: T('action_sim.done.step_3') },
-        { icon: '↩️', text: T('action_sim.done.step_4') },
+        { icon: '', text: T('action_sim.done.step_1') },
+        { icon: '', text: T('action_sim.done.step_2') },
+        { icon: '', text: T('action_sim.done.step_3') },
+        { icon: '', text: T('action_sim.done.step_4') },
       ],
       risk: 'none',
       riskLabel: T('action_sim.risk.none'),
@@ -72,7 +72,7 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
 
   return scenarios[action] ?? {
     title: action,
-    steps: [{ icon: '❓', text: T('action_sim.unknown') }],
+    steps: [{ icon: '', text: T('action_sim.unknown') }],
     risk: 'unknown',
     riskLabel: T('display.fallback.unknown'),
     note: '',
@@ -80,10 +80,10 @@ function simulateLocally(action: string, dok: Dokument, T: (key: string, vars?: 
 }
 
 const ACTIONS = [
-  { id: 'zahlen', labelKey: 'action_sim.action.pay', emoji: '💶' },
-  { id: 'einspruch', labelKey: 'action_sim.action.appeal', emoji: '✍️' },
-  { id: 'ignorieren', labelKey: 'action_sim.action.ignore', emoji: '🚫' },
-  { id: 'erledigt', labelKey: 'action_sim.action.done', emoji: '✅' },
+  { id: 'zahlen', labelKey: 'action_sim.action.pay', emoji: '' },
+  { id: 'einspruch', labelKey: 'action_sim.action.appeal', emoji: '' },
+  { id: 'ignorieren', labelKey: 'action_sim.action.ignore', emoji: '' },
+  { id: 'erledigt', labelKey: 'action_sim.action.done', emoji: '' },
 ];
 
 const RISK_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -113,9 +113,9 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
       <View style={[st.container, { backgroundColor: C.bg }]}>
         <View style={[st.header, { borderBottomColor: C.border }]}>
           <TouchableOpacity onPress={onClose}>
-            <Text style={{ fontSize: 15, color: C.primary, fontWeight: '500' }}>{`✕ ${T('common.close')}`}</Text>
+            <Text style={{ fontSize: 15, color: C.primary, fontWeight: '500' }}>{T('common.close')}</Text>
           </TouchableOpacity>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>{`🤖 ${T('action_sim.title')}`}</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>{T('action_sim.title')}</Text>
           <View style={{ width: 72 }} />
         </View>
         <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
@@ -141,7 +141,6 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
                     borderColor: active ? C.primary : C.border,
                   }}
                 >
-                  <Text style={{ fontSize: 16 }}>{action.emoji}</Text>
                   <Text style={{ fontSize: 13, fontWeight: '600', color: active ? '#fff' : C.text }}>{T(action.labelKey)}</Text>
                 </TouchableOpacity>
               );
@@ -161,7 +160,7 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
                 {result.steps.map((step, index) => (
                   <View key={index} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
                     <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.bgInput, alignItems: 'center', justifyContent: 'center' }}>
-                      <Text style={{ fontSize: 14 }}>{step.icon}</Text>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.textTertiary }} />
                     </View>
                     <Text style={{ flex: 1, fontSize: 13, color: C.text, lineHeight: 20, paddingTop: 4 }}>{step.text}</Text>
                   </View>
@@ -169,14 +168,13 @@ export default function ActionSimulatorModal({ visible, onClose, dok }: ActionSi
               </View>
               {result.note ? (
                 <View style={{ marginHorizontal: S.md, marginBottom: S.md, padding: 10, borderRadius: 10, backgroundColor: C.warningLight }}>
-                  <Text style={{ fontSize: 11, color: C.warningText, lineHeight: 17 }}>{`💡 ${result.note}`}</Text>
+                  <Text style={{ fontSize: 11, color: C.warningText, lineHeight: 17 }}>{`Empfehlung: ${result.note}`}</Text>
                 </View>
               ) : null}
             </View>
           ) : null}
           {!selected ? (
             <View style={{ alignItems: 'center', padding: 30 }}>
-              <Text style={{ fontSize: 32, marginBottom: 10 }}>🤖</Text>
               <Text style={{ fontSize: 13, color: C.textTertiary, textAlign: 'center' }}>
                 {T('action_sim.empty')}
               </Text>

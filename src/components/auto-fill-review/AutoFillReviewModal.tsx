@@ -158,9 +158,8 @@ export default function AutoFillReviewModal({
               {missing.length > 0 && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6,
                   backgroundColor: '#FCEBEB', borderRadius: R.md, padding: 10 }}>
-                  <Text style={{ fontSize: 12 }}>⚠️</Text>
                   <Text style={{ fontSize: 12, color: '#A32D2D', flex: 1 }}>
-                    Pflichtfeld{missing.length > 1 ? 'er' : ''} fehlen: {missing.join(', ')}
+                    Hinweis: Pflichtfeld{missing.length > 1 ? 'er' : ''} fehlen: {missing.join(', ')}
                   </Text>
                 </View>
               )}
@@ -169,7 +168,7 @@ export default function AutoFillReviewModal({
                 style={{ backgroundColor: C.primary, borderRadius: R.lg, padding: 16,
                   alignItems: 'center', opacity: isProcessing ? 0.5 : 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff' }}>
-                  ✅ Bestätigen & Speichern
+                  Bestätigen & Speichern
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleClose}

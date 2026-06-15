@@ -71,12 +71,12 @@ export default function DocumentAnalysisProgressCard({ dok, onRetryPipelineAnaly
   ) => {
     const mark =
       state === 'done'
-        ? '✓ '
+        ? 'Bereit · '
         : state === 'active'
-          ? '~ '
+          ? 'Aktiv · '
           : state === 'error'
-            ? '⚠ '
-            : '○ ';
+            ? 'Hinweis · '
+            : 'Offen · ';
     return (
       <Text
         key={key}

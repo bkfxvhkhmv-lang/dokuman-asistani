@@ -421,7 +421,7 @@ export default function ReplyAssistantPreview({
             st.disclaimerCard,
             { backgroundColor: C.bgCard, borderColor: C.border, shadowColor: '#000' },
           ]}>
-            <Text style={[st.disclaimerTitle, { color: C.text }]}>⚠ Wichtiger Hinweis</Text>
+            <Text style={[st.disclaimerTitle, { color: C.text }]}>Wichtiger Hinweis</Text>
             <Text style={[st.disclaimerBody, { color: C.textSecondary }]}>
               BriefPilot erstellt nur Textvorlagen.{'\n'}
               Diese sind kein Rechtsrat und keine Rechtsberatung.{'\n\n'}
@@ -681,7 +681,7 @@ function PreviewStep({
           padding: 10,
           marginBottom: 14,
         }}>
-          <Text style={{ color: C.text, fontSize: 12 }}>⚠ {safetyNote}</Text>
+          <Text style={{ color: C.text, fontSize: 12 }}>{`Hinweis: ${safetyNote}`}</Text>
         </View>
       )}
 

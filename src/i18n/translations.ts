@@ -801,7 +801,7 @@ const de: Dict = {
   'next_step.deadline_soon':     'Frist diese Woche',
   'next_step.pay':               'Zahlung ausstehend',
   'next_step.objection':         'Einspruch möglich',
-  'home.triage.header':          'HEUTE WICHTIG',
+  'home.triage.header':          'Heute wichtig',
   'home.triage.open_hints':      'Offene Hinweise',
   'home.triage.open_hints_sub':  'Einige Angaben können ergänzt werden',
   'home.triage.none_title':      'Keine dringenden Dokumente',

@@ -53,21 +53,21 @@ describe('runSmartRiskEngine — level classification', () => {
 });
 
 describe('runSmartRiskEngine — trend', () => {
-  it('returns "verschlechtert" when the deadline is overdue', () => {
+  it('returns "worse" when the deadline is overdue', () => {
     const past = new Date(Date.now() - 86400000).toISOString();
     const result = runSmartRiskEngine(makeDok({ frist: past }));
-    expect(result.trend).toBe('verschlechtert');
+    expect(result.trend).toBe('worse');
   });
 
-  it('returns "verbessert" for an erledigt document', () => {
+  it('returns "better" for an erledigt document', () => {
     const result = runSmartRiskEngine(makeDok({ erledigt: true }));
-    expect(result.trend).toBe('verbessert');
+    expect(result.trend).toBe('better');
   });
 
-  it('returns "stabil" for a document with plenty of time remaining', () => {
+  it('returns "stable" for a document with plenty of time remaining', () => {
     const future = new Date(Date.now() + 86400000 * 30).toISOString();
     const result = runSmartRiskEngine(makeDok({ frist: future, betrag: null }));
-    expect(result.trend).toBe('stabil');
+    expect(result.trend).toBe('stable');
   });
 });
 
@@ -131,16 +131,18 @@ describe('runSmartRiskEngine — peer comparison', () => {
     expect(result.peerComparison).toBeNull();
   });
 
-  it('returns peer comparison when 3+ similar docs exist', () => {
+  it('returns peer comparison when 5+ similar docs exist', () => {
     const dok = makeDok({ id: 'main', typ: 'Rechnung', risiko: 'hoch' });
     const peers = [
       makeDok({ id: 'p1', typ: 'Rechnung', risiko: 'niedrig' }),
       makeDok({ id: 'p2', typ: 'Rechnung', risiko: 'niedrig' }),
       makeDok({ id: 'p3', typ: 'Rechnung', risiko: 'niedrig' }),
+      makeDok({ id: 'p4', typ: 'Rechnung', risiko: 'niedrig' }),
+      makeDok({ id: 'p5', typ: 'Rechnung', risiko: 'niedrig' }),
     ];
     const result = runSmartRiskEngine(dok, [dok, ...peers]);
     expect(result.peerComparison).not.toBeNull();
-    expect(result.peerComparison!.aehnlicheDokumente).toBe(3);
+    expect(result.peerComparison!.aehnlicheDokumente).toBe(5);
   });
 });
 
@@ -154,7 +156,7 @@ describe('runSmartRiskEngine — erklaerung', () => {
   it('uses overdue explanation key for overdue deadlines', () => {
     const past = new Date(Date.now() - 86400000 * 3).toISOString();
     const result = runSmartRiskEngine(makeDok({ frist: past }));
-    expect(result.erklaerungKey).toBe('risk.explain.deadline_overdue');
+    expect(result.erklaerungKey).toBe('risk.explain.factor.deadline');
   });
 });
 

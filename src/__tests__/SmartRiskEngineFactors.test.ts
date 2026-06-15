@@ -296,34 +296,34 @@ describe('scoreToLevel', () => {
 // ─── calculateTrend ───────────────────────────────────────────────────────────
 
 describe('calculateTrend', () => {
-  it('returns "verschlechtert" when deadline is overdue', () => {
+  it('returns "worse" when deadline is overdue', () => {
     const dok = makeDok({ frist: daysFromNow(-1) });
-    expect(calculateTrend(dok, 50)).toBe('verschlechtert');
+    expect(calculateTrend(dok, 50)).toBe('worse');
   });
 
-  it('returns "verschlechtert" when deadline is today or within 3 days', () => {
+  it('returns "worse" when deadline is today or within 3 days', () => {
     const today = new Date(); today.setHours(12, 0, 0, 0);
-    expect(calculateTrend(makeDok({ frist: today.toISOString() }), 40)).toBe('verschlechtert');
-    expect(calculateTrend(makeDok({ frist: daysFromNow(3) }), 40)).toBe('verschlechtert');
+    expect(calculateTrend(makeDok({ frist: today.toISOString() }), 40)).toBe('worse');
+    expect(calculateTrend(makeDok({ frist: daysFromNow(3) }), 40)).toBe('worse');
   });
 
-  it('returns "stabil" when deadline is more than 14 days away', () => {
+  it('returns "stable" when deadline is more than 14 days away', () => {
     const dok = makeDok({ frist: daysFromNow(30) });
-    expect(calculateTrend(dok, 40)).toBe('stabil');
+    expect(calculateTrend(dok, 40)).toBe('stable');
   });
 
-  it('returns "verbessert" when erledigt and no frist', () => {
+  it('returns "better" when erledigt and no frist', () => {
     const dok = makeDok({ erledigt: true, frist: null });
-    expect(calculateTrend(dok, 10)).toBe('verbessert');
+    expect(calculateTrend(dok, 10)).toBe('better');
   });
 
-  it('returns "verschlechtert" when no frist but score > 70', () => {
+  it('returns "worse" when no frist but score > 70', () => {
     const dok = makeDok({ frist: null, erledigt: false });
-    expect(calculateTrend(dok, 75)).toBe('verschlechtert');
+    expect(calculateTrend(dok, 75)).toBe('worse');
   });
 
-  it('returns "stabil" when no frist and score ≤ 70', () => {
+  it('returns "stable" when no frist and score ≤ 70', () => {
     const dok = makeDok({ frist: null, erledigt: false });
-    expect(calculateTrend(dok, 70)).toBe('stabil');
+    expect(calculateTrend(dok, 70)).toBe('stable');
   });
 });

@@ -72,5 +72,6 @@ export const R: RadiusTokens  = { sm: 8, md: 12, lg: 16, xl: 20, xxl: 24, full: 
 export const Colors = LightColors;
 
 // ── Touch targets — minimum 44×44pt (Apple HIG / Material 48dp) ──────────
+export const NAV_HIT_TARGET = 44 as const;
 export const HIT_SLOP    = { top: 12, bottom: 12, left: 12, right: 12 } as const;
 export const HIT_SLOP_LG = { top: 22, bottom: 22, left: 22, right: 22 } as const;

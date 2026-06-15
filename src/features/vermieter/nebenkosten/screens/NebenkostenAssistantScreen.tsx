@@ -230,6 +230,21 @@ export default function NebenkostenAssistantScreen() {
                   ? 'Übernehmen Sie passende Belege als Kostenpositionen, um Hinweise zu erhalten.'
                   : 'Legen Sie zuerst die Grunddaten oben an. Kostenpositionen können danach aus Dokumenten übernommen werden.'}
             </Text>
+            {role === 'mieter' && !sourceDokId ? (
+              <Pressable
+                onPress={() => router.push('/(tabs)/Kamera')}
+                style={({ pressed }) => [
+                  st.scanButton,
+                  { backgroundColor: C.primary, borderRadius: R.md, opacity: pressed ? 0.85 : 1 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Dokument scannen"
+              >
+                <Text style={[st.scanButtonText, { color: C.textInverse }]}>
+                  Dokument scannen
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : (
           <View style={st.list}>
@@ -382,5 +397,14 @@ const st = StyleSheet.create({
   },
   notFoundText: {
     fontSize: 14,
+  },
+  scanButton: {
+    marginTop: 20,
+    paddingVertical: 13,
+    paddingHorizontal: 28,
+  },
+  scanButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

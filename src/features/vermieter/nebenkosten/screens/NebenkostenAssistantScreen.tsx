@@ -30,6 +30,7 @@ import {
   type NkMinimalSetupSavePayload,
 } from './components/NkMinimalSetupCard';
 import Icon from '@/components/Icon';
+import { HIT_SLOP_LG, NAV_HIT_TARGET } from '@/theme';
 
 function isNkRole(value: unknown): value is NkRole {
   return value === 'mieter' || value === 'vermieter';
@@ -172,12 +173,13 @@ export default function NebenkostenAssistantScreen() {
           onPress={() => router.back()}
           accessibilityRole="button"
           accessibilityLabel="Zurück"
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          hitSlop={HIT_SLOP_LG}
+          style={st.headerAction}
         >
           <Icon name="arrow-left" size={22} color={C.textSecondary} />
         </Pressable>
         <Text style={[st.headerTitle, { color: C.text }]}>Nebenkosten</Text>
-        <View style={st.spacer} />
+        <View style={st.headerSpacer} />
       </View>
 
       <ScrollView
@@ -300,14 +302,21 @@ const st = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 12,
   },
+  headerAction: {
+    minWidth: NAV_HIT_TARGET,
+    minHeight: NAV_HIT_TARGET,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
-  spacer: {
-    width: 22,
+  headerSpacer: {
+    minWidth: NAV_HIT_TARGET,
+    minHeight: NAV_HIT_TARGET,
   },
   scroll: {
     paddingTop: 20,

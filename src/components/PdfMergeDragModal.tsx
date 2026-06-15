@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, StyleSheet } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, PanResponder, Animated, ActivityIndicator, StyleSheet } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 
 import { uploadDocumentV4 } from '@/services/v4Api';
@@ -23,6 +23,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
 
   const [reihenfolge, setReihenfolge] = useState<Dokument[]>(items);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
   const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const dragY    = useRef(new Animated.Value(0)).current;
   const dragBase = useRef(0);
@@ -61,6 +62,8 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
     }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleExport = async () => {
+    if (exporting) return;
+    setExporting(true);
     try {
       const { exportiereTopluPDF } = await import('@/utils/exporters');
       const uri = await exportiereTopluPDF(reihenfolge);
@@ -77,6 +80,8 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
       } else {
         showToast({ message: 'Export fehlgeschlagen', tone: 'danger', icon: 'alert-circle' });
       }
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -111,8 +116,17 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
             );
           })}
         </View>
-        <TouchableOpacity style={[st.btn, { backgroundColor: C.primary }]} onPress={handleExport}>
-          <Text style={st.btnText}> {reihenfolge.length} Dokumente als PDF exportieren</Text>
+        <TouchableOpacity
+          style={[st.btn, { backgroundColor: C.primary, opacity: exporting ? 0.55 : 1 }]}
+          onPress={handleExport}
+          disabled={exporting}
+          accessibilityState={{ busy: exporting }}
+        >
+          {exporting ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={st.btnText}>{reihenfolge.length} Dokumente als PDF exportieren</Text>
+          )}
         </TouchableOpacity>
       </View>
       <PremiumToast config={toastConfig} onHide={hideToast} />

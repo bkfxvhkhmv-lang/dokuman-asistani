@@ -314,7 +314,6 @@ export default function Home() {
           onSteuerpaket={data.handleSteuerpaketAuswahl}
           onLoeschen={data.handleBatchLoeschen}
           C={data.Colors}
-          dangerColor={data.RiskColors.hoch.color}
         />
       ) : null}
 

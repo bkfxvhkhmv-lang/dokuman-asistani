@@ -152,7 +152,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
 
         <View style={styles.titleBox}>
           <Text
-            style={[styles.title, { color: isDone ? Colors.textTertiary : Colors.text, fontSize: fs(14) }]}
+            style={[styles.title, { color: isDone ? Colors.textTertiary : Colors.text, fontSize: fs(15) }]}
             numberOfLines={2}
             maxFontSizeMultiplier={1.3}
           >
@@ -177,7 +177,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
 
       {!!secondaryLine && (
         <Text
-          style={[styles.summary, { color: cardInsight ? Colors.text : Colors.textSecondary, fontSize: fs(12), lineHeight: fs(12) * 1.5 }]}
+          style={[styles.summary, { color: cardInsight ? Colors.text : Colors.textSecondary, fontSize: fs(13), lineHeight: fs(13) * 1.5 }]}
           numberOfLines={1}
           maxFontSizeMultiplier={1.3}
         >
@@ -234,20 +234,20 @@ const styles = StyleSheet.create({
   header:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
   iconBox:       { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginRight: 10, borderWidth: 1 },
   titleBox:      { flex: 1, gap: 3, minWidth: 0, justifyContent: 'center' },
-  title:         { fontSize: 14, fontWeight: '700', letterSpacing: -0.3 },
-  absender:      { fontSize: 12, letterSpacing: -0.1 },
+  title:         { fontSize: 15, fontWeight: '800', letterSpacing: -0.35, lineHeight: 20 },
+  absender:      { fontSize: 12, letterSpacing: -0.05, lineHeight: 16 },
   dateBox:       { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999 },
-  dateText:      { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
-  summary:       { fontSize: 12, lineHeight: 18, marginBottom: 10, letterSpacing: -0.1 },
+  dateText:      { fontSize: 11, fontWeight: '700', letterSpacing: -0.05 },
+  summary:       { fontSize: 13, lineHeight: 19, marginBottom: 10, letterSpacing: -0.08 },
   footer:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   amountBox:     { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
   amount:        { fontSize: 14, fontWeight: '600', letterSpacing: -0.2 },
   workflowBox:   { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '60%', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 6 },
   workflowDot:   { width: 6, height: 6, borderRadius: 3 },
-  workflowStamp: { fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
+  workflowStamp: { fontSize: 12, fontWeight: '700', letterSpacing: 0.05 },
   demoTrustRow:  { marginBottom: 8 },
   nextStepBox:   { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  nextStepText:  { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
+  nextStepText:  { fontSize: 12, fontWeight: '700', letterSpacing: -0.05 },
   urgencyBox:    { borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  urgencyText:   { fontSize: 11, fontWeight: '700', letterSpacing: -0.1 },
+  urgencyText:   { fontSize: 12, fontWeight: '700', letterSpacing: -0.05 },
 });

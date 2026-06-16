@@ -219,6 +219,20 @@ export default function NebenkostenAssistantScreen() {
                   Dokument scannen
                 </Text>
               </Pressable>
+            ) : role === 'mieter' && !!sourceDokId ? (
+              <Pressable
+                onPress={() => router.push({ pathname: '/detail', params: { dokId: sourceDokId } })}
+                style={({ pressed }) => [
+                  st.scanButton,
+                  { backgroundColor: C.primary, borderRadius: R.md, opacity: pressed ? 0.85 : 1 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Dokument öffnen"
+              >
+                <Text style={[st.scanButtonText, { color: C.textInverse }]}>
+                  Dokument öffnen
+                </Text>
+              </Pressable>
             ) : null}
           </View>
         ) : (

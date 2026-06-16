@@ -15,7 +15,7 @@ import { useT } from '@/hooks/useT';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
 
-function isNkEligibleDocument(dok: Dokument): boolean {
+export function isNkEligibleDocument(dok: Dokument): boolean {
   const typ = (dok.typ ?? '').toLowerCase();
   const subtyp = (dok.subtyp ?? '').toLowerCase();
 

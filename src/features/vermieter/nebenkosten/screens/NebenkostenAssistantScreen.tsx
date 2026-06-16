@@ -221,7 +221,7 @@ export default function NebenkostenAssistantScreen() {
               </Pressable>
             ) : role === 'mieter' && !!sourceDokId ? (
               <Pressable
-                onPress={() => router.push({ pathname: '/detail', params: { dokId: sourceDokId } })}
+                onPress={() => router.push({ pathname: '/detail', params: { dokId: sourceDokId, tab: 'ozet' } })}
                 style={({ pressed }) => [
                   st.scanButton,
                   { backgroundColor: C.primary, borderRadius: R.md, opacity: pressed ? 0.85 : 1 },

@@ -89,6 +89,12 @@ export function buildPdfExportBasename(dok: Dokument): string {
   });
 }
 
+export function buildMultiDocExportBasename(count: number, date?: Date): string {
+  const n = Math.max(1, Math.floor(count));
+  const d = (date ?? new Date()).toISOString().slice(0, 10);
+  return `BriefPilot_${n}_Dokumente_${d}`;
+}
+
 const SHARE_FALLBACK_BASENAME = 'Dokument';
 
 /** Extension from stored page URI (query string stripped). */

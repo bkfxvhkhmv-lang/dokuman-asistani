@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/useToast';
 import PremiumToast from '@/design/components/PremiumToast';
 import type { Dokument } from '@/store';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
+import { buildMultiDocExportBasename } from '@/utils/exportFilename';
 
 const ITEM_H = 60;
 
@@ -68,7 +69,7 @@ export default function PdfMergeDragModal({ visible, items, onClose, onDone }: P
       const { exportiereTopluPDF } = await import('@/utils/exporters');
       const uri = await exportiereTopluPDF(reihenfolge);
       if (uri) {
-        const filename = `merged_${Date.now()}.pdf`;
+        const filename = `${buildMultiDocExportBasename(reihenfolge.length)}.pdf`;
         uploadDocumentV4(uri, filename).catch(() => null);
       }
       onClose();

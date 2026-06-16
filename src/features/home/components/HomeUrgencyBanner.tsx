@@ -31,7 +31,9 @@ export default function HomeUrgencyBanner({
 
   const risk = daysLeft <= 1 ? riskColors.hoch : riskColors.mittel;
   const urgencyText =
-    daysLeft === 0
+    daysLeft < 0
+      ? T('doc.overdue')
+      : daysLeft === 0
       ? T('doc.today')
       : daysLeft === 1
       ? T('doc.tomorrow')

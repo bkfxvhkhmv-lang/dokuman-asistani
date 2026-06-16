@@ -33,6 +33,7 @@ export default function DashboardSummary({
     : C.textSecondary;
 
   const hasAlert = urgent > 0 || (nextDeadlineDays != null && nextDeadlineDays <= 3);
+  const alertColor = urgent > 0 ? C.danger : C.warning;
 
   return (
     <View style={st.wrap}>
@@ -41,15 +42,15 @@ export default function DashboardSummary({
         <TouchableOpacity
           onPress={urgent > 0 ? onPruefe : onFrist}
           activeOpacity={0.7}
-          style={[st.alertRow, { backgroundColor: `${C.danger}0D`, borderColor: `${C.danger}20` }]}
+          style={[st.alertRow, { backgroundColor: `${alertColor}0D`, borderColor: `${alertColor}20` }]}
         >
-          <View style={[st.alertDot, { backgroundColor: C.danger }]} />
-          <Text style={[st.alertText, { color: C.danger, fontSize: fs(13) }]}>
+          <View style={[st.alertDot, { backgroundColor: alertColor }]} />
+          <Text style={[st.alertText, { color: alertColor, fontSize: fs(13) }]}>
             {urgent > 0
               ? `${urgent} ${urgent === 1 ? T('home.doc_singular') : T('home.doc_plural')} zur Prüfung`
               : `${T('dash.next_due')}: ${fristLabel}`}
           </Text>
-          <Icon name="chevron-right" size={14} color={C.danger} />
+          <Icon name="chevron-right" size={14} color={alertColor} />
         </TouchableOpacity>
       )}
 

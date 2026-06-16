@@ -79,7 +79,7 @@ export default function DocumentSurface({
               : Colors.borderLight,
             borderWidth: selected ? 1.5 : isUrgent ? 1 : 1,
             shadowColor,
-            shadowOpacity: selected ? 0.16 : isUrgent ? 0.10 : 0.05,
+            shadowOpacity: selected ? 0.16 : isUrgent ? 0.07 : 0.05,
             shadowRadius: selected ? 16 : isUrgent ? 14 : 10,
             shadowOffset: { width: 0, height: selected ? 6 : isUrgent ? 4 : 3 },
             elevation: selected ? 5 : isUrgent ? 3 : 2,

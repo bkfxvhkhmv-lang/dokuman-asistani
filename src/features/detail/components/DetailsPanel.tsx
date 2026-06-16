@@ -31,6 +31,7 @@ export default function DetailsPanel({
   onSign,
   onErledigt,
   onLoeschen,
+  onNebenkostenPruefen,
   suspendPreview = false,
   isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
@@ -272,6 +273,16 @@ export default function DetailsPanel({
             </TouchableOpacity>
           )}
         </View>
+      )}
+
+      {onNebenkostenPruefen && (
+        <TouchableOpacity
+          onPress={onNebenkostenPruefen}
+          style={{ alignItems: 'center', marginTop: 16, paddingVertical: 12,
+            borderWidth: 1, borderColor: C.border, borderRadius: R.md ?? R.lg, backgroundColor: C.bgCard }}
+        >
+          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>Nebenkosten prüfen</Text>
+        </TouchableOpacity>
       )}
 
       {onErledigt && (

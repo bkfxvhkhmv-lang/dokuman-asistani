@@ -20,6 +20,7 @@ type Props = {
   onSign?: () => void;
   onErledigt?: () => void;
   onLoeschen?: () => void;
+  onNebenkostenPruefen?: () => void;
 };
 
 export default function DetailDetailsTab({
@@ -37,6 +38,7 @@ export default function DetailDetailsTab({
   onSign,
   onErledigt,
   onLoeschen,
+  onNebenkostenPruefen,
 }: Props) {
   return (
     <ScrollView
@@ -62,6 +64,7 @@ export default function DetailDetailsTab({
         onSign={onSign}
         onErledigt={onErledigt}
         onLoeschen={onLoeschen}
+        onNebenkostenPruefen={onNebenkostenPruefen}
         isUnanalysedQuickSaved={isUnanalysedQuickSaved}
       />
       {detail.dok && !isUnanalysedQuickSaved ? (

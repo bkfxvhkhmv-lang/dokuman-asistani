@@ -34,6 +34,7 @@ import { useStoreDispatch } from '@/store/Provider';
 import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { getDocumentPipelineInfo } from '@/utils/documentPipelineStatus';
 import { resolveDocumentSender } from '@/utils/displaySanitizer';
+import { isNkEligibleDocument } from '@/features/detail/hooks/useDetailMoreItems';
 import { useT } from '@/hooks/useT';
 
 const ENABLE_RELEASE_FLOATING_ACTION_PULSE = false;
@@ -143,6 +144,7 @@ export default function Detailbildschirm() {
 
   const viewerPages = useMemo(() => pagesForViewer(dok), [dok]);
   const displaySender = useMemo(() => resolveDocumentSender(dok), [dok]);
+  const isNkEligible = useMemo(() => isNkEligibleDocument(dok), [dok]);
   const detailTabs = isSimpleMode ? DETAIL_SIMPLE_SCREEN_TABS : DETAIL_SCREEN_TABS;
   const pipelineCompleted = useMemo(() => getDocumentPipelineInfo(dok).phase === 'completed', [dok]);
   const showDeadlineStrip = useMemo(() => shouldShowDetailDeadlineBanner(dok), [dok]);
@@ -307,6 +309,7 @@ export default function Detailbildschirm() {
             onSign={dok.uri && !dok.unsignedUri ? () => modal.open('signatur') : undefined}
             onErledigt={actions.handleErledigt}
             onLoeschen={actions.handleLoeschen}
+            onNebenkostenPruefen={isNkEligible ? () => router.push({ pathname: '/nebenkosten', params: { sourceDokId: dok.id } }) : undefined}
             isUnanalysedQuickSaved={isUnanalysedQuickSaved}
           />
         )}

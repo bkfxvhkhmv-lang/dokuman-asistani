@@ -25,10 +25,11 @@ export function RohTextSection({ rohText }: Props) {
           </Text>
         </TouchableOpacity>
       </View>
-      <Text style={{ fontSize: 11, color: C.textSecondary, lineHeight: 18 }}
-        numberOfLines={open ? undefined : 6}>
-        {rohText}
-      </Text>
+      {open && (
+        <Text style={{ fontSize: 11, color: C.textSecondary, lineHeight: 18 }}>
+          {rohText}
+        </Text>
+      )}
     </View>
   );
 }

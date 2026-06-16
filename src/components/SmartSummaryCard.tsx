@@ -96,8 +96,13 @@ export default function SmartSummaryCard({
         <>
           {(currentMode === 'mittel' || currentMode === 'kurz') && (
             <View style={{ gap: 6 }}>
+              {result.kurzSatz ? (
+                <Text style={{ fontSize: 14, lineHeight: 21, color: C.text, fontWeight: '600' }}>
+                  {normalizeDetailSingularCopy(result.kurzSatz)}
+                </Text>
+              ) : null}
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 14, lineHeight: 21, color: C.text }}>
+                <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.textSecondary }}>
                   {normalizeDetailSingularCopy(p.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
                 </Text>
               ))}

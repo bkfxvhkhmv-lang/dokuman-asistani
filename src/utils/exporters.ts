@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
 import type { Dokument } from '@/store';
 import { pdfRenderService } from '@/pdf';
-import { buildHumanExportBasename, buildPdfExportBasename } from '@/utils/exportFilename';
+import { buildHumanExportBasename, buildMultiDocExportBasename, buildPdfExportBasename } from '@/utils/exportFilename';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
 import { safeDisplayTitel } from '@/utils/displaySanitizer';
 import {
@@ -200,7 +200,7 @@ export async function exportiereTopluPDF(dokumente: Dokument[]): Promise<string>
   const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"/><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,Helvetica,Arial,sans-serif;color:#1a1a2e;padding:32px}.report-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid #534AB7;margin-bottom:24px}.logo{font-size:22px;font-weight:800;color:#534AB7}.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700;color:#fff;margin-bottom:6px}h2{font-size:16px;font-weight:700;margin-bottom:2px}.meta{font-size:11px;color:#888}.zahlen{text-align:right}.betrag{font-size:20px;font-weight:800}.frist{font-size:11px;color:#888;margin-top:2px}.kurz{font-size:12px;color:#555;margin-top:6px;line-height:1.6}.iban{font-size:12px;color:#1D9E75;font-weight:600;margin-top:4px;font-family:monospace;letter-spacing:1px}.erledigt{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;color:#1D9E75;background:#EAF3DE;padding:2px 10px;border-radius:999px}.trenner{border-top:1px solid #eee;margin:16px 0}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #eee;font-size:10px;color:#bbb;text-align:center}</style></head><body><div class="report-header"><div class="logo">BriefPilot — Bericht</div><div style="font-size:11px;color:#888;text-align:right">${dokumente.length} Dokumente<br/>${formatDatum(new Date().toISOString())}</div></div>${sayfalar}<div class="footer">BriefPilot v3.0.0 · Automatisch erstellt · Keine Rechtsberatung</div></body></html>`;
   const { uri } = await Print.printToFileAsync({ html, base64: false });
   const mergedBase =
-    dokumente.length === 1 ? buildPdfExportBasename(dokumente[0]) : `Sammel_${dokumente.length}_${new Date().toISOString().slice(0, 10)}`;
+    dokumente.length === 1 ? buildPdfExportBasename(dokumente[0]) : buildMultiDocExportBasename(dokumente.length);
 
   // Copy to documentDirectory so Android's sharing can find the file.
   // shareUri starts as the temp printToFileAsync path; only updated if copy succeeds.

@@ -22,8 +22,6 @@ import { useHomeSuggestions } from '@/hooks/useSmartSuggestions';
 import SmartTimelinePanel from '@/components/SmartTimelinePanel';
 import { useTimelineView } from '@/hooks/useSmartTimeline';
 import { useTheme } from '@/ThemeContext';
-import HomeTriage from '@/features/home/components/HomeTriage';
-import { needsManualReview } from '@/utils/documentGuards';
 import { setTabBarHidden } from '@/navigation/tabBarVisibility';
 import { useHomeRecentListState } from '@/features/home/hooks/useHomeRecentListState';
 import { HomeFeedRow, useHomeFeedRowHandlers } from '@/features/home/components/HomeFeedRow';
@@ -70,10 +68,6 @@ export default function Home() {
   const [refreshing, setRefreshing]           = useState(false);
   const [digestVisible, setDigestVisible]     = useState(false);
   const [digest, setDigest]                   = useState<DigestResult | null>(null);
-  const reviewDocs = useMemo(
-    () => (data.aufgaben ?? []).filter((d: any) => needsManualReview(d)),
-    [data.aufgaben],
-  );
 
   const targets = useMemo(
     () =>
@@ -102,13 +96,6 @@ export default function Home() {
     router.push({ pathname: '/(tabs)/Export', params: { selectedIds: ids } });
   }, [data.secilenIds, data.secimiIptal, router]);
 
-  const handleTriagePress = useCallback((scope: 'dringend' | 'dieseWoche' | 'pruefen' | 'ueberfaellig') => {
-    if (scope === 'pruefen' && reviewDocs.length > 0) {
-      router.push({ pathname: '/detail', params: { dokId: reviewDocs[0].id, tab: 'eylem' } });
-      return;
-    }
-    data.handleTabPress('Dokumente');
-  }, [data, reviewDocs, router]);
 
   useEffect(() => {
     setTabBarCollapsed(false);
@@ -179,11 +166,6 @@ export default function Home() {
           onPruefe={() => data.handleTabPress('Dokumente')}
           onFrist={openTimeline}
         />
-        <HomeTriage
-          docs={data.aufgaben}
-          onPress={handleTriagePress}
-          onScanPress={() => router.push('/(tabs)/Kamera')}
-        />
         <HomeUrgencyBanner
           colors={data.Colors}
           riskColors={data.RiskColors}
@@ -210,7 +192,6 @@ export default function Home() {
       data,
       scrollY,
       openTimeline,
-      handleTriagePress,
       router,
       hotDocs,
       feed,

@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, Text, View, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { House, User } from 'phosphor-react-native';
 import { useTheme } from '@/ThemeContext';
 import { HIT_SLOP_LG, NAV_HIT_TARGET } from '@/theme';
 import Icon from '@/components/Icon';
@@ -61,14 +62,14 @@ export default function NebenkostenRoleScreen() {
 
         <View style={st.cards}>
           <RoleCard
-            icon="V"
+            PhIcon={House}
             titleDe="Ich bin Vermieter"
             subtitleDe="Abrechnung erstellen und prüfen"
             onPress={() => handleRoleSelect('vermieter')}
             testID="role-card-vermieter"
           />
           <RoleCard
-            icon="M"
+            PhIcon={User}
             titleDe="Ich bin Mieter"
             subtitleDe="Abrechnung prüfen und Rückfragen vorbereiten"
             onPress={() => handleRoleSelect('mieter')}
@@ -76,7 +77,7 @@ export default function NebenkostenRoleScreen() {
           />
         </View>
 
-        <Text style={[st.disclaimer, { color: C.textTertiary }]}>
+        <Text style={[st.disclaimer, { color: C.textSecondary }]}>
           Rechen- und Strukturhilfe. Keine Rechtsberatung.
         </Text>
       </ScrollView>
@@ -132,5 +133,6 @@ const st = StyleSheet.create({
   disclaimer: {
     fontSize: 12,
     textAlign: 'center',
+    lineHeight: 16,
   },
 });

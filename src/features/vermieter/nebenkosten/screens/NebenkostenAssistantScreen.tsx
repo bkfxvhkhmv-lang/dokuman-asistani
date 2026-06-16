@@ -68,31 +68,6 @@ export default function NebenkostenAssistantScreen() {
 
   const roleLabel = role === 'vermieter' ? 'Vermieter' : 'Mieter';
 
-  const handleNewDraft = () => {
-    if (role === 'mieter') {
-      Alert.alert(
-        'Hinweis',
-        'Scannen Sie Ihre Nebenkostenabrechnung, um Hinweise zur Prüfung zu erhalten.',
-      );
-      return;
-    }
-    if (role === 'vermieter' && !isSetupComplete) {
-      Alert.alert('Hinweis', 'Bitte zuerst die Grunddaten oben anlegen.');
-      return;
-    }
-    if (role === 'vermieter' && isSetupComplete && !hasDraft) {
-      Alert.alert(
-        'Hinweis',
-        'Noch keine Kostenpositionen vorhanden. Übernehmen Sie passende Belege als Kostenpositionen.',
-      );
-      return;
-    }
-    Alert.alert(
-      'Hinweis',
-      'Neue Positionen können aktuell über passende Dokumente als Kostenpositionen übernommen werden.',
-    );
-  };
-
   const handleSaveSetup = (payload: NkMinimalSetupSavePayload) => {
     if (selectIsSetupComplete(state)) return;
 
@@ -265,9 +240,9 @@ export default function NebenkostenAssistantScreen() {
             style={({ pressed }) => [
               st.pdfButton,
               {
-                borderColor: C.primary,
+                backgroundColor: pdfButtonDisabled ? C.borderLight : C.primary,
                 borderRadius: R.md,
-                opacity: pdfButtonDisabled ? 0.5 : pressed ? 0.85 : 1,
+                opacity: pressed ? 0.85 : 1,
               },
             ]}
             accessibilityRole="button"
@@ -275,32 +250,14 @@ export default function NebenkostenAssistantScreen() {
             accessibilityState={{ disabled: pdfButtonDisabled }}
           >
             {exporting ? (
-              <ActivityIndicator size="small" color={C.primary} />
+              <ActivityIndicator size="small" color={C.textInverse} />
             ) : (
-              <Text style={[st.pdfButtonText, { color: C.primary }]}>Als PDF teilen</Text>
+              <Text style={[st.pdfButtonText, { color: C.textInverse }]}>Als PDF teilen</Text>
             )}
           </Pressable>
         ) : null}
 
-        {role === 'vermieter' ? (
-          <Pressable
-            onPress={handleNewDraft}
-            style={({ pressed }) => [
-              st.newButton,
-              {
-                backgroundColor: C.primary,
-                borderRadius: R.md,
-                opacity: pressed ? 0.85 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel="Neue Abrechnung"
-          >
-            <Text style={[st.newButtonText, { color: C.textInverse }]}>+ Neu</Text>
-          </Pressable>
-        ) : null}
-
-        <Text style={[st.disclaimer, { color: C.textTertiary }]}>
+        <Text style={[st.disclaimer, { color: C.textSecondary }]}>
           Rechen- und Strukturhilfe. Keine Rechtsberatung.
         </Text>
       </ScrollView>
@@ -373,25 +330,16 @@ const st = StyleSheet.create({
   pdfButton: {
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 1.5,
-  },
-  pdfButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  newButton: {
-    paddingVertical: 14,
-    alignItems: 'center',
     marginBottom: 16,
   },
-  newButtonText: {
+  pdfButtonText: {
     fontSize: 15,
     fontWeight: '700',
   },
   disclaimer: {
     fontSize: 12,
     textAlign: 'center',
+    lineHeight: 16,
   },
   notFound: {
     paddingVertical: 20,

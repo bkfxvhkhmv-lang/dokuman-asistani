@@ -1,16 +1,17 @@
 import React from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
+import type { IconWeight } from 'phosphor-react-native';
 import { useTheme } from '@/ThemeContext';
 
 export interface RoleCardProps {
-  icon: string;
+  PhIcon: React.ComponentType<{ size?: number; color?: string; weight?: IconWeight }>;
   titleDe: string;
   subtitleDe: string;
   onPress: () => void;
   testID?: string;
 }
 
-export function RoleCard({ icon, titleDe, subtitleDe, onPress, testID }: RoleCardProps) {
+export function RoleCard({ PhIcon, titleDe, subtitleDe, onPress, testID }: RoleCardProps) {
   const { Colors: C, R } = useTheme();
 
   return (
@@ -30,7 +31,7 @@ export function RoleCard({ icon, titleDe, subtitleDe, onPress, testID }: RoleCar
       accessibilityLabel={titleDe}
     >
       <View style={[st.iconCircle, { backgroundColor: C.primaryLight }]}>
-        <Text style={[st.iconText, { color: C.primary }]}>{icon}</Text>
+        <PhIcon size={24} color={C.primary} weight="regular" />
       </View>
       <View style={st.body}>
         <Text style={[st.title, { color: C.text }]}>{titleDe}</Text>
@@ -54,9 +55,6 @@ const st = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconText: {
-    fontSize: 22,
   },
   body: {
     flex: 1,

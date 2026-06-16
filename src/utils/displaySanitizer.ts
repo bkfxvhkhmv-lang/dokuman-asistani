@@ -71,6 +71,10 @@ const FOOTER_SENDER_PATTERNS: RegExp[] = [
 const GENERIC_DATE_ONLY_RE =
   /^(?:Dokument|Rechnung|Nebenkostenabrechnung|Behördenbrief|Versicherung|Formular|Angebot)(?: vom | · )\d{1,2}\.\d{1,2}(?:\.\d{4})?$/;
 
+/** OCR reference labels glued to long numeric IDs — display-only reject (#129A). */
+const REF_LABEL_ID_RE =
+  /\b(kundeninfo|kundennummer|vertragsnummer|referenz|nr\.?|code|id)\s*\d{5,}\b/i;
+
 const LOWERCASE_WORDS = new Set(['vom', 'von', 'am', 'im', 'an', 'auf', 'bei', 'zu', 'mit', 'und', 'der', 'die', 'das', 'den', 'dem', 'oder', 'für']);
 
 function toTitleCase(text: string): string {
@@ -114,12 +118,19 @@ function formatDisplayDate(date?: string | null): string | null {
   return `${day}.${month}.${year}`;
 }
 
+function buildShortId(id?: string | null): string | null {
+  const s = id?.trim() ?? '';
+  if (s.length < 4) return null;
+  return s.slice(-4).toUpperCase();
+}
+
 export function isLikelyBadDocumentTitle(text: string): boolean {
   const normalized = normalizeWhitespace(text);
   if (!normalized) return true;
   if (PAGE_ONLY_RE.test(normalized)) return true;
   if (RESERVED_DISPLAY_TITLES.has(normalized.toLowerCase())) return true;
   if (GENERIC_DATE_ONLY_RE.test(normalized)) return true;
+  if (REF_LABEL_ID_RE.test(normalized)) return true;
   return FOOTER_TITLE_PATTERNS.some(re => re.test(normalized));
 }
 
@@ -134,19 +145,21 @@ function buildSafeDocumentTitleFallback(input: {
   absender?: string | null;
   rohText?: string | null;
   datum?: string | null;
+  createdAt?: string | null;
+  id?: string | null;
 }): string {
   const lang = getDisplayLang();
-  const typeLabel = getSafeTypeLabel(input.typ);
-  const sender = safeDisplayAbsender(input.absender, null, input.rohText);
-  const displayDate = formatDisplayDate(input.datum);
+  const rawType = getSafeTypeLabel(input.typ);
+  // "Sonstiges" is not informative enough to distinguish documents — treat as no type.
+  const typeLabel = (rawType && rawType !== 'Sonstiges') ? rawType : null;
+  const displayLabel = typeLabel ?? t(lang, 'display.fallback.document');
+  const dateStr = formatDisplayDate(input.createdAt) ?? formatDisplayDate(input.datum);
+  const shortId = buildShortId(input.id);
 
-  if (sender && typeLabel) return `${sender} · ${typeLabel}`;
-  if (typeLabel && displayDate) return `${typeLabel} vom ${displayDate}`;
-  if (typeLabel) return typeLabel;
-  if (sender && displayDate) return `${sender} · ${displayDate}`;
-  if (sender) return sender;
-  if (displayDate) return `${t(lang, 'display.fallback.document')} vom ${displayDate}`;
-  return t(lang, 'display.fallback.unknown_document');
+  const parts: string[] = [displayLabel];
+  if (dateStr) parts.push(dateStr);
+  if (shortId) parts.push(shortId);
+  return parts.join(' · ');
 }
 
 export function humanizeTitle(raw: string | null | undefined): string | null {
@@ -242,6 +255,8 @@ export function resolveDocumentTitle(dok: {
   absender?: string | null;
   rohText?: string | null;
   datum?: string | null;
+  createdAt?: string | null;
+  id?: string | null;
 }): string {
   // customTitle and aiDisplayTitle are already clean user/AI strings —
   // bypass OCR humanization (which would mangle hyphens, apply title-case, etc.)

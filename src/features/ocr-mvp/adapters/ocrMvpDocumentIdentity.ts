@@ -8,6 +8,14 @@ export { humanizeTitle } from '@/utils/displaySanitizer';
 const REJECT_TITLE_RE =
   /^(scan[\s_]?vom|scan[\s_]+\d|camscanner|scanbot|img_|dsc_|photo_|input|document|upload|belge|unknown|unbekannt)/i;
 
+// "Kundeninfo 35246587", "Kundennummer 12345678", "Vertragsnummer 99234" — OCR header labels
+// that contain a reference/account number. These leak from document headers and are never
+// useful as display titles; the sender+type fallback is always better.
+const REF_LABEL_ID_RE = /(?:info|nummer|nr\.?|referenz|code)\s+\d{5,}$/i;
+
+// Single word (≥4 chars) followed only by 6+ digits — pure ID string with no context.
+const WORD_LONG_ID_RE = /^\S{4,}\s+\d{6,}$/;
+
 export function isMeaningfulTitle(title: string | null | undefined): boolean {
   if (!title) return false;
   const t = title.trim();
@@ -15,6 +23,8 @@ export function isMeaningfulTitle(title: string | null | undefined): boolean {
   if (REJECT_TITLE_RE.test(t)) return false;
   const normalized = (humanizeTitle(t) ?? t).trim();
   if (isLikelyBadDocumentTitle(normalized)) return false;
+  if (REF_LABEL_ID_RE.test(normalized)) return false;
+  if (WORD_LONG_ID_RE.test(normalized)) return false;
   return true;
 }
 

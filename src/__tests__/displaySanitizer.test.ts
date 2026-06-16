@@ -1,4 +1,4 @@
-import { safeDisplayTitel, humanizeTitle, sanitizeOcrTitle, resolveDocumentTitle } from '@/utils/displaySanitizer';
+import { safeDisplayTitel, humanizeTitle, sanitizeOcrTitle, resolveDocumentTitle, isLikelyBadDocumentTitle } from '@/utils/displaySanitizer';
 
 describe('humanizeTitle', () => {
   it('decodes URL-encoded title', () => {
@@ -130,7 +130,7 @@ describe('humanizeTitle — sanitization integrated', () => {
 });
 
 describe('resolveDocumentTitle', () => {
-  it('falls back to sender + type for rejected raw OCR titles', () => {
+  it('falls back to type + date for rejected raw OCR titles', () => {
     expect(
       resolveDocumentTitle({
         titel: 'page-1',
@@ -138,7 +138,7 @@ describe('resolveDocumentTitle', () => {
         absender: 'AXA easy Versicherung AG',
         datum: '2026-06-12T00:00:00.000Z',
       }),
-    ).toBe('AXA · Versicherung');
+    ).toBe('Versicherung · 12.06.2026');
   });
 
   it('falls back to type + date when sender is not useful', () => {
@@ -149,7 +149,7 @@ describe('resolveDocumentTitle', () => {
         absender: 'Unbekannt',
         datum: '2026-06-12T00:00:00.000Z',
       }),
-    ).toBe('Rechnung vom 12.06.2026');
+    ).toBe('Rechnung · 12.06.2026');
   });
 
   it('rejects bad ai/custom titles and still uses safe fallback', () => {
@@ -161,7 +161,7 @@ describe('resolveDocumentTitle', () => {
         typ: 'Bescheid',
         absender: 'Jobcenter',
       }),
-    ).toBe('Jobcenter · Bescheid');
+    ).toBe('Bescheid');
   });
 
   it('rejects Page 1 / page-1 / page_1 in customTitle and aiDisplayTitle', () => {
@@ -212,5 +212,142 @@ describe('humanizeTitle — hash-like suffix stripping', () => {
     expect(humanizeTitle('Rechnung 123456')).toBe('Rechnung 123456');
     expect(humanizeTitle('Rechnung 2024')).toBe('Rechnung 2024');
     expect(humanizeTitle('Bonn 53113')).toBe('Bonn 53113');
+  });
+});
+
+describe('isLikelyBadDocumentTitle — reference-number guard (#129A)', () => {
+  const reject = [
+    'Kundeninfo 35246587',
+    'Kundeninfo35246587',
+    'Kundennummer 12345678',
+    'Kundennummer12345678',
+    'Vertragsnummer 99234',
+    'Vertragsnummer99234',
+    'Referenz 123456789',
+    'Nr. 123456789',
+    'Code 123456789',
+    'ID 123456789',
+  ];
+
+  it.each(reject)('rejects %s', (title) => {
+    expect(isLikelyBadDocumentTitle(title)).toBe(true);
+  });
+
+  const keep = [
+    'Rechnung 2026',
+    'AOK Bayern',
+    'Bußgeld 80',
+    'Nebenkostenabrechnung 2022 2023',
+    'Mahnung',
+    'Ladung',
+    'Bescheid',
+    'Anhörung',
+    'Kostenbescheid',
+    'Gebührenbescheid',
+  ];
+
+  it.each(keep)('keeps %s', (title) => {
+    expect(isLikelyBadDocumentTitle(title)).toBe(false);
+  });
+});
+
+describe('resolveDocumentTitle — reference-number fallback (#129A)', () => {
+  it('rejects Kundeninfo + reference id, Sonstiges → Dokument', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundeninfo 35246587',
+        typ: 'Sonstiges',
+        absender: 'Unbekannt',
+      }),
+    ).toBe('Dokument');
+  });
+
+  it('rejects concatenated Kundeninfo id, falls back to type', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundeninfo35246587',
+        typ: 'Rechnung',
+        absender: 'Vodafone GmbH',
+      }),
+    ).toBe('Rechnung');
+  });
+
+  it('prefers createdAt over datum for date fallback when type absent', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Code 99999999',
+        typ: 'Unbekanntes Dokument',
+        absender: '',
+        datum: '2020-01-01T00:00:00.000Z',
+        createdAt: '2026-06-13T00:00:00.000Z',
+      }),
+    ).toBe('Dokument · 13.06.2026');
+  });
+
+  it('keeps normal short titles', () => {
+    expect(resolveDocumentTitle({ titel: 'Rechnung 2026', typ: 'Rechnung' })).toBe('Rechnung 2026');
+    expect(resolveDocumentTitle({ titel: 'AOK Bayern', typ: 'Versicherung' })).toBe('AOK Bayern');
+    expect(resolveDocumentTitle({ titel: 'Bußgeld 80', typ: 'Bußgeld' })).toBe('Bußgeld 80');
+  });
+});
+
+describe('resolveDocumentTitle — disambiguation suffix (#129A)', () => {
+  it('garbage title + good typ + date + id → Typ · date · shortId', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundeninfo 35246587',
+        typ: 'Anhörung',
+        absender: 'Amtsgericht',
+        datum: '2026-06-16T00:00:00.000Z',
+        id: 'abc123A7K3',
+      }),
+    ).toBe('Anhörung · 16.06.2026 · A7K3');
+  });
+
+  it('garbage title + Sonstiges + date + id → Dokument · date · shortId', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundennummer 12345678',
+        typ: 'Sonstiges',
+        absender: 'Unbekannt',
+        datum: '2026-06-16T00:00:00.000Z',
+        id: 'xyz789B9Q2',
+      }),
+    ).toBe('Dokument · 16.06.2026 · B9Q2');
+  });
+
+  it('garbage title + no id → omits shortId', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundennummer 12345678',
+        typ: 'Rechnung',
+        datum: '2026-06-16T00:00:00.000Z',
+      }),
+    ).toBe('Rechnung · 16.06.2026');
+  });
+
+  it('garbage title + no date + id → Typ · shortId', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundennummer 12345678',
+        typ: 'Rechnung',
+        id: 'abc123A7K3',
+      }),
+    ).toBe('Rechnung · A7K3');
+  });
+
+  it('garbage title + no date + no id + Sonstiges → Dokument', () => {
+    expect(
+      resolveDocumentTitle({
+        titel: 'Kundennummer 12345678',
+        typ: 'Sonstiges',
+      }),
+    ).toBe('Dokument');
+  });
+
+  it('normal titles are not affected by id field', () => {
+    expect(resolveDocumentTitle({ titel: 'Rechnung 2026', typ: 'Rechnung', id: 'abc123A7K3' })).toBe('Rechnung 2026');
+    expect(resolveDocumentTitle({ titel: 'Mahnung', typ: 'Sonstiges', id: 'abc123A7K3' })).toBe('Mahnung');
+    expect(resolveDocumentTitle({ titel: 'Ladung', typ: 'Sonstiges', id: 'abc123A7K3' })).toBe('Ladung');
   });
 });

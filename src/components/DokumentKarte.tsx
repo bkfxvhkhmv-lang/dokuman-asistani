@@ -163,7 +163,7 @@ function DokumentKarteInner({ dok, onPress, onLongPress, secilen, index = 0 }: D
           </Text>
         </View>
 
-        {tageText && !isDone ? (
+        {tage !== null && tage > 0 && !isDone ? (
           <View style={[styles.dateBox, { backgroundColor: `${accentColor}0d`, borderWidth: 1, borderColor: `${accentColor}44` }]}>
             <Clock size={13} color={accentColor} weight="regular" />
             <Text style={[styles.dateText, { color: accentColor }]}>{tageText}</Text>

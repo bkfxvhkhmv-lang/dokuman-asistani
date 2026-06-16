@@ -47,20 +47,6 @@ type ExportOption = {
 function buildExportOptions(T: (k: string) => string): ExportOption[] {
   return [
     {
-      id: 'steuerberater_zip',
-      label: 'Für Steuerberater exportieren',
-      description: 'Excel-Übersicht und Belege vorbereiten',
-      icon: 'file-xls',
-      premium: true,
-    },
-    {
-      id: 'steuerpaket',
-      label: 'Steuerberater-Paket',
-      description: 'Alle steuerrelevanten Belege als PDF',
-      icon: 'calculator',
-      premium: true,
-    },
-    {
       id: 'pdf_alle',
       label: T('tab.documents'),
       description: 'Alle ausgewählten Dokumente als lesbares PDF.',
@@ -74,17 +60,29 @@ function buildExportOptions(T: (k: string) => string): ExportOption[] {
       icon: 'files',
       premium: false,
     },
+    {
+      id: 'steuerpaket',
+      label: 'Steuerberater-Paket',
+      description: 'Alle steuerrelevanten Belege als PDF',
+      icon: 'calculator',
+      premium: true,
+    },
+    {
+      id: 'steuerberater_zip',
+      label: 'Für Steuerberater exportieren',
+      description: 'Excel-Übersicht und Belege vorbereiten',
+      icon: 'file-xls',
+      premium: true,
+    },
     // DATEV hidden — ENABLE_RELEASE_DATEV_EXPORT is false in SmartActionsService
   ];
 }
 
-function PremiumStar() {
+function PremiumBadge() {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3,
-      backgroundColor: '#FEF9C3', borderRadius: 999,
+    <View style={{ backgroundColor: EXPORT_LIGHT, borderRadius: 999,
       paddingHorizontal: 7, paddingVertical: 2 }}>
-      <Text style={{ fontSize: 10 }}>⭐</Text>
-      <Text style={{ fontSize: 10, fontWeight: '800', color: '#92400E' }}>PREMIUM</Text>
+      <Text style={{ fontSize: 10, fontWeight: '600', color: EXPORT_DARK }}>Premium</Text>
     </View>
   );
 }
@@ -131,7 +129,7 @@ function ExportCheckRow({
           <Text style={{ fontSize: 16, fontWeight: '700', color: C.text }}>
             {option.label}
           </Text>
-          {option.premium && <PremiumStar />}
+          {option.premium && <PremiumBadge />}
           {count !== undefined && count > 0 && (
             <Text style={{ fontSize: 12, color: C.textSecondary }}>({count})</Text>
           )}

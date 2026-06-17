@@ -1,57 +1,110 @@
-import { resolveDocumentTitle, resolveDocumentSender } from '@/utils/displaySanitizer';
+import {
+  resolveDocumentTitle,
+  resolveDocumentSender,
+  isWeakTitle,
+  isStrongTitle,
+} from '@/utils/displaySanitizer';
 
-// ── resolveDocumentTitle — priority chain ──────────────────────────────────
+// ── resolveDocumentTitle — priority chain (#142A) ───────────────────────────
 
-describe('resolveDocumentTitle — customTitle > aiDisplayTitle > titel', () => {
-  const base = { titel: 'Formular', typ: 'Formular', confidence: 80 };
+describe('resolveDocumentTitle — customTitle > strong titel > aiDisplayTitle > fallback', () => {
+  const strongBase = { titel: 'Rechnung — Vodafone Deutschland', typ: 'Rechnung', confidence: 80 };
+  const weakBase = { titel: 'Sonstiges — Unbekannt', typ: 'Sonstiges', confidence: 80 };
 
-  it('customTitle wins over aiDisplayTitle and titel', () => {
+  it('customTitle wins over strong titel and aiDisplayTitle', () => {
     expect(resolveDocumentTitle({
-      ...base,
+      ...strongBase,
       customTitle: 'Meine Rechnung',
       aiDisplayTitle: 'MRT-Überweisung',
     })).toBe('Meine Rechnung');
   });
 
-  it('aiDisplayTitle wins when customTitle is absent', () => {
+  it('strong titel beats aiDisplayTitle when customTitle is absent', () => {
     expect(resolveDocumentTitle({
-      ...base,
+      ...strongBase,
       customTitle: null,
       aiDisplayTitle: 'MRT-Überweisung',
-    })).toBe('MRT-Überweisung');
+    })).toBe('Rechnung — Vodafone Deutschland');
   });
 
-  it('aiDisplayTitle wins when customTitle is empty string', () => {
+  it('weak titel yields to aiDisplayTitle', () => {
     expect(resolveDocumentTitle({
-      ...base,
+      ...weakBase,
+      customTitle: null,
+      aiDisplayTitle: 'Schornsteinfeger Rechnung',
+    })).toBe('Schornsteinfeger Rechnung');
+  });
+
+  it('aiDisplayTitle wins when customTitle is empty string and titel is weak', () => {
+    expect(resolveDocumentTitle({
+      ...weakBase,
       customTitle: '',
       aiDisplayTitle: 'Nebenkostenabrechnung',
     })).toBe('Nebenkostenabrechnung');
   });
 
-  it('falls back to titel when neither customTitle nor aiDisplayTitle set', () => {
-    const result = resolveDocumentTitle({ ...base, customTitle: null });
-    expect(result).toBe('Formular');
-  });
-
-  it('empty aiDisplayTitle falls back to titel', () => {
+  it('falls back to strong titel when neither customTitle nor aiDisplayTitle set', () => {
     expect(resolveDocumentTitle({
-      ...base,
+      titel: 'Formular',
+      typ: 'Formular',
+      confidence: 80,
       customTitle: null,
-      aiDisplayTitle: '',
     })).toBe('Formular');
   });
 
+  it('empty aiDisplayTitle with weak titel uses fallback', () => {
+    expect(resolveDocumentTitle({
+      ...weakBase,
+      customTitle: null,
+      aiDisplayTitle: '',
+      datum: '2026-06-12T00:00:00.000Z',
+    })).toBe('Dokument · 12.06.2026');
+  });
+
   it('customTitle is never overwritten — aiDisplayTitle does not affect it', () => {
-    // safeDisplayTitel applies humanization so customTitle may be title-cased;
-    // the important assertion is that aiDisplayTitle does not win.
     const result = resolveDocumentTitle({
-      ...base,
+      ...strongBase,
       customTitle: 'Meine eigene Rechnung',
       aiDisplayTitle: 'AI-Vorschlag sollte verlieren',
     });
     expect(result).not.toContain('AI-Vorschlag');
     expect(result).toContain('Rechnung');
+  });
+
+  it('weak titel without aiDisplayTitle uses buildSafeDocumentTitleFallback', () => {
+    expect(resolveDocumentTitle({
+      titel: 'Scan vom 17.06.2026 14:33',
+      typ: 'Sonstiges',
+      createdAt: '2026-06-17T12:00:00.000Z',
+    })).toBe('Dokument · 17.06.2026');
+  });
+});
+
+describe('isWeakTitle / isStrongTitle', () => {
+  it.each([
+    '',
+    'ab',
+    'Sonstiges — Unbekannt',
+    'Scan vom 17.06.2026 14:33',
+    'Wird analysiert…',
+    'image_123',
+    'IMG_0042',
+    'Scan 1780169901922',
+    'page-1',
+    '2026-06-17 · Scan 01',
+  ])('isWeakTitle true for %s', (title) => {
+    expect(isWeakTitle(title)).toBe(true);
+    expect(isStrongTitle(title)).toBe(false);
+  });
+
+  it.each([
+    'Rechnung — Vodafone Deutschland',
+    'Mahnung Jobcenter',
+    'Rechnung 2026',
+    'AOK Bayern',
+  ])('isStrongTitle true for %s', (title) => {
+    expect(isStrongTitle(title)).toBe(true);
+    expect(isWeakTitle(title)).toBe(false);
   });
 });
 

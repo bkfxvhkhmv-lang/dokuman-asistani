@@ -1,6 +1,48 @@
 export type { ExplainResult } from '@/services/zodSchemas';
 export type { DeltaSyncResult } from '@/services/zodSchemas';
 
+export interface BackendWorkerResultDocument {
+  suggested_title?: string | null;
+  document_type?: string | null;
+  sender?: string | null;
+  date?: string | null;
+  deadline?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  raw_text?: string | null;
+}
+
+export interface BackendWorkerResultActionSummary {
+  kind?: string | null;
+  summary?: string | null;
+  short_summary?: string | null;
+  next_action?: string | null;
+  deadline?: string | null;
+  amount?: number | null;
+  warnings?: string[];
+  recommended_actions?: string[];
+}
+
+export interface BackendWorkerResultMeta {
+  model?: string | null;
+  processed_at?: string | null;
+  iban?: string | null;
+  source?: string | null;
+  provider?: string | null;
+}
+
+/** Canonical backend worker result — GET /documents/{id}/result (#131) */
+export interface BackendWorkerResult {
+  job_id: string;
+  status: string;
+  confidence?: number | null;
+  language?: string | null;
+  document?: BackendWorkerResultDocument | null;
+  action_summary?: BackendWorkerResultActionSummary | null;
+  meta?: BackendWorkerResultMeta | null;
+  error?: string | null;
+}
+
 export interface V4Document {
   id: string;
   titel?: string;

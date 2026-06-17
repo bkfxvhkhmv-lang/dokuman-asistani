@@ -1,5 +1,5 @@
 import { req } from './client';
-import type { V4Document, V4DocumentList } from './types';
+import type { V4Document, V4DocumentList, BackendWorkerResult } from './types';
 
 export {
   uploadDocumentV4,
@@ -19,4 +19,8 @@ export async function listDocumentsV4({ limit = 50, offset = 0 } = {}): Promise<
 
 export async function deleteDocumentV4(docId: string): Promise<unknown> {
   return req('DELETE', `/documents/${docId}`);
+}
+
+export async function getDocumentWorkerResult(docId: string): Promise<BackendWorkerResult> {
+  return req<BackendWorkerResult>('GET', `/documents/${docId}/result`);
 }

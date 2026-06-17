@@ -4,6 +4,23 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
+## Canonical Context (ZORUNLU — her görev öncesi)
+
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md)
+
+**Kapsam:** Trusted main, PR preamble (5 madde), Camera/Scanner/Polygon preservation rule, #147 migration durumu, Pixel OCR working dev config (#146-C3).
+
+---
+
+## 2026-06-17 OCR Runtime Config (#146-C3)
+
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — “Runtime OCR / Paddle” ve “Pixel OCR working local dev config” bölümleri
+📄 [backend/.env.example](../../backend/.env.example) — OCR dev smoke yorumları ve önerilen değerler
+
+**Kapsam:** Docs/config only — `PROCESS_OCR_INLINE_DEV=false`, PP-OCRv4+`en`, v5/de OOM uyarısı. Kod/runtime logic yok. `backend/.env` commit edilmez.
+
+---
+
 ## En Son Ana Rapor
 
 📄 [MASTER_STATUS_REPORT_2026-05-14.md](2026-05-14_l40s_v6_ocr_backend_client_ai/MASTER_STATUS_REPORT_2026-05-14.md)

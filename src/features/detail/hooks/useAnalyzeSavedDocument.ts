@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import type { Dokument, StoreAction } from '@/store';
-import { useOcrMvpJob, type OcrMvpStatus, type OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
-import { ocrMvpToV4Document } from '@/features/ocr-mvp/adapters/ocrMvpToV4Document';
-import { buildAnalyzedDocumentUpdate } from '@/features/detail/hooks/buildAnalyzedDocumentUpdate';
+import type { OcrMvpStatus, OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
 import { buildAnalyseFileFromDocument } from '@/features/detail/utils/buildAnalyseFileFromDocument';
 import { toUserFacingAnalyseErrorMessage } from '@/features/detail/utils/toUserFacingAnalyseErrorMessage';
+import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { useT } from '@/hooks/useT';
 
 export interface UseAnalyzeSavedDocumentReturn {
@@ -21,8 +20,12 @@ export interface UseAnalyzeSavedDocumentReturn {
  * Allows a document that was previously saved with multi-file quick-save
  * (no OCR/AI) to be analysed explicitly from the detail screen.
  *
+ * Uses the new core-api backend:
+ *   POST /documents/  →  GET /documents/{id}/result (via v4EnqueueUpload + polling)
+ *
  * The existing document is updated in-place via UPDATE_DOKUMENT so no
- * duplicate document is created.
+ * duplicate document is created. Protected fields (customTitle, userOrdner,
+ * titel, typ, absender) are never overwritten by this path.
  */
 export function useAnalyzeSavedDocument(
   dok: Dokument | null | undefined,
@@ -30,38 +33,44 @@ export function useAnalyzeSavedDocument(
 ): UseAnalyzeSavedDocumentReturn {
   const { t } = useT();
   const { gateOcr } = useGuestLimit();
-  const { status, result, error, errorKind, startJob, reset } = useOcrMvpJob();
-  const appliedRef = useRef(false);
+  const [dismissedError, setDismissedError] = useState(false);
 
   const isEligible = !!dok && !dok.rohText && !!dok.uri;
 
-  useEffect(() => {
-    if (!dispatch || !dok) return;
-    if (status !== 'done' || !result || appliedRef.current) return;
-
-    appliedRef.current = true;
-
-    const draft = ocrMvpToV4Document(result, {
-      id: dok.id,
-      uri: dok.uri,
-      fileRelativePath: dok.fileRelativePath ?? null,
-      pages: dok.pages,
-    });
-
-    dispatch({
-      type: 'UPDATE_DOKUMENT',
-      payload: buildAnalyzedDocumentUpdate(dok, draft.document),
-    });
-  }, [dispatch, dok, result, status]);
-
-  useEffect(() => {
-    if (status === 'idle') {
-      appliedRef.current = false;
+  const status: OcrMvpStatus = useMemo(() => {
+    if (!isEligible) return 'idle';
+    switch (dok?.v4JobStatus) {
+      case 'pending':
+        return 'uploading';
+      case 'processing':
+        return 'processing';
+      case 'completed':
+        return 'done';
+      case 'failed':
+        return 'error';
+      default:
+        return 'idle';
     }
-  }, [status]);
+  }, [dok?.v4JobStatus, isEligible]);
+
+  // Reset error dismissal when the job leaves the error state.
+  useEffect(() => {
+    if (status !== 'error' && dismissedError) {
+      setDismissedError(false);
+    }
+  }, [dismissedError, status]);
+
+  // Surface a single error alert per failed state.
+  useEffect(() => {
+    if (status === 'error' && !dismissedError) {
+      setDismissedError(true);
+      const message = toUserFacingAnalyseErrorMessage(null, 'error');
+      Alert.alert('Analysefehler', message);
+    }
+  }, [dismissedError, status]);
 
   const startAnalyze = useCallback(async () => {
-    if (!isEligible || !dok) return;
+    if (!isEligible || !dok || !dispatch) return;
 
     Alert.alert(
       'Dokument analysieren',
@@ -82,31 +91,25 @@ export function useAnalyzeSavedDocument(
               return;
             }
 
-            void startJob(
-              file,
-              undefined,
-              { pageCount: dok.pages?.length ?? 1 },
+            enqueueV4Upload(
+              dispatch,
+              dok.id,
+              file.uri,
+              file.name ?? `${dok.id}.pdf`,
+              { suppressAlert: true },
             );
           },
         },
       ],
       { cancelable: true },
     );
-  }, [dok, gateOcr, isEligible, startJob, t]);
-
-  useEffect(() => {
-    if (status === 'error' || status === 'timeout') {
-      const message = toUserFacingAnalyseErrorMessage(error, status);
-      Alert.alert('Analysefehler', message);
-      reset();
-    }
-  }, [error, errorKind, reset, status]);
+  }, [dok, dispatch, gateOcr, isEligible, t]);
 
   return {
     isEligible,
     status,
-    error,
-    errorKind,
+    error: status === 'error' ? 'Analysefehler' : null,
+    errorKind: status === 'error' ? 'network' : null,
     startAnalyze,
   };
 }

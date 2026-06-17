@@ -28,6 +28,22 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
+## 2026-06-17 Chain Audit
+
+📄 [docs/audits/2026-06-17_upload-scan-analyze-chain-audit.md](../audits/2026-06-17_upload-scan-analyze-chain-audit.md)
+
+**Kapsam:** Upload / Scan / Analysieren akışlarının yeni `briefpilot-clean/backend` OCR zincirini gerçekten kullanıp kullanmadığının denetimi.
+
+**Ana bulgu:** Yeni backend PaddleOCR + PDF text-layer hızlı yolu sunucuda hazır, ancak uygulamadaki kullanıcıya dönük ana akışlar hâlâ eski OCR MVP (`api.briefpilot.app`) veya yerel Google Vision + SmartAutoFill üzerinden çalışıyor. Acil eylem: **Detail ekranı “Analysieren” butonu ve AI Labeler yeni backend’e taşınmalı.**
+
+### #138 Migration Final Report
+
+📄 [docs/audits/2026-06-17_138-analysieren-migration-final-report.md](../audits/2026-06-17_138-analysieren-migration-final-report.md)
+
+**Kapsam:** Detail ekranı “Analysieren” butonunun eski OCR MVP’den yeni core-api backend’e taşınması — commit öncesi denetim raporu.
+
+---
+
 ## Arama Keywords
 
 ```
@@ -36,6 +52,7 @@ v6_comprehensive_80k  w480  len50  b64
 best_accuracy  artifact_registry
 be0c86287  2bb581cea
 char_boost  degraded_scan
+2026-06-17  upload  scan  analyse  OCR MVP  core-api
 ```
 
 ---

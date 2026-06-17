@@ -9,7 +9,7 @@ import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import IconButton from '@/components/IconButton';
 import { resolveOcrBackend, resetOcrBackendCache } from './domain/ocrBackend';
-import { useOcrMvpJob } from '@/hooks/useOcrMvpJob';
+import { useCoreScanJob } from '@/hooks/useCoreScanJob';
 import { useStore } from '@/store';
 import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
@@ -22,7 +22,6 @@ import OcrMvpMultiFileConfirmCard from './components/OcrMvpMultiFileConfirmCard'
 import OcrMvpStatusCard from './components/OcrMvpStatusCard';
 import OcrMvpResultCard from './components/OcrMvpResultCard';
 import type { OcrMvpForceType } from '@/services/ocrMvpApi';
-import { postAcceptedSnapshot } from '@/services/ocrMvpApi';
 import type { OcrMvpErrorKind } from '@/hooks/useOcrMvpJob';
 import { useT } from '@/hooks/useT';
 import { ExpoScannerProvider } from './scanner/ExpoScannerProvider';
@@ -105,7 +104,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const router = useRouter();
   const { state, dispatch } = useStore();
   const { gateDocument, gateOcr, upgradeVisible, dismissUpgrade } = useGuestLimit();
-  const { status, jobId, result, error, errorKind, startJob, reset } = useOcrMvpJob();
+  const { status, jobId, result, error, errorKind, startJob, reset } = useCoreScanJob();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
@@ -385,24 +384,12 @@ export default function OcrMvpScreen({ onClose }: Props) {
       setTiming('saveDone');
       emitTimingSummary('saveDone');
 
-      // Learning loop — fire-and-forget, never blocks save flow
-      const doc = draft.document;
-      void postAcceptedSnapshot(jobId, {
-        final_kind:     doc.typ ?? null,
-        final_language: doc.detectedLanguage ?? result.language ?? null,
-        final_fields: {
-          titel:    doc.titel   ?? null,
-          absender: doc.absender ?? null,
-          betrag:   doc.betrag  ?? null,
-          frist:    doc.frist   ?? null,
-          iban:     doc.iban    ?? null,
-          risiko:   doc.risiko  ?? null,
-        },
-      }).catch((e) => console.warn('[learning] accepted snapshot failed', e));
+      // Legacy MVP learning loop (/documents/{id}/accepted) — not on core API (#147-A2).
+      // Intentionally skipped; save flow must never depend on it.
     } catch (e: any) {
       Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
-  }, [result, jobId, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente, gateDocument]);
+  }, [result, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente, gateDocument, T, emitTimingSummary, setTiming]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;

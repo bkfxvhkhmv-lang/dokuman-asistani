@@ -236,15 +236,45 @@ export function safeDisplayAbsender(
   return normalizeSender(raw || null, rohText);
 }
 
+// ── Weak / strong titel classification (#142A) ───────────────────────────────
+
+/** Future #142B offline fallback titles — weak so AI/display can supersede. */
+const OFFLINE_FALLBACK_TITLE_RE =
+  /^\d{4}-\d{2}-\d{2}\s*·\s*(Scan|PDF|Foto)\s+\d{2}$/i;
+
+/**
+ * True when raw `titel` is generic, placeholder, or otherwise not meaningful
+ * enough to beat `aiDisplayTitle` in the display chain.
+ */
+export function isWeakTitle(titel: string | null | undefined): boolean {
+  const raw = normalizeWhitespace(safeDecode(titel ?? ''));
+  if (!raw || raw.length < 3) return true;
+  if (/^Sonstiges\s*[—–-]\s*/i.test(raw)) return true;
+  if (/^Scan\s+vom\s+/i.test(raw)) return true;
+  if (/^Wird\s+analysiert/i.test(raw)) return true;
+  if (/^Scan[\s_]+\d{6,}$/i.test(raw)) return true;
+  if (OFFLINE_FALLBACK_TITLE_RE.test(raw)) return true;
+  const withoutExt = raw.replace(FILE_EXT_RE, '');
+  for (const { re } of TECH_FILENAME_MAP) {
+    if (re.test(withoutExt)) return true;
+  }
+  if (isLikelyBadDocumentTitle(raw)) return true;
+  return false;
+}
+
+export function isStrongTitle(titel: string | null | undefined): boolean {
+  return !isWeakTitle(titel);
+}
+
 // ── AI Labeler display resolvers ─────────────────────────────────────────────
 
 /**
  * Resolves the effective display title applying the priority chain:
- *   customTitle > aiDisplayTitle > titel
+ *   customTitle > strong titel > aiDisplayTitle > fallback
  *
- * customTitle (user-entered) always wins. aiDisplayTitle (AI-suggested,
- * accepted by user) beats the raw OCR titel. Neither overwrites each other
- * in the store — only the display priority is adjusted here.
+ * User `customTitle` always wins. Meaningful OCR `titel` beats AI suggestion.
+ * Weak/generic `titel` yields to `aiDisplayTitle`. Neither overwrites the
+ * other in the store — only display priority is adjusted here.
  */
 export function resolveDocumentTitle(dok: {
   titel: string;
@@ -263,17 +293,14 @@ export function resolveDocumentTitle(dok: {
   const customTitle = normalizeWhitespace(safeDecode(dok.customTitle ?? ''));
   if (customTitle && !isLikelyBadDocumentTitle(customTitle)) return customTitle;
 
-  const aiTitle = normalizeWhitespace(safeDecode(dok.aiDisplayTitle ?? ''));
-  if (aiTitle && !isLikelyBadDocumentTitle(aiTitle)) return aiTitle;
-
-  // Raw OCR titel goes through full sanitization pipeline
-  const rawHumanized = normalizeWhitespace(humanizeTitle(dok.titel) ?? dok.titel ?? '');
-  if (isLikelyBadDocumentTitle(rawHumanized)) {
-    return buildSafeDocumentTitleFallback(dok);
+  const titelRaw = dok.titel ?? '';
+  if (isStrongTitle(titelRaw)) {
+    const candidate = safeDisplayTitel(titelRaw, dok.typ, dok.confidence);
+    if (!isLikelyBadDocumentTitle(candidate)) return candidate;
   }
 
-  const candidate = safeDisplayTitel(dok.titel, dok.typ, dok.confidence);
-  if (!isLikelyBadDocumentTitle(candidate)) return candidate;
+  const aiTitle = normalizeWhitespace(safeDecode(dok.aiDisplayTitle ?? ''));
+  if (aiTitle && !isLikelyBadDocumentTitle(aiTitle)) return aiTitle;
 
   return buildSafeDocumentTitleFallback(dok);
 }

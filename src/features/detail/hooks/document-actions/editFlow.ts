@@ -20,8 +20,13 @@ export function runHandleEdit(
   if (!dok) return;
   modal.setEditTyp(dok.typ);
   modal.setEditRisiko(dok.risiko);
-  // Show a decoded/humanized title in the edit form; store is only updated when the user explicitly saves.
-  modal.setEditTitel(humanizeTitle(dok.titel) ?? dok.titel ?? '');
+  // Prefill with user customTitle when set; titel is system/OCR and not edited directly.
+  const displayForEdit =
+    dok.customTitle?.trim()
+    || humanizeTitle(dok.titel)
+    || dok.titel
+    || '';
+  modal.setEditTitel(displayForEdit);
   modal.setEditAbsender(dok.absender || '');
   modal.setEditBetrag(dok.betrag ? String(dok.betrag) : '');
   modal.setEditFrist(dok.frist ? dok.frist.slice(0, 10) : '');
@@ -56,11 +61,13 @@ export function runHandleEditSpeichern(params: {
     ? new Date(modal.editDokumentDatum).toISOString()
     : dok.dokumentDatum ?? null;
 
+  const editedTitle = modal.editTitel.trim();
+
   const neueFelder: Partial<Dokument> & { id: string } = {
     id: dokId,
     typ: normalizeDocumentTyp(modal.editTyp),
     risiko: modal.editRisiko as Dokument['risiko'],
-    titel: modal.editTitel.trim() || dok.titel,
+    customTitle: editedTitle || null,
     absender: modal.editAbsender.trim() || dok.absender,
     betrag: betragNum !== null && !isNaN(betragNum) ? betragNum : dok.betrag,
     frist: fristVal,
@@ -80,7 +87,7 @@ export function runHandleEditSpeichern(params: {
   // Learning loop: fire correction events for changed OCR fields (Speichern only)
   if (dok.ocrJobId) {
     const corrections: Array<[string, unknown, unknown]> = [
-      ['title',         dok.titel,    neueFelder.titel],
+      ['title',         dok.customTitle ?? dok.titel, neueFelder.customTitle ?? dok.titel],
       ['sender',        dok.absender, neueFelder.absender],
       ['amount',        dok.betrag,   neueFelder.betrag],
       ['due_date',      dok.frist,    neueFelder.frist],

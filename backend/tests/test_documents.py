@@ -46,38 +46,39 @@ async def test_health():
 async def test_upload_dev_mode(jpeg_bytes):
     """Upload in dev mode — MinIO mocked, OCR mocked, DB via dependency override."""
 
+    mock_doc_attrs = MagicMock()
+    mock_doc_attrs.status = MagicMock(value="pending")
+    mock_doc_attrs.version = 1
+    mock_doc_attrs.updated_at = None
+
     class _FakeSession:
+        def __init__(self):
+            self._doc = None
+
         async def flush(self):
             pass
 
         async def commit(self):
             pass
 
-        def add(self, _doc):
-            pass
+        def add(self, doc):
+            self._doc = doc
+
+        async def execute(self, _stmt):
+            row = MagicMock()
+            row.scalar_one.return_value = self._doc or mock_doc_attrs
+            return row
 
     async def fake_get_db():
         yield _FakeSession()
 
     app.dependency_overrides[get_db] = fake_get_db
 
-    mock_doc_attrs = MagicMock()
-    mock_doc_attrs.id = "test-doc-id"
-    mock_doc_attrs.status = MagicMock(value="pending")
-    mock_doc_attrs.checksum = "abc123"
-    mock_doc_attrs.version = 1
-    mock_doc_attrs.updated_at = None
-    mock_doc_attrs.meta = None
-
     with (
         patch("app.api.documents.upload_file", new=AsyncMock(return_value="key")),
+        patch("app.api.documents._inline_ocr_in_subprocess", new=MagicMock(return_value=None)),
         patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock(return_value=None)),
         patch("app.workers.ocr_worker.process_ocr.apply", new=MagicMock(return_value=None)),
-        patch(
-            "app.api.documents.Document",
-            autospec=False,
-            return_value=mock_doc_attrs,
-        ),
     ):
         try:
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:

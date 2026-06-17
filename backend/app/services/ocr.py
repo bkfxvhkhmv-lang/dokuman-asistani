@@ -50,6 +50,81 @@ class OcrResult(NamedTuple):
     blocks:     list[dict]
 
 
+def _parse_ocr_page_result(page_result) -> tuple[list[str], list[float], list[dict]]:
+    """
+    Normalize one page of PaddleOCR output into lines, confidences, blocks.
+
+    PaddleOCR 3.x PP-OCRv5 returns an OCRResult dict-like object with rec_texts/rec_scores.
+    Older versions return a list of [box, (text, conf)] or [box, text, conf] rows.
+    """
+    lines: list[str] = []
+    confidences: list[float] = []
+    blocks: list[dict] = []
+
+    if page_result is None:
+        return lines, confidences, blocks
+
+    rec_texts = None
+    rec_scores = None
+    polys = None
+    try:
+        if hasattr(page_result, "keys") and "rec_texts" in page_result:
+            getter = page_result.get if hasattr(page_result, "get") else page_result.__getitem__
+            rec_texts = getter("rec_texts") or []
+            rec_scores = getter("rec_scores") or []
+            polys = getter("dt_polys") or getter("rec_polys") or []
+    except (TypeError, KeyError, AttributeError):
+        rec_texts = None
+
+    if rec_texts is not None:
+        for i, raw_text in enumerate(rec_texts):
+            text = str(raw_text).strip() if raw_text is not None else ""
+            if not text:
+                continue
+            try:
+                conf = float(rec_scores[i]) if rec_scores and i < len(rec_scores) else 1.0
+            except (TypeError, ValueError, IndexError):
+                conf = 1.0
+            box: list = []
+            if polys and i < len(polys):
+                poly = polys[i]
+                try:
+                    box = poly.tolist() if hasattr(poly, "tolist") else list(poly)
+                except (TypeError, ValueError):
+                    box = []
+            lines.append(text)
+            confidences.append(conf)
+            blocks.append({"text": text, "confidence": conf, "box": box})
+        return lines, confidences, blocks
+
+    if not isinstance(page_result, (list, tuple)):
+        log.warning("ocr.unrecognized_page_result", result_type=type(page_result).__name__)
+        return lines, confidences, blocks
+
+    for line in page_result:
+        if not line or len(line) < 2:
+            continue
+        box = line[0]
+        # PaddleOCR 2.x: line = [box, [text, conf]]
+        # PaddleOCR 3.x list API: line = [box, text, conf]
+        if isinstance(line[1], (list, tuple)):
+            rec = line[1]
+            text, conf = str(rec[0]), float(rec[1])
+        else:
+            text = str(line[1]) if line[1] is not None else ""
+            try:
+                conf = float(line[2]) if len(line) > 2 else 1.0
+            except (TypeError, ValueError):
+                conf = 1.0
+        if not text:
+            continue
+        lines.append(text)
+        confidences.append(conf)
+        blocks.append({"text": text, "confidence": conf, "box": box})
+
+    return lines, confidences, blocks
+
+
 def _pil_rgb_from_blob(blob: bytes):
     """Open raster bytes with Pillow; rasterize PDF page 0 via PyMuPDF (PIL rarely decodes PDF to pixels)."""
     from PIL import Image
@@ -124,30 +199,7 @@ def run_ocr(image_bytes: bytes) -> OcrResult:
     if not raw or not raw[0]:
         return OcrResult(text="", confidence=0.0, blocks=[])
 
-    lines: list[str] = []
-    confidences: list[float] = []
-    blocks: list[dict] = []
-
-    for line in raw[0]:
-        if not line or len(line) < 2:
-            continue
-        box = line[0]
-        # PaddleOCR 2.x: line = [box, [text, conf]]
-        # PaddleOCR 3.x: line = [box, text, conf]
-        if isinstance(line[1], (list, tuple)):
-            rec = line[1]
-            text, conf = str(rec[0]), float(rec[1])
-        else:
-            text = str(line[1]) if line[1] is not None else ""
-            try:
-                conf = float(line[2]) if len(line) > 2 else 1.0
-            except (TypeError, ValueError):
-                conf = 1.0
-        if not text:
-            continue
-        lines.append(text)
-        confidences.append(conf)
-        blocks.append({"text": text, "confidence": conf, "box": box})
+    lines, confidences, blocks = _parse_ocr_page_result(raw[0])
 
     full_text = "\n".join(lines)
     avg_conf  = sum(confidences) / len(confidences) if confidences else 0.0

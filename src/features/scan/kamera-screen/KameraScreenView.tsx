@@ -346,6 +346,7 @@ export default function KameraScreenView() {
       hideSheet,
       generatePdf,
       dispatch,
+      existingDocs: state.dokumente,
     });
   }, [
     closeActionPicker, sessionPages, pageCount, handleProcessAll, clearPages,

@@ -7,7 +7,7 @@
  *     documentDirectory/scans/<dokId>/ altına kalıcı kopyalar.
  *  2. Minimum metadata ile `Dokument` objesi oluşturur:
  *     - typ: 'Sonstiges'  (henüz sınıflandırılmadı)
- *     - titel: tarih bazlı varsayılan ("Scan vom 28.04.2026 18:33")
+ *     - titel: offline fallback (YYYY-MM-DD · Scan NN)
  *     - kalıcı page URI listesi
  *  3. Store'a `ADD_DOKUMENT` dispatch eder.
  *  4. Yeni belgenin id'sini döndürür — caller dilerse Detail'e
@@ -25,14 +25,17 @@ import type {
   StoreAction,
 } from '@/store';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
+import { buildOfflineFallbackTitle } from '@/utils/offlineFallbackTitle';
 
 interface ArchiveOptions {
   /** Tarama sayfalarının kaynak URI'leri (cacheDirectory'de olabilir) */
   sourceUris: string[];
-  /** Opsiyonel kullanıcı başlığı — verilmezse otomatik tarih bazlı üretilir */
+  /** Opsiyonel kullanıcı başlığı — customTitle olarak saklanır; titel weak kalır */
   customTitle?: string | null;
   /** Yeni belge için varsayılan tip (genelde 'Sonstiges' kalır) */
   typ?: string;
+  /** Sıra sayacı için mevcut belgeler */
+  existingDocs?: Dokument[];
   /** Store dispatcher */
   dispatch: (action: StoreAction) => void;
 }
@@ -43,16 +46,11 @@ interface ArchiveResult {
   document: Dokument;
 }
 
-function defaultTitle(): string {
-  const d = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `Scan vom ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export async function archiveDocument({
   sourceUris,
   customTitle,
   typ = 'Sonstiges',
+  existingDocs = [],
   dispatch,
 }: ArchiveOptions): Promise<ArchiveResult> {
   if (sourceUris.length === 0) {
@@ -61,8 +59,12 @@ export async function archiveDocument({
 
   const dokId = generateId();
   const pages = await persistScanFiles(dokId, sourceUris);
-
-  const titel = customTitle?.trim() || defaultTitle();
+  const importDate = new Date();
+  const titel = buildOfflineFallbackTitle({
+    source: 'scan',
+    importDate,
+    existingDocs,
+  });
 
   const document: Dokument = {
     id:              dokId,
@@ -76,7 +78,7 @@ export async function archiveDocument({
     frist:           null,
     risiko:          'niedrig',
     aktionen:        [],
-    datum:           new Date().toISOString(),
+    datum:           importDate.toISOString(),
     gelesen:         true,   // kullanıcı zaten az önce tarayıp arşivledi
     erledigt:        false,
     uri:             pages[0]?.uri ?? null,
@@ -85,6 +87,7 @@ export async function archiveDocument({
     confidence:      null,
     favorit:         false,
     customTitle:     customTitle?.trim() || null,
+    importSource:    'scan',
     archiveBehavior: 'manual',  // OCR/analiz yapılmadan arşivlendi
   };
 

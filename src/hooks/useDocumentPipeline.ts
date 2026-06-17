@@ -5,12 +5,14 @@ import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import { generateId, scheduleDeadlineNotification } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import type { Dokument, LernRegel, ScannedPage } from '@/store';
+import { buildOfflineFallbackTitle } from '@/utils/offlineFallbackTitle';
 import { normalizeAndRefineTyp } from '@/product/canonicalDocTypes';
 import { wendeLernRegelnAn } from '@/utils/learningRules';
 
 export function useDocumentPipeline(
   dispatch: (action: any) => void,
   getLernRegeln?: () => LernRegel[],
+  getExistingDocs?: () => Dokument[],
 ) {
   const [isSaving, setIsSaving] = useState(false);
   const [flyingCardUri, setFlyingCardUri] = useState<string | null>(null);
@@ -115,9 +117,14 @@ export function useDocumentPipeline(
       if (changes.typ) typResolved = normalizeAndRefineTyp(changes.typ, rawText);
       const learntOrdner = changes.userOrdner?.trim?.() ?? null;
 
+      const isNeedsReview = !rawText.trim();
+      const titel = isNeedsReview
+        ? buildOfflineFallbackTitle({ source: 'scan', importDate: new Date(), existingDocs: getExistingDocs?.() ?? [] })
+        : `${typResolved} — ${absResolved.slice(0, 30)}`;
+
       const documentPayload = {
         id: documentId,
-        titel: `${typResolved} — ${absResolved.slice(0, 30)}`,
+        titel,
         typ: typResolved,
         absender: absResolved,
         zusammenfassung: analysis.zusammenfassung,
@@ -139,6 +146,7 @@ export function useDocumentPipeline(
         rohText: rawText,
         iban: analysis.iban || null,
         confidence: confidence ?? null,
+        importSource: 'scan' as const,
         ...(learntOrdner ? { userOrdner: learntOrdner } : {}),
       };
 
@@ -164,7 +172,7 @@ export function useDocumentPipeline(
     } finally {
       setIsSaving(false);
     }
-  }, [dispatch, getLernRegeln]);
+  }, [dispatch, getLernRegeln, getExistingDocs]);
 
   return {
     isSaving,

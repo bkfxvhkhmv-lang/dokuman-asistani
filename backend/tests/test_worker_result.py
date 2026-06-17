@@ -110,6 +110,37 @@ def test_worker_result_completed_maps_text_and_meta():
     assert result.meta.processed_at == _dt().isoformat()
 
 
+def test_worker_result_completed_ocr_only_no_meta():
+    """OCR done, AI worker not yet run (meta=None). /result must return 200 with OCR fields."""
+    doc = _make_doc(
+        id="doc-ocr-only",
+        status=DocumentStatus.completed.value,
+        text=_make_text(roh_text="Schornsteinfeger Rechnung", confidence=0.95, lang="de"),
+        meta=None,
+    )
+    result = _worker_result_out(doc)
+
+    assert result.status == "completed"
+    assert result.confidence == 0.95
+    assert result.language == "de"
+    assert result.document.raw_text == "Schornsteinfeger Rechnung"
+    assert result.document.suggested_title is None
+    assert result.document.document_type is None
+    assert result.document.sender is None
+    assert result.document.deadline is None
+    assert result.document.amount is None
+    assert result.document.currency is None
+    assert result.action_summary.summary is None
+    assert result.action_summary.short_summary is None
+    assert result.action_summary.next_action is None
+    assert result.action_summary.warnings == []
+    assert result.action_summary.recommended_actions == []
+    assert result.meta.source == "paddle_worker"
+    assert result.meta.provider == "paddle"
+    assert result.meta.iban is None
+    assert result.error is None
+
+
 def test_worker_result_failed_includes_job_error():
     failed_job = MagicMock()
     failed_job.status = JobStatus.failed

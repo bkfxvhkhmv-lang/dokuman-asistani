@@ -70,7 +70,7 @@ def _save_text(doc_id: str, text: str, confidence: float) -> None:
             {"doc_id": doc_id, "text": text, "conf": confidence, "ts": datetime.now(timezone.utc)},
         )
         conn.execute(
-            _sql("UPDATE documents SET status='processing', updated_at=:ts WHERE id=:id"),
+            _sql("UPDATE documents SET status='completed', updated_at=:ts WHERE id=:id"),
             {"ts": datetime.now(timezone.utc), "id": doc_id},
         )
 

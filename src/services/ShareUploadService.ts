@@ -33,8 +33,10 @@ import {
   withAndroidNotificationChannel,
 } from '@/services/SmartNotificationsService';
 import { erstelleKurzfassung } from '@/services/vision-api/summarizeText';
+import { enqueueV4Upload } from '@/services/v4EnqueueUpload';
 import type { DocumentAnalysis } from '@/services/vision-api/types';
 import type { Dokument } from '@/store';
+import type { StoreAction } from '@/store/actions';
 
 function emptyShareAnalysis(): DocumentAnalysis {
   return {
@@ -89,6 +91,7 @@ export interface ShareUploadResult {
 export async function processSharedFile(
   uri: string,
   alleDocs: Dokument[],
+  dispatch?: (a: StoreAction) => void,
 ): Promise<ShareUploadResult | null> {
   const lang = getLangSync();
   const fileType = detectFileType(uri);
@@ -182,6 +185,16 @@ export async function processSharedFile(
     // Step 3 — value-first "done" notification
     const notifContent = buildUploadNotificationContent(dokument, alleDocs);
     await fireImmediate(notifContent.title, notifContent.body, { dokId: documentId, type: 'upload' });
+
+    // Step 4 — enqueue backend OCR/AI analysis (fire & forget, local save already done)
+    // suppressAlert: true — document is saved locally; a retry alert here would confuse the user.
+    if (dispatch && persistedPages[0]?.uri) {
+      try {
+        enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, { suppressAlert: true });
+      } catch (enqErr) {
+        console.warn('[ShareUpload] enqueue failed, import preserved', enqErr);
+      }
+    }
 
     return { dokument, rawText };
   } catch (e) {

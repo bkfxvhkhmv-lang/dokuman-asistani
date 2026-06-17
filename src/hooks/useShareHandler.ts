@@ -85,7 +85,7 @@ export function useShareHandler() {
         return;
       }
 
-      const result = await processSharedFile(uri, docsRef.current);
+      const result = await processSharedFile(uri, docsRef.current, dispatch);
       if (!result) return;
 
       dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });

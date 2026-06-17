@@ -247,6 +247,7 @@ export function ocrMvpToV4Document(
     rohText,
     detectedLanguage: result.language?.trim() || null,
     ocrJobId:        result.job_id?.trim() || null,
+    v4DocId:         result.job_id?.trim() || null,
     aktenzeichen,
     iban:            s?.iban ?? null,
     confidence:      typeof result.confidence === 'number' && result.confidence > 0

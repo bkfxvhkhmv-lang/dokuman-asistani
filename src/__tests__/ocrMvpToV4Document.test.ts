@@ -30,6 +30,17 @@ function makeResult(deadline?: string | null, extra?: Partial<OcrMvpJobStatus['a
 }
 
 describe('ocrMvpToV4Document deadline normalization', () => {
+  it('sets v4DocId from core scan job_id', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'remote-core-uuid',
+      status: 'done',
+      document_type: 'invoice',
+      action_summary: { kind: 'invoice', raw_text: 'text' },
+    });
+    expect(draft.document.v4DocId).toBe('remote-core-uuid');
+    expect(draft.document.ocrJobId).toBe('remote-core-uuid');
+  });
+
   it('parses plain DD.MM.YYYY deadline', () => {
     const draft = ocrMvpToV4Document(makeResult('12.02.2026'));
     expect(draft.document.frist).toContain('2026-02-12');

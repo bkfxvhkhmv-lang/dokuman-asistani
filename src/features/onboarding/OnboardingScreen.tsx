@@ -69,7 +69,7 @@ export default function OnboardingScreen() {
       const norm = await normaliseSharedUri(uri);
       if (norm) uri = norm;
 
-      const result = await processSharedFile(uri, state.dokumente);
+      const result = await processSharedFile(uri, state.dokumente, dispatch);
       if (!result) {
         Alert.alert('Konnte nicht lesen', 'Bitte andere Datei oder Foto über die Kamera.');
         return;

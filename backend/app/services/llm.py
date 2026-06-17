@@ -2,8 +2,9 @@
 LLM provider abstraction — swap OpenAI ↔ Anthropic ↔ local via config.
 """
 from abc import ABC, abstractmethod
-from typing import Any
 import json
+import re
+from json import JSONDecodeError
 import structlog
 
 from app.config import get_settings
@@ -35,6 +36,76 @@ Regeln:
 - aktionen: aus der Liste: zahlen, einspruch, kalender, antworten, dokument, unterschreiben
 - warnung: null wenn keine kritische Warnung
 - Antworte NUR mit dem JSON, kein zusätzlicher Text"""
+
+
+class ExplainJsonParseError(ValueError):
+    """Raised when an LLM explain response cannot be parsed as a JSON object."""
+
+
+def parse_explain_json(raw: str) -> dict:
+    """
+    Parse explain() model output into a dict.
+    Handles plain JSON, ```json fences, and prose-wrapped objects.
+    """
+    if raw is None:
+        raise ExplainJsonParseError("LLM explain response is empty (no content)")
+
+    text = raw.strip()
+    if not text:
+        raise ExplainJsonParseError("LLM explain response is empty (blank text)")
+
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict):
+            return data
+        raise ExplainJsonParseError(
+            f"LLM explain response JSON root must be an object, got {type(data).__name__}"
+        )
+    except JSONDecodeError:
+        pass
+
+    fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL | re.IGNORECASE)
+    if fence:
+        try:
+            data = json.loads(fence.group(1))
+            if isinstance(data, dict):
+                return data
+        except JSONDecodeError as exc:
+            raise ExplainJsonParseError(
+                "LLM explain response fenced JSON block could not be parsed"
+            ) from exc
+
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end > start:
+        try:
+            data = json.loads(text[start : end + 1])
+            if isinstance(data, dict):
+                return data
+        except JSONDecodeError as exc:
+            raise ExplainJsonParseError(
+                "LLM explain response contains a JSON-like object but parsing failed"
+            ) from exc
+
+    preview = text[:120].replace("\n", " ")
+    if len(text) > 120:
+        preview += "…"
+    raise ExplainJsonParseError(
+        f"LLM explain response is not valid JSON (preview: {preview!r})"
+    )
+
+
+def _anthropic_text_blocks(content) -> str:
+    if not content:
+        return ""
+    parts: list[str] = []
+    for block in content:
+        block_type = getattr(block, "type", None)
+        if block_type == "text" and getattr(block, "text", None):
+            parts.append(block.text)
+        elif hasattr(block, "text") and block.text:
+            parts.append(block.text)
+    return "\n".join(parts).strip()
 
 
 class LLMProvider(ABC):
@@ -70,8 +141,8 @@ class OpenAIProvider(LLMProvider):
             temperature=0.1,
             max_tokens=1024,
         )
-        raw = resp.choices[0].message.content or "{}"
-        data = json.loads(raw)
+        raw = resp.choices[0].message.content or ""
+        data = parse_explain_json(raw)
         data["text"] = text[:500]
         data["confidence"] = resp.choices[0].finish_reason == "stop" and 0.92 or 0.6
         return ExplainResult(**data)
@@ -103,15 +174,30 @@ class AnthropicProvider(LLMProvider):
         self.model = settings.anthropic_model
 
     async def explain(self, text: str, lang: str = "de") -> ExplainResult:
+        # Assistant prefill "{" nudges Claude to continue a JSON object (no markdown preamble).
         resp = await self.client.messages.create(
             model=self.model,
             max_tokens=1024,
             system=EXPLAIN_SYSTEM_DE,
-            messages=[{"role": "user", "content": f"Dokument:\n\n{text[:8000]}"}],
+            messages=[
+                {"role": "user", "content": f"Dokument:\n\n{text[:8000]}"},
+                {"role": "assistant", "content": "{"},
+            ],
             temperature=0.1,
         )
-        raw = resp.content[0].text if resp.content else "{}"
-        data = json.loads(raw)
+        continuation = _anthropic_text_blocks(resp.content)
+        if not continuation:
+            raise ExplainJsonParseError("Anthropic explain response is empty (no text blocks)")
+        raw = continuation if continuation.lstrip().startswith("{") else "{" + continuation
+        try:
+            data = parse_explain_json(raw)
+        except ExplainJsonParseError:
+            log.warning(
+                "anthropic.explain_json_parse_failed",
+                response_chars=len(raw),
+                response_preview=raw[:160].replace("\n", " "),
+            )
+            raise
         data["text"] = text[:500]
         data["confidence"] = 0.92
         return ExplainResult(**data)

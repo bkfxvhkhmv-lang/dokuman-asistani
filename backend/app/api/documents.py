@@ -16,8 +16,14 @@ from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
 
 from app.database import get_db
-from app.models.document import Document, DocumentText, DocumentMeta, DocumentStatus
+from app.models.document import Document, DocumentText, DocumentMeta, DocumentStatus, JobStatus
 from app.schemas.document import DocumentOut, DocumentListOut, DeltaSyncResult, SyncDocumentOut
+from app.schemas.worker_result import (
+    BackendWorkerResult,
+    WorkerResultActionSummary,
+    WorkerResultDocument,
+    WorkerResultMeta,
+)
 from app.services.storage import upload_file, delete_file
 from app.api.auth import get_current_user_id
 from app.config import get_settings
@@ -179,6 +185,16 @@ async def get_document(
     return _doc_out(doc)
 
 
+@router.get("/{doc_id}/result", response_model=BackendWorkerResult)
+async def get_document_worker_result(
+    doc_id: str,
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    doc = await _get_with_relations_or_404(db, doc_id, user_id)
+    return _worker_result_out(doc)
+
+
 @router.delete("/{doc_id}", status_code=204)
 async def delete_document(
     doc_id: str,
@@ -241,6 +257,91 @@ async def _get_or_404(db: AsyncSession, doc_id: str, user_id: str) -> Document:
     if not doc:
         raise HTTPException(404, "Document not found")
     return doc
+
+
+async def _get_with_relations_or_404(db: AsyncSession, doc_id: str, user_id: str) -> Document:
+    row = await db.execute(
+        select(Document)
+        .options(
+            selectinload(Document.meta),
+            selectinload(Document.text),
+            selectinload(Document.jobs),
+        )
+        .where(Document.id == doc_id, Document.user_id == user_id)
+    )
+    doc = row.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(404, "Document not found")
+    return doc
+
+
+def _worker_result_out(doc: Document) -> BackendWorkerResult:
+    text = doc.text
+    meta = doc.meta
+    status = doc.status.value
+
+    raw_text = (text.roh_text or None) if text else None
+    if raw_text is not None and not str(raw_text).strip():
+        raw_text = None
+
+    confidence = text.confidence if text else None
+    language = text.lang if text else None
+
+    deadline = meta.frist if meta else None
+    amount = meta.betrag if meta else None
+    aktionen = list(meta.aktionen or []) if meta else []
+    warnung = (meta.warnung or "").strip() if meta else ""
+
+    processed_at = (
+        meta.updated_at if meta and meta.updated_at else doc.updated_at
+    )
+    processed_at_iso = (
+        processed_at.isoformat() if processed_at else datetime.now(timezone.utc).isoformat()
+    )
+
+    return BackendWorkerResult(
+        job_id=doc.id,
+        status=status,
+        confidence=confidence,
+        language=language,
+        document=WorkerResultDocument(
+            suggested_title=meta.titel if meta else None,
+            document_type=meta.typ if meta else None,
+            sender=None,
+            date=None,
+            deadline=deadline,
+            amount=amount,
+            currency="EUR" if amount is not None else None,
+            raw_text=raw_text,
+        ),
+        action_summary=WorkerResultActionSummary(
+            kind=None,
+            summary=meta.zusammenfassung if meta else None,
+            short_summary=meta.kurzfassung if meta else None,
+            next_action=aktionen[0] if aktionen else None,
+            deadline=deadline,
+            amount=amount,
+            warnings=[warnung] if warnung else [],
+            recommended_actions=aktionen,
+        ),
+        meta=WorkerResultMeta(
+            model=None,
+            processed_at=processed_at_iso,
+            iban=meta.iban if meta else None,
+        ),
+        error=_failed_job_error(doc) if status == "failed" else None,
+    )
+
+
+def _failed_job_error(doc: Document) -> Optional[str]:
+    failed = [
+        j for j in (doc.jobs or [])
+        if j.status == JobStatus.failed and (j.error or "").strip()
+    ]
+    if not failed:
+        return None
+    failed.sort(key=lambda j: j.updated_at or j.created_at)
+    return (failed[-1].error or "").strip() or None
 
 
 def _doc_out(doc: Document) -> DocumentOut:

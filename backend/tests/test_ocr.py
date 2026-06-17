@@ -1,6 +1,12 @@
 """Unit tests for PaddleOCR result parsing (no Paddle runtime required)."""
 
-from app.services.ocr import _parse_ocr_page_result
+from unittest.mock import MagicMock
+
+from app.services.ocr import (
+    _is_meaningful_text_layer,
+    _parse_ocr_page_result,
+    run_ocr,
+)
 
 
 def test_parse_ppocrv5_dict_like_rec_texts():
@@ -39,3 +45,58 @@ def test_parse_paddleocr_v3_list_format():
     assert lines == ["Hallo"]
     assert confidences == [0.91]
     assert blocks[0]["text"] == "Hallo"
+
+
+def test_is_meaningful_text_layer_by_char_count():
+    assert _is_meaningful_text_layer("x" * 50)
+    assert not _is_meaningful_text_layer("x" * 49)
+
+
+def test_is_meaningful_text_layer_by_token_count():
+    assert _is_meaningful_text_layer("one two three four five")
+    assert not _is_meaningful_text_layer("one two three four")
+
+
+def test_run_ocr_pdf_text_layer_skips_paddle(monkeypatch):
+    pdf_bytes = b"%PDF-1.4"
+    layer_text = "Johannes Töx\nSchornsteinfeger\n" + ("detail " * 10)
+
+    monkeypatch.setattr("app.services.ocr._extract_pdf_text_layer", lambda _b: layer_text)
+
+    def _fail_get_engine():
+        raise AssertionError("PaddleOCR must not run when text layer is meaningful")
+
+    monkeypatch.setattr("app.services.ocr._get_engine", _fail_get_engine)
+
+    result = run_ocr(pdf_bytes)
+
+    assert "Johannes" in result.text
+    assert result.confidence == 1.0
+    assert result.blocks == []
+
+
+def test_run_ocr_pdf_empty_text_layer_falls_back_to_paddle(monkeypatch):
+    pdf_bytes = b"%PDF-1.4"
+
+    monkeypatch.setattr("app.services.ocr._extract_pdf_text_layer", lambda _b: "")
+
+    fake_img = MagicMock()
+    fake_img.size = (100, 100)
+    monkeypatch.setattr("app.services.ocr._pil_rgb_from_blob", lambda _b: fake_img)
+    monkeypatch.setattr("app.services.ocr._limit_max_side", lambda img, _max: img)
+    monkeypatch.setattr("numpy.array", lambda _img: [[0]])
+
+    class FakeEngine:
+        def ocr(self, img_array, cls=True):
+            return [
+                [
+                    [[[0, 0], [1, 0], [1, 1], [0, 1]], ("Fallback OCR", 0.9)],
+                ]
+            ]
+
+    monkeypatch.setattr("app.services.ocr._get_engine", lambda: FakeEngine())
+
+    result = run_ocr(pdf_bytes)
+
+    assert result.text == "Fallback OCR"
+    assert result.confidence == 0.9

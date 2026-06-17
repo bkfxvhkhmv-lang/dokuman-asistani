@@ -50,6 +50,36 @@ class OcrResult(NamedTuple):
     blocks:     list[dict]
 
 
+_TEXT_LAYER_MIN_CHARS = 50
+_TEXT_LAYER_MIN_TOKENS = 5
+
+
+def _is_pdf_blob(blob: bytes) -> bool:
+    return len(blob) >= 4 and blob[:4] == b"%PDF"
+
+
+def _extract_pdf_text_layer(blob: bytes) -> str:
+    """Extract embedded text from PDF page 0 via PyMuPDF (no rasterization)."""
+    import fitz  # pymupdf
+
+    doc = fitz.open(stream=blob, filetype="pdf")
+    try:
+        if doc.page_count < 1:
+            return ""
+        return doc.load_page(0).get_text("text") or ""
+    finally:
+        doc.close()
+
+
+def _is_meaningful_text_layer(text: str) -> bool:
+    """Enough embedded text to skip PaddleOCR for digital PDFs."""
+    stripped = text.strip()
+    if len(stripped) >= _TEXT_LAYER_MIN_CHARS:
+        return True
+    tokens = [t for t in stripped.split() if t]
+    return len(tokens) >= _TEXT_LAYER_MIN_TOKENS
+
+
 def _parse_ocr_page_result(page_result) -> tuple[list[str], list[float], list[dict]]:
     """
     Normalize one page of PaddleOCR output into lines, confidences, blocks.
@@ -168,6 +198,17 @@ def _limit_max_side(rgb, max_side: int):
 
 def run_ocr(image_bytes: bytes) -> OcrResult:
     import numpy as np
+
+    if _is_pdf_blob(image_bytes):
+        try:
+            layer_text = _extract_pdf_text_layer(image_bytes)
+        except Exception as e:
+            log.warning("ocr.text_layer_extract_failed", error=str(e))
+            layer_text = ""
+        if _is_meaningful_text_layer(layer_text):
+            text = layer_text.strip()
+            log.info("ocr.text_layer_fast_path", chars=len(text))
+            return OcrResult(text=text, confidence=1.0, blocks=[])
 
     img = None
     try:

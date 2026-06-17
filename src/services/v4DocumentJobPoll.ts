@@ -3,22 +3,58 @@ import { getDocumentV4, getDocumentWorkerResult } from '@/services/v4-api/docume
 import type { V4Document, BackendWorkerResult } from '@/services/v4-api/types';
 import type { Dokument } from '@/store/types';
 
+export interface AttachV4JobPollingOptions {
+  getDok?: (localId: string) => Dokument | undefined;
+  /** When true, completed jobs do not auto-apply worker result to the store. */
+  suppressResultApply?: boolean;
+  onCompleted?: (remoteDocId: string) => void;
+  onFailed?: () => void;
+}
+
+function resolvePollingOptions(
+  getDokOrOptions?: ((localId: string) => Dokument | undefined) | AttachV4JobPollingOptions,
+): AttachV4JobPollingOptions {
+  if (typeof getDokOrOptions === 'function') {
+    return { getDok: getDokOrOptions };
+  }
+  return getDokOrOptions ?? {};
+}
+
 /**
  * Backend `GET /documents/:id` ile pending/processing için arka plan taraması;
  * güncellemeleri `v4JobStatus` alanıyla store'a yazar; completed/failed veya max denemede durur.
  * completed durumunda canonical result endpoint'ten zenginleştirilmiş veri çekilir.
  *
  * getDok: mevcut dokümanı okur; ai* alanlar için aiLabelledAt guard'ı etkinleştirir.
- * Opsiyonel — mevcut çağıranlar (v4EnqueueUpload) değişmeden çalışmaya devam eder.
+ * suppressResultApply: labeler gibi çağrılar store'a ai* yazmadan yalnızca callback alır.
  */
 export function attachV4JobPolling(
   dispatch: (a: StoreAction) => void,
   localDocId: string,
   remoteDocId: string,
-  getDok?: (localId: string) => Dokument | undefined,
+  getDokOrOptions?: ((localId: string) => Dokument | undefined) | AttachV4JobPollingOptions,
 ): void {
+  const options = resolvePollingOptions(getDokOrOptions);
   let tries = 0;
   const maxTries = 48;
+
+  const finishFailed = (): void => {
+    options.onFailed?.();
+  };
+
+  const finishCompleted = (): void => {
+    if (options.suppressResultApply) {
+      options.onCompleted?.(remoteDocId);
+      return;
+    }
+    void fetchAndApplyWorkerResult(
+      dispatch,
+      localDocId,
+      remoteDocId,
+      options.getDok,
+      options.onCompleted,
+    );
+  };
 
   const tick = async (): Promise<void> => {
     tries += 1;
@@ -31,16 +67,26 @@ export function attachV4JobPolling(
           payload: { id: localDocId, v4JobStatus: st },
         });
       }
-      const done = st === 'completed' || st === 'failed';
-      if (done || tries >= maxTries) {
+      if (st === 'failed') {
+        finishFailed();
+        return;
+      }
+      const done = st === 'completed' || tries >= maxTries;
+      if (done) {
         if (st === 'completed') {
-          void fetchAndApplyWorkerResult(dispatch, localDocId, remoteDocId, getDok);
+          finishCompleted();
+        } else {
+          finishFailed();
         }
         return;
       }
       setTimeout(() => void tick(), 2600);
     } catch {
-      if (tries < maxTries) setTimeout(() => void tick(), 4000);
+      if (tries < maxTries) {
+        setTimeout(() => void tick(), 4000);
+      } else {
+        finishFailed();
+      }
     }
   };
 
@@ -52,6 +98,7 @@ async function fetchAndApplyWorkerResult(
   localDocId: string,
   remoteDocId: string,
   getDok?: (localId: string) => Dokument | undefined,
+  onCompleted?: (remoteDocId: string) => void,
 ): Promise<void> {
   let result: BackendWorkerResult;
   try {
@@ -66,6 +113,7 @@ async function fetchAndApplyWorkerResult(
   if (Object.keys(update).length > 1) {
     dispatch({ type: 'UPDATE_DOKUMENT', payload: update });
   }
+  onCompleted?.(remoteDocId);
 }
 
 /**

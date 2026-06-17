@@ -1,13 +1,13 @@
 /**
- * AI Labeler Service — Document display name fallback via LLM.
+ * AI Labeler Service — Document display name fallback via the core-api backend.
  *
  * Architecture:
- *   Rules first (deterministic) → AI fallback only for weak/generic results.
+ *   Rules first (deterministic) → backend worker result fallback only for weak/generic results.
  *
  * Hard rules:
  *   - Only called when shouldLabel() returns true.
  *   - Never overwrites a strong, specific deterministic result.
- *   - Result is cached via aiLabelledAt — one call per document lifetime.
+ *   - Result is cached via aiLabelledAt — one user-accepted label per document lifetime.
  *   - Confidence < 70 → usable = false (requires user confirmation).
  *   - No automatic UI mutation in this module — callers decide how to apply.
  *   - No call during list rendering.
@@ -15,8 +15,9 @@
 
 import type { Dokument } from '@/store/types';
 import { isWeakSender } from '@/utils/senderNormalization';
-import { parseAiLabelResponse, type AiLabelResponse } from '@/utils/aiLabelSchema';
-import { labelDocumentViaOcrMvp } from '@/services/ocrMvpApi';
+import type { AiLabelResponse } from '@/utils/aiLabelSchema';
+import { getDocumentWorkerResult } from '@/services/v4-api/documents';
+import type { BackendWorkerResult } from '@/services/v4-api/types';
 
 // ── Trigger guard ─────────────────────────────────────────────────────────────
 
@@ -40,9 +41,6 @@ type LabelCandidate = Pick<Dokument,
  *  - aiLabelledAt is set (already labelled — cache hit)
  *  - rohText is empty (no OCR text to analyse)
  *  - id is missing (should never happen for a stored document)
- *
- * Note: v4DocId is NOT required here. The backend chat endpoint accepts
- * the local dok.id (same pattern as BelgeChatModal).
  */
 export function shouldLabel(dok: Partial<LabelCandidate>): boolean {
   if (dok.aiLabelledAt) return false;
@@ -55,68 +53,7 @@ export function shouldLabel(dok: Partial<LabelCandidate>): boolean {
   return typeIsWeak || senderIsWeak || titleIsGeneric;
 }
 
-// ── OCR excerpt builder ───────────────────────────────────────────────────────
-
-const MAX_LINES = 80;
-const MAX_CHARS = 2500;
-
-/**
- * Extracts a short, clean excerpt from the raw OCR text.
- * Skips blank lines, caps at MAX_LINES / MAX_CHARS to limit token cost.
- */
-export function buildLabelExcerpt(rohText: string): string {
-  const lines = rohText
-    .split('\n')
-    .map(l => l.trim())
-    .filter(l => l.length > 1) // drop single-char noise
-    .slice(0, MAX_LINES);
-  return lines.join('\n').slice(0, MAX_CHARS);
-}
-
-// ── Prompt builder ────────────────────────────────────────────────────────────
-
-/**
- * Builds the structured labelling prompt sent to the AI.
- * Output must be a single JSON object — no markdown, no prose.
- */
-export function buildLabelPrompt(
-  excerpt: string,
-  currentTitle: string,
-  currentType: string,
-  currentSender: string,
-): string {
-  return `Du bist ein Klassifikator für deutsche Dokumente. Analysiere diesen OCR-Text und antworte NUR mit einem JSON-Objekt.
-
-Aktuelle Klassifikation (möglicherweise unvollständig):
-- Titel: ${currentTitle}
-- Typ: ${currentType}
-- Absender: ${currentSender}
-
-OCR-Textauszug:
----
-${excerpt}
----
-
-Antworte NUR mit diesem JSON (kein Markdown, keine Erklärung):
-{
-  "displayTitle": "<kurzer deutscher Titel, max 80 Zeichen>",
-  "documentType": "<Rechnung | Mahnung | Steuerbescheid | Versicherung | Behördenbescheid | Kündigung | Vertrag | Überweisung | MRT-Überweisung | Nebenkostenabrechnung | Bußgeld | Formular | Sonstiges>",
-  "sender": "<Institution oder Firmenname, oder null>",
-  "shortSummary": "<ein Satz auf Deutsch, max 150 Zeichen>",
-  "confidence": <0-100>,
-  "needsUserConfirmation": <true wenn unsicher>,
-  "reason": "<kurze Begründung auf Deutsch>"
-}
-
-Regeln:
-- Enthält der Text "Überweisungsschein" oder "Überweisung" → Typ "Überweisung" oder "MRT-Überweisung" (wenn MRT vorhanden)
-- Enthält der Text "Nebenkostenabrechnung" → entsprechenden Typ verwenden
-- Sender darf keine Privatperson sein — nur Firmen/Behörden
-- confidence < 70 → needsUserConfirmation muss true sein
-- Keine Fakten erfinden, die nicht im Text stehen`;
-}
-
-// ── Main labeller ─────────────────────────────────────────────────────────────
+// ── Backend result mapper ─────────────────────────────────────────────────────
 
 export interface AiLabelerResult {
   response: AiLabelResponse;
@@ -124,43 +61,74 @@ export interface AiLabelerResult {
   usable: boolean;
 }
 
+const MAX_TITLE = 120;
+const MAX_TYPE = 80;
+const MAX_SENDER = 80;
+const MAX_SHORT_SUMMARY = 300;
+
+function normalizeConfidence(raw: unknown): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return 0;
+  // Backend stores PaddleOCR confidence as 0–1; legacy/UI expects 0–100.
+  const scaled = raw <= 1 ? raw * 100 : raw;
+  return Math.max(0, Math.min(100, Math.round(scaled)));
+}
+
+function truncate(str: string, max: number): string {
+  if (str.length <= max) return str;
+  return str.slice(0, max - 1) + '…';
+}
+
 /**
- * Calls the backend AI chat endpoint with a structured labelling prompt
- * and returns a validated result, or null on any failure.
+ * Converts the canonical backend worker result into the AI Labeler suggestion
+ * shape used by the "Besser erkennen" card.
  *
- * The caller is responsible for:
- *  - Checking shouldLabel(dok) before calling
- *  - Storing aiLabelledAt after a call to prevent re-calls
- *  - Deciding whether to auto-apply (usable) or show a suggestion (not usable)
+ * Returns null when no usable title/type is present.
  */
-export async function labelDocument(dok: {
-  id: string;
-  rohText: string;
-  titel: string;
-  typ: string;
-  absender: string;
-}): Promise<AiLabelerResult | null> {
-  if (!dok.rohText?.trim()) return null;
+export function labelDocumentFromBackendResult(
+  result: BackendWorkerResult,
+): AiLabelerResult | null {
+  const doc = result.document;
+  if (!doc) return null;
 
-  let raw: unknown;
-  try {
-    raw = await labelDocumentViaOcrMvp({
-      rohText:       dok.rohText,
-      currentTitle:  dok.titel   || null,
-      currentType:   dok.typ     || null,
-      currentSender: dok.absender || null,
-    });
-  } catch {
-    return null;
-  }
+  const displayTitle = truncate(doc.suggested_title?.trim() ?? '', MAX_TITLE);
+  const documentType = truncate(doc.document_type?.trim() ?? '', MAX_TYPE);
+  if (!displayTitle || !documentType) return null;
 
-  // Backend returns validated JSON directly — wrap as string for parseAiLabelResponse
-  const replyText = typeof raw === 'string' ? raw : JSON.stringify(raw);
-  const response = parseAiLabelResponse(replyText);
-  if (!response) return null;
+  const confidence = normalizeConfidence(result.confidence);
+  const rawSender = doc.sender?.trim() ?? '';
+  const sender = rawSender ? truncate(rawSender, MAX_SENDER) : null;
+  const shortSummary = truncate(
+    result.action_summary?.short_summary?.trim() ||
+    result.action_summary?.summary?.trim() ||
+    '',
+    MAX_SHORT_SUMMARY,
+  );
+
+  const response: AiLabelResponse = {
+    displayTitle,
+    documentType,
+    sender,
+    shortSummary,
+    confidence,
+    needsUserConfirmation: confidence < 70,
+    reason: '',
+  };
 
   return {
     response,
-    usable: response.confidence >= 70 && !response.needsUserConfirmation,
+    usable: !response.needsUserConfirmation,
   };
+}
+
+/**
+ * Fetches `GET /documents/{remoteDocId}/result` and maps it to an AI Labeler
+ * suggestion, or null on any failure.
+ */
+export async function fetchBackendLabel(remoteDocId: string): Promise<AiLabelerResult | null> {
+  try {
+    const result = await getDocumentWorkerResult(remoteDocId);
+    return labelDocumentFromBackendResult(result);
+  } catch {
+    return null;
+  }
 }

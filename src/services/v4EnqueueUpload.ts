@@ -1,10 +1,9 @@
 import { uploadDocumentV4Safe } from '@/services/v4FileService';
-import { attachV4JobPolling } from '@/services/v4DocumentJobPoll';
+import { attachV4JobPolling, type AttachV4JobPollingOptions } from '@/services/v4DocumentJobPoll';
 import { alertUploadFailedRetry } from '@/services/uploadUserAlert';
-import type { Dokument } from '@/store/types';
 import type { StoreAction } from '@/store/actions';
 
-function parseV4JobStatus(raw: unknown): Dokument['v4JobStatus'] | undefined {
+function parseV4JobStatus(raw: unknown): 'pending' | 'processing' | 'completed' | 'failed' | undefined {
   if (typeof raw !== 'string') return undefined;
   const s = raw.trim().toLowerCase();
   if (s === 'pending' || s === 'processing' || s === 'completed' || s === 'failed') return s;
@@ -17,6 +16,17 @@ function parseV4JobStatus(raw: unknown): Dokument['v4JobStatus'] | undefined {
 export interface EnqueueV4UploadOptions {
   /** If true, do not show the default retry Alert on upload failure. */
   suppressAlert?: boolean;
+  /** Forwarded to attachV4JobPolling — labeler uses this to defer store writes. */
+  suppressResultApply?: boolean;
+  onCompleted?: (remoteDocId: string) => void;
+  onFailed?: () => void;
+}
+
+function toPollingOptions(options?: EnqueueV4UploadOptions): AttachV4JobPollingOptions | undefined {
+  if (!options) return undefined;
+  const { suppressResultApply, onCompleted, onFailed } = options;
+  if (!suppressResultApply && !onCompleted && !onFailed) return undefined;
+  return { suppressResultApply, onCompleted, onFailed };
 }
 
 export function enqueueV4Upload(
@@ -38,6 +48,7 @@ export function enqueueV4Upload(
           type:    'UPDATE_DOKUMENT',
           payload: { id: localDocumentId, v4JobStatus: 'failed' },
         });
+        options?.onFailed?.();
         return;
       }
       const st = parseV4JobStatus(result.status);
@@ -49,12 +60,13 @@ export function enqueueV4Upload(
           ...(st ? { v4JobStatus: st } : {}),
         },
       });
-      attachV4JobPolling(dispatch, localDocumentId, result.id);
+      attachV4JobPolling(dispatch, localDocumentId, result.id, toPollingOptions(options));
     } catch (e) {
       dispatch({
         type:    'UPDATE_DOKUMENT',
         payload: { id: localDocumentId, v4JobStatus: 'failed' },
       });
+      options?.onFailed?.();
       if (!options?.suppressAlert) {
         await alertUploadFailedRetry(() => void run(), e);
       }

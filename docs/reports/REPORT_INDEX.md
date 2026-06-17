@@ -42,6 +42,12 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 **Kapsam:** Detail ekranı “Analysieren” butonunun eski OCR MVP’den yeni core-api backend’e taşınması — commit öncesi denetim raporu.
 
+### #138 Merge Report
+
+📄 [docs/audits/2026-06-17_138-analysieren-migration-MERGE-report.md](../audits/2026-06-17_138-analysieren-migration-MERGE-report.md)
+
+**Kapsam:** #138 PR’nin `main`e squash merge sonrası doğrulama raporu.
+
 ---
 
 ## Arama Keywords

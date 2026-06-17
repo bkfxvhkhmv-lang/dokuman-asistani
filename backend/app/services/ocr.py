@@ -50,8 +50,8 @@ class OcrResult(NamedTuple):
     blocks:     list[dict]
 
 
-_TEXT_LAYER_MIN_CHARS = 50
-_TEXT_LAYER_MIN_TOKENS = 5
+_TEXT_LAYER_MIN_CHARS = 200
+_TEXT_LAYER_MIN_TOKENS = 20
 
 
 def _is_pdf_blob(blob: bytes) -> bool:

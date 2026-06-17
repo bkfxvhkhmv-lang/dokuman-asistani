@@ -49,7 +49,7 @@ def _save_meta(doc_id: str, data: dict) -> None:
                      betrag, frist, iban, warnung, aktionen, updated_at)
                 VALUES
                     (:doc_id, :titel, :zus, :kurz, :typ, :risiko,
-                     :betrag, :frist, :iban, :warnung, :aktionen::jsonb, :ts)
+                     :betrag, :frist, :iban, :warnung, CAST(:aktionen AS jsonb), :ts)
                 ON CONFLICT (doc_id) DO UPDATE SET
                     titel=EXCLUDED.titel, zusammenfassung=EXCLUDED.zusammenfassung,
                     kurzfassung=EXCLUDED.kurzfassung, typ=EXCLUDED.typ,

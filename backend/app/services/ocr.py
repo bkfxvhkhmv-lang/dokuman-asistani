@@ -129,7 +129,22 @@ def run_ocr(image_bytes: bytes) -> OcrResult:
     blocks: list[dict] = []
 
     for line in raw[0]:
-        box, (text, conf) = line
+        if not line or len(line) < 2:
+            continue
+        box = line[0]
+        # PaddleOCR 2.x: line = [box, [text, conf]]
+        # PaddleOCR 3.x: line = [box, text, conf]
+        if isinstance(line[1], (list, tuple)):
+            rec = line[1]
+            text, conf = str(rec[0]), float(rec[1])
+        else:
+            text = str(line[1]) if line[1] is not None else ""
+            try:
+                conf = float(line[2]) if len(line) > 2 else 1.0
+            except (TypeError, ValueError):
+                conf = 1.0
+        if not text:
+            continue
         lines.append(text)
         confidences.append(conf)
         blocks.append({"text": text, "confidence": conf, "box": box})

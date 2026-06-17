@@ -14,11 +14,17 @@ function parseV4JobStatus(raw: unknown): Dokument['v4JobStatus'] | undefined {
 /**
  * V4 foto yükleme + başarılı olunca job polling başlatır; hata için Alert yeniden deneme sunar.
  */
+export interface EnqueueV4UploadOptions {
+  /** If true, do not show the default retry Alert on upload failure. */
+  suppressAlert?: boolean;
+}
+
 export function enqueueV4Upload(
   dispatch: (a: StoreAction) => void,
   localDocumentId: string,
   fileUri: string,
   filename: string,
+  options?: EnqueueV4UploadOptions,
 ): void {
   const run = async (): Promise<void> => {
     dispatch({
@@ -49,7 +55,9 @@ export function enqueueV4Upload(
         type:    'UPDATE_DOKUMENT',
         payload: { id: localDocumentId, v4JobStatus: 'failed' },
       });
-      await alertUploadFailedRetry(() => void run(), e);
+      if (!options?.suppressAlert) {
+        await alertUploadFailedRetry(() => void run(), e);
+      }
     }
   };
   void run();

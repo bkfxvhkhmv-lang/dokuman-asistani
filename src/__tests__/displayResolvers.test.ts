@@ -71,7 +71,16 @@ describe('resolveDocumentTitle — customTitle > strong titel > aiDisplayTitle >
     expect(result).toContain('Rechnung');
   });
 
-  it('weak titel without aiDisplayTitle uses buildSafeDocumentTitleFallback', () => {
+  it('weak titel without aiDisplayTitle uses offline fallback when importSource set', () => {
+    expect(resolveDocumentTitle({
+      titel: '2026-06-17 · Scan 01',
+      typ: 'Sonstiges',
+      importSource: 'scan',
+      createdAt: '2026-06-17T12:00:00.000Z',
+    })).toBe('2026-06-17 · Scan 01');
+  });
+
+  it('legacy Scan vom weak titel without importSource uses safe fallback', () => {
     expect(resolveDocumentTitle({
       titel: 'Scan vom 17.06.2026 14:33',
       typ: 'Sonstiges',

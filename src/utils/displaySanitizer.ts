@@ -4,6 +4,12 @@
  */
 import { t } from '@/i18n/translations';
 import { normalizeSender } from '@/utils/senderNormalization';
+import {
+  isOfflineFallbackTitle,
+  resolveOfflineDisplayTitle,
+  OFFLINE_FALLBACK_TITLE_RE,
+  type ImportSource,
+} from '@/utils/offlineFallbackTitle';
 
 // ── Title humanization (shared across app) ───────────────────────────────────
 
@@ -238,10 +244,6 @@ export function safeDisplayAbsender(
 
 // ── Weak / strong titel classification (#142A) ───────────────────────────────
 
-/** Future #142B offline fallback titles — weak so AI/display can supersede. */
-const OFFLINE_FALLBACK_TITLE_RE =
-  /^\d{4}-\d{2}-\d{2}\s*·\s*(Scan|PDF|Foto)\s+\d{2}$/i;
-
 /**
  * True when raw `titel` is generic, placeholder, or otherwise not meaningful
  * enough to beat `aiDisplayTitle` in the display chain.
@@ -253,7 +255,7 @@ export function isWeakTitle(titel: string | null | undefined): boolean {
   if (/^Scan\s+vom\s+/i.test(raw)) return true;
   if (/^Wird\s+analysiert/i.test(raw)) return true;
   if (/^Scan[\s_]+\d{6,}$/i.test(raw)) return true;
-  if (OFFLINE_FALLBACK_TITLE_RE.test(raw)) return true;
+  if (isOfflineFallbackTitle(raw) || OFFLINE_FALLBACK_TITLE_RE.test(raw)) return true;
   const withoutExt = raw.replace(FILE_EXT_RE, '');
   for (const { re } of TECH_FILENAME_MAP) {
     if (re.test(withoutExt)) return true;
@@ -287,6 +289,7 @@ export function resolveDocumentTitle(dok: {
   datum?: string | null;
   createdAt?: string | null;
   id?: string | null;
+  importSource?: ImportSource | null;
 }): string {
   // customTitle and aiDisplayTitle are already clean user/AI strings —
   // bypass OCR humanization (which would mangle hyphens, apply title-case, etc.)
@@ -301,6 +304,9 @@ export function resolveDocumentTitle(dok: {
 
   const aiTitle = normalizeWhitespace(safeDecode(dok.aiDisplayTitle ?? ''));
   if (aiTitle && !isLikelyBadDocumentTitle(aiTitle)) return aiTitle;
+
+  const offlineTitle = resolveOfflineDisplayTitle(dok);
+  if (offlineTitle) return offlineTitle;
 
   return buildSafeDocumentTitleFallback(dok);
 }

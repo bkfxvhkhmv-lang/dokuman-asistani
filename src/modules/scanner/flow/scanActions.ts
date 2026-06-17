@@ -32,6 +32,8 @@ interface ExecuteScanActionDeps {
    * Verilmezse sadece sheet kapanır + clearPages çalışır.
    */
   onArchived?: (dokId: string) => void;
+  /** Sıra sayacı için mevcut belgeler (store snapshot) */
+  existingDocs?: import('@/store').Dokument[];
   showSheet: ShowSheetFn;
   hideSheet: () => void;
   generatePdf: () => Promise<{ uri: string; pageCount: number; fileSize: number } | null>;
@@ -54,6 +56,7 @@ export async function executeScanAction({
   hideSheet,
   generatePdf,
   dispatch,
+  existingDocs = [],
 }: ExecuteScanActionDeps): Promise<void> {
   const lang = await getLang();
   const t = (key: string, vars?: Record<string, string>) => scanT(lang, key, vars);
@@ -74,7 +77,7 @@ export async function executeScanAction({
     // tekrar dönüp düzenleyebilir / paylaşabilir.
     if (action === 'archive' || action === 'save_only') {
       try {
-        const { dokId } = await archiveDocument({ sourceUris, dispatch });
+        const { dokId } = await archiveDocument({ sourceUris, dispatch, existingDocs });
         showSheet({
           title:   t('scan.archived_title'),
           message: t('scan.archived_message', { count: pageLabel(pageCount) }),
@@ -129,7 +132,7 @@ export async function executeScanAction({
 
     let archivedId: string | null = null;
     try {
-      const { dokId } = await archiveDocument({ sourceUris, dispatch });
+      const { dokId } = await archiveDocument({ sourceUris, dispatch, existingDocs });
       archivedId = dokId;
     } catch (e) {
       console.warn('[scanActions] export → archive failed', e);

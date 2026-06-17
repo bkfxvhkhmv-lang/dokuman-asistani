@@ -22,6 +22,11 @@ import { generateId } from '@/utils';
 import { persistScanFiles } from '@/modules/scanner/storage/scanFileStorage';
 import { getLangSync } from '@/i18n/langStore';
 import { t } from '@/i18n/translations';
+import { isStrongTitle } from '@/utils/displaySanitizer';
+import {
+  buildOfflineFallbackTitle,
+  shareFileTypeToImportSource,
+} from '@/utils/offlineFallbackTitle';
 import {
   buildUploadNotificationContent,
   ensureAndroidDefaultNotificationChannel,
@@ -140,10 +145,19 @@ export async function processSharedFile(
 
     const typ = String(merged.typ || t(lang, 'doc.type.other'));
     const absender = String(merged.absender || t(lang, 'document_analysis.unknown_sender'));
+    const importDate = new Date();
+    const importSource = shareFileTypeToImportSource(fileType);
+    const offlineTitel = buildOfflineFallbackTitle({
+      source: importSource,
+      importDate,
+      existingDocs: alleDocs,
+    });
+    const mergedTitel = String(merged.titel ?? '').trim();
+    const titel = isStrongTitle(mergedTitel) ? mergedTitel : offlineTitel;
 
     const dokument: Dokument = {
       id:              documentId,
-      titel:           fileName.replace(/\.(pdf|jpe?g|png|heic)$/i, '') || t(lang, 'share_upload.shared_title', { type: String(merged.typ || t(lang, 'display.fallback.document')) }),
+      titel,
       typ,
       absender,
       zusammenfassung: rawText.length > 0 ? visionResult.zusammenfassung ?? null : null,
@@ -154,13 +168,15 @@ export async function processSharedFile(
       frist:           merged.frist ?? null,
       risiko:          merged.risiko ?? 'niedrig',
       aktionen:        visionResult.aktionen ?? [],
-      datum:           new Date().toISOString(),
+      datum:           importDate.toISOString(),
       gelesen:         false,
       erledigt:        false,
       uri:              persistedPages[0]?.uri ?? null,
       fileRelativePath: persistedPages[0]?.relativePath ?? null,
       pages:            persistedPages,
       rohText:          rawText || null,
+      importSource,
+      dateiName:        fileName,
     };
 
     // Step 3 — value-first "done" notification

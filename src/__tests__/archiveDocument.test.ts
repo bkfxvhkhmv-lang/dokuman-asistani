@@ -57,19 +57,21 @@ describe('archiveDocument', () => {
     expect(dok.pages).toHaveLength(2);
     expect(dok.pages[0].order).toBe(1);
     expect(dok.uri).toBe('file:///doc/scans/' + result.dokId + '/page-1.jpg');
-    expect(dok.titel).toMatch(/^Scan vom /);
+    expect(dok.titel).toMatch(/^2026-\d{2}-\d{2} · Scan 01$/);
+    expect(dok.importSource).toBe('scan');
     expect(dok.rohText).toBeNull();
   });
 
-  it('honors customTitle when provided', async () => {
+  it('honors customTitle when provided without overwriting titel', async () => {
     const dispatch = jest.fn();
     const { document } = await archiveDocument({
       sourceUris: ['file:///cache/a.jpg'],
       customTitle: 'Versicherungsbescheinigung 2026',
       dispatch,
     });
-    expect(document.titel).toBe('Versicherungsbescheinigung 2026');
     expect(document.customTitle).toBe('Versicherungsbescheinigung 2026');
+    expect(document.titel).toMatch(/· Scan 01$/);
+    expect(document.titel).not.toBe('Versicherungsbescheinigung 2026');
   });
 
   it('honors typ override', async () => {

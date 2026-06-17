@@ -149,6 +149,11 @@ export interface Dokument {
   isDemo?: boolean;
   /** Kullanicinin verdigi ozel baslik (otomatik uretilen titel'i ezerse) */
   customTitle?: string | null;
+  /**
+   * Offline import kaynagi — archive/share/camera create path.
+   * Resolver offline fallback uretimi icin kullanilir.
+   */
+  importSource?: 'scan' | 'pdf' | 'photo' | 'unknown' | null;
   /** Belgede yazan tarih (fatura/karar/mektup tarihi) — datum scan tarihidir, bu belge tarihidir */
   dokumentDatum?: string | null;
   /**

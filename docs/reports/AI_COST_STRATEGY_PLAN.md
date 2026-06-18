@@ -87,11 +87,21 @@ Store/compare `parser_result`, `fallback_result`, and final user-saved values. U
 - Evolve parser rules (`local_document_parser.py`)
 - Re-run provider comparison before changing gates
 
-### 8. Mistral
+### 8. Mistral & Claude Haiku (provider smoke, 2026-06-17)
 
-- Optional **future** eval candidate.
-- **Not** default without real OCR eval on German fixtures.
-- Current primary candidates for eval: **parser → (eval-chosen cheap JSON model) → (eval-chosen reliable model)**. Gemini Flash remains eval candidate only.
+Live smoke on 8 fixtures (5 redacted real OCR + 3 synthetic) — see [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md):
+
+| Provider | avg_score | valid_json | Operational weakness |
+|----------|-----------|------------|----------------------|
+| Parser | **0.899** | 1.00 | Clean on operational fields |
+| Mistral (`mistral-small-latest`) | 0.680 | 1.00 | amount, risk, sender, next_action failures |
+| Claude Haiku (`claude-haiku-4-5-20251001`) | 0.695 | 1.00 | amount, risk, sender, next_action failures; better title/summary semantics |
+
+**Provider smoke results strengthen parser-first strategy.** LLM fallback is **not justified** for HIGH parser confidence. Cost-saving strategy should prioritize **parser acceptance** and optional **title/summary semantic enrichment** rather than full LLM extraction.
+
+- **Mistral:** eval-only integration **PASS** (#164 merged); production operational fallback **NO**.
+- **Haiku:** title/summary enrichment **MAYBE**; production operational fallback **NO**.
+- **Neither** should be selected as production operational fallback default.
 
 ### 9. Future infrastructure
 
@@ -120,8 +130,9 @@ Store/compare `parser_result`, `fallback_result`, and final user-saved values. U
 | **#153-A** | Eval harness + local parser baseline | ✅ Merged (`b942eab18`) |
 | **#154-A** | This strategy doc + canonical update | ✅ Docs |
 | **#157** | Parser field improvements (amount → type/action) | ✅ Merged (#158–#162) |
-| **#163** | Confidence gate design doc | 🔄 Docs — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
-| **#164** | Shadow-mode instrumentation / gate logging | Planned — after #163 |
+| **#163** | Confidence gate design doc | ✅ Merged — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
+| **#164** | Mistral eval-only provider + provider smoke docs | ✅ Merged (`ef4597498`); operational fallback **NO** |
+| **#164-B** | Shadow-mode instrumentation / gate logging | **NEXT** — after provider smoke docs |
 | **#165+** | Parser-first gate in `decision_worker` (behind flag) | Planned — after shadow mode |
 | Premium flows | Sonnet for Besser erkennen / drafts | Existing / separate |
 
@@ -162,7 +173,7 @@ See [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) for full usage.
 ## Out of scope (this plan doc)
 
 - Changing `decision_worker` or `LLM_PROVIDER` defaults
-- Mistral integration
+- Mistral production routing (eval-only merged; fallback **NO**)
 - Mobile / frontend changes
 - OCR / Paddle runtime changes
 - Committing secrets or full private documents

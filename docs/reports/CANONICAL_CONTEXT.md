@@ -1,8 +1,8 @@
 # BriefPilot — Canonical Context
 
 > **Son güncelleme:** 2026-06-17  
-> **Trusted main:** `37f8a99e8`  
-> **Son merge:** PR #162 — `fix(parser): refine document type and next action`  
+> **Trusted main:** `ef4597498`  
+> **Son merge:** PR #164 — `test(eval): add Mistral extraction provider smoke support`  
 > **Repo:** `/Users/bayramgul/briefpilot-clean`  
 > **Stash count:** 6 — dokunma (kullanıcı söylemedikçe)
 
@@ -23,7 +23,10 @@ Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kıla
 | **#147-B** (health bootstrap) | Bekliyor — kullanıcı engeli değil, #146-C sonrası |
 | **#153-A** (extraction eval harness) | **DONE** — merged `b942eab18` |
 | **#157 arc** (parser fields A–F) | **DONE** — #158–#162; parser avg **0.899**, operational fields 0/8 fail |
-| **#163** (confidence gate design) | **Docs** — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
+| **#163** (confidence gate design) | **Merged** — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
+| **#164** (Mistral eval-only provider) | **Merged** — `ef4597498`; production fallback **NO** |
+| **Provider smoke** (Mistral + Haiku, 8 fixtures) | **Complete** — parser beats LLMs on operational fields |
+| **Shadow-mode instrumentation** (#164-B) | **NEXT** |
 | **AI cost strategy** | **Planlandı** — [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md); production switch yok |
 
 ---
@@ -34,14 +37,16 @@ Uzun vadede her OCR sonucu için Claude çağırmayacağız. Hedef:
 
 1. **Paddle OCR** her zaman (local, token maliyeti yok).
 2. **Local parser** her zaman (`local_document_parser.py` — rule-based, confidence + evidence).
-3. **Confidence gate:** operational confidence HIGH ≥ **0.80** → parser sonucu, LLM atla — detay: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) (#163). Shadow mode (#164) zorunlu; production switch yok.
-4. **Orta güven (0.60–0.79):** parser göster; opsiyonel async enrichment (title/summary). LLM provider sırası **eval ile belirlenecek** — Gemini default değil.
-5. **Düşük güven (< 0.60 / conflict):** targeted LLM fallback — güvenilir düşük maliyetli model adayı (eval ile seçim).
+3. **Confidence gate:** operational confidence HIGH ≥ **0.80** → parser sonucu, LLM atla — detay: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) (#163). Shadow mode (#164-B) zorunlu; production switch yok.
+4. **Orta güven (0.60–0.79):** parser göster; opsiyonel async enrichment (**title/summary only**). LLM operational override (**amount/deadline/risk/sender/document_type/next_action**) **NO**.
+5. **Düşük güven (< 0.60 / conflict):** targeted LLM fallback — unresolved operational fields only; blind full override **NO**.
 6. **Premium:** Besser erkennen, cevap taslağı, itiraz, hukuki ağır akışlar → Claude Sonnet / premium.
 7. **Feedback loop:** parser vs fallback vs kullanıcının kaydettiği/düzelttiği alanlar; en güvenilir sinyal kullanıcı final verisi.
-8. **Mistral:** opsiyonel gelecek eval adayı; default değil.
+8. **Mistral / Haiku smoke:** `valid_json` 1.00 ama operational alanlarda LLM'ler zayıf — production operational fallback **NO**; Haiku title/summary enrichment **MAYBE**.
 
-Parser eval (#157 sonrası, 8 fixture): avg **0.899**, operational fields **0/8** fail, `valid_json` 1.00, ~0.7 ms. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
+Parser eval (#157 sonrası, 8 fixture): avg **0.899**, operational fields **0/8** fail (sender 1 safe null), `valid_json` 1.00, ~2 ms. Mistral smoke: 0.680; Haiku smoke: 0.695. **Provider smoke conclusion:** parser beats tested LLMs on operational fields. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
+
+**Architecture labels:** Parser operational source of truth **GO** | LLM title/summary enrichment **MAYBE** | LLM operational override **NO** | Production routing **HOLD** | Shadow-mode instrumentation **NEXT**
 
 **Production `decision_worker` / `LLM_PROVIDER` değişmedi.**
 

@@ -1,0 +1,15 @@
+{
+  "id": "mahnung_synthetic",
+  "label": "Synthetic payment reminder (test-safe)",
+  "raw_text": "Vodafone GmbH\nKundenservice\n\nMahnung / Zahlungserinnerung\n\nOffener Betrag: 45,99 EUR\nFällig am 10.05.2026\n\nBitte begleichen Sie den Betrag umgehend, um weitere Mahngebühren zu vermeiden.",
+  "expected": {
+    "document_type": "Mahnung",
+    "title_keywords": ["Mahnung"],
+    "sender_keywords": ["Vodafone"],
+    "amount": 45.99,
+    "deadline": "2026-05-10",
+    "risk": "hoch",
+    "summary_keywords": ["Mahnung", "Betrag"],
+    "next_action": "zahlen"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "heizoel_rechnung_synthetic",
+  "label": "Synthetic Heizöl invoice (test-safe)",
+  "raw_text": "Gebr. Alt GmbH\nPickardstr. 31\n66822 Lebach\n\nRechnung Nr. 2026-4711\nRechnungsdatum: 17.06.2026\n\nLieferung Heizöl EL 1.500 Liter\n\nGesamtbetrag 1.929,20 EUR\n\nZahlung bis 15.07.2026 auf folgendes Konto:\nIBAN DE12 3456 7890 1234 56",
+  "expected": {
+    "document_type": "Rechnung",
+    "title_keywords": ["Rechnung", "Heizöl"],
+    "sender_keywords": ["Alt GmbH"],
+    "amount": 1929.2,
+    "deadline": "2026-07-15",
+    "risk": "mittel",
+    "summary_keywords": ["Rechnung", "Alt"],
+    "next_action": "zahlen"
+  }
+}

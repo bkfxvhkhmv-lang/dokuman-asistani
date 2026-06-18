@@ -434,14 +434,77 @@ def _extract_document_date(text: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def _text_has_risk_keyword(text_lower: str, keyword: str) -> bool:
+    if " " in keyword:
+        return keyword in text_lower
+    # OCR may glue compound billing terms (e.g. jahresverbrauchsabrechnung).
+    if keyword.endswith("abrechnung") and len(keyword) > 10:
+        return keyword in text_lower
+    return bool(re.search(rf"\b{re.escape(keyword)}\b", text_lower))
+
+
+def _text_has_any_risk_keyword(text_lower: str, keywords: tuple[str, ...]) -> bool:
+    return any(_text_has_risk_keyword(text_lower, keyword) for keyword in keywords)
+
+
+_HIGH_RISK_KEYWORDS = (
+    "mahnung",
+    "zahlungserinnerung",
+    "letzte mahnung",
+    "inkasso",
+    "vollstreckung",
+    "pfändung",
+    "pfaendung",
+    "klage",
+    "anwalt",
+    "verzug",
+    "gerichtliches mahnverfahren",
+    "mahnbescheid",
+    "fristsetzung",
+    "kündigungsandrohung",
+    "kuendigungsandrohung",
+    "drohung",
+)
+
+_LOW_RISK_KEYWORDS = (
+    "guthaben",
+    "gutschrift",
+    "erstattung",
+    "zu ihren gunsten",
+    "rückzahlung",
+    "rueckzahlung",
+    "bestätigung",
+    "bestaetigung",
+    "information",
+    "informationsschreiben",
+)
+
+_ROUTINE_RISK_KEYWORDS = (
+    "rechnung",
+    "abrechnung",
+    "beitragsrechnung",
+    "gebührenbescheid",
+    "gebuehrenbescheid",
+    "jahresabrechnung",
+    "verbrauchsabrechnung",
+    "zahlbetrag",
+    "rechnungsbetrag",
+)
+
+
 def _guess_risk(doc_type: str, text: str, deadline_iso: str | None) -> str:
-    lower = text.lower()
-    if doc_type == "Mahnung" or "mahnung" in lower or "verzug" in lower:
+    text_lower = text.lower()
+
+    if doc_type == "Mahnung":
         return "hoch"
+    if _text_has_any_risk_keyword(text_lower, _HIGH_RISK_KEYWORDS):
+        return "hoch"
+    if _text_has_any_risk_keyword(text_lower, _LOW_RISK_KEYWORDS):
+        return "niedrig"
     if doc_type in ("Bescheid", "Rechnung") and deadline_iso:
         return "mittel"
-    if "dringend" in lower or "sofort" in lower:
-        return "hoch"
+    if _text_has_any_risk_keyword(text_lower, _ROUTINE_RISK_KEYWORDS):
+        return "mittel"
     return "niedrig"
 
 

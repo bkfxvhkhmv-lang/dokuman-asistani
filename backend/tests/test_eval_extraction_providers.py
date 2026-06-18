@@ -10,6 +10,7 @@ import pytest
 from app.services.eval_extraction_providers import (
     AnthropicEvalProvider,
     GeminiEvalProvider,
+    MistralEvalProvider,
     ParserEvalProvider,
     resolve_providers,
     run_fixture_eval,
@@ -28,6 +29,11 @@ def test_resolve_providers_parser_only():
     providers = resolve_providers(["parser"])
     assert len(providers) == 1
     assert providers[0].name == "parser"
+
+
+def test_resolve_providers_includes_mistral():
+    providers = resolve_providers(["parser", "mistral"])
+    assert [provider.name for provider in providers] == ["parser", "mistral"]
 
 
 def test_parser_provider_runs_without_keys():
@@ -49,6 +55,59 @@ def test_gemini_skips_without_api_key():
             result = await provider.extract("Rechnung")
         assert result.skipped is True
         assert "GEMINI_API_KEY" in (result.skip_reason or "")
+
+    asyncio.run(_run())
+
+
+def test_mistral_skips_without_api_key():
+    async def _run():
+        with patch.dict("os.environ", {}, clear=True):
+            provider = MistralEvalProvider()
+            result = await provider.extract("Rechnung")
+        assert result.skipped is True
+        assert "MISTRAL_API_KEY" in (result.skip_reason or "")
+
+    asyncio.run(_run())
+
+
+def test_mistral_extract_parses_mock_response():
+    async def _run():
+        mock_body = {
+            "choices": [
+                {
+                    "message": {
+                        "content": '{"titel": "Rechnung", "typ": "Rechnung", "betrag": 10.0}',
+                    }
+                }
+            ],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 50},
+        }
+
+        class MockResponse:
+            def raise_for_status(self) -> None:
+                return None
+
+            def json(self) -> dict:
+                return mock_body
+
+        class MockClient:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, *args, **kwargs):
+                return MockResponse()
+
+        with patch.dict("os.environ", {"MISTRAL_API_KEY": "test-key"}, clear=True):
+            with patch("app.services.mistral_eval.httpx.AsyncClient", return_value=MockClient()):
+                provider = MistralEvalProvider()
+                result = await provider.extract(FIXTURE["raw_text"])
+
+        assert not result.skipped
+        assert result.valid_json is True
+        assert result.extracted.get("typ") == "Rechnung"
 
     asyncio.run(_run())
 

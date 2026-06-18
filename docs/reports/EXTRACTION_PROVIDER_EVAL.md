@@ -86,6 +86,9 @@ export GEMINI_MODEL=gemini-2.0-flash   # optional; default Flash model
 
 export ANTHROPIC_API_KEY=...
 export ANTHROPIC_MODEL=claude-haiku-4-5-20251001   # optional; uses app settings if set
+
+export MISTRAL_API_KEY=...
+export MISTRAL_MODEL=mistral-small-latest   # optional; default mistral-small-latest for smoke tests
 ```
 
 Run:
@@ -93,7 +96,17 @@ Run:
 ```bash
 cd backend
 python scripts/eval_extraction_providers.py --providers parser,gemini,anthropic
+python scripts/eval_extraction_providers.py --providers parser,mistral --details
 python scripts/eval_extraction_providers.py --providers gemini --json-out /tmp/eval.json
+```
+
+Docker smoke (pass key into container, never commit):
+
+```bash
+cd backend
+docker compose run --rm --no-deps \
+  -e MISTRAL_API_KEY="$MISTRAL_API_KEY" \
+  api python scripts/eval_extraction_providers.py --providers parser,mistral --details
 ```
 
 Missing keys: provider is **skipped** with a clear message (no hard failure unless that is the only provider and all rows skip).
@@ -120,8 +133,9 @@ Output includes `valid_json`, `latency_ms`, `estimated_cost` (token hint for Gem
 |--------|------|
 | `app/services/local_document_parser.py` | Rule-based baseline extractor |
 | `app/services/eval_extraction_scorer.py` | Field scoring |
-| `app/services/eval_extraction_providers.py` | Provider registry (parser / gemini / anthropic) |
+| `app/services/eval_extraction_providers.py` | Provider registry (parser / gemini / anthropic / mistral) |
 | `app/services/gemini_eval.py` | Isolated Gemini Flash JSON client |
+| `app/services/mistral_eval.py` | Isolated Mistral chat JSON client (eval-only) |
 | `scripts/eval_extraction_providers.py` | CLI harness |
 
 ## Privacy
@@ -136,10 +150,10 @@ Do **not** switch production to parser-first until real fixtures (including anon
 
 See [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) for the agreed confidence-gate policy and implementation phases.
 
-## Out of scope (#153-A)
+## Out of scope (#153-A / eval harness)
 
 - Production parser-first gate in `decision_worker`
-- Mistral provider
+- Mistral in production routing or `LLM_PROVIDER` defaults
 - Mobile / frontend changes
 - OCR / Paddle runtime changes
 - `summary_worker` vector bug

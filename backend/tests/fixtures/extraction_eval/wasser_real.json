@@ -1,0 +1,24 @@
+{
+  "id": "wasser_real",
+  "label": "Gemeindewasserwerk Jahresverbrauchsabrechnung (redacted OCR)",
+  "source": "doc_id=62f00ac9-10de-4faa-bbc8-6854383a8838 file=Wasser 30.pdf",
+  "raw_text": "GEMEINDEWASSERWERK\nGemeindewasserwerk\nMUSTERSTADT\nGemeindewasserwerk Amtsplatz 1 66839 Musterstadt\nAmtsplatz 1\n66839 Musterstadt\nHerr\nTelefon: 0000 000000[NAME]\nTeleFax: 0000 000000Musterstr. 1\nE-Mail: kontakt@[REDACTED]\nFA Saarbrucken,Steuer-Nr.: 000/000/00000\n66839 Musterstadt\nGlaeubiger-ID: DE00ZZZ00000000000\nJahresverbrauchsabrechnung 2025\nAbnehmernummer:\n123456\nRechnungsnummer:\nR000000000\nRechnungsdatum:\n28.01.2026\nVerbrauchsstelle\n000000000000\nMusterstr. 1\n66839 Musterstadt\nSehr geehrte Damen und Herren\nAbrechnungszeitraum.\nBei Ruckfragen wenden Sie sich bitte an Frau [NAME], Zimmer 2.13, Telefon Durchwahl 301-126.\nMit freundlichen GruBen\nGemeindewasserwerk\nTarifart\nNetto\nMwSt.\nBrutto\n[EUR]\n[%]\n[EUR]\n[EUR]\nWasser\n535,92\n7\n37,52\n573,44\nAbwasser und Niederschlagswasser\n686,92\n0\n0,00\n686,92\nSumme:\n1.222,84\n37,52\n1.260,36\nanrechenbare Zahlungen\n-1.364,00\n+Forderung aus Vorjahr\n0,00\nRechnungsbetrag\n-103,64\nFur das kommende Abrechnungsjahr haben wir aufgrund der Verbrauchsdaten die folgenden Abschlagsbetrage ermittelt.\nTarifart\nNetto\nMwSt.\nBrutto\n[EUR]\n[%]\n[EUR]\n[EUR]\nWasser\n142,99\n7\n10,01\n153,00\nAbwasser\n158,00\n0\n0,00\n158,00\nNiederschlagswasser\n17,00\n0\n0,00\n17,00\nSumme\n328,00\nDer Rechnungsbetrag und die Abschlagsforderungen werden zu folgenden Terminen fallig\nDatum\nRechnungsbetrag\nAbschlag\nZu zahlen\n[EUR]\n[EUR]\n[EUR]\n01.03.2026\n-103,64\n328,00\n224,36\n01.06.2026\n328,00\n01.09.2026\n328,00\n328,00\n328,00\n01.11.2026\n328,00\n328.00\n[REF]-0000000001 abbuchen.\nZahlungen sind berucksichtigt bis:\n22.01.2026\nKreissparkasse Saarlouis\nBIC: XXXXXXXX\nVereinigte Volksbank eG\nIBAN: DE00 0000 0000 0000 0000 00\nBIC: XXXXXXXX\nIBAN: DE00 0000 0000 0000 0000 00",
+  "expected": {
+    "document_type": "Rechnung",
+    "title_keywords": [
+      "Jahresverbrauchsabrechnung",
+      "Wasser"
+    ],
+    "sender_keywords": [
+      "Gemeindewasserwerk"
+    ],
+    "amount": 1260.36,
+    "deadline": "2026-03-01",
+    "risk": "mittel",
+    "summary_keywords": [
+      "Wasser",
+      "Abrechnung"
+    ],
+    "next_action": "zahlen"
+  }
+}

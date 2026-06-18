@@ -1,0 +1,25 @@
+{
+  "id": "schornstein_real",
+  "label": "Schornsteinfeger Rechnung (redacted OCR)",
+  "source": "doc_id=eba70401-f2d1-447e-94cc-f3032d249e8a file=Schornsteinfeger-4.pdf",
+  "raw_text": "[NAME]\nSchornsteinfegermeister\nMusterstr. 2\n66839 Musterstadt\nTel.: 0000 000000 Funk: 0000 000000Fax: 0000 000000kontakt@[REDACTED] www.[REDACTED]\n[NAME]IMusterstr. 2I66839 Musterstadt\nDatum:\n25.02.2023\nFrau\nRech.-Nr.: 000/000/00/00000\n[NAME]\nMusterstr. 1\nBei Zahlung bitte angeben\n66839 Musterstadt\nUSt-Ident Nr 000000000\nSeite 1 von 1\nRechnung fur Schornsteinfegerarbeiten 2023\nLiegenschaft:Musterstr. 1 66839 Musterstadt\nRECHNUNG\ngem.KUO Anlage_1_u.1.BlmSchV gesetzlich vorgeschriebene und weitere Tatigkeiten\nBezeichnung\nBetrag EUR\nKehr-und Uberprufungstatigkeiten\n34,98\nTERMINE:Kehrung:03.02.23\nNettosumme\nEUR\n34,98\nIn diesem Block sind keine Materialkosten\nMwSt.19%\nEUR\nenthalten\n6,65\nSumme wiederkehrende Tatigkeiten\nEUR\n41,63\nDiese Rechnung ist als Handwerksleistung nach 35a, Abs. 3 EStG steuerlich absetzbar.\nDer Rechnungsbetrag ist bis zum 11.03.23 ohne Abzug zahlbar;\nbitte uberweisen Sie auf die angegebene Bankverbindung\nuberwesen\nBankverbindung:\nSparkasse Langen-Seligenstadt\nIBAN: DE00 0000 0000 0000 0000 00\nBIC: XXXXXXXX\nSteuernummer: 000/000/00000\nGlaeubiger-ID: DE00ZZZ00000000000",
+  "expected": {
+    "document_type": "Rechnung",
+    "title_keywords": [
+      "Schornstein",
+      "Rechnung"
+    ],
+    "sender_keywords": [
+      "Schornstein",
+      "Schornsteinfeger"
+    ],
+    "amount": 41.63,
+    "deadline": "2023-03-11",
+    "risk": "mittel",
+    "summary_keywords": [
+      "Schornstein",
+      "Kehr"
+    ],
+    "next_action": "zahlen"
+  }
+}

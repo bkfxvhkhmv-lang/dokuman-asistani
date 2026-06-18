@@ -40,11 +40,11 @@ def process_decision(self, doc_id: str, roh_text: str) -> dict:
 
         if shadow_mode:
             t0 = time.perf_counter()
-            result = asyncio.run(_llm_explain(roh_text))
+            result = asyncio.run(_llm_explain(doc_id, roh_text))
             llm_latency_ms: float | None = round((time.perf_counter() - t0) * 1000, 1)
         else:
             llm_latency_ms = None
-            result = asyncio.run(_llm_explain(roh_text))
+            result = asyncio.run(_llm_explain(doc_id, roh_text))
 
         _save_meta(doc_id, result)
 
@@ -68,10 +68,15 @@ def process_decision(self, doc_id: str, roh_text: str) -> dict:
         raise self.retry(exc=exc, countdown=60)
 
 
-async def _llm_explain(roh_text: str) -> dict:
+async def _llm_explain(doc_id: str, roh_text: str) -> dict:
     from app.services.llm import get_llm
     llm    = get_llm()
-    result = await llm.explain(roh_text, lang="de")
+    result = await llm.explain(
+        roh_text,
+        lang="de",
+        document_id=doc_id,
+        route="decision_worker",
+    )
     return result.model_dump()
 
 

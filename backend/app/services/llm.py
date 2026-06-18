@@ -4,11 +4,13 @@ LLM provider abstraction — swap OpenAI ↔ Anthropic ↔ local via config.
 from abc import ABC, abstractmethod
 import json
 import re
+import time
 from json import JSONDecodeError
 import structlog
 
 from app.config import get_settings
 from app.schemas.analysis import ExplainResult, ChatMessage
+from app.services.llm_usage import emit_extraction_usage, persist_usage_event
 
 log = structlog.get_logger()
 settings = get_settings()
@@ -110,7 +112,14 @@ def _anthropic_text_blocks(content) -> str:
 
 class LLMProvider(ABC):
     @abstractmethod
-    async def explain(self, text: str, lang: str = "de") -> ExplainResult:
+    async def explain(
+        self,
+        text: str,
+        lang: str = "de",
+        *,
+        document_id: str | None = None,
+        route: str | None = None,
+    ) -> ExplainResult:
         ...
 
     @abstractmethod
@@ -129,8 +138,16 @@ class OpenAIProvider(LLMProvider):
         self.model = settings.openai_model
         self.embed_model = "text-embedding-3-small"
 
-    async def explain(self, text: str, lang: str = "de") -> ExplainResult:
+    async def explain(
+        self,
+        text: str,
+        lang: str = "de",
+        *,
+        document_id: str | None = None,
+        route: str | None = None,
+    ) -> ExplainResult:
         system = EXPLAIN_SYSTEM_DE if lang == "de" else EXPLAIN_SYSTEM_DE  # extend per lang
+        t0 = time.perf_counter()
         resp = await self.client.chat.completions.create(
             model=self.model,
             messages=[
@@ -140,6 +157,37 @@ class OpenAIProvider(LLMProvider):
             response_format={"type": "json_object"},
             temperature=0.1,
             max_tokens=1024,
+        )
+        latency_ms = (time.perf_counter() - t0) * 1000
+        usage = resp.usage
+        in_tok  = usage.prompt_tokens     if usage else None
+        out_tok = usage.completion_tokens if usage else None
+        tot_tok = usage.total_tokens      if usage else None
+        cost = None
+        if in_tok is not None and out_tok is not None:
+            from app.services.llm_usage import estimate_cost_usd
+            cost = estimate_cost_usd(self.model, in_tok, out_tok)
+        emit_extraction_usage(
+            document_id=document_id,
+            route=route,
+            provider="openai",
+            model=self.model,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            total_tokens=tot_tok,
+            latency_ms=latency_ms,
+        )
+        await persist_usage_event(
+            feature="extraction",
+            route=route or "",
+            provider="openai",
+            model=self.model,
+            document_id=document_id,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            total_tokens=tot_tok,
+            estimated_cost_usd=cost,
+            latency_ms=latency_ms,
         )
         raw = resp.choices[0].message.content or ""
         data = parse_explain_json(raw)
@@ -173,8 +221,16 @@ class AnthropicProvider(LLMProvider):
         self.client = AsyncAnthropic(api_key=settings.anthropic_api_key)
         self.model = settings.anthropic_model
 
-    async def explain(self, text: str, lang: str = "de") -> ExplainResult:
+    async def explain(
+        self,
+        text: str,
+        lang: str = "de",
+        *,
+        document_id: str | None = None,
+        route: str | None = None,
+    ) -> ExplainResult:
         # Assistant prefill "{" nudges Claude to continue a JSON object (no markdown preamble).
+        t0 = time.perf_counter()
         resp = await self.client.messages.create(
             model=self.model,
             max_tokens=1024,
@@ -184,6 +240,46 @@ class AnthropicProvider(LLMProvider):
                 {"role": "assistant", "content": "{"},
             ],
             temperature=0.1,
+        )
+        latency_ms = (time.perf_counter() - t0) * 1000
+        usage = resp.usage
+        in_tok     = usage.input_tokens  if usage else None
+        out_tok    = usage.output_tokens if usage else None
+        cache_cre  = getattr(usage, "cache_creation_input_tokens", None) if usage else None
+        cache_read = getattr(usage, "cache_read_input_tokens",     None) if usage else None
+        tot_tok    = (in_tok + out_tok) if in_tok is not None and out_tok is not None else None
+        cost = None
+        if in_tok is not None and out_tok is not None:
+            from app.services.llm_usage import estimate_cost_usd
+            cost = estimate_cost_usd(
+                self.model, in_tok, out_tok,
+                cache_cre or 0, cache_read or 0,
+            )
+        emit_extraction_usage(
+            document_id=document_id,
+            route=route,
+            provider="anthropic",
+            model=self.model,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            total_tokens=tot_tok,
+            cache_creation_input_tokens=cache_cre,
+            cache_read_input_tokens=cache_read,
+            latency_ms=latency_ms,
+        )
+        await persist_usage_event(
+            feature="extraction",
+            route=route or "",
+            provider="anthropic",
+            model=self.model,
+            document_id=document_id,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            total_tokens=tot_tok,
+            cache_creation_input_tokens=cache_cre,
+            cache_read_input_tokens=cache_read,
+            estimated_cost_usd=cost,
+            latency_ms=latency_ms,
         )
         continuation = _anthropic_text_blocks(resp.content)
         if not continuation:
@@ -222,7 +318,14 @@ class AnthropicProvider(LLMProvider):
 class LocalProvider(LLMProvider):
     """Placeholder for a local LLM (Ollama / llama.cpp). Not yet implemented."""
 
-    async def explain(self, text: str, lang: str = "de") -> ExplainResult:
+    async def explain(
+        self,
+        text: str,
+        lang: str = "de",
+        *,
+        document_id: str | None = None,
+        route: str | None = None,
+    ) -> ExplainResult:
         return ExplainResult(
             titel="Lokale Analyse",
             zusammenfassung="Lokaler LLM noch nicht konfiguriert.",

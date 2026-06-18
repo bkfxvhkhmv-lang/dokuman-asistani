@@ -5,7 +5,7 @@ Compare German OCR extraction quality across parser baseline and optional LLM pr
 Examples:
   python backend/scripts/eval_extraction_providers.py --providers parser
   python backend/scripts/eval_extraction_providers.py --providers parser --details
-  python backend/scripts/eval_extraction_providers.py --providers parser,gemini,anthropic
+  python backend/scripts/eval_extraction_providers.py --providers parser,gemini,anthropic,mistral
 
 Requires network + API keys only when gemini/anthropic providers are selected.
 """
@@ -199,7 +199,7 @@ def main() -> None:
     parser.add_argument(
         "--providers",
         default="parser",
-        help="Comma-separated providers: parser,gemini,anthropic",
+        help="Comma-separated providers: parser,gemini,anthropic,mistral",
     )
     parser.add_argument("--json-out", default="", help="Optional path to write full JSON results")
     parser.add_argument(

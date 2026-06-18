@@ -15,6 +15,7 @@ from app.services.eval_extraction_scorer import FixtureScore, score_extraction
 from app.services.gemini_eval import gemini_extract
 from app.services.local_document_parser import parse_local_document_dict
 from app.services.llm import AnthropicProvider, ExplainJsonParseError
+from app.services.mistral_eval import mistral_extract
 
 settings = get_settings()
 
@@ -144,10 +145,64 @@ class GeminiEvalProvider:
             )
 
 
+class MistralEvalProvider:
+    name = "mistral"
+
+    def is_available(self) -> tuple[bool, str | None]:
+        key = os.environ.get("MISTRAL_API_KEY", "").strip()
+        if not key:
+            return False, "MISTRAL_API_KEY not set — skipping mistral eval provider"
+        return True, None
+
+    async def extract(self, raw_text: str) -> ProviderRunResult:
+        ok, reason = self.is_available()
+        if not ok:
+            return ProviderRunResult(
+                provider=self.name,
+                fixture_id="",
+                skipped=True,
+                skip_reason=reason,
+            )
+
+        started = time.perf_counter()
+        try:
+            data = await mistral_extract(raw_text)
+            latency_ms = data.pop("_latency_ms", round((time.perf_counter() - started) * 1000, 1))
+            cost = data.pop("_cost_hint", "unknown")
+            data.pop("_valid_json", None)
+            data.pop("_model", None)
+            data.pop("text", None)
+            return ProviderRunResult(
+                provider=self.name,
+                fixture_id="",
+                extracted=data,
+                valid_json=True,
+                latency_ms=latency_ms,
+                estimated_cost=cost,
+            )
+        except ExplainJsonParseError as exc:
+            return ProviderRunResult(
+                provider=self.name,
+                fixture_id="",
+                valid_json=False,
+                latency_ms=round((time.perf_counter() - started) * 1000, 1),
+                error=str(exc),
+            )
+        except Exception as exc:  # noqa: BLE001 — eval CLI reports provider errors
+            return ProviderRunResult(
+                provider=self.name,
+                fixture_id="",
+                valid_json=False,
+                latency_ms=round((time.perf_counter() - started) * 1000, 1),
+                error=str(exc),
+            )
+
+
 _PROVIDER_MAP: dict[str, type] = {
     "parser": ParserEvalProvider,
     "anthropic": AnthropicEvalProvider,
     "gemini": GeminiEvalProvider,
+    "mistral": MistralEvalProvider,
 }
 
 

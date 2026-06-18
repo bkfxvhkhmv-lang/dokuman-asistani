@@ -1,9 +1,9 @@
 # Parser-First Confidence Gate Design (#163)
 
-> **Status:** Design only — no production routing change.  
-> **Trusted main:** `ef4597498` (#164 merged)  
+> **Status:** Design + #164-B shadow logging (observe-only; no production routing change).  
+> **Trusted main:** `71081b864` (#165 merged)  
 > **Related:** [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md)  
-> **Implementation follow-up:** #164-B shadow-mode instrumentation (next)
+> **Implementation:** #164-B — `EXTRACTION_SHADOW_MODE` in `decision_worker` (logging only)
 
 ---
 
@@ -330,6 +330,23 @@ No frontend implementation in #163. Policy for a future UX PR:
 | `conflict_flag_frequency` | Parser improvement backlog |
 
 **Shadow mode (#164-B) must log:** gate state, operational_confidence, conflict flags, parser snapshot, LLM snapshot (if called), **per-field LLM candidates (operational fields logged but not applied)**, final user-saved values.
+
+### #164-B implementation (observe-only)
+
+**Current production path does not use the local parser.** `document_meta` is still written from `get_llm().explain()` only.
+
+| Item | #164-B behavior |
+|------|-----------------|
+| Flag | `EXTRACTION_SHADOW_MODE=false` (default) |
+| Flag off | No parser call; no shadow log; unchanged `decision_worker` outcome |
+| Flag on | Parser runs for observation; LLM still called; `_save_meta` still receives LLM result |
+| `applied_source` | **`current_production_llm`** — never `parser` in this PR |
+| Parser output | Log-only / candidate comparison — **not** written to `document_meta` |
+| Log event | `extraction.shadow_compare` (structured app logs; **no DB**) |
+| PII | No raw OCR, full LLM response, sender string, IBAN, or secrets in logs |
+| Gate placeholder | `parser_gate_state` from parser `confidence` only (HIGH ≥0.80, MEDIUM 0.60–0.79, LOW <0.60, UNKNOWN missing) — full conflict flags **not** in #164-B |
+
+**HOLD in #164-B:** parser-first routing, LLM skip, operational override, DB persistence, provider default changes.
 
 ---
 

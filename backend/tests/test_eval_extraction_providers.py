@@ -1,5 +1,8 @@
 """Unit tests for eval extraction providers (no network)."""
 import asyncio
+import subprocess
+import sys
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -79,3 +82,32 @@ def test_parse_explain_json_prose_wrapped():
 def test_parse_explain_json_empty_raises():
     with pytest.raises(ExplainJsonParseError):
         parse_explain_json("   ")
+
+
+def _run_eval_script(*extra_args: str) -> subprocess.CompletedProcess[str]:
+    backend_root = Path(__file__).resolve().parents[1]
+    script = backend_root / "scripts" / "eval_extraction_providers.py"
+    return subprocess.run(
+        [sys.executable, str(script), "--providers", "parser", *extra_args],
+        cwd=backend_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_default_eval_output_omits_details_sections():
+    result = _run_eval_script()
+    assert result.returncode == 0, result.stderr
+    assert "=== Summary ===" in result.stdout
+    assert "Field Failure Counts:" not in result.stdout
+    assert "Total Score:" not in result.stdout
+
+
+def test_details_eval_output_includes_field_diagnostics():
+    result = _run_eval_script("--details")
+    assert result.returncode == 0, result.stderr
+    assert "Total Score:" in result.stdout
+    assert "Field Failure Counts:" in result.stdout
+    assert "summary_keywords: matched:" in result.stdout
+    assert "| PASS" in result.stdout or "| FAIL" in result.stdout

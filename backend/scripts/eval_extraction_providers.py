@@ -4,6 +4,7 @@ Compare German OCR extraction quality across parser baseline and optional LLM pr
 
 Examples:
   python backend/scripts/eval_extraction_providers.py --providers parser
+  python backend/scripts/eval_extraction_providers.py --providers parser --details
   python backend/scripts/eval_extraction_providers.py --providers parser,gemini,anthropic
 
 Requires network + API keys only when gemini/anthropic providers are selected.
@@ -22,7 +23,12 @@ if str(_BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(_BACKEND_ROOT))
 
 from app.services.eval_extraction_providers import resolve_providers, run_fixture_eval
-from app.services.eval_extraction_scorer import FixtureScore
+from app.services.eval_extraction_scorer import (
+    FixtureScore,
+    compare_extraction_fields,
+    count_field_failures,
+    merge_field_failure_counts,
+)
 
 
 def _default_fixture_dir() -> Path:
@@ -59,6 +65,57 @@ def _print_score(score: FixtureScore) -> None:
         print(f"    extracted: {json.dumps(preview, ensure_ascii=False)}")
 
 
+def _print_details(fixture: dict, score: FixtureScore) -> None:
+    fixture_id = fixture["id"]
+    if score.skipped:
+        print(f"  [{fixture_id}] ({score.provider}) - SKIPPED: {score.skip_reason}")
+        return
+
+    rows = compare_extraction_fields(score.extracted, fixture.get("expected") or {})
+    print(
+        f"  [{fixture_id}] ({score.provider}) - Total Score: {score.field_scores.average:.3f}"
+    )
+    for row in rows:
+        if row.name == "summary_keywords":
+            if row.expected == "null":
+                continue
+            note = row.note or "matched: [], missing: []"
+            print(f"    - summary_keywords: {note}")
+            continue
+        if row.name == "next_action" and row.expected == "null":
+            continue
+        status = "PASS" if row.passed else "FAIL"
+        print(
+            f"    - {row.name}: expected '{row.expected}', got '{row.actual}' "
+            f"| {status} (Score: {row.score:.2f})"
+        )
+
+
+def _print_failure_summary(all_failure_counts: list[dict[str, int]]) -> None:
+    merged = merge_field_failure_counts(all_failure_counts)
+    print("\nField Failure Counts:")
+    if not merged:
+        print("  (none)")
+        return
+
+    order = [
+        "title",
+        "document_type",
+        "sender",
+        "amount",
+        "deadline",
+        "risk",
+        "summary_keywords",
+        "next_action",
+    ]
+    for field in order:
+        if field in merged:
+            print(f"  - {field}: {merged[field]}")
+    for field, n in sorted(merged.items()):
+        if field not in order:
+            print(f"  - {field}: {n}")
+
+
 def _summary_table(all_scores: list[FixtureScore]) -> None:
     by_provider: dict[str, list[FixtureScore]] = {}
     for s in all_scores:
@@ -90,16 +147,24 @@ async def _run(args: argparse.Namespace) -> int:
     print(f"Providers: {', '.join(provider_names)}\n")
 
     all_scores: list[FixtureScore] = []
+    all_failure_counts: list[dict[str, int]] = []
     for fixture in fixtures:
         print(f"— {fixture['id']} ({fixture.get('label', '')})")
         scores = await run_fixture_eval(fixture, providers)
         for score in scores:
             score.fixture_id = fixture["id"]
             _print_score(score)
+            if args.details:
+                _print_details(fixture, score)
+                if not score.skipped:
+                    rows = compare_extraction_fields(score.extracted, fixture.get("expected") or {})
+                    all_failure_counts.append(count_field_failures(rows))
         all_scores.extend(scores)
         print()
 
     _summary_table(all_scores)
+    if args.details:
+        _print_failure_summary(all_failure_counts)
 
     if args.json_out:
         out = [
@@ -137,6 +202,11 @@ def main() -> None:
         help="Comma-separated providers: parser,gemini,anthropic",
     )
     parser.add_argument("--json-out", default="", help="Optional path to write full JSON results")
+    parser.add_argument(
+        "--details",
+        action="store_true",
+        help="Print per-fixture field-level expected vs actual diagnostic report",
+    )
     args = parser.parse_args()
     raise SystemExit(asyncio.run(_run(args)))
 

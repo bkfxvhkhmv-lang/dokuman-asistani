@@ -57,6 +57,11 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-haiku-4-5-20251001"
+    #: When true, decision_worker logs parser vs LLM comparison; does not change document_meta.
+    extraction_shadow_mode: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("EXTRACTION_SHADOW_MODE"),
+    )
 
     # OCR
     #: Master switch: skip worker/inline OCR on upload when false (documents stay pending, no document_texts).

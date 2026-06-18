@@ -26,7 +26,7 @@ Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kıla
 | **#163** (confidence gate design) | **Merged** — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
 | **#164** (Mistral eval-only provider) | **Merged** — `ef4597498`; production fallback **NO** |
 | **Provider smoke** (Mistral + Haiku, 8 fixtures) | **Complete** — parser beats LLMs on operational fields |
-| **Shadow-mode instrumentation** (#164-B) | **NEXT** |
+| **Shadow-mode instrumentation** (#164-B) | **In progress** — `EXTRACTION_SHADOW_MODE`; log-only; `applied_source=current_production_llm` |
 | **AI cost strategy** | **Planlandı** — [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md); production switch yok |
 
 ---
@@ -46,9 +46,11 @@ Uzun vadede her OCR sonucu için Claude çağırmayacağız. Hedef:
 
 Parser eval (#157 sonrası, 8 fixture): avg **0.899**, operational fields **0/8** fail (sender 1 safe null), `valid_json` 1.00, ~2 ms. Mistral smoke: 0.680; Haiku smoke: 0.695. **Provider smoke conclusion:** parser beats tested LLMs on operational fields. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
 
-**Architecture labels:** Parser operational source of truth **GO** | LLM title/summary enrichment **MAYBE** | LLM operational override **NO** | Production routing **HOLD** | Shadow-mode instrumentation **NEXT**
+**Architecture labels:** Parser operational source of truth **GO** | LLM title/summary enrichment **MAYBE** | LLM operational override **NO** | Production routing **HOLD** | Shadow-mode instrumentation **IN PROGRESS** (#164-B)
 
-**Production `decision_worker` / `LLM_PROVIDER` değişmedi.**
+**#164-B (shadow):** `EXTRACTION_SHADOW_MODE=true` → `decision_worker` logs `extraction.shadow_compare` (parser vs current LLM). `document_meta` hâlâ LLM çıktısı; parser log-only. DB yok.
+
+**Production `decision_worker` routing değişmedi** (LLM hâlâ her zaman çağrılır; parser-first HOLD).
 
 ---
 

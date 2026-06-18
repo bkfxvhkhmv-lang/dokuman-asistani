@@ -12,6 +12,15 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
+## 2026-06-18 Extraction Shadow-Mode Instrumentation (#164-B)
+
+📄 [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — #164-B observe-only shadow log spec  
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — `EXTRACTION_SHADOW_MODE`, applied_source `current_production_llm`
+
+**Kapsam:** `decision_worker` shadow hook; flag default off. Parser log-only; `document_meta` still LLM. No DB, no routing switch, no operational override.
+
+---
+
 ## 2026-06-17 Provider Smoke Results — Parser vs Mistral vs Haiku
 
 📄 [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — provider smoke table (parser 0.899 vs Mistral 0.680 vs Haiku 0.695)  

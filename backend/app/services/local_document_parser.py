@@ -29,10 +29,73 @@ _DATE_FIELD_RE = re.compile(
     re.IGNORECASE,
 )
 _IBAN_RE = re.compile(r"\b(DE\d{2}(?:\s?\d{4}){4,5}\s?\d{2,4})\b", re.IGNORECASE)
-_COMPANY_LINE_RE = re.compile(
-    r"^([A-ZÄÖÜ][\wÄÖÜäöüß.&\- ]{2,60}?\s(?:GmbH|AG|KG|OHG|e\.?K\.?|GbR|UG|SE|mbH))\b",
-    re.MULTILINE,
+
+_LEGAL_SUFFIX_SEARCH_RE = re.compile(
+    r"((?:Gebr\.\s*)?[\wÄÖÜäöüß.&\-]{1,50}?\s+"
+    r"(?:GmbH(?:\s*&\s*Co\.\s*KG)?|Deutschland\s+GmbH|AG|KG|OHG|e\.?G\.?|GbR|UG|SE)\b)",
+    re.IGNORECASE,
 )
+_HEADER_UTILITY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\bgemeindewasserwerk\b", re.I), "Gemeindewasserwerk"),
+    (re.compile(r"\bstadtwerke\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\bwasserwerk\b", re.I), ""),
+    (re.compile(r"\bzweckverband\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\bfinanzamt\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\bamtsgericht\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\bgemeinde\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\bstadt\s+[\wÄÖÜäöüß\-]+", re.I), ""),
+    (re.compile(r"\baok\b", re.I), "AOK"),
+    (re.compile(r"\btk\b", re.I), "TK"),
+    (re.compile(r"\bbarmer\b", re.I), "Barmer"),
+    (re.compile(r"\bdak\b", re.I), "DAK"),
+    (re.compile(r"\bschornsteinfegermeister\b", re.I), ""),
+    (re.compile(r"\bschornsteinfeger(?:meister|betrieb)?\b", re.I), ""),
+    (re.compile(r"\bbezirksschornsteinfeger\b", re.I), ""),
+]
+_KNOWN_SENDER_BRANDS: tuple[str, ...] = (
+    "vodafone",
+    "gebr. alt gmbh",
+    "gemeindewasserwerk",
+)
+_FOOTER_SIGNALS = (
+    "hrb",
+    "handelsregister",
+    "ust-id",
+    "ust-nr",
+    "vat-nr",
+    "steuernummer",
+    "iban",
+    "swift",
+    "konto-nr",
+    "bankverbindung",
+)
+_PLACEHOLDER_RE = re.compile(r"\[(?:NAME|REDACTED|KONTO|REF|EUR)\]", re.IGNORECASE)
+_CONTACT_RE = re.compile(
+    r"\b(?:telefon|tel\.|fax|e-mail|email|www\.|mobiltelefon|telefax|internet)\b",
+    re.IGNORECASE,
+)
+_BANK_RE = re.compile(r"\b(?:iban|swift|bic|konto|bankverbindung|konto-nr|creditor-id)\b", re.IGNORECASE)
+_PERSON_ROLE_RE = re.compile(
+    r"\b(?:geschäftsführer|geschaeftsfuehrer|sachbearbeiter|ansprechpartner|steuerberater|berater)\b",
+    re.IGNORECASE,
+)
+_ADDRESS_RE = re.compile(
+    r"\b(?:hauptstr|musterstr|werkstr|straße|str\.|platz|weg|amtsplatz)\b|\b\d{5}\b",
+    re.IGNORECASE,
+)
+_TITLE_ONLY_RE = re.compile(
+    r"^\s*(?:rechnung|mahnung|gutschrift|bescheid|kostenbescheid)\s*\.?\s*$",
+    re.IGNORECASE,
+)
+_GENERIC_LABEL_RE = re.compile(
+    r"\b(?:kundennummer|kunden-nr|vertragskonto|rechnungsnummer|beleg-nr)\b",
+    re.IGNORECASE,
+)
+
+
+def _line_has_footer_signal(line: str) -> bool:
+    lower = line.lower()
+    return any(signal in lower for signal in _FOOTER_SIGNALS)
 
 _TYPE_RULES: list[tuple[str, re.Pattern[str], float]] = [
     ("Mahnung", re.compile(r"\bmahnung\b", re.I), 0.9),
@@ -401,15 +464,226 @@ def _extract_deadline(text: str) -> tuple[str | None, str | None]:
     return best.iso, best.evidence
 
 
-def _first_company_sender(text: str) -> tuple[str | None, str | None]:
-    for line in text.splitlines():
-        line = line.strip()
-        if not line:
+@dataclass
+class _SenderCandidate:
+    text: str
+    line_index: int
+    line_text: str
+    priority: int
+    source: str
+    address_like: bool = False
+    contact_like: bool = False
+    bank_like: bool = False
+    person_role_like: bool = False
+    placeholder_like: bool = False
+    title_like: bool = False
+
+    @property
+    def banned(self) -> bool:
+        return self.placeholder_like or self.person_role_like or self.title_like
+
+    @property
+    def penalty_count(self) -> int:
+        return sum(
+            1
+            for flag in (
+                self.address_like,
+                self.contact_like,
+                self.bank_like,
+                self.placeholder_like,
+                self.person_role_like,
+                self.title_like,
+            )
+            if flag
+        )
+
+
+def _non_empty_lines(text: str) -> list[tuple[int, str]]:
+    return [(index, line.strip()) for index, line in enumerate(text.splitlines()) if line.strip()]
+
+
+def _clean_sender(text: str) -> str:
+    cleaned = re.sub(r"\s+", " ", text.strip())
+    cleaned = re.sub(r"^\d+", "", cleaned)
+    return cleaned.strip(".,;:-|/\\")
+
+
+def _organization_score(text: str) -> int:
+    score = 0
+    if _LEGAL_SUFFIX_SEARCH_RE.search(text):
+        score += 4
+    if any(pattern.search(text) for pattern, _ in _HEADER_UTILITY_PATTERNS):
+        score += 3
+    if any(brand in text.lower() for brand in _KNOWN_SENDER_BRANDS):
+        score += 2
+    return score
+
+
+def _trim_sender_at_address(text: str) -> str:
+    match = _ADDRESS_RE.search(text)
+    if match:
+        return _clean_sender(text[: match.start()])
+    return _clean_sender(text)
+
+
+def _sender_penalties(line: str) -> dict[str, bool]:
+    stripped = line.strip()
+    return {
+        "placeholder_like": bool(_PLACEHOLDER_RE.search(stripped))
+        or stripped.startswith("[")
+        or stripped.endswith("]"),
+        "contact_like": bool(_CONTACT_RE.search(stripped)),
+        "bank_like": bool(_BANK_RE.search(stripped)),
+        "person_role_like": bool(_PERSON_ROLE_RE.search(stripped)),
+        "address_like": bool(_ADDRESS_RE.search(stripped))
+        and not bool(_LEGAL_SUFFIX_SEARCH_RE.search(stripped))
+        and not any(pattern.search(stripped) for pattern, _ in _HEADER_UTILITY_PATTERNS),
+        "title_like": bool(_TITLE_ONLY_RE.match(stripped)),
+    }
+
+
+def _utility_sender_from_line(line: str) -> str | None:
+    for pattern, canonical in _HEADER_UTILITY_PATTERNS:
+        match = pattern.search(line)
+        if not match:
             continue
-        m = _COMPANY_LINE_RE.search(line)
-        if m:
-            return m.group(1).strip(), line
-    return None, None
+        if canonical:
+            return canonical
+        return _trim_sender_at_address(match.group(0))
+    return None
+
+
+def _legal_suffix_sender_from_line(line: str) -> str | None:
+    match = _LEGAL_SUFFIX_SEARCH_RE.search(line)
+    if not match:
+        return None
+    return _clean_sender(match.group(1))
+
+
+def _known_brand_sender_from_line(line: str) -> str | None:
+    lower = line.lower()
+    if "vodafone" in lower:
+        legal = _legal_suffix_sender_from_line(line)
+        if legal and re.search(r"\bGmbH\b", legal, re.IGNORECASE):
+            return legal
+        return "Vodafone"
+    if re.search(r"gebr\.?\s*alt\s+gmbh", lower):
+        legal = _legal_suffix_sender_from_line(line)
+        if legal:
+            return legal
+    if "gemeindewasserwerk" in lower:
+        return "Gemeindewasserwerk"
+    return None
+
+
+def _make_sender_candidate(
+    text: str,
+    line_index: int,
+    line_text: str,
+    priority: int,
+    source: str,
+) -> _SenderCandidate | None:
+    cleaned = _clean_sender(text)
+    if not cleaned or len(cleaned) < 3:
+        return None
+    penalties = _sender_penalties(line_text)
+    if _GENERIC_LABEL_RE.search(line_text) and not _LEGAL_SUFFIX_SEARCH_RE.search(line_text):
+        return None
+    return _SenderCandidate(
+        text=cleaned,
+        line_index=line_index,
+        line_text=line_text,
+        priority=priority,
+        source=source,
+        **penalties,
+    )
+
+
+def _collect_header_sender_candidates(lines: list[tuple[int, str]], max_lines: int = 12) -> list[_SenderCandidate]:
+    candidates: list[_SenderCandidate] = []
+    for line_index, line in lines[:max_lines]:
+        penalties = _sender_penalties(line)
+        if penalties["placeholder_like"] or penalties["title_like"]:
+            continue
+        if _line_has_footer_signal(line):
+            continue
+
+        utility = _utility_sender_from_line(line)
+        if utility:
+            candidate = _make_sender_candidate(utility, line_index, line, 1, "header")
+            if candidate and not candidate.banned:
+                candidates.append(candidate)
+            continue
+
+        legal = _legal_suffix_sender_from_line(line)
+        if legal:
+            candidate = _make_sender_candidate(legal, line_index, line, 2, "header")
+            if candidate and not candidate.banned:
+                candidates.append(candidate)
+            continue
+
+        brand = _known_brand_sender_from_line(line)
+        if brand:
+            candidate = _make_sender_candidate(brand, line_index, line, 3, "header")
+            if candidate and not candidate.banned:
+                candidates.append(candidate)
+    return candidates
+
+
+def _collect_footer_sender_candidates(lines: list[tuple[int, str]]) -> list[_SenderCandidate]:
+    candidates: list[_SenderCandidate] = []
+    for pos, (line_index, line) in enumerate(lines):
+        lower = line.lower()
+        if not any(signal in lower for signal in _FOOTER_SIGNALS):
+            continue
+        for back in range(1, 4):
+            prev_pos = pos - back
+            if prev_pos < 0:
+                break
+            prev_line_index, prev_line = lines[prev_pos]
+            penalties = _sender_penalties(prev_line)
+            if penalties["person_role_like"] or penalties["placeholder_like"]:
+                continue
+            utility = _utility_sender_from_line(prev_line)
+            if utility:
+                candidate = _make_sender_candidate(utility, prev_line_index, prev_line, 1, "footer")
+                if candidate and not candidate.banned:
+                    candidates.append(candidate)
+                    break
+            legal = _legal_suffix_sender_from_line(prev_line)
+            if legal:
+                candidate = _make_sender_candidate(legal, prev_line_index, prev_line, 2, "footer")
+                if candidate and not candidate.banned:
+                    candidates.append(candidate)
+                    break
+    return candidates
+
+
+def _rank_sender_candidates(candidates: list[_SenderCandidate]) -> _SenderCandidate | None:
+    viable = [candidate for candidate in candidates if not candidate.banned]
+    if not viable:
+        return None
+    viable.sort(
+        key=lambda candidate: (
+            candidate.priority,
+            0 if candidate.source == "header" else 1,
+            -_organization_score(candidate.text),
+            candidate.penalty_count,
+            candidate.line_index,
+        )
+    )
+    return viable[0]
+
+
+def _extract_sender(text: str) -> tuple[str | None, str | None]:
+    lines = _non_empty_lines(text)
+    candidates = _collect_header_sender_candidates(lines)
+    if not candidates:
+        candidates = _collect_footer_sender_candidates(lines)
+    best = _rank_sender_candidates(candidates)
+    if best is None:
+        return None, None
+    return best.text, best.line_text
 
 
 def _detect_document_type(text: str) -> tuple[str, float, str | None]:
@@ -575,7 +849,7 @@ def parse_local_document(raw_text: str) -> LocalParseResult:
         return LocalParseResult(confidence=0.0, evidence={"empty": True})
 
     doc_type, type_score, type_evidence = _detect_document_type(text)
-    sender, sender_evidence = _first_company_sender(text)
+    sender, sender_evidence = _extract_sender(text)
     amount, amount_evidence = _extract_amount(text)
     deadline, deadline_evidence = _extract_deadline(text)
     doc_date, date_evidence = _extract_document_date(text)

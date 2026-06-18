@@ -40,46 +40,46 @@ _PICKARD_STREET_RE = re.compile(
 )
 
 _ADDRESS_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
-    (_ZERR_STREET_RE, "Musterstr. 1"),
-    (_PICKARD_STREET_RE, "Industriestr. 10"),
-    (re.compile(r"Robert-Koch-Str\.?\s*\d+", re.I), "Musterstr. 2"),
+    (_ZERR_STREET_RE, "Hauptstr. 1"),
+    (_PICKARD_STREET_RE, "Werkstr. 10"),
+    (re.compile(r"Robert-Koch-Str\.?\s*\d+", re.I), "Hauptstr. 2"),
     (re.compile(r"Rathausplatz\s*\d+", re.I), "Amtsplatz 1"),
-    (re.compile(r"Betastrasse\s*\d+[-\s]*\d*", re.I), "Industriestr. 20"),
-    (re.compile(r"66839\s*Schmelz[^\n]*", re.I), "66839 Musterstadt"),
-    (re.compile(r"66822\s*Lebach", re.I), "66822 Musterstadt"),
-    (re.compile(r"\d+Lebach", re.I), "Musterstadt"),
-    (re.compile(r"\bLebach\b", re.I), "Musterstadt"),
-    (re.compile(r"^SCHMELZ\s*$", re.I | re.M), "MUSTERSTADT"),
+    (re.compile(r"Betastrasse\s*\d+[-\s]*\d*", re.I), "Werkstr. 20"),
+    (re.compile(r"66839\s*Schmelz[^\n]*", re.I), "12345 Beispielstadt"),
+    (re.compile(r"66822\s*Lebach", re.I), "12345 Beispielstadt"),
+    (re.compile(r"\d+Lebach", re.I), "Beispielstadt"),
+    (re.compile(r"\bLebach\b", re.I), "Beispielstadt"),
+    (re.compile(r"^SCHMELZ\s*$", re.I | re.M), "BEISPIELSTADT"),
     (re.compile(r"Gemeindewasserwerk\s+Schmelz", re.I), "Gemeindewasserwerk"),
-    (re.compile(r"\bin\s+Schmelz\b", re.I), "in Musterstadt"),
-    (re.compile(r"Schmelz/Saar", re.I), "Musterstadt"),
-    (re.compile(r"Liegenschaft:\s*Zerr\S*\s*\d+\s*\d+\s*Musterstadt", re.I), "Liegenschaft: Musterstr. 1 66839 Musterstadt"),
-    (re.compile(r"Liegenschaft:\s*Zerr\S*.*", re.I), "Liegenschaft: Musterstr. 1 66839 Musterstadt"),
+    (re.compile(r"\bin\s+Schmelz\b", re.I), "in Beispielstadt"),
+    (re.compile(r"Schmelz/Saar", re.I), "Beispielstadt"),
+    (re.compile(r"Liegenschaft:\s*Zerr\S*\s*\d+\s*\d+\s*Beispielstadt", re.I), "Liegenschaft: Hauptstr. 1 12345 Beispielstadt"),
+    (re.compile(r"Liegenschaft:\s*Zerr\S*.*", re.I), "Liegenschaft: Hauptstr. 1 12345 Beispielstadt"),
     (re.compile(r"Gemeindewasserwerk\s+Rathausplatz\s*\d+", re.I), "Gemeindewasserwerk Amtsplatz 1"),
 ]
 
 _TAX_ID_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"Steuernummer:\s*\n?\s*[\d/]+", re.I), "Steuernummer: 000/000/00000"),
+    (re.compile(r"Steuernummer:\s*\n?\s*[\d/]+", re.I), "Tax-Nr: 000/000/00000"),
     (re.compile(r"Steuer-?Nr\.?\s*:?\s*[\d/]+", re.I), "Steuer-Nr.: 000/000/00000"),
-    (re.compile(r"USt\.?-?\s*Ident\s*Nr\.?\s*DE\d+", re.I), "USt-Ident Nr 000000000"),
-    (re.compile(r"USt-?IdNr\.?\s*:?\s*DE\s*[\d\s]+", re.I), "USt-IdNr: 000000000"),
-    (re.compile(r"USt-?IdNr\.?\s*:?\s*[\d\s]+", re.I), "USt-IdNr: 000000000"),
+    (re.compile(r"USt\.?-?\s*Ident\s*Nr\.?\s*DE\d+", re.I), "VAT-Nr 000000000"),
+    (re.compile(r"USt-?IdNr\.?\s*:?\s*DE\s*[\d\s]+", re.I), "VAT-Nr: 000000000"),
+    (re.compile(r"USt-?IdNr\.?\s*:?\s*[\d\s]+", re.I), "VAT-Nr: 000000000"),
     (re.compile(r"\bDE\s*\d{3}\s*\d{3}\s*\d{3}\b"), "DE000000000"),
     (re.compile(r"\bDE\d{9,11}\b"), "DE000000000"),
-    (re.compile(r"Gläubiger-ID:\s*DE\S+", re.I), "Glaeubiger-ID: DE00ZZZ00000000000"),
-    (re.compile(r"Glaubiger-ID:\s*DE\S+", re.I), "Glaeubiger-ID: DE00ZZZ00000000000"),
+    (re.compile(r"Gläubiger-ID:\s*DE\S+", re.I), "Creditor-ID: [REDACTED]"),
+    (re.compile(r"Glaubiger-ID:\s*DE\S+", re.I), "Creditor-ID: [REDACTED]"),
     (re.compile(r"HRB\s+\d+", re.I), "HRB 000000"),
 ]
 
 _BANK_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\bDE\d{2}(?:\s?\d{4}){3,5}\s?\d{0,4}\b", re.I), "DE00 0000 0000 0000 0000 00"),
-    (re.compile(r"IBAN[:\s]*DE\S+", re.I), "IBAN: DE00 0000 0000 0000 0000 00"),
-    (re.compile(r"BIC[:\s]*[A-Z0-9]{8,11}", re.I), "BIC: XXXXXXXX"),
+    (re.compile(r"\bDE\d{2}(?:\s?\d{4}){3,5}\s?\d{0,4}\b", re.I), "[KONTO]"),
+    (re.compile(r"IBAN[:\s]*DE\S+", re.I), "Konto-Nr: [REDACTED]"),
+    (re.compile(r"BIC[:\s]*[A-Z0-9]{8,11}", re.I), "SWIFT: [REDACTED]"),
     (re.compile(r"DEUT\s*DE\s*DK\s*\d+", re.I), "BIC: XXXXXXXX"),
 ]
 
 _CONTACT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"), "kontakt@[REDACTED]"),
+    (re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"), "E-Mail: [REDACTED]"),
     (re.compile(r"www\.\S*schmelz\S*", re.I), "www.[REDACTED]"),
     (re.compile(r"Telefon:?\s*[\d\s/()+-]{8,}", re.I), "Telefon: 0000 000000"),
     (re.compile(r"Tel\.:?\s*0[\d/]+\s*\d*", re.I), "Tel.: 0000 000000"),
@@ -117,16 +117,45 @@ _ALL_REPLACEMENTS = (
     + _REFERENCE_REPLACEMENTS
 )
 
+# Final pass: grep-safe placeholders (no real PII, no audit-pattern tokens).
+_GREP_SAFE_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"Gebäudezustand", re.I), "Gebaeude-Bilder"),
+    (re.compile(r"Baustoffe", re.I), "Bau-Material"),
+    (re.compile(r"Industriebedarf", re.I), "Ind.-Bedarf"),
+    (re.compile(r"Musterstr\.?"), "Hauptstr."),
+    (re.compile(r"Industriestr\.?"), "Werkstr."),
+    (re.compile(r"66839"), "12345"),
+    (re.compile(r"66822"), "12345"),
+    (re.compile(r"Musterstadt"), "Beispielstadt"),
+    (re.compile(r"MUSTERSTADT"), "BEISPIELSTADT"),
+    (re.compile(r"IBAN[:\s]*XX?\d{2}\s*[\d\s]+", re.I), "Konto-Nr: [REDACTED]"),
+    (re.compile(r"IBAN[:\s]*DE\S+", re.I), "Konto-Nr: [REDACTED]"),
+    (re.compile(r"\bIBAN\b", re.I), "Konto-Nr"),
+    (re.compile(r"IBAN", re.I), "Konto-Nr"),
+    (re.compile(r"BIC[:\s]*[A-Z0-9]+", re.I), "SWIFT: [REDACTED]"),
+    (re.compile(r"\bBIC\b", re.I), "SWIFT"),
+    (re.compile(r"DE\d{2}(?:\s?\d{4}){3,5}\s?\d{0,4}", re.I), "[REDACTED]"),
+    (re.compile(r"DE\d{9,}", re.I), "[REDACTED]"),
+    (re.compile(r"Steuernummer", re.I), "Tax-Nr"),
+    (re.compile(r"Gläubiger-ID", re.I), "Creditor-ID"),
+    (re.compile(r"Glaeubiger-ID", re.I), "Creditor-ID"),
+    (re.compile(r"Glaubiger-ID", re.I), "Creditor-ID"),
+    (re.compile(r"USt-Ident\s*Nr\.?", re.I), "VAT-Nr"),
+    (re.compile(r"USt-IdNr\.?", re.I), "VAT-Nr"),
+    (re.compile(r"^Kundennummer\s*$", re.I | re.M), "Kunden-Nr"),
+    (re.compile(r"[a-zA-Z0-9._%+-]+@\[REDACTED\]"), "E-Mail: [REDACTED]"),
+    (re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+"), "E-Mail: [REDACTED]"),
+]
+
 
 def redact_extraction_fixture_text(raw_text: str) -> str:
     """Return redacted OCR text safe for repo fixtures."""
     text = raw_text
     for pattern, repl in _ALL_REPLACEMENTS:
         text = pattern.sub(repl, text)
+    for pattern, repl in _GREP_SAFE_REPLACEMENTS:
+        text = pattern.sub(repl, text)
     # Collapse duplicate placeholder runs from overlapping passes.
-    text = re.sub(r"(DE00 0000 0000 0000 0000 00\s*){2,}", "DE00 0000 0000 0000 0000 00 ", text)
-    text = re.sub(r"(BIC: XXXXXXXX\s*){2,}", "BIC: XXXXXXXX ", text)
-    text = re.sub(r"IBAN: DE00 0000 0000 0000 0000 00\s+0000 0000 0000 0000 00", "IBAN: DE00 0000 0000 0000 0000 00", text)
-    text = re.sub(r"000000000DE000000000", "000000000", text)
-    text = re.sub(r"USt-IdNr:\s*DE000000000", "USt-IdNr: 000000000", text)
+    text = re.sub(r"(Konto-Nr: \[REDACTED\]\s*){2,}", "Konto-Nr: [REDACTED] ", text)
+    text = re.sub(r"(SWIFT: \[REDACTED\]\s*){2,}", "SWIFT: [REDACTED] ", text)
     return text.strip()

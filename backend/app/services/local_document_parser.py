@@ -10,13 +10,22 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 _AMOUNT_RE = re.compile(r"-?(?:\d{1,3}(?:\.\d{3})*|\d+),\d{2,4}")
-_DEADLINE_RE = re.compile(
-    r"(?:zahlung\s+bis|zahlbar\s+bis|bis\s+zum|f[aä]llig\s+am|f[aä]lligkeit\s*:?)\s*"
-    r"(\d{1,2}\.\d{1,2}\.\d{4})",
-    re.IGNORECASE,
-)
+_DATE_RE = r"(\d{1,2}\s*\.\s*\d{1,2}\s*\.\s*\d{2,4})"
+_DATE_ONLY_LINE_RE = re.compile(rf"^\s*{_DATE_RE}\s*$", re.IGNORECASE)
+
+_DEADLINE_PATTERNS: list[tuple[int, re.Pattern[str]]] = [
+    (1, re.compile(rf"zahlbar\s+bis(?:\s+zum)?\s+{_DATE_RE}", re.IGNORECASE)),
+    (1, re.compile(rf"f[äa]llig\s+am\s+{_DATE_RE}", re.IGNORECASE)),
+    (1, re.compile(rf"faellig\s+am\s+{_DATE_RE}", re.IGNORECASE)),
+    (1, re.compile(rf"zahlungsziel[:\s]+{_DATE_RE}", re.IGNORECASE)),
+    (2, re.compile(rf"bitte\s+zahlen\s+sie\s+bis\s+{_DATE_RE}", re.IGNORECASE)),
+    (2, re.compile(rf"zahlung\s+bis\s+{_DATE_RE}", re.IGNORECASE)),
+    (2, re.compile(rf"zu\s+zahlen\s+bis\s+{_DATE_RE}", re.IGNORECASE)),
+    (3, re.compile(rf"bis\s+zum\s+{_DATE_RE}", re.IGNORECASE)),
+]
+
 _DATE_FIELD_RE = re.compile(
-    r"(?:rechnungsdatum|belegdatum|datum)\s*:?\s*(\d{1,2}\.\d{1,2}\.\d{4})",
+    rf"(?:rechnungsdatum|belegdatum|datum)\s*:?\s*{_DATE_RE}",
     re.IGNORECASE,
 )
 _IBAN_RE = re.compile(r"\b(DE\d{2}(?:\s?\d{4}){4,5}\s?\d{2,4})\b", re.IGNORECASE)
@@ -294,14 +303,102 @@ def _extract_amount(text: str) -> tuple[float | None, str | None]:
     return candidate.amount, candidate.line_text
 
 
-def _iso_from_de_date(raw: str) -> str | None:
-    m = re.match(r"^(\d{1,2})\.(\d{1,2})\.(\d{4})$", raw.strip())
+def _normalize_de_date(raw: str) -> str | None:
+    m = re.match(r"^(\d{1,2})\s*\.\s*(\d{1,2})\s*\.\s*(\d{2,4})$", raw.strip())
     if not m:
         return None
     d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+    if y < 100:
+        y = 2000 + y if y <= 79 else 1900 + y
     if not (1 <= d <= 31 and 1 <= mo <= 12):
         return None
     return f"{y:04d}-{mo:02d}-{d:02d}"
+
+
+def _iso_from_de_date(raw: str) -> str | None:
+    return _normalize_de_date(raw)
+
+
+_FORBIDDEN_DEADLINE_TAIL_RE = re.compile(
+    r"(?:rechnungsdatum|belegdatum|ausstellungsdatum|lieferdatum|leistungsdatum|abrechnungszeitraum)\s*:?\s*$",
+    re.IGNORECASE,
+)
+
+
+def _deadline_context_forbidden(context: str) -> bool:
+    return bool(_FORBIDDEN_DEADLINE_TAIL_RE.search(context[-60:]))
+
+
+@dataclass
+class _DeadlineCandidate:
+    iso: str
+    priority: int
+    position: int
+    evidence: str
+
+
+def _extract_payment_table_deadlines(lines: list[str]) -> list[_DeadlineCandidate]:
+    """First due date in utility-style payment tables (Zu zahlen column)."""
+    candidates: list[_DeadlineCandidate] = []
+    offset = 0
+    for i, line in enumerate(lines):
+        line_start = offset
+        offset += len(line) + 1
+        if not re.search(r"zu\s+zahlen", line, re.IGNORECASE):
+            continue
+        header_window = "\n".join(lines[max(0, i - 8) : i + 1]).lower()
+        if not any(token in header_window for token in ("fallig", "faellig", "terminen", "zahlbar")):
+            continue
+        for j in range(i + 1, min(i + 12, len(lines))):
+            date_match = _DATE_ONLY_LINE_RE.match(lines[j])
+            if not date_match:
+                continue
+            row_window = "\n".join(lines[max(0, i - 2) : j + 1])
+            if _deadline_context_forbidden(row_window):
+                break
+            iso = _normalize_de_date(date_match.group(1))
+            if iso:
+                position = sum(len(lines[k]) + 1 for k in range(j))
+                candidates.append(
+                    _DeadlineCandidate(
+                        iso=iso,
+                        priority=2,
+                        position=position,
+                        evidence=lines[j].strip(),
+                    )
+                )
+            break
+    return candidates
+
+
+def _extract_deadline(text: str) -> tuple[str | None, str | None]:
+    candidates: list[_DeadlineCandidate] = []
+
+    for priority, pattern in _DEADLINE_PATTERNS:
+        for match in pattern.finditer(text):
+            context = text[max(0, match.start() - 100) : match.start()]
+            if _deadline_context_forbidden(context):
+                continue
+            iso = _normalize_de_date(match.group(1))
+            if iso:
+                candidates.append(
+                    _DeadlineCandidate(
+                        iso=iso,
+                        priority=priority,
+                        position=match.start(),
+                        evidence=match.group(0).strip(),
+                    )
+                )
+
+    lines = text.splitlines()
+    candidates.extend(_extract_payment_table_deadlines(lines))
+
+    if not candidates:
+        return None, None
+
+    candidates.sort(key=lambda c: (c.priority, c.position))
+    best = candidates[0]
+    return best.iso, best.evidence
 
 
 def _first_company_sender(text: str) -> tuple[str | None, str | None]:
@@ -326,15 +423,6 @@ def _detect_document_type(text: str) -> tuple[str, float, str | None]:
             best_score = weight
             evidence = m.group(0)
     return best_type, best_score, evidence
-
-
-def _extract_deadline(text: str) -> tuple[str | None, str | None]:
-    m = _DEADLINE_RE.search(text)
-    if m:
-        iso = _iso_from_de_date(m.group(1))
-        if iso:
-            return iso, m.group(0).strip()
-    return None, None
 
 
 def _extract_document_date(text: str) -> tuple[str | None, str | None]:

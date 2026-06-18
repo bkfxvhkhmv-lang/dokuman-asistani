@@ -120,3 +120,43 @@ def test_real_fixture_amounts_when_available():
     ):
         data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
         assert parse_local_document(data["raw_text"]).betrag == expected
+
+
+def test_deadline_zahlbar_bis_zum():
+    text = "Rechnung\nZahlbar bis zum 01.03.2026"
+    assert parse_local_document(text).frist == "2026-03-01"
+
+
+def test_deadline_zahlbar_bis_spaced():
+    text = "Rechnung\nZahlbar   bis 01.03.2026"
+    assert parse_local_document(text).frist == "2026-03-01"
+
+
+def test_deadline_faellig_am_two_digit_year():
+    text = "Rechnung\nfällig am 11.03.23"
+    assert parse_local_document(text).frist == "2023-03-11"
+
+
+def test_deadline_bis_zum_two_digit_year():
+    text = "Der Rechnungsbetrag ist bis zum 11.03.23 ohne Abzug zahlbar"
+    assert parse_local_document(text).frist == "2023-03-11"
+
+
+def test_deadline_ocr_spaced_date_separators():
+    text = "Rechnung\nzahlbar bis zum 11 . 03 . 23"
+    assert parse_local_document(text).frist == "2023-03-11"
+
+
+def test_rechnungsdatum_is_not_deadline():
+    text = "Rechnung\nRechnungsdatum: 01.03.2026\nGesamtbetrag 10,00 EUR"
+    assert parse_local_document(text).frist is None
+    assert parse_local_document(text).dokument_datum == "2026-03-01"
+
+
+def test_real_fixture_deadlines_when_available():
+    for fixture_id, expected in (
+        ("schornstein_real", "2023-03-11"),
+        ("wasser_real", "2026-03-01"),
+    ):
+        data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
+        assert parse_local_document(data["raw_text"]).frist == expected

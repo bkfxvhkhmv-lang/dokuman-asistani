@@ -41,7 +41,7 @@ def _save_embedding(doc_id: str, embedding: list[float]) -> None:
         conn.execute(
             text("""
                 INSERT INTO document_vectors (doc_id, embedding, updated_at)
-                VALUES (:doc_id, :emb::vector, :ts)
+                VALUES (:doc_id, CAST(:emb AS vector), :ts)
                 ON CONFLICT (doc_id) DO UPDATE
                 SET embedding=EXCLUDED.embedding, updated_at=EXCLUDED.updated_at
             """),

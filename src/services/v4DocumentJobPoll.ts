@@ -2,6 +2,11 @@ import type { StoreAction } from '@/store/actions';
 import { getDocumentV4, getDocumentWorkerResult } from '@/services/v4-api/documents';
 import type { V4Document, BackendWorkerResult } from '@/services/v4-api/types';
 import type { Dokument } from '@/store/types';
+import {
+  hasWorkerResultAiMeta,
+  WORKER_RESULT_META_RETRY_MAX,
+  WORKER_RESULT_META_RETRY_MS,
+} from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
 
 export interface AttachV4JobPollingOptions {
   getDok?: (localId: string) => Dokument | undefined;
@@ -100,13 +105,20 @@ async function fetchAndApplyWorkerResult(
   getDok?: (localId: string) => Dokument | undefined,
   onCompleted?: (remoteDocId: string) => void,
 ): Promise<void> {
-  let result: BackendWorkerResult;
-  try {
-    result = await getDocumentWorkerResult(remoteDocId);
-  } catch {
-    // Fetch fail → polling completed durumu korunur, UI bozulmaz, sessizce atlanır
-    return;
+  let result: BackendWorkerResult | null = null;
+  for (let attempt = 0; attempt <= WORKER_RESULT_META_RETRY_MAX; attempt += 1) {
+    try {
+      result = await getDocumentWorkerResult(remoteDocId);
+    } catch {
+      return;
+    }
+    if (hasWorkerResultAiMeta(result) || attempt >= WORKER_RESULT_META_RETRY_MAX) {
+      break;
+    }
+    await delay(WORKER_RESULT_META_RETRY_MS);
   }
+  if (!result) return;
+
   // getDok completed anında çağrılır; aiLabelledAt en güncel değeri okur
   const existingDok = getDok?.(localDocId) ?? null;
   const update = buildResultUpdate(localDocId, result, existingDok);
@@ -114,6 +126,10 @@ async function fetchAndApplyWorkerResult(
     dispatch({ type: 'UPDATE_DOKUMENT', payload: update });
   }
   onCompleted?.(remoteDocId);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**

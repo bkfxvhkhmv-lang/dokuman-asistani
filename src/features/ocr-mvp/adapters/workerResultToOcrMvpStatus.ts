@@ -1,6 +1,26 @@
 import type { BackendWorkerResult } from '@/services/v4-api/types';
 import type { OcrMvpActionSummary, OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
+/** Poll interval while waiting for decision_worker to populate document_meta. */
+export const WORKER_RESULT_META_RETRY_MS = 1_500;
+/** Max extra /result fetches after OCR completed before accepting OCR-only snapshot. */
+export const WORKER_RESULT_META_RETRY_MAX = 4;
+
+/**
+ * True when backend enrichment (document_meta → /result) looks ready.
+ * OCR-only snapshots have raw_text but empty AI fields.
+ */
+export function hasWorkerResultAiMeta(wr: BackendWorkerResult): boolean {
+  const doc = wr.document;
+  const as = wr.action_summary;
+  if (doc?.suggested_title?.trim()) return true;
+  if (doc?.document_type?.trim()) return true;
+  if (as?.summary?.trim()) return true;
+  if (as?.short_summary?.trim()) return true;
+  if (as?.next_action?.trim()) return true;
+  return false;
+}
+
 function mapActionSummary(wr: BackendWorkerResult): OcrMvpActionSummary | undefined {
   const as = wr.action_summary;
   const doc = wr.document;
@@ -9,9 +29,11 @@ function mapActionSummary(wr: BackendWorkerResult): OcrMvpActionSummary | undefi
   const sender = doc?.sender?.trim() || undefined;
   const deadline = as?.deadline?.trim() || doc?.deadline?.trim() || undefined;
   const docDate = doc?.date?.trim() || undefined;
+  const suggestedTitle = doc?.suggested_title?.trim() || undefined;
 
   return {
     kind: as?.kind?.trim() || doc?.document_type?.trim() || undefined,
+    title: suggestedTitle,
     summary: as?.summary?.trim() || undefined,
     vendor_name: sender,
     sender,

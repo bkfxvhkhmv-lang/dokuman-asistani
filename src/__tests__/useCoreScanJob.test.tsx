@@ -118,6 +118,87 @@ describe('useCoreScanJob', () => {
     });
   });
 
+  it('retries /result when completed but AI meta is still empty', async () => {
+    renderHook();
+
+    const ocrOnly = {
+      job_id: 'job-remote-1',
+      status: 'completed',
+      confidence: 0.9,
+      document: { raw_text: 'OCR only' },
+      action_summary: {},
+    };
+    const enriched = {
+      ...WORKER_RESULT,
+      document: {
+        ...WORKER_RESULT.document,
+        suggested_title: 'Rechnung Heizöl',
+        raw_text: 'OCR only',
+      },
+      action_summary: {
+        summary: 'Zahlung fällig',
+        kind: 'invoice',
+      },
+    };
+
+    mockGetDocumentV4.mockResolvedValue({ id: 'remote-doc-1', status: 'completed' });
+    mockGetDocumentWorkerResult
+      .mockResolvedValueOnce(ocrOnly)
+      .mockResolvedValueOnce(enriched);
+
+    await act(async () => {
+      await hookApi.startJob({ uri: 'file:///scan.pdf', name: 'scan.pdf' });
+    });
+    await flushMicrotasks();
+
+    expect(mockGetDocumentWorkerResult).toHaveBeenCalledTimes(1);
+    expect(hookApi.status).toBe('processing');
+
+    await act(async () => {
+      jest.advanceTimersByTime(1_500);
+    });
+    await flushMicrotasks();
+
+    expect(mockGetDocumentWorkerResult).toHaveBeenCalledTimes(2);
+    expect(hookApi.status).toBe('done');
+    expect(hookApi.result?.action_summary).toMatchObject({
+      title: 'Rechnung Heizöl',
+      summary: 'Zahlung fällig',
+    });
+  });
+
+  it('finishes with OCR-only result after meta retry cap', async () => {
+    renderHook();
+
+    const ocrOnly = {
+      job_id: 'job-remote-1',
+      status: 'completed',
+      confidence: 0.9,
+      document: { raw_text: 'OCR only' },
+      action_summary: {},
+    };
+
+    mockGetDocumentV4.mockResolvedValue({ id: 'remote-doc-1', status: 'completed' });
+    mockGetDocumentWorkerResult.mockResolvedValue(ocrOnly);
+
+    await act(async () => {
+      await hookApi.startJob({ uri: 'file:///scan.pdf', name: 'scan.pdf' });
+    });
+    await flushMicrotasks();
+
+    for (let i = 0; i < 4; i += 1) {
+      await act(async () => {
+        jest.advanceTimersByTime(1_500);
+      });
+      await flushMicrotasks();
+    }
+
+    expect(mockGetDocumentWorkerResult.mock.calls.length).toBeGreaterThanOrEqual(5);
+    expect(hookApi.status).toBe('done');
+    expect(hookApi.result?.action_summary?.raw_text).toBe('OCR only');
+    expect(hookApi.result?.action_summary?.summary).toBeUndefined();
+  });
+
   it('maps failed document status to error', async () => {
     renderHook();
     mockGetDocumentV4.mockResolvedValue({ id: 'remote-doc-1', status: 'failed' });

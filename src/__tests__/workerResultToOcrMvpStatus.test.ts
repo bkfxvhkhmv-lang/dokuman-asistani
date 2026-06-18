@@ -1,4 +1,4 @@
-import { workerResultToOcrMvpStatus } from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
+import { workerResultToOcrMvpStatus, hasWorkerResultAiMeta } from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
 import type { BackendWorkerResult } from '@/services/v4-api/types';
 
 function makeWorkerResult(overrides: Partial<BackendWorkerResult> = {}): BackendWorkerResult {
@@ -45,6 +45,7 @@ describe('workerResultToOcrMvpStatus', () => {
     expect(mapped.needs_review).toBe(true);
     expect(mapped.action_summary).toMatchObject({
       kind: 'invoice',
+      title: 'Rechnung Vodafone',
       summary: 'Monatliche Mobilfunkrechnung',
       vendor_name: 'Vodafone GmbH',
       sender: 'Vodafone GmbH',
@@ -78,5 +79,21 @@ describe('workerResultToOcrMvpStatus', () => {
     );
 
     expect(mapped.job_id).toBe('remote-doc-fallback');
+  });
+});
+
+describe('hasWorkerResultAiMeta', () => {
+  it('returns false for OCR-only snapshot (raw_text only)', () => {
+    expect(hasWorkerResultAiMeta(makeWorkerResult({
+      document: { raw_text: 'OCR text' },
+      action_summary: {},
+    }))).toBe(false);
+  });
+
+  it('returns true when suggested_title is present', () => {
+    expect(hasWorkerResultAiMeta(makeWorkerResult({
+      document: { suggested_title: 'Rechnung', raw_text: 'x' },
+      action_summary: {},
+    }))).toBe(true);
   });
 });

@@ -142,7 +142,10 @@ export function useHomeState() {
   const dringend     = useMemo(() => aufgaben.filter(d => d.risiko === 'hoch'),    [aufgaben]);
   const woche        = useMemo(() => aufgaben.filter(d => d.risiko === 'mittel'),  [aufgaben]);
   const info         = useMemo(() => aufgaben.filter(d => d.risiko === 'niedrig'), [aufgaben]);
-  const alleDocs     = useMemo(() => filterDokumente(sichtbareDocs, filter).sort(compareByOutcomePriority), [sichtbareDocs, filter, compareByOutcomePriority]);
+  const alleDocs     = useMemo(() => {
+    const filtered = filterDokumente(sichtbareDocs, { ...filter, sortBy: 'erfasst_neu' });
+    return filtered.sort(compareByOutcomePriority);
+  }, [sichtbareDocs, filter, compareByOutcomePriority]);
   const kalDocs      = useMemo(() => sichtbareDocs.filter(d => d.frist && isTaskVisible(d)).sort((a, b) => new Date(a.frist!).getTime() - new Date(b.frist!).getTime()), [sichtbareDocs, isTaskVisible]);
   const ungelesen    = useMemo(() => getUngelesen(state.dokumente), [state.dokumente]);
   const naechste     = kalDocs[0] ?? null;

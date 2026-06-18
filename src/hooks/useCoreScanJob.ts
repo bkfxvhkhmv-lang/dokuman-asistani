@@ -1,7 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
 import { uploadDocumentV4Safe } from '@/services/v4FileService';
 import { getDocumentV4, getDocumentWorkerResult } from '@/services/v4-api/documents';
-import { workerResultToOcrMvpStatus } from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
+import {
+  hasWorkerResultAiMeta,
+  workerResultToOcrMvpStatus,
+  WORKER_RESULT_META_RETRY_MAX,
+  WORKER_RESULT_META_RETRY_MS,
+} from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
 import type { OcrMvpFile, OcrMvpForceType, OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import type {
   OcrMvpErrorKind,
@@ -82,11 +87,7 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
         }
 
         if (st === 'completed') {
-          const wr = await getDocumentWorkerResult(remoteDocId);
-          if (gen !== pollGenRef.current) return;
-          timing?.onPollingResult?.(remoteDocId, 'done');
-          setResult(workerResultToOcrMvpStatus(wr, remoteDocId));
-          setStatus('done');
+          await finishWhenResultReady(remoteDocId, timing, gen);
           return;
         }
 
@@ -106,6 +107,29 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
         }
         schedulePoll(() => void tick(), POLL_ERROR_RETRY_MS);
       }
+    };
+
+    const finishWhenResultReady = async (
+      remoteId: string,
+      timingCb: Partial<OcrMvpTimingCallbacks> | undefined,
+      gen: number,
+      metaAttempt = 0,
+    ): Promise<void> => {
+      const wr = await getDocumentWorkerResult(remoteId);
+      if (gen !== pollGenRef.current) return;
+
+      const metaReady = hasWorkerResultAiMeta(wr);
+      if (!metaReady && metaAttempt < WORKER_RESULT_META_RETRY_MAX) {
+        schedulePoll(
+          () => void finishWhenResultReady(remoteId, timingCb, gen, metaAttempt + 1),
+          WORKER_RESULT_META_RETRY_MS,
+        );
+        return;
+      }
+
+      timingCb?.onPollingResult?.(remoteId, 'done');
+      setResult(workerResultToOcrMvpStatus(wr, remoteId));
+      setStatus('done');
     };
 
     void tick();

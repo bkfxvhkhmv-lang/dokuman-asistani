@@ -1,0 +1,15 @@
+{
+  "id": "schornsteinfeger_bescheid_synthetic",
+  "label": "Synthetic chimney sweep notice (test-safe)",
+  "raw_text": "Schornsteinfeger Meisterbetrieb Saar\nMusterstraße 12\n66111 Saarbrücken\n\nKostenbescheid\nAktenzeichen: SF-2026-88\n\nFür die Schornsteinfegerarbeiten wird ein Betrag von 89,50 EUR fällig.\nZahlbar bis zum 01.03.2026.\n\nBitte überweisen Sie den Betrag fristgerecht.",
+  "expected": {
+    "document_type": "Bescheid",
+    "title_keywords": ["Bescheid", "Schornstein"],
+    "sender_keywords": ["Schornsteinfeger"],
+    "amount": 89.5,
+    "deadline": "2026-03-01",
+    "risk": "mittel",
+    "summary_keywords": ["Bescheid", "Betrag"],
+    "next_action": "zahlen"
+  }
+}

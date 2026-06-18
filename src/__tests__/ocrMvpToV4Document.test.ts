@@ -12,6 +12,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 import { ocrMvpToV4Document } from '@/features/ocr-mvp/adapters/ocrMvpToV4Document';
+import { workerResultToOcrMvpStatus } from '@/features/ocr-mvp/adapters/workerResultToOcrMvpStatus';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 
 function makeResult(deadline?: string | null, extra?: Partial<OcrMvpJobStatus['action_summary']>): OcrMvpJobStatus {
@@ -271,5 +272,93 @@ describe('ocrMvpToV4Document deadline normalization', () => {
       },
     });
     expect(draft.document.titel).toBe('AXA · Versicherung · 13.06.2026');
+  });
+
+  it('persists suggested_title from worker /result as saved document titel', () => {
+    const status = workerResultToOcrMvpStatus({
+      job_id: 'job-suggested',
+      status: 'completed',
+      document: {
+        suggested_title: 'Heizöllieferung Rechnung',
+        document_type: 'Rechnung',
+      },
+      text: 'Heizöl',
+    });
+    const draft = ocrMvpToV4Document(status);
+    expect(draft.document.titel).toBe('Heizöllieferung Rechnung');
+    expect(draft.document.aiDisplayTitle).toBe('Heizöllieferung Rechnung');
+  });
+
+  it('persists AI action_summary.title as document titel and aiDisplayTitle', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-heizoel',
+      status: 'done',
+      document_type: 'Rechnung',
+      confidence: 0.9,
+      action_summary: {
+        kind: 'invoice',
+        title: 'Heizöllieferung Juni 2026',
+        sender: 'Gebr. Alt GmbH',
+        document_date: '2026-06-17',
+        amount: 1929.2,
+      },
+    });
+    expect(draft.document.titel).toBe('Heizöllieferung Juni 2026');
+    expect(draft.document.aiDisplayTitle).toBe('Heizöllieferung Juni 2026');
+  });
+
+  it('maps German Rechnung document_type to invoice title builder with mined sender', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-rechnung-kind',
+      status: 'done',
+      document_type: 'Rechnung',
+      confidence: 0.88,
+      action_summary: {
+        kind: 'invoice',
+        raw_text: [
+          'Gebr. Alt GmbH',
+          'Heizöl Lieferung',
+          'Gesamtbetrag 1.929,20 EUR',
+        ].join('\n'),
+        document_date: '2026-06-17',
+        amount: 1929.2,
+      },
+    });
+    expect(draft.document.titel).toContain('Gebr. Alt GmbH');
+    expect(draft.document.titel).toContain('Rechnung');
+    expect(draft.document.titel).not.toMatch(/^Dokument vom /);
+  });
+
+  it('uses fallback title only when no AI title exists', () => {
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-fallback',
+      status: 'done',
+      document_type: 'unknown',
+      confidence: 0.5,
+      action_summary: {
+        kind: 'unknown',
+        document_date: '2026-06-17',
+      },
+    });
+    expect(draft.document.titel).toBe('Dokument vom 17.06.2026');
+    expect(draft.document.aiDisplayTitle).toBeUndefined();
+  });
+
+  it('sets datum to capture time, not invoice document_date', () => {
+    const before = Date.now();
+    const draft = ocrMvpToV4Document({
+      job_id: 'job-datum',
+      status: 'done',
+      document_type: 'invoice',
+      action_summary: {
+        kind: 'invoice',
+        document_date: '2020-01-15',
+      },
+    });
+    const after = Date.now();
+    const captured = new Date(draft.document.datum).getTime();
+    expect(captured).toBeGreaterThanOrEqual(before);
+    expect(captured).toBeLessThanOrEqual(after);
+    expect(draft.document.dokumentDatum).toBe('2020-01-15');
   });
 });

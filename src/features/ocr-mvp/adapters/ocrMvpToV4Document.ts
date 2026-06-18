@@ -2,7 +2,13 @@ import type { Dokument, ScannedPage } from '@/store/types';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { generateId } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
-import { buildDocumentTitle, buildDocumentSender, extractDokumentDatum, normalizeBuildSender } from './ocrMvpDocumentIdentity';
+import {
+  buildDocumentSender,
+  extractDokumentDatum,
+  normalizeBuildSender,
+  normalizeOcrKind,
+  resolveOcrSavedTitle,
+} from './ocrMvpDocumentIdentity';
 
 // Opaque wrapper — store write happens in a separate step, never here.
 export interface OcrMvpV4DocumentDraft {
@@ -214,12 +220,15 @@ export function ocrMvpToV4Document(
   // "unknown" is not a real classification — fall through to action_summary.kind
   // which is set by the processing pipeline and carries better signal.
   const rawType = result.document_type?.trim();
-  const kind    = (rawType && rawType !== 'unknown')
+  const rawKind = (rawType && rawType !== 'unknown')
     ? rawType
     : s?.kind?.trim() || 'unknown';
+  const kind = normalizeOcrKind(rawKind);
 
   const dokumentDatum = extractDokumentDatum(s);
   const rohText       = buildRohText(s);
+  const { titel, aiDisplayTitle } = resolveOcrSavedTitle(kind, s, dokumentDatum);
+  const capturedAt    = new Date().toISOString();
 
   // Aktenzeichen — direkt alan veya fields[] içinde
   const azField = (s?.fields ?? []).find(f => /^aktenzeichen$/i.test(f.name.trim()));
@@ -227,7 +236,8 @@ export function ocrMvpToV4Document(
 
   const document: Dokument = {
     id:              options?.id ?? generateId(),
-    titel:           buildDocumentTitle(kind, s, dokumentDatum),
+    titel,
+    aiDisplayTitle,
     typ:             normalizeDocumentTyp(KIND_TO_LEGACY[kind] ?? 'Sonstiges'),
     absender:        normalizeBuildSender(buildDocumentSender(kind, s)),
     zusammenfassung: s?.summary?.trim() || buildZusammenfassung(kind, s) || null,
@@ -237,7 +247,7 @@ export function ocrMvpToV4Document(
     frist:           parseFrist(extractFristSource(s)),
     risiko:          mapRisiko(s?.risk_level),
     aktionen:        KIND_TO_AKTIONEN[kind] ?? ['ai', 'review'],
-    datum:           parseFrist(dokumentDatum) ?? new Date().toISOString(),
+    datum:           capturedAt,
     dokumentDatum,
     gelesen:         false,
     erledigt:        false,

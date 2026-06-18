@@ -79,6 +79,59 @@ export function buildReadableKind(kind: string): string {
   return KIND_LABEL[kind] ?? 'Dokument';
 }
 
+/** Map backend/LLM German document_type values to OCR MVP kind keys. */
+const OCR_KIND_ALIASES: Record<string, string> = {
+  rechnung: 'invoice',
+  rechnungen: 'invoice',
+  mahnung: 'invoice',
+  bescheid: 'letter',
+  behörde: 'letter',
+  behörden: 'letter',
+  'behörden / amt': 'letter',
+  versicherung: 'insurance',
+  vertrag: 'letter',
+  verträge: 'letter',
+  angebot: 'quote',
+  formular: 'form',
+};
+
+export function normalizeOcrKind(kind: string): string {
+  const k = kind.trim().toLowerCase();
+  return OCR_KIND_ALIASES[k] ?? kind;
+}
+
+/**
+ * Title for persisted OCR documents — AI title must not lose to generic fallbacks.
+ * Priority: action_summary.title (incl. suggested_title) → built title → filename patterns in buildDocumentTitle.
+ */
+export function resolveOcrSavedTitle(
+  kind: string,
+  s: OcrMvpActionSummary | undefined,
+  dokumentDatum?: string | null,
+): { titel: string; aiDisplayTitle?: string } {
+  const normalizedKind = normalizeOcrKind(kind);
+  const aiTitle = s?.title?.trim();
+  if (isMeaningfulTitle(aiTitle)) {
+    return { titel: aiTitle!, aiDisplayTitle: aiTitle };
+  }
+
+  // buildDocumentTitle only reads structured sender fields; mine from OCR text when absent.
+  const minedSender = buildDocumentSender(normalizedKind, s);
+  const usableSender = minedSender && minedSender !== 'Unbekannt' ? minedSender : null;
+  const enriched =
+    usableSender && !s?.sender?.trim() && !s?.vendor_name?.trim()
+      ? {
+          ...s,
+          sender: usableSender,
+          ...(normalizedKind === 'invoice' || normalizedKind === 'settlement'
+            ? { vendor_name: usableSender }
+            : {}),
+        }
+      : s;
+
+  return { titel: buildDocumentTitle(normalizedKind, enriched, dokumentDatum) };
+}
+
 function formatAmount(
   amount: number | null | undefined,
   currency: string | undefined,

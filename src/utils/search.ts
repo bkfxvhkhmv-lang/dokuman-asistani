@@ -2,6 +2,17 @@ import type { Dokument } from '@/store';
 import { documentMatchesTypChip } from '@/product/canonicalDocTypes';
 import { getTageVerbleibend } from '@/utils/formatters';
 
+/** Capture/save/import time — not invoice date (dokumentDatum) or deadline (frist). */
+export function getDocumentCapturedAtMs(dok: Dokument): number {
+  const raw = dok.datum;
+  const t = new Date(raw).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+export function sortByRecentlyCaptured(docs: Dokument[]): Dokument[] {
+  return [...docs].sort((a, b) => getDocumentCapturedAtMs(b) - getDocumentCapturedAtMs(a));
+}
+
 export function sortByRisiko(docs: Dokument[]): Dokument[] {
   const order: Record<string, number> = { hoch: 0, mittel: 1, niedrig: 2 };
   return [...docs].sort((a, b) => {
@@ -52,6 +63,7 @@ export function filterDokumente(
       const tb = b.frist ? new Date(b.frist).getTime() : new Date(9999, 0).getTime();
       return ta - tb;
     }); break;
+    case 'erfasst_neu': r = sortByRecentlyCaptured(r); break;
     default: r = sortByRisiko(r);
   }
   return r;

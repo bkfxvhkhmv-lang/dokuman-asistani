@@ -8,7 +8,25 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md)
 
-**Kapsam:** Trusted main, PR preamble (5 madde), Camera/Scanner/Polygon preservation rule, #147 migration durumu, Pixel OCR working dev config (#146-C3).
+**Kapsam:** Trusted main, PR preamble (5 madde), Camera/Scanner/Polygon preservation rule, #147 migration durumu, Pixel OCR working dev config (#146-C3), AI cost strategy (#154-A).
+
+---
+
+## 2026-06-17 AI Cost Strategy (#154-A)
+
+📄 [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — parser-first gate, Gemini/Haiku fallback tiers, feedback loop, Mistral deferred  
+📄 [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — #153 eval harness + first synthetic run results  
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — “AI cost strategy” özet bölümü
+
+**Kapsam:** Docs only — no production `decision_worker` change. Parser avg 0.875 vs Gemini Flash 0.750 on 3 synthetic fixtures; insufficient for prod default choice.
+
+---
+
+## 2026-06-17 Extraction Eval Harness (#153-A)
+
+📄 [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md)
+
+**Kapsam:** Backend eval tooling — `local_document_parser`, `eval_extraction_providers.py`, synthetic fixtures. Merged `b942eab18`. Production behavior unchanged.
 
 ---
 

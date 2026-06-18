@@ -1,11 +1,10 @@
 # BriefPilot — Canonical Context
 
 > **Son güncelleme:** 2026-06-17  
-> **Trusted main:** `01a89452d`  
-> **Son merge:** PR #148 — `fix(ocr): route camera analysis through core scan job`  
+> **Trusted main:** `b942eab18`  
+> **Son merge:** PR #153 — `test(ai): add extraction provider eval harness`  
 > **Repo:** `/Users/bayramgul/briefpilot-clean`  
-> **Stash count:** 6 — dokunma (kullanıcı söylemedikçe)  
-> **Working tree:** `__pycache__` + untracked docs/context gürültüsü; kod main temiz
+> **Stash count:** 6 — dokunma (kullanıcı söylemedikçe)
 
 Bu dosya tüm PR / audit / Cursor görevleri için zorunlu bağlam kaynağıdır.  
 Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kılar.
@@ -22,6 +21,27 @@ Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kıla
 | **Pixel OCR** | **WORKING** (local dev config ile) |
 | **Kalan ana iş** | AI extraction/enrichment boş alanlar + config/docs PR |
 | **#147-B** (health bootstrap) | Bekliyor — kullanıcı engeli değil, #146-C sonrası |
+| **#153-A** (extraction eval harness) | **DONE** — merged `b942eab18` |
+| **AI cost strategy** | **Planlandı** — [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md); production switch yok |
+
+---
+
+## AI cost strategy (özet — #154-A)
+
+Uzun vadede her OCR sonucu için Claude çağırmayacağız. Hedef:
+
+1. **Paddle OCR** her zaman (local, token maliyeti yok).
+2. **Local parser** her zaman (`local_document_parser.py` — rule-based, confidence + evidence).
+3. **Confidence gate:** yüksek güven → parser sonucu, LLM atla (eşik fikri ≥ 0.75; gerçek eval sonrası kesinleşir).
+4. **Orta güven:** ucuz LLM fallback — aday **Gemini Flash** (henüz prod default değil).
+5. **Düşük güven / karmaşık belge:** **Claude Haiku** (mevcut güvenilir yol).
+6. **Premium:** Besser erkennen, cevap taslağı, itiraz, hukuki ağır akışlar → Claude Sonnet / premium.
+7. **Feedback loop:** parser vs fallback vs kullanıcının kaydettiği/düzelttiği alanlar; en güvenilir sinyal kullanıcı final verisi.
+8. **Mistral:** opsiyonel gelecek eval adayı; default değil.
+
+İlk sentetik eval (#153, 3 fixture): parser avg **0.875**, Gemini Flash avg **0.750** — prod kararı için yetersiz. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md).
+
+**Production `decision_worker` / `LLM_PROVIDER` değişmedi.**
 
 ---
 
@@ -183,28 +203,28 @@ Bu config ile doğrulandı:
 
 ## Şu an kalan problem
 
-OCR **completed** ama AI extraction alanları boş:
+OCR **completed** + `raw_text` dolu. AI enrichment (#150) çalışıyor ancak:
 
-- `suggested_title`, `document_type`, `sender`, `amount`, `deadline` → null
-- `action_summary` → boş
+- Her belge için Claude çağrısı **maliyetli** — parser-first gate henüz yok.
+- Eval seti çok küçük (3 sentetik fixture) — gerçek anonymized OCR fixture toplama sırada.
+- Frontend title/list (#152) ayrı PR bekliyor olabilir.
 
-**Bu artık OCR problemi değil.** Yeni ayrım:
+**Ayrım:**
 
-> OCR completed + `raw_text` dolu, ama AI enrichment / labeler / extraction pipeline boş veya henüz bağlı değil.
+> OCR tamam. Sıradaki optimizasyon: parser confidence gate + ucuz fallback (Gemini) + güvenilir fallback (Haiku) — önce eval, sonra prod.
 
 ---
 
 ## Sonraki teknik sıra
 
 1. ~~Canonical context güncelle~~ (bu dosya)
-2. ~~**#146-C3 config/docs PR**~~ — `backend/.env.example` + bu dosya:
-   - `PROCESS_OCR_INLINE_DEV=false` dev smoke önerisi
-   - PP-OCRv4 için `OCR_LANG=en` şartı; v4+de/latin desteklenmiyor
-   - PP-OCRv5/de büyük PDF OOM uyarısı
-   - Pixel OCR working config → `backend/.env.example` OCR bölümü
-3. Pixel'de 2–3 gerçek Alman belgeyle PP-OCRv4/en kalite smoke
-4. **AI enrichment audit** — `raw_text` completed ama ai fields / action_summary neden boş?
-5. **#147-B** — health bootstrap (yanıltıcı "online")
+2. ~~**#153-A eval harness**~~ — merged `b942eab18`
+3. **#154-A AI cost strategy docs** — plan + canonical (bu dilim)
+4. **#154-B+** — gerçek anonymized OCR eval fixture toplama
+5. Parser-first gate (`decision_worker`, feature flag) — eval sonrası
+6. Pixel'de 2–3 gerçek Alman belgeyle PP-OCRv4/en kalite smoke
+7. **#147-B** — health bootstrap (yanıltıcı "online")
+8. Frontend #152 title + Zuletzt erfasst ordering — ayrı PR
 
 ---
 
@@ -218,8 +238,11 @@ OCR **completed** ama AI extraction alanları boş:
 | #147-A2 OcrMvpScreen wire | ✅ Merged PR #148 | |
 | #146-C1 worker path smoke | ✅ Local smoke | commit yok |
 | #146-C2 PP-OCRv4/lang smoke | ✅ Local smoke | commit yok |
-| **#146-C3 config/docs** | **Bu dilim** | `.env.example` + docs; kod yok |
-| AI enrichment audit | Bekliyor | OCR sonrası |
+| **#146-C3 config/docs** | ✅ | `.env.example` + docs |
+| **#153-A extraction eval harness** | ✅ Merged `b942eab18` | parser + Gemini + Anthropic eval CLI |
+| **#154-A AI cost strategy docs** | **Bu dilim** | plan doc; kod yok |
+| Real OCR eval fixtures | Bekliyor | anonymized production samples |
+| Parser-first production gate | Bekliyor | eval sonrası |
 | #147-B health bootstrap | Bekliyor | |
 
 ---
@@ -268,6 +291,8 @@ git stash list | wc -l
 
 ## İlgili dosyalar
 
+- [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — parser-first + fallback stratejisi (#154-A)
+- [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — eval harness kullanımı (#153)
 - `docs/reports/BriefPilot_Yapilacaklar_ve_Kararlar.md` — kararlar özeti
 - `docs/reports/BRIEFPILOT_CONTEXT_CLAUDE.md` — mirror (bu dosyaya bak)
 - `docs/reports/BRIEFPILOT_CONTEXT_KIMI.md` — mirror (bu dosyaya bak)

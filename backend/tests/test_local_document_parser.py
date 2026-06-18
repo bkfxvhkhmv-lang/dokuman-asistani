@@ -222,3 +222,83 @@ def test_real_fixture_risk_when_available():
     ):
         data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
         assert parse_local_document(data["raw_text"]).risiko == expected
+
+
+def test_sender_gemeindewasserwerk_case_insensitive():
+    for header in ("GEMEINDEWASSERWERK", "gemeindewasserwerk", "Gemeindewasserwerk"):
+        result = parse_local_document(f"{header}\nJahresverbrauchsabrechnung 2025")
+        assert result.absender is not None
+        assert "Gemeindewasserwerk" in result.absender
+
+
+def test_sender_stadtwerke_saarlouis_header():
+    result = parse_local_document("Stadtwerke Saarlouis\nRechnung\nGesamtbetrag 10,00 EUR")
+    assert result.absender is not None
+    assert "Stadtwerke Saarlouis" in result.absender
+
+
+def test_sender_schornsteinfeger_header():
+    result = parse_local_document(
+        "[NAME]\nSchornsteinfegermeister\nHauptstr. 2\nRechnung\nGesamtbetrag 41,63 EUR"
+    )
+    assert result.absender is not None
+    assert "Schornsteinfeger" in result.absender
+
+
+def test_sender_vodafone_header_case_insensitive():
+    for header in ("Vodafone GmbH", "VODAFONE", "vodafone gmbh"):
+        result = parse_local_document(f"{header}\nRechnung\nGesamtbetrag 10,00 EUR")
+        assert result.absender is not None
+        assert "vodafone" in result.absender.lower()
+
+
+def test_sender_gebr_alt_gmbh_header():
+    result = parse_local_document("Gebr. Alt GmbH\nRechnung\nGesamtbetrag 10,00 EUR")
+    assert result.absender is not None
+    assert "Alt GmbH" in result.absender
+
+
+def test_sender_footer_hrb_fallback_skips_person_role():
+    text = """Rechnung
+Gesamtbetrag 10,00 EUR
+Beispiel GmbH
+Geschäftsführer: Max Mustermann
+Handelsregister Amtsgericht Frankfurt HRB 123456"""
+    result = parse_local_document(text)
+    assert result.absender is not None
+    assert "GmbH" in result.absender
+    assert "Geschäftsführer" not in result.absender
+
+
+def test_sender_skips_placeholder_address_contact_and_title_lines():
+    text = """[NAME]
+[REDACTED]
+Hauptstr. 1
+12345 Beispielstadt
+Tel.: 0000 000000
+E-Mail: test@example.com
+IBAN DE12 3456 7890 1234 5678 90
+Rechnung
+Gebr. Alt GmbH
+Gesamtbetrag 10,00 EUR"""
+    result = parse_local_document(text)
+    assert result.absender is not None
+    assert "Alt GmbH" in result.absender
+    assert "[NAME]" not in (result.absender or "")
+    assert "Hauptstr" not in (result.absender or "")
+    assert "@" not in (result.absender or "")
+    assert "DE12" not in (result.absender or "")
+
+
+def test_real_fixture_senders_when_available():
+    for fixture_id, keywords in (
+        ("wasser_real", ("Gemeindewasserwerk",)),
+        ("schornstein_real", ("Schornstein", "Schornsteinfeger")),
+        ("heizoel_real", ("Alt GmbH",)),
+        ("vodafone_real", ("Vodafone",)),
+        ("schornsteinfeger_bescheid_synthetic", ("Schornsteinfeger",)),
+    ):
+        data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
+        sender = parse_local_document(data["raw_text"]).absender
+        assert sender is not None, fixture_id
+        assert any(keyword in sender for keyword in keywords), (fixture_id, sender)

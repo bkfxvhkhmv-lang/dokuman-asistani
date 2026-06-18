@@ -1,0 +1,24 @@
+{
+  "id": "finanzamt_anschreiben_real",
+  "label": "Finanzamt Anschreiben ESt-Erklärung (redacted OCR)",
+  "source": "pdf=finanzamt.pdf",
+  "raw_text": "Sehr geehrte Damen und Herren, \n \nanbei übersende ich meine Einkommensteuererklärungen für die Jahre 2017–2025  \nmit den Anlagen V für die Objekte Musterstr. 1 und 30 in Musterstadt. \n \nDer beiliegende USB-Stick enthält: \n- Die Excel-Berechnung (AnlageV_FINAL_84_655.xlsx) \n- Den vollständigen Belegnachweis als PDF \n- Eine Fotodokumentation zum Gebäudezustand (Musterstr. 1) \n- Alle originalen Belege in strukturierter Ordnerhierarchie \n \nFür Rückfragen stehe ich gerne zur Verfügung. \n \nMit freundlichen Grüßen, \n[NAME] \nMusterstr. 1, 66839 Musterstadt",
+  "expected": {
+    "document_type": "Mitteilung",
+    "title_keywords": [
+      "Einkommensteuer",
+      "Anlage"
+    ],
+    "sender_keywords": [
+      "NAME"
+    ],
+    "amount": null,
+    "deadline": null,
+    "risk": "niedrig",
+    "summary_keywords": [
+      "Einkommensteuer",
+      "Anlage"
+    ],
+    "next_action": "dokument"
+  }
+}

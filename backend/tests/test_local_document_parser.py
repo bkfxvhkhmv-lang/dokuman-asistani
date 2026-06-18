@@ -302,3 +302,55 @@ def test_real_fixture_senders_when_available():
         sender = parse_local_document(data["raw_text"]).absender
         assert sender is not None, fixture_id
         assert any(keyword in sender for keyword in keywords), (fixture_id, sender)
+
+
+def test_utility_jahresverbrauchsabrechnung_is_rechnung():
+    text = (
+        "GEMEINDEWASSERWERK\n"
+        "Jahresverbrauchsabrechnung 2025\n"
+        "Rechnungsbetrag\n"
+        "Zu zahlen\n"
+        "01.03.2026\n"
+        "1.260,36"
+    )
+    result = parse_local_document(text)
+    assert result.typ == "Rechnung"
+    assert result.betrag == 1260.36
+    assert result.aktionen[0] == "zahlen"
+
+
+def test_verbrauchsabrechnung_with_zu_zahlen_next_action_is_zahlen():
+    text = (
+        "Stadtwerke Saarlouis\n"
+        "Verbrauchsabrechnung 2025\n"
+        "Zu zahlen bis 01.04.2026\n"
+        "Gesamtbetrag 120,00 EUR"
+    )
+    result = parse_local_document(text)
+    assert result.typ == "Rechnung"
+    assert result.aktionen[0] == "zahlen"
+
+
+def test_schornsteinfeger_bescheid_payment_next_action_is_zahlen():
+    text = (
+        "Schornsteinfeger Meisterbetrieb Saar\n"
+        "Kostenbescheid\n"
+        "Für die Schornsteinfegerarbeiten wird ein Betrag von 89,50 EUR fällig.\n"
+        "Zahlbar bis zum 01.03.2026."
+    )
+    result = parse_local_document(text)
+    assert result.typ == "Bescheid"
+    assert result.aktionen[0] == "zahlen"
+
+
+def test_finanzamt_informational_letter_stays_non_rechnung():
+    text = (
+        "Sehr geehrte Damen und Herren,\n"
+        "anbei übersende ich meine Einkommensteuererklärungen.\n"
+        "Mit freundlichen Grüßen,\n"
+        "[NAME]"
+    )
+    result = parse_local_document(text)
+    assert result.typ != "Rechnung"
+    assert result.betrag is None
+    assert result.aktionen[0] == "dokument"

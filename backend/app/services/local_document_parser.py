@@ -105,6 +105,14 @@ _TYPE_RULES: list[tuple[str, re.Pattern[str], float]] = [
     ("Vertrag", re.compile(r"\b(vertrag|kündigung)\b", re.I), 0.75),
     ("Mitteilung", re.compile(r"\b(mitteilung|information)\b", re.I), 0.6),
 ]
+_UTILITY_BILLING_CONTEXT_RE = re.compile(
+    r"\b(?:gemeindewasserwerk|wasserwerk|stadtwerke|jahresverbrauchsabrechnung|verbrauchsabrechnung)\b",
+    re.IGNORECASE,
+)
+_PAYMENT_BILLING_SIGNAL_RE = re.compile(
+    r"\b(?:rechnungsbetrag|zahlbetrag|zu\s+zahlen|gesamtbetrag|abrechnung)\b",
+    re.IGNORECASE,
+)
 
 _BANNED_AMOUNT_LABELS = (
     "zwischensumme",
@@ -699,6 +707,24 @@ def _detect_document_type(text: str) -> tuple[str, float, str | None]:
     return best_type, best_score, evidence
 
 
+def _refine_document_type(
+    doc_type: str,
+    type_score: float,
+    type_evidence: str | None,
+    text: str,
+    amount: float | None,
+) -> tuple[str, float, str | None]:
+    if doc_type != "Sonstiges" or amount is None:
+        return doc_type, type_score, type_evidence
+
+    utility_match = _UTILITY_BILLING_CONTEXT_RE.search(text)
+    payment_match = _PAYMENT_BILLING_SIGNAL_RE.search(text)
+    if utility_match and payment_match:
+        evidence = utility_match.group(0)
+        return "Rechnung", 0.84, evidence
+    return doc_type, type_score, type_evidence
+
+
 def _extract_document_date(text: str) -> tuple[str | None, str | None]:
     m = _DATE_FIELD_RE.search(text)
     if m:
@@ -784,11 +810,16 @@ def _guess_risk(doc_type: str, text: str, deadline_iso: str | None) -> str:
 
 def _guess_actions(doc_type: str, amount: float | None, deadline: str | None) -> list[str]:
     actions: list[str] = []
-    if doc_type in ("Rechnung", "Mahnung") and amount is not None:
+    payment_doc = amount is not None and doc_type in ("Rechnung", "Mahnung", "Bescheid")
+
+    if payment_doc:
         actions.append("zahlen")
-    if deadline:
+    elif deadline and doc_type == "Termin":
         actions.append("kalender")
-    if doc_type == "Bescheid":
+    elif deadline:
+        actions.append("kalender")
+
+    if doc_type == "Bescheid" and not payment_doc:
         actions.append("antworten")
     if not actions:
         actions.append("dokument")
@@ -851,6 +882,9 @@ def parse_local_document(raw_text: str) -> LocalParseResult:
     doc_type, type_score, type_evidence = _detect_document_type(text)
     sender, sender_evidence = _extract_sender(text)
     amount, amount_evidence = _extract_amount(text)
+    doc_type, type_score, type_evidence = _refine_document_type(
+        doc_type, type_score, type_evidence, text, amount
+    )
     deadline, deadline_evidence = _extract_deadline(text)
     doc_date, date_evidence = _extract_document_date(text)
     iban_m = _IBAN_RE.search(text)

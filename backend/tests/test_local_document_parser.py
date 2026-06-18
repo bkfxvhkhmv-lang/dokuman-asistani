@@ -160,3 +160,65 @@ def test_real_fixture_deadlines_when_available():
     ):
         data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
         assert parse_local_document(data["raw_text"]).frist == expected
+
+
+def test_heizoel_rechnung_with_deadline_is_mittel_not_hoch():
+    result = parse_local_document(HEIZOEL_TEXT)
+    assert result.risiko == "mittel"
+
+
+def test_schornstein_bis_zum_is_mittel_not_hoch():
+    text = (
+        "Rechnung\n"
+        "Der Rechnungsbetrag ist bis zum 11.03.23 ohne Abzug zahlbar\n"
+        "Gesamtbetrag 41,63 EUR"
+    )
+    assert parse_local_document(text).risiko == "mittel"
+
+
+def test_gutschrift_without_escalation_is_niedrig():
+    text = "Rechnung\nIhre Gutschrift\nGuthaben 93,01 EUR"
+    assert parse_local_document(text).risiko == "niedrig"
+
+
+def test_mahnung_case_insensitive_is_hoch():
+    for text in (
+        "MAHNUNG\nOffener Betrag 10,00 EUR",
+        "Letzte Mahnung\nBitte zahlen",
+        "Inkasso-Verfahren eingeleitet",
+        "Zahlung im Verzug",
+    ):
+        assert parse_local_document(text).risiko == "hoch"
+
+
+def test_offener_betrag_alone_is_not_hoch():
+    text = "Rechnung\nOffener Betrag: 45,99 EUR\nZahlbar bis 10.05.2026"
+    assert parse_local_document(text).risiko == "mittel"
+
+
+def test_wasser_jahresverbrauchsabrechnung_is_mittel():
+    text = (
+        "GEMEINDEWASSERWERK\n"
+        "Jahresverbrauchsabrechnung 2025\n"
+        "Rechnungsbetrag\n"
+        "Zu zahlen\n"
+        "01.03.2026\n"
+        "1260,36"
+    )
+    assert parse_local_document(text).risiko == "mittel"
+
+
+def test_berechnung_does_not_trigger_rechnung_routine_risk():
+    text = "Mitteilung\nExcel-Berechnung der Kosten\nKeine Zahlung erforderlich"
+    assert parse_local_document(text).risiko == "niedrig"
+
+
+def test_real_fixture_risk_when_available():
+    for fixture_id, expected in (
+        ("heizoel_real", "mittel"),
+        ("schornstein_real", "mittel"),
+        ("wasser_real", "mittel"),
+        ("vodafone_real", "niedrig"),
+    ):
+        data = json.loads((_FIXTURES / f"{fixture_id}.json").read_text(encoding="utf-8"))
+        assert parse_local_document(data["raw_text"]).risiko == expected

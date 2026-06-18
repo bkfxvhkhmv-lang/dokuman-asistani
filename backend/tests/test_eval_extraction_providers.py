@@ -100,15 +100,14 @@ def test_default_eval_output_omits_details_sections():
     result = _run_eval_script()
     assert result.returncode == 0, result.stderr
     assert "=== Summary ===" in result.stdout
-    assert "Field failure counts" not in result.stdout
-    assert "Field average scores" not in result.stdout
-    assert "details [parser]" not in result.stdout
+    assert "Field Failure Counts:" not in result.stdout
+    assert "Total Score:" not in result.stdout
 
 
 def test_details_eval_output_includes_field_diagnostics():
     result = _run_eval_script("--details")
     assert result.returncode == 0, result.stderr
-    assert "details [parser]" in result.stdout
-    assert "=== Field failure counts ===" in result.stdout
-    assert "=== Field average scores ===" in result.stdout
-    assert "summary_keywords:" in result.stdout
+    assert "Total Score:" in result.stdout
+    assert "Field Failure Counts:" in result.stdout
+    assert "summary_keywords: matched:" in result.stdout
+    assert "| PASS" in result.stdout or "| FAIL" in result.stdout

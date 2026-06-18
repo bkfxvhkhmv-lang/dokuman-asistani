@@ -25,7 +25,6 @@ if str(_BACKEND_ROOT) not in sys.path:
 from app.services.eval_extraction_providers import resolve_providers, run_fixture_eval
 from app.services.eval_extraction_scorer import (
     FixtureScore,
-    aggregate_field_averages,
     compare_extraction_fields,
     count_field_failures,
     merge_field_failure_counts,
@@ -67,32 +66,38 @@ def _print_score(score: FixtureScore) -> None:
 
 
 def _print_details(fixture: dict, score: FixtureScore) -> None:
+    fixture_id = fixture["id"]
     if score.skipped:
-        print(f"    details: SKIPPED — {score.skip_reason}")
+        print(f"  [{fixture_id}] ({score.provider}) - SKIPPED: {score.skip_reason}")
         return
 
-    expected = fixture.get("expected") or {}
-    rows = compare_extraction_fields(score.extracted, expected)
-    print(f"    details [{score.provider}] total={score.field_scores.average:.3f}")
+    rows = compare_extraction_fields(score.extracted, fixture.get("expected") or {})
+    print(
+        f"  [{fixture_id}] ({score.provider}) - Total Score: {score.field_scores.average:.3f}"
+    )
     for row in rows:
+        if row.name == "summary_keywords":
+            if row.expected == "null":
+                continue
+            note = row.note or "matched: [], missing: []"
+            print(f"    - summary_keywords: {note}")
+            continue
+        if row.name == "next_action" and row.expected == "null":
+            continue
         status = "PASS" if row.passed else "FAIL"
-        line = (
-            f"      {row.name}: expected {row.expected}, got {row.actual} "
-            f"({status}, score={row.score:.2f})"
+        print(
+            f"    - {row.name}: expected '{row.expected}', got '{row.actual}' "
+            f"| {status} (Score: {row.score:.2f})"
         )
-        print(line)
-        if row.note:
-            print(f"        {row.note}")
 
 
 def _print_failure_summary(all_failure_counts: list[dict[str, int]]) -> None:
     merged = merge_field_failure_counts(all_failure_counts)
+    print("\nField Failure Counts:")
     if not merged:
-        print("\n=== Field failure counts ===")
         print("  (none)")
         return
 
-    print("\n=== Field failure counts ===")
     order = [
         "title",
         "document_type",
@@ -105,32 +110,10 @@ def _print_failure_summary(all_failure_counts: list[dict[str, int]]) -> None:
     ]
     for field in order:
         if field in merged:
-            print(f"  {field}: {merged[field]}")
+            print(f"  - {field}: {merged[field]}")
     for field, n in sorted(merged.items()):
         if field not in order:
-            print(f"  {field}: {n}")
-
-
-def _print_field_average_scores(all_scores: list[FixtureScore]) -> None:
-    averages = aggregate_field_averages(all_scores)
-    if not averages:
-        return
-    print("\n=== Field average scores ===")
-    order = [
-        "title",
-        "document_type",
-        "sender",
-        "amount",
-        "deadline",
-        "risk",
-        "summary_keywords",
-    ]
-    for field in order:
-        if field in averages:
-            print(f"  {field}: {averages[field]:.2f}")
-    for field, avg in sorted(averages.items()):
-        if field not in order:
-            print(f"  {field}: {avg:.2f}")
+            print(f"  - {field}: {n}")
 
 
 def _summary_table(all_scores: list[FixtureScore]) -> None:
@@ -182,7 +165,6 @@ async def _run(args: argparse.Namespace) -> int:
     _summary_table(all_scores)
     if args.details:
         _print_failure_summary(all_failure_counts)
-        _print_field_average_scores(all_scores)
 
     if args.json_out:
         out = [

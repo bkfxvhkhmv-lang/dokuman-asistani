@@ -60,8 +60,8 @@ def test_summary_keywords_reports_matched_missing():
     by_name = {row.name: row for row in rows}
     assert by_name["summary_keywords"].passed is False
     assert by_name["summary_keywords"].score == pytest.approx(2 / 3)
-    assert "matched=['Rechnung', 'Alt']" in (by_name["summary_keywords"].note or "")
-    assert "missing=['Heizöl']" in (by_name["summary_keywords"].note or "")
+    assert "matched: ['Rechnung', 'Alt']" in (by_name["summary_keywords"].note or "")
+    assert "missing: ['Heizöl']" in (by_name["summary_keywords"].note or "")
 
 
 def test_aggregate_field_averages():

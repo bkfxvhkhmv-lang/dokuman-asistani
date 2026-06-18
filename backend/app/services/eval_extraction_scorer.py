@@ -162,7 +162,7 @@ def compare_extraction_fields(
         lower = (actual_summary or "").lower()
         matched = [kw for kw in summary_keywords if kw.lower() in lower]
         missing = [kw for kw in summary_keywords if kw.lower() not in lower]
-        summary_note = f"matched={matched or ['—']}, missing={missing or ['—']}"
+        summary_note = f"matched: {matched or ['—']}, missing: {missing or ['—']}"
 
     title_note = None
     if title_keywords:

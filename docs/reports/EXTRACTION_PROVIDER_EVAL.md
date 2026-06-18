@@ -6,12 +6,14 @@ BriefPilot runs Paddle OCR on every document, then calls an LLM (`decision_worke
 
 Target architecture (not implemented yet):
 
-| Parser confidence | Policy |
-|-------------------|--------|
-| ≥ 0.75 | Use local parser only — no LLM |
-| 0.40 – 0.75 | Cheap LLM fallback (e.g. Gemini Flash) |
-| < 0.40 or complex | Claude Haiku / reliable fallback |
-| Besser erkennen, legal reply, objection | Claude Sonnet / premium |
+| Parser operational confidence | Policy |
+|-------------------------------|--------|
+| HIGH (≥ 0.80) | Use local parser only — no LLM |
+| MEDIUM (0.60 – 0.79) | Show parser; optional async enrichment (UI fields) |
+| LOW (< 0.60 or critical conflict) | Targeted LLM fallback for unresolved fields |
+| Besser erkennen, legal reply, objection | Premium model — explicit user action |
+
+Full design: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) (#163). Provider order **not finalized** — eval-driven.
 
 **This slice is eval harness only.** Production `decision_worker` and `LLM_PROVIDER` are unchanged.
 
@@ -31,7 +33,7 @@ Target architecture (not implemented yet):
 - **Gemini Flash:** returns valid JSON consistently; title extraction sometimes better; **sender and risk weaker** vs expected labels in this micro-set (e.g. risk `niedrig`/`mittel` vs expected `hoch` on Mahnung).
 - **Not enough to choose production defaults.** Need anonymized real OCR fixtures and user-corrected ground truth before parser-first gate or Gemini default fallback.
 
-Full strategy: [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md).
+Full strategy: [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md). Gate design: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
 
 ## Fixture format
 

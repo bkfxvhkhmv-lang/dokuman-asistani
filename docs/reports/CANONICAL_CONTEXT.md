@@ -1,8 +1,8 @@
 # BriefPilot — Canonical Context
 
-> **Son güncelleme:** 2026-06-17  
-> **Trusted main:** `ef4597498`  
-> **Son merge:** PR #164 — `test(eval): add Mistral extraction provider smoke support`  
+> **Son güncelleme:** 2026-06-18  
+> **Trusted main:** `b29af0334`  
+> **Son merge:** PR #166 — `feat(parser): add extraction shadow-mode instrumentation`  
 > **Repo:** `/Users/bayramgul/briefpilot-clean`  
 > **Stash count:** 6 — dokunma (kullanıcı söylemedikçe)
 
@@ -26,8 +26,12 @@ Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kıla
 | **#163** (confidence gate design) | **Merged** — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
 | **#164** (Mistral eval-only provider) | **Merged** — `ef4597498`; production fallback **NO** |
 | **Provider smoke** (Mistral + Haiku, 8 fixtures) | **Complete** — parser beats LLMs on operational fields |
-| **Shadow-mode instrumentation** (#164-B) | **In progress** — `EXTRACTION_SHADOW_MODE`; log-only; `applied_source=current_production_llm` |
+| **Shadow-mode instrumentation** (#166) | **Merged** — local smoke **15 logs** — [SHADOW_MODE_SMOKE_2026-06-18.md](SHADOW_MODE_SMOKE_2026-06-18.md) |
+| **Shadow smoke result** | Instrumentation **PASS**; gate HIGH 1 / MEDIUM 3 / LOW 11; routing **HOLD** |
+| **Summary worker pgvector bug** | **NEXT** — separate PR (`:emb::vector` bind) |
 | **AI cost strategy** | **Planlandı** — [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md); production switch yok |
+| **LLM usage telemetry** | `llm.usage` scalar logs — [LLM_USAGE_TELEMETRY.md](LLM_USAGE_TELEMETRY.md); `decision_worker` + `ai_explain` routes |
+| **AI usage DB + CLI report** | `ai_usage_events` tablo + `scripts/ai_usage_report.py` — [AI_USAGE_REPORTING.md](AI_USAGE_REPORTING.md); telemetri PASS; dashboard/cron LATER |
 
 ---
 
@@ -46,11 +50,11 @@ Uzun vadede her OCR sonucu için Claude çağırmayacağız. Hedef:
 
 Parser eval (#157 sonrası, 8 fixture): avg **0.899**, operational fields **0/8** fail (sender 1 safe null), `valid_json` 1.00, ~2 ms. Mistral smoke: 0.680; Haiku smoke: 0.695. **Provider smoke conclusion:** parser beats tested LLMs on operational fields. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
 
-**Architecture labels:** Parser operational source of truth **GO** | LLM title/summary enrichment **MAYBE** | LLM operational override **NO** | Production routing **HOLD** | Shadow-mode instrumentation **IN PROGRESS** (#164-B)
+**Architecture labels:** Parser operational source of truth **GO** | LLM title/summary enrichment **MAYBE** | LLM operational override **NO** | Production routing **HOLD** | Shadow-mode instrumentation **PASS** (local smoke 2026-06-18)
 
-**#164-B (shadow):** `EXTRACTION_SHADOW_MODE=true` → `decision_worker` logs `extraction.shadow_compare` (parser vs current LLM). `document_meta` hâlâ LLM çıktısı; parser log-only. DB yok.
+**#166 (shadow):** `EXTRACTION_SHADOW_MODE=true` → 15 local `extraction.shadow_compare` logs (2026-06-18). `applied_source=current_production_llm` 15/15. Parser-first routing **HOLD**. Detay: [SHADOW_MODE_SMOKE_2026-06-18.md](SHADOW_MODE_SMOKE_2026-06-18.md).
 
-**Production `decision_worker` routing değişmedi** (LLM hâlâ her zaman çağrılır; parser-first HOLD).
+**Production `decision_worker` routing değişmedi** (LLM hâlâ `document_meta` kaynağı).
 
 ---
 
@@ -303,6 +307,8 @@ git stash list | wc -l
 - [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — parser-first + fallback stratejisi (#154-A)
 - [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — confidence gate HIGH/MEDIUM/LOW (#163)
 - [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — eval harness kullanımı (#153)
+- [LLM_USAGE_TELEMETRY.md](LLM_USAGE_TELEMETRY.md) — `llm.usage` scalar log events
+- [AI_USAGE_REPORTING.md](AI_USAGE_REPORTING.md) — `ai_usage_events` tablo şeması, CLI rapor, PII guard, smoke sonucu
 - `docs/reports/BriefPilot_Yapilacaklar_ve_Kararlar.md` — kararlar özeti
 - `docs/reports/BRIEFPILOT_CONTEXT_CLAUDE.md` — mirror (bu dosyaya bak)
 - `docs/reports/BRIEFPILOT_CONTEXT_KIMI.md` — mirror (bu dosyaya bak)

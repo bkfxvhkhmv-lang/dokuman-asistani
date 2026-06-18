@@ -56,7 +56,12 @@ async def explain_document(
         )
 
     llm = get_llm()
-    result = await llm.explain(raw, lang=lang)
+    result = await llm.explain(
+        raw,
+        lang=lang,
+        document_id=doc_id,
+        route="ai_explain",
+    )
     return result
 
 

@@ -1,8 +1,8 @@
 # BriefPilot — Canonical Context
 
 > **Son güncelleme:** 2026-06-17  
-> **Trusted main:** `b942eab18`  
-> **Son merge:** PR #153 — `test(ai): add extraction provider eval harness`  
+> **Trusted main:** `37f8a99e8`  
+> **Son merge:** PR #162 — `fix(parser): refine document type and next action`  
 > **Repo:** `/Users/bayramgul/briefpilot-clean`  
 > **Stash count:** 6 — dokunma (kullanıcı söylemedikçe)
 
@@ -22,6 +22,8 @@ Eski context dosyalarındaki farklı HEAD değerleri bu dosyayı geçersiz kıla
 | **Kalan ana iş** | AI extraction/enrichment boş alanlar + config/docs PR |
 | **#147-B** (health bootstrap) | Bekliyor — kullanıcı engeli değil, #146-C sonrası |
 | **#153-A** (extraction eval harness) | **DONE** — merged `b942eab18` |
+| **#157 arc** (parser fields A–F) | **DONE** — #158–#162; parser avg **0.899**, operational fields 0/8 fail |
+| **#163** (confidence gate design) | **Docs** — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
 | **AI cost strategy** | **Planlandı** — [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md); production switch yok |
 
 ---
@@ -32,14 +34,14 @@ Uzun vadede her OCR sonucu için Claude çağırmayacağız. Hedef:
 
 1. **Paddle OCR** her zaman (local, token maliyeti yok).
 2. **Local parser** her zaman (`local_document_parser.py` — rule-based, confidence + evidence).
-3. **Confidence gate:** yüksek güven → parser sonucu, LLM atla (eşik fikri ≥ 0.75; gerçek eval sonrası kesinleşir).
-4. **Orta güven:** ucuz LLM fallback — aday **Gemini Flash** (henüz prod default değil).
-5. **Düşük güven / karmaşık belge:** **Claude Haiku** (mevcut güvenilir yol).
+3. **Confidence gate:** operational confidence HIGH ≥ **0.80** → parser sonucu, LLM atla — detay: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) (#163). Shadow mode (#164) zorunlu; production switch yok.
+4. **Orta güven (0.60–0.79):** parser göster; opsiyonel async enrichment (title/summary). LLM provider sırası **eval ile belirlenecek** — Gemini default değil.
+5. **Düşük güven (< 0.60 / conflict):** targeted LLM fallback — güvenilir düşük maliyetli model adayı (eval ile seçim).
 6. **Premium:** Besser erkennen, cevap taslağı, itiraz, hukuki ağır akışlar → Claude Sonnet / premium.
 7. **Feedback loop:** parser vs fallback vs kullanıcının kaydettiği/düzelttiği alanlar; en güvenilir sinyal kullanıcı final verisi.
 8. **Mistral:** opsiyonel gelecek eval adayı; default değil.
 
-İlk sentetik eval (#153, 3 fixture): parser avg **0.875**, Gemini Flash avg **0.750** — prod kararı için yetersiz. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md).
+Parser eval (#157 sonrası, 8 fixture): avg **0.899**, operational fields **0/8** fail, `valid_json` 1.00, ~0.7 ms. Detay: [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
 
 **Production `decision_worker` / `LLM_PROVIDER` değişmedi.**
 
@@ -292,6 +294,7 @@ git stash list | wc -l
 ## İlgili dosyalar
 
 - [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — parser-first + fallback stratejisi (#154-A)
+- [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — confidence gate HIGH/MEDIUM/LOW (#163)
 - [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — eval harness kullanımı (#153)
 - `docs/reports/BriefPilot_Yapilacaklar_ve_Kararlar.md` — kararlar özeti
 - `docs/reports/BRIEFPILOT_CONTEXT_CLAUDE.md` — mirror (bu dosyaya bak)

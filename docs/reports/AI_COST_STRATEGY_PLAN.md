@@ -47,19 +47,20 @@ Upload / scan
 
 ### 3. Confidence gate
 
-- If parser confidence is **high enough**, use parser result and **skip LLM**.
-- Initial threshold **idea:** `>= 0.75`.
-- **Final threshold must be chosen after real eval** on anonymized production OCR fixtures — not from the 3-case synthetic set alone.
+- If parser **operational confidence** is **high enough**, use parser result and **skip LLM**.
+- Initial threshold band (post-#157 eval): HIGH ≥ **0.80**, MEDIUM **0.60–0.79**, LOW < **0.60** — see [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) (#163).
+- **Final thresholds must be validated in shadow mode** (#164) on real traffic — not fixture-only.
+- `title` / `summary` weakness must **not** alone block HIGH gate.
 
 ### 4. Cheap fallback (medium confidence)
 
-- If parser confidence is **medium/uncertain** (initial band idea: `0.40 – 0.75`), try a **cheap LLM**.
-- Primary candidate: **Gemini Flash**.
-- Do **not** switch production default until eval justifies it.
+- If parser operational confidence is **medium/uncertain** (initial band: `0.60 – 0.79`), optional cheap LLM enrichment — primarily UI fields.
+- **Provider order is not finalized here.** See [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — choice requires provider eval (`valid_json`, accuracy, cost, latency). Gemini Flash is candidate only, not default.
 
 ### 5. Reliable fallback (low confidence / complex)
 
-- If parser confidence is **low** (`< 0.40`) or document is structurally complex (multi-page legal, nested tables, ambiguous type), use **Claude Haiku** (current reliable path).
+- If parser operational confidence is **low** (`< 0.60`) or critical conflict flags fire, use targeted LLM fallback for unresolved operational fields.
+- Reliable low-cost model tier (e.g. Claude Haiku-style) — **final choice via eval**, not assumed in this doc.
 
 ### 6. Premium / deep reasoning
 
@@ -90,7 +91,7 @@ Store/compare `parser_result`, `fallback_result`, and final user-saved values. U
 
 - Optional **future** eval candidate.
 - **Not** default without real OCR eval on German fixtures.
-- Current primary candidates: **parser → Gemini Flash → Claude Haiku**.
+- Current primary candidates for eval: **parser → (eval-chosen cheap JSON model) → (eval-chosen reliable model)**. Gemini Flash remains eval candidate only.
 
 ### 9. Future infrastructure
 
@@ -117,10 +118,11 @@ Store/compare `parser_result`, `fallback_result`, and final user-saved values. U
 | Phase | Scope | Status |
 |-------|--------|--------|
 | **#153-A** | Eval harness + local parser baseline | ✅ Merged (`b942eab18`) |
-| **#154-A** | This strategy doc + canonical update | 🔄 Docs |
-| **#154-B+** | Collect real anonymized OCR fixtures | Planned |
-| **#155** | Parser-first gate in `decision_worker` (behind flag) | Planned — after eval |
-| **#156** | Gemini cheap fallback path | Planned — after eval |
+| **#154-A** | This strategy doc + canonical update | ✅ Docs |
+| **#157** | Parser field improvements (amount → type/action) | ✅ Merged (#158–#162) |
+| **#163** | Confidence gate design doc | 🔄 Docs — [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) |
+| **#164** | Shadow-mode instrumentation / gate logging | Planned — after #163 |
+| **#165+** | Parser-first gate in `decision_worker` (behind flag) | Planned — after shadow mode |
 | Premium flows | Sonnet for Besser erkennen / drafts | Existing / separate |
 
 ---

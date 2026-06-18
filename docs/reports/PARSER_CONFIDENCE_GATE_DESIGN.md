@@ -1,9 +1,9 @@
 # Parser-First Confidence Gate Design (#163)
 
 > **Status:** Design only — no production routing change.  
-> **Trusted main:** `37f8a99e8` (#162 merged)  
+> **Trusted main:** `ef4597498` (#164 merged)  
 > **Related:** [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md), [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md), [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md)  
-> **Implementation follow-up:** #164 (shadow-mode instrumentation / routing — separate PR)
+> **Implementation follow-up:** #164-B shadow-mode instrumentation (next)
 
 ---
 
@@ -167,6 +167,27 @@ Do not treat parser as authoritative for missing or conflicting operational fiel
 
 **Design rule:** `title` and `summary` failures (currently 4/8 and 5/8 on fixtures) must **not** prevent HIGH gate or parser-first acceptance. They are enrichment candidates, not operational blockers.
 
+### Operational source of truth (post provider smoke, 2026-06-17)
+
+Provider smoke on 8 fixtures confirms parser as **authoritative** for operational fields when parser confidence is HIGH:
+
+| Field | Parser source of truth | LLM may auto-override? | Shadow-mode behavior |
+|-------|------------------------|------------------------|----------------------|
+| amount | **Yes** | **NO** | Log LLM value as `candidate` only |
+| deadline | **Yes** | **NO** | Log LLM value as `candidate` only |
+| risk | **Yes** | **NO** | Log LLM value as `candidate` only |
+| sender | **Yes** | **NO** | Log LLM value as `candidate` only |
+| document_type | **Yes** | **NO** | Log LLM value as `candidate` only |
+| next_action | **Yes** | **NO** | Log LLM value as `candidate` only |
+| title | Parser default | **MAYBE** (MEDIUM enrichment) | Optional async enrichment |
+| summary | Parser default | **MAYBE** (MEDIUM enrichment) | Optional async enrichment |
+
+**LLM operational override: NO.** Mistral and Haiku produced valid JSON but failed operational fields (wrong amounts, risk downgrades, null senders, wrong next_action). LLM outputs for operational fields must **never** replace parser results automatically.
+
+In **shadow mode**, log parser vs LLM per field. Operational LLM suggestions are **candidates for analysis only** — not applied to `document_meta`.
+
+**LOW confidence fallback** (design-only, not implemented): targeted prompts for unresolved operational fields — not blind full-document LLM override.
+
 ---
 
 ## 5. Safe-null rules
@@ -253,8 +274,8 @@ These supersede the earlier **0.75** single-threshold idea in [AI_COST_STRATEGY_
 | Gate state | Parser result | LLM call | Fields sent to LLM |
 |------------|---------------|----------|-------------------|
 | **HIGH** | Accepted as `document_meta` | **None** | — |
-| **MEDIUM** | Shown immediately | Optional, async | `title`, `summary` (and only if enrichment enabled) |
-| **LOW** | Partial / provisional | **Yes, targeted** | Missing or conflicting operational fields only |
+| **MEDIUM** | Shown immediately | Optional, async | **`title`, `summary` only** (if enrichment enabled) |
+| **LOW** | Partial / provisional | **Yes, targeted** | Missing or conflicting operational fields only — **never blind full override** |
 
 **LOW fallback must not** re-send full OCR text unless field-targeted extraction fails or document is structurally complex (multi-page legal, nested tables).
 
@@ -267,6 +288,7 @@ These supersede the earlier **0.75** single-threshold idea in [AI_COST_STRATEGY_
   - Claude Haiku-style reliable low-cost model
   - premium model only for explicit / high-value cases
 - **Gemini Flash remains candidate only, not default**, because previous evals showed JSON validity instability and weaker field accuracy vs parser on German fixtures.
+- **Mistral (`mistral-small-latest`)** and **Claude Haiku** smoke (8 fixtures): `valid_json` 1.00 but operational accuracy below parser — **not** production operational fallback defaults. Haiku may be a **title/summary enrichment** candidate only.
 - **Final provider choice must be based on** provider eval + `valid_json` + field accuracy + cost + latency — **not assumption**.
 
 See [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) for harness usage. Re-run provider comparison before any routing PR merges.
@@ -307,7 +329,7 @@ No frontend implementation in #163. Policy for a future UX PR:
 | `valid_json_rate_by_provider` | Provider selection input |
 | `conflict_flag_frequency` | Parser improvement backlog |
 
-**Shadow mode (#164) must log:** gate state, operational_confidence, conflict flags, parser snapshot, LLM snapshot (if called), final user-saved values.
+**Shadow mode (#164-B) must log:** gate state, operational_confidence, conflict flags, parser snapshot, LLM snapshot (if called), **per-field LLM candidates (operational fields logged but not applied)**, final user-saved values.
 
 ---
 
@@ -316,7 +338,7 @@ No frontend implementation in #163. Policy for a future UX PR:
 | Phase | Scope | Entry | Exit | Rollback |
 |-------|--------|-------|------|----------|
 | **0 — Design** | This document (#163) | #157 arc PASS | Doc reviewed + merged | N/A |
-| **1 — Shadow** | Log gate decision; **still call LLM** (#164) | #163 merged | Stable logs ≥ 2 weeks; false-high bounded | Flag off |
+| **1 — Shadow** | Log gate decision; **still call LLM** (#164-B) | #163 merged; provider smoke recorded | Stable logs ≥ 2 weeks; false-high bounded | Flag off |
 | **2 — Parser-first HIGH** | Skip LLM when HIGH | Shadow false-high < agreed threshold | Cost + accuracy targets met | Feature flag |
 | **3 — MEDIUM enrichment** | Optional async title/summary LLM | Phase 2 stable | Enrichment opt-in metrics OK | Per-field flag |
 | **4 — Threshold tune** | Expand fixtures + user corrections | Feedback loop live | Re-eval operational_confidence bands | Revert thresholds |
@@ -334,9 +356,10 @@ No frontend implementation in #163. Policy for a future UX PR:
 | Title / summary UI-quality PR | Medium | Improves avg_score; non-blocking for gate |
 | Sender safety tweak backlog | Low | `/tmp/sender_tweaks_after_161.diff` |
 | Real production fixture expansion | High | ≥ 20–30 anonymized German OCR samples |
-| Provider re-eval (incl. Gemini, Haiku, others) | High | Before #164 routing |
-| `operational_confidence` formula in code | High | #164 implementation detail |
-| Mistral eval | Deferred | Not default candidate |
+| Provider re-eval (incl. Gemini, Haiku, Mistral) | Done (smoke) | See [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md); operational fallback not justified |
+| `operational_confidence` formula in code | High | #164-B shadow instrumentation |
+| Mistral eval | ✅ Merged (#164) | Eval-only; fallback **NO** |
+| Haiku smoke | ✅ Complete | Enrichment **MAYBE**; operational fallback **NO** |
 | Fine-tuning | HOLD | Feedback loop first |
 
 ---
@@ -365,9 +388,13 @@ Throughout: `valid_json` 1.00, `avg_ms` < 10 ms (typically ~0.7 ms).
 | Area | Decision |
 |------|----------|
 | Parser operational core | **PASS** |
+| Parser operational source of truth | **GO** |
 | Confidence gate design | **GO** (#163) |
-| Production routing | **HOLD** → #164+ |
-| Shadow mode before switch | **Required** |
+| LLM title/summary enrichment | **MAYBE** |
+| LLM operational override | **NO** |
+| Production routing | **HOLD** → #164-B+ |
+| Shadow mode before switch | **Required** — **NEXT** (#164-B) |
 | title/summary vs HIGH | **Must not block HIGH alone** |
-| Provider default | **Not chosen** — eval-driven |
+| Provider default | **Not chosen** — parser-first on operational fields |
+| Mistral / Haiku operational fallback | **NO** |
 | Gemini Flash | **Candidate only** — not default |

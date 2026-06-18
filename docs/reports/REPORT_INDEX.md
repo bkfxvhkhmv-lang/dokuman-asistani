@@ -12,13 +12,24 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
+## 2026-06-17 Provider Smoke Results — Parser vs Mistral vs Haiku
+
+📄 [EXTRACTION_PROVIDER_EVAL.md](EXTRACTION_PROVIDER_EVAL.md) — provider smoke table (parser 0.899 vs Mistral 0.680 vs Haiku 0.695)  
+📄 [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — operational source of truth; LLM override **NO**; shadow candidates  
+📄 [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — smoke strengthens parser-first; LLM fallback not justified for HIGH  
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — trusted main `ef4597498`, #164 merged, shadow-mode **NEXT**
+
+**Kapsam:** Docs only. Parser operational source of truth **GO**; LLM title/summary enrichment **MAYBE**; LLM operational override **NO**; production routing **HOLD**; shadow-mode instrumentation **NEXT**. No production default provider selected.
+
+---
+
 ## 2026-06-17 Parser Confidence Gate Design (#163)
 
 📄 [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — HIGH/MEDIUM/LOW states, operational confidence, safe-null, shadow mode, rollout  
 📄 [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md) — cross-links updated  
-📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — trusted main `37f8a99e8`, #157 arc summary
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — trusted main `ef4597498`, #157 arc summary
 
-**Kapsam:** Docs only — no `decision_worker` / parser code. Provider order eval-driven; Gemini not default. #164 = shadow instrumentation (separate).
+**Kapsam:** Docs only — no `decision_worker` / parser code. Provider order eval-driven; Gemini not default. #164-B = shadow instrumentation (next).
 
 ---
 

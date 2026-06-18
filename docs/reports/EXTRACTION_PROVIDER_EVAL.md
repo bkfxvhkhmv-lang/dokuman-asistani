@@ -35,6 +35,44 @@ Full design: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md
 
 Full strategy: [AI_COST_STRATEGY_PLAN.md](AI_COST_STRATEGY_PLAN.md). Gate design: [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md).
 
+## Provider smoke results (8 fixtures, 2026-06-17)
+
+Live smoke on `backend/tests/fixtures/extraction_eval/` (8 fixtures: 5 redacted real OCR + 3 synthetic).  
+Command: `python scripts/eval_extraction_providers.py --providers parser,<provider> --details`
+
+| Provider | avg_score | valid_json | avg_ms | Operational field failures | Decision |
+|----------|-----------|------------|--------|---------------------------|----------|
+| **Parser** (local rules) | **0.899** | 1.00 | **~2.3** | amount 0, deadline 0, risk 0, document_type 0, next_action 0; sender 1 (safe null) | **Operational source of truth: GO** |
+| **Mistral** (`mistral-small-latest`) | 0.680 | 1.00 | 1730.4 | amount 2, deadline 1, risk 6, sender 9, next_action 1, document_type 1 | Eval-only integration **PASS**; production fallback **HOLD**; default **NO** |
+| **Claude Haiku** (`claude-haiku-4-5-20251001`) | 0.695 | 1.00 | 2569.6 | amount 2, risk 6, sender 9, next_action 2, document_type 1 | Production operational fallback **HOLD**; default **NO**; title/summary enrichment **MAYBE** |
+
+### Interpretation
+
+- **Mistral and Haiku both produced valid JSON** (`valid_json` 1.00) but were **weaker than parser on operational fields**.
+- **Parser beats tested LLMs** on amount, deadline, risk, document_type, and next_action on current fixtures.
+- **LLMs were useful for title/summary semantics** in several fixtures — enrichment candidates only, not operational override.
+- **Neither Mistral nor Haiku** should be selected as production operational fallback default.
+- **Production routing: HOLD.** **Shadow-mode instrumentation: NEXT.**
+
+### Notable failure examples (LLMs)
+
+| Fixture | Issue |
+|---------|-------|
+| `wasser_real` | Mistral amount **-103.64** vs expected **1260.36**; deadline null; risk `niedrig` vs `mittel`; sender null |
+| `heizoel_real` | Mistral amount **1621.18** vs **1929.2**; risk `niedrig` vs `mittel`; sender null |
+| `vodafone_real` | Haiku amount **-93.01** (sign/credit confusion) vs **93.01** |
+| `mahnung_synthetic` | Haiku risk **mittel** vs expected **hoch** |
+
+### Architecture labels (post-smoke)
+
+| Label | Decision |
+|-------|----------|
+| Parser operational source of truth | **GO** |
+| LLM title/summary enrichment | **MAYBE** |
+| LLM operational override (amount/deadline/risk/sender/document_type/next_action) | **NO** |
+| Production routing | **HOLD** |
+| Shadow-mode instrumentation | **NEXT** |
+
 ## Fixture format
 
 Path: `backend/tests/fixtures/extraction_eval/*.json`
@@ -107,6 +145,10 @@ cd backend
 docker compose run --rm --no-deps \
   -e MISTRAL_API_KEY="$MISTRAL_API_KEY" \
   api python scripts/eval_extraction_providers.py --providers parser,mistral --details
+
+docker compose run --rm --no-deps \
+  -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
+  api python scripts/eval_extraction_providers.py --providers parser,anthropic --details
 ```
 
 Missing keys: provider is **skipped** with a clear message (no hard failure unless that is the only provider and all rows skip).

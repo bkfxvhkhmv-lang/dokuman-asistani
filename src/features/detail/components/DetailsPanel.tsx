@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { NkSummaryCard } from '@/features/detail/components/NkSummaryCard';
+import { ReplyDraftCard } from '@/features/detail/components/ReplyDraftCard';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
@@ -33,6 +34,7 @@ export default function DetailsPanel({
   onErledigt,
   onLoeschen,
   onNebenkostenPruefen,
+  onReplyDraft,
   suspendPreview = false,
   isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
@@ -278,6 +280,10 @@ export default function DetailsPanel({
 
       {onNebenkostenPruefen && dok && (
         <NkSummaryCard dok={dok} onPress={onNebenkostenPruefen} />
+      )}
+
+      {onReplyDraft && (
+        <ReplyDraftCard onPress={onReplyDraft} />
       )}
 
       {onErledigt && (

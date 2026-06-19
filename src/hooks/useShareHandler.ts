@@ -104,9 +104,9 @@ export function useShareHandler() {
     processingRef.current = false;
   }, []);
 
-  const navigateToDocument = useCallback((dokId: string) => {
+  const navigateToDocument = useCallback((dokId: string, tab: 'analiz' | 'ozet' = 'analiz') => {
     if (!dokId?.trim()) return;
-    const target = { pathname: '/detail' as const, params: { dokId, tab: 'ozet' } };
+    const target = { pathname: '/detail' as const, params: { dokId, tab } };
     try {
       router.replace(target);
       return;
@@ -132,14 +132,19 @@ export function useShareHandler() {
           if (!existingLocal) return;
           duplicateNavigationHandled = true;
           Alert.alert(T('share.confirm.title'), T('ocr.upload.duplicate_toast'));
-          navigateToDocument(existingLocal.id);
+          navigateToDocument(
+            existingLocal.id,
+            existingLocal.v4JobStatus === 'pending' || existingLocal.v4JobStatus === 'processing'
+              ? 'analiz'
+              : 'ozet',
+          );
         },
       });
       if (!result) return;
       dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
       if (userRef.current?.isGuest) await recordDocument();
       if (!duplicateNavigationHandled) {
-        navigateToDocument(result.dokument.id);
+        navigateToDocument(result.dokument.id, 'analiz');
       }
     } finally {
       setProcessing(false);

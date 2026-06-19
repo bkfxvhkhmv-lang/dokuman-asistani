@@ -11,6 +11,9 @@ const mockGetPendingAndroidShareUris = jest.fn();
 const mockSubscribeAndroidShareIntents = jest.fn(() => jest.fn());
 const mockRecordDocument = jest.fn(async () => undefined);
 let shareIntentListener: ((uris: string[]) => void) | null = null;
+let mockDocuments = [
+  { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', gelesen: false },
+];
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -22,9 +25,7 @@ jest.mock('expo-router', () => ({
 jest.mock('@/store', () => ({
   useStore: () => ({
     state: {
-      dokumente: [
-        { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', gelesen: false },
-      ],
+      dokumente: mockDocuments,
     },
     dispatch: mockDispatch,
     storeHydrated: true,
@@ -63,9 +64,16 @@ jest.mock('@/services/ShareUploadService', () => ({
 }));
 
 describe('useShareHandler', () => {
+  function mockUseStoreState(dokumente: typeof mockDocuments) {
+    mockDocuments = dokumente;
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
     shareIntentListener = null;
+    mockDocuments = [
+      { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', gelesen: false },
+    ];
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
     mockGetPendingAndroidShareUris.mockResolvedValue(['file:///cache/share.pdf']);
   });
@@ -112,7 +120,7 @@ describe('useShareHandler', () => {
     });
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: '/detail',
-      params: { dokId: 'new-local-doc', tab: 'ozet' },
+      params: { dokId: 'new-local-doc', tab: 'analiz' },
     });
   });
 
@@ -152,6 +160,49 @@ describe('useShareHandler', () => {
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: '/detail',
       params: { dokId: 'existing-local-doc', tab: 'ozet' },
+    });
+  });
+
+  it('navigates duplicate processing documents to the processing tab', async () => {
+    mockProcessSharedFile.mockImplementation(
+      async (
+        _uri: string,
+        _docs: unknown[],
+        _dispatch: unknown,
+        options?: { onUploaded?: (result: { duplicate: boolean; existingDocumentId: string | null; remoteDocId: string }) => void },
+      ) => {
+        options?.onUploaded?.({
+          remoteDocId: 'remote-existing-doc',
+          duplicate: true,
+          existingDocumentId: 'remote-existing-doc',
+        });
+        return {
+          dokument: { id: 'new-local-doc' },
+          rawText: 'text',
+        };
+      },
+    );
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+    mockUseStoreState([
+      { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', v4JobStatus: 'processing', gelesen: false },
+    ]);
+
+    const { ref } = renderHook();
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await ref.current?.confirmAnalyse();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith('share.confirm.title', 'ocr.upload.duplicate_toast');
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: '/detail',
+      params: { dokId: 'existing-local-doc', tab: 'analiz' },
     });
   });
 

@@ -193,3 +193,48 @@ describe('resolveDocumentSender — aiSender > normalized absender', () => {
     })).toMatch(/kreisjugendamt karlsruhe/i);
   });
 });
+
+describe('resolveDocumentSender — #189a display fallbacks', () => {
+  it('infers Wasserwerk from aiDisplayTitle when absender is weak', () => {
+    expect(resolveDocumentSender({
+      absender: 'Unbekannt',
+      aiDisplayTitle: 'Zahlungserinnerung Wasserwerk Dortmund',
+      typ: 'Rechnung',
+    })).toBe('Wasserwerk Dortmund');
+  });
+
+  it('demotes Finanzamt SteuerNr footer on invoice and uses title GmbH', () => {
+    expect(resolveDocumentSender({
+      absender: 'Finanzamt Saarlouis SteuerNr 123456789',
+      typ: 'Rechnung',
+      aiDisplayTitle: 'Rechnung Isolier-Baustoffe Ewen GmbH',
+      rohText: 'Isolier-Baustoffe Ewen GmbH\nRechnung\nFinanzamt Saarlouis SteuerNr 123',
+    })).toBe('Isolier-Baustoffe Ewen GmbH');
+  });
+
+  it('keeps valid Finanzamt sender on authority documents', () => {
+    expect(resolveDocumentSender({
+      absender: 'Finanzamt Saarlouis',
+      typ: 'Behörden / Amt',
+    })).toBe('Finanzamt Saarlouis');
+  });
+
+  it('does not invent sender from generic Sonstiges title', () => {
+    expect(resolveDocumentSender({
+      absender: 'Unbekannt',
+      titel: 'Sonstiges — Unbekannt',
+      typ: 'Sonstiges',
+      datum: '2026-06-12T00:00:00.000Z',
+    })).toBe('');
+  });
+
+  it('title inference is display-only — absender field unchanged in input', () => {
+    const dok = {
+      absender: 'Unbekannt',
+      aiDisplayTitle: 'Zahlungserinnerung Wasserwerk Dortmund',
+      typ: 'Rechnung',
+    };
+    expect(resolveDocumentSender(dok)).toBe('Wasserwerk Dortmund');
+    expect(dok.absender).toBe('Unbekannt');
+  });
+});

@@ -3,7 +3,7 @@
  * Never modifies stored data — only what the user sees in cards/lists.
  */
 import { t } from '@/i18n/translations';
-import { normalizeSender } from '@/utils/senderNormalization';
+import { normalizeSender, inferSenderFromTitle, isLikelyTaxFooterSender } from '@/utils/senderNormalization';
 import {
   isOfflineFallbackTitle,
   resolveOfflineDisplayTitle,
@@ -140,10 +140,12 @@ export function isLikelyBadDocumentTitle(text: string): boolean {
   return FOOTER_TITLE_PATTERNS.some(re => re.test(normalized));
 }
 
-export function isLikelyBadDocumentSender(text: string): boolean {
+export function isLikelyBadDocumentSender(text: string, typ?: string | null): boolean {
   const normalized = normalizeWhitespace(text);
   if (!normalized) return true;
-  return FOOTER_SENDER_PATTERNS.some(re => re.test(normalized));
+  if (FOOTER_SENDER_PATTERNS.some(re => re.test(normalized))) return true;
+  if (isLikelyTaxFooterSender(normalized, typ)) return true;
+  return false;
 }
 
 function buildSafeDocumentTitleFallback(input: {
@@ -228,18 +230,19 @@ export function safeDisplayAbsender(
   absender: string | null | undefined,
   confidence?: number | null,
   rohText?: string | null,
+  typ?: string | null,
 ): string {
   const raw = absender?.trim() ?? '';
   if (raw && isLikelyGarbled(raw)) return '';
-  if (raw && isLikelyBadDocumentSender(raw)) {
+  if (raw && isLikelyBadDocumentSender(raw, typ)) {
     // Footer/legal stored sender: try to recover a real sender from raw text before giving up.
     if (rohText) {
-      const recovered = normalizeSender(null, rohText);
+      const recovered = normalizeSender(null, rohText, typ);
       if (recovered) return recovered;
     }
     return '';
   }
-  return normalizeSender(raw || null, rohText);
+  return normalizeSender(raw || null, rohText, typ);
 }
 
 // ── Weak / strong titel classification (#142A) ───────────────────────────────
@@ -313,18 +316,36 @@ export function resolveDocumentTitle(dok: {
 
 /**
  * Resolves the effective sender for display applying the priority chain:
- *   aiSender (accepted by user) > normalized absender / rohText recovery
+ *   aiSender (accepted by user) > normalized absender / rohText recovery > title inference
  *
  * aiSender is only used when the user accepted a suggestion via Übernehmen.
+ * Title inference is display-only — never writes to the document store (#189a).
  */
 export function resolveDocumentSender(dok: {
   absender: string;
   confidence?: number | null;
   rohText?: string | null;
   aiSender?: string;
+  titel?: string;
+  aiDisplayTitle?: string;
+  typ?: string | null;
 }): string {
   if (dok.aiSender?.trim()) return dok.aiSender.trim();
-  return safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText);
+
+  const fromField = safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText, dok.typ);
+  if (fromField) return fromField;
+
+  const titleCandidates: string[] = [];
+  const aiTitle = dok.aiDisplayTitle?.trim();
+  if (aiTitle) titleCandidates.push(aiTitle);
+  if (dok.titel?.trim() && isStrongTitle(dok.titel)) titleCandidates.push(dok.titel.trim());
+
+  for (const title of titleCandidates) {
+    const inferred = inferSenderFromTitle(title, dok.typ);
+    if (inferred) return inferred;
+  }
+
+  return '';
 }
 
 /**

@@ -3,6 +3,8 @@ import {
   normalizeCanonical,
   recoverSenderFromRohText,
   normalizeSender,
+  inferSenderFromTitle,
+  isLikelyTaxFooterSender,
 } from '@/utils/senderNormalization';
 
 describe('isWeakSender', () => {
@@ -92,6 +94,49 @@ describe('recoverSenderFromRohText — institution recovery from OCR text', () =
   it('rohText with only personal name → null (no institution)', () => {
     const text = 'Sehr geehrter Herr Müller,\ndas Schreiben betrifft...';
     expect(recoverSenderFromRohText(text)).toBeNull();
+  });
+
+  it('rohText with Wasserwerk Dortmund → recovers utility issuer', () => {
+    const text = 'Wasserwerk Dortmund\nZahlungserinnerung\nBetrag 42,00 EUR';
+    expect(recoverSenderFromRohText(text)).toBe('Wasserwerk Dortmund');
+  });
+
+  it('invoice rohText prefers GmbH header over footer Finanzamt', () => {
+    const text = [
+      'Isolier-Baustoffe Ewen GmbH',
+      'Musterstraße 1',
+      'Rechnung Nr. 123',
+      'Finanzamt Saarlouis SteuerNr 123456789',
+    ].join('\n');
+    expect(recoverSenderFromRohText(text, 'Rechnung')).toBe('Isolier-Baustoffe Ewen GmbH');
+  });
+});
+
+describe('inferSenderFromTitle — #189a', () => {
+  it('extracts Wasserwerk from payment reminder title', () => {
+    expect(inferSenderFromTitle('Zahlungserinnerung Wasserwerk Dortmund')).toBe('Wasserwerk Dortmund');
+  });
+
+  it('extracts GmbH company from invoice title', () => {
+    expect(inferSenderFromTitle('Rechnung Isolier-Baustoffe Ewen GmbH')).toBe('Isolier-Baustoffe Ewen GmbH');
+  });
+
+  it('returns null for generic Sonstiges title', () => {
+    expect(inferSenderFromTitle('Sonstiges — Unbekannt')).toBeNull();
+  });
+
+  it('returns null for Schreiben von Unbekannter Absender', () => {
+    expect(inferSenderFromTitle('Schreiben von Unbekannter Absender')).toBeNull();
+  });
+});
+
+describe('isLikelyTaxFooterSender — #189a', () => {
+  it('flags Finanzamt SteuerNr on Rechnung', () => {
+    expect(isLikelyTaxFooterSender('Finanzamt Saarlouis SteuerNr 123', 'Rechnung')).toBe(true);
+  });
+
+  it('allows plain Finanzamt on Behörde typ', () => {
+    expect(isLikelyTaxFooterSender('Finanzamt Saarlouis', 'Behörden / Amt')).toBe(false);
   });
 });
 

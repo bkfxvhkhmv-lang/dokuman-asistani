@@ -12,7 +12,33 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
-## 2026-06-18 Extraction Shadow-Mode Instrumentation (#164-B)
+## 2026-06-18 AI Usage Reporting — CLI + Persistent Telemetry
+
+📄 [AI_USAGE_REPORTING.md](AI_USAGE_REPORTING.md) — `ai_usage_events` tablo şeması; CLI rapor komutları; PII guard; smoke sonucu; operasyonel kararlar
+
+**Kapsam:** `ai_usage_events` DB tablosu (migration 0003), `persist_usage_event`, `scripts/ai_usage_report.py` CLI. Telemetri PASS; dashboard/cron LATER.
+
+---
+
+## 2026-06-18 LLM Extraction Usage Telemetry
+
+📄 [LLM_USAGE_TELEMETRY.md](LLM_USAGE_TELEMETRY.md) — `llm.usage` event; routes `decision_worker` / `ai_explain`; double-call analysis
+
+**Kapsam:** Scalar token/cost logs per extraction `explain()` call. Upload pipeline = 1 LLM call; `/ai/explain` cached when meta exists.
+
+---
+
+## 2026-06-18 Shadow-Mode Local Smoke (#166)
+
+📄 [SHADOW_MODE_SMOKE_2026-06-18.md](SHADOW_MODE_SMOKE_2026-06-18.md) — 15 local shadow logs; OCR + gate distribution; routing HOLD  
+📄 [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — observe-only spec  
+📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — trusted main `b29af0334`
+
+**Kapsam:** Docs only. 15 `extraction.shadow_compare` events; `applied_source=current_production_llm` 15/15; parser gate HIGH 1 / MEDIUM 3 / LOW 11. Parser-first routing **HOLD**. Summary worker pgvector bug noted as **NEXT** separate PR.
+
+---
+
+## 2026-06-18 Extraction Shadow-Mode Instrumentation (#164-B / #166)
 
 📄 [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) — #164-B observe-only shadow log spec  
 📄 [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md) — `EXTRACTION_SHADOW_MODE`, applied_source `current_production_llm`

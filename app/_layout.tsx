@@ -13,6 +13,7 @@ import ErrorBoundary from '../src/components/ErrorBoundary';
 import { useSmartNotifications } from '../src/hooks/useSmartNotifications';
 import { useShareHandler } from '../src/hooks/useShareHandler';
 import { useWidgetSync } from '../src/hooks/useWidgetSync';
+import ShareConfirmSheet from '../src/components/ShareConfirmSheet';
 import { useSpeechStopOnBackground } from '../src/hooks/useSpeechStopOnBackground';
 import BackendHealthBootstrap from '../src/providers/BackendHealthBootstrap';
 import { LanguageProvider } from '@/providers/LanguageProvider';
@@ -113,8 +114,16 @@ function SmartNotificationsProvider() {
 }
 
 function ShareExtensionProvider() {
-  useShareHandler();
-  return null;
+  const { pendingShare, processing, dismissShare, confirmAnalyse } = useShareHandler();
+  return (
+    <ShareConfirmSheet
+      visible={!!pendingShare}
+      fileName={pendingShare?.fileName ?? ''}
+      processing={processing}
+      onAnalyse={() => void confirmAnalyse()}
+      onCancel={dismissShare}
+    />
+  );
 }
 
 function WidgetSyncProvider() {

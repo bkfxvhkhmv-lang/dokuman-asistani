@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/store';
@@ -12,6 +12,7 @@ import {
 import {
   processSharedFile,
   normaliseSharedUri,
+  extractFileNameFromUri,
 } from '@/services/ShareUploadService';
 
 const PDF_EXTENSIONS = /\.(pdf)$/i;
@@ -34,6 +35,11 @@ function dedupeUris(uris: string[], seen: Set<string>): string[] {
   return out;
 }
 
+export interface PendingShare {
+  uri: string;
+  fileName: string;
+}
+
 // Handles file URIs arriving from:
 //   iOS  — "Open With → BriefPilot" (file:// URL via Linking)
 //   Android — ACTION_VIEW via Linking; ACTION_SEND via BriefPilotShareIntent native bridge
@@ -50,6 +56,9 @@ export function useShareHandler() {
   const userRef = useRef(user);
   const docsRef = useRef(state.dokumente);
 
+  const [pendingShare, setPendingShare] = useState<PendingShare | null>(null);
+  const [processing, setProcessing] = useState(false);
+
   useEffect(() => { userRef.current = user; }, [user]);
   useEffect(() => { docsRef.current = state.dokumente; }, [state.dokumente]);
 
@@ -61,10 +70,12 @@ export function useShareHandler() {
     processingRef.current = true;
     try {
       const uri = await normaliseSharedUri(rawUri);
-      if (!uri) return;
+      if (!uri) {
+        processingRef.current = false;
+        return;
+      }
 
       const canAdd = await canAddDocument();
-
       const currentUser = userRef.current;
       if (currentUser?.isGuest && !canAdd) {
         Alert.alert(
@@ -72,38 +83,45 @@ export function useShareHandler() {
           T('guest.limit.body'),
           [
             { text: T('guest.limit.cta_later'), style: 'cancel' },
-            {
-              text: T('guest.limit.cta_register'),
-              onPress: () => router.push('/login'),
-            },
-            {
-              text: T('guest.limit.cta_google'),
-              onPress: () => { void loginWithGoogle(); },
-            },
+            { text: T('guest.limit.cta_register'), onPress: () => router.push('/login') },
+            { text: T('guest.limit.cta_google'), onPress: () => { void loginWithGoogle(); } },
           ],
         );
+        processingRef.current = false;
         return;
       }
 
-      const result = await processSharedFile(uri, docsRef.current, dispatch);
-      if (!result) return;
-
-      dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
-
-      if (currentUser?.isGuest) {
-        await recordDocument();
-      }
-
-      try {
-        router.push({ pathname: '/detail', params: { dokId: result.dokument.id } });
-      } catch {
-        // Navigation may fail if called before root navigator mounts (cold-start share).
-        // Document is already added to store; user will find it in the list.
-      }
-    } finally {
+      // Show confirm sheet; processingRef stays true until user acts
+      const fileName = extractFileNameFromUri(uri);
+      setPendingShare({ uri, fileName });
+    } catch {
       processingRef.current = false;
     }
-  }, [dispatch, router, T, loginWithGoogle]);
+  }, [dispatch, router, T, loginWithGoogle]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const dismissShare = useCallback(() => {
+    setPendingShare(null);
+    processingRef.current = false;
+  }, []);
+
+  const confirmAnalyse = useCallback(async () => {
+    if (!pendingShare) return;
+    const { uri } = pendingShare;
+    setPendingShare(null);
+    setProcessing(true);
+    try {
+      const result = await processSharedFile(uri, docsRef.current, dispatch);
+      if (!result) return;
+      dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
+      if (userRef.current?.isGuest) await recordDocument();
+      try {
+        router.push({ pathname: '/detail', params: { dokId: result.dokument.id } });
+      } catch { /* navigation may fail on cold-start share */ }
+    } finally {
+      setProcessing(false);
+      processingRef.current = false;
+    }
+  }, [pendingShare, dispatch, router]);
 
   const processUris = useCallback(async (uris: string[]) => {
     const novel = dedupeUris(uris, seenUrisRef.current);
@@ -113,8 +131,6 @@ export function useShareHandler() {
   }, [handleUri]);
 
   // Both auth and store must be ready before processing share URIs.
-  // Auth resolves faster than store (smaller key); if we process before
-  // LOAD fires, ADD_DOKUMENT gets overwritten by the hydration payload.
   const notReady = authLoading || !storeHydrated;
 
   const enqueueUris = useCallback((uris: string[]) => {
@@ -138,7 +154,6 @@ export function useShareHandler() {
   // Cold start: Linking (ACTION_VIEW) + native ACTION_SEND pending queue.
   useEffect(() => {
     if (notReady) return;
-
     let cancelled = false;
     (async () => {
       const [linkUrl, nativeUris] = await Promise.all([
@@ -149,22 +164,19 @@ export function useShareHandler() {
       const uris = [...nativeUris, ...(linkUrl ? [linkUrl] : [])];
       enqueueUris(uris);
     })();
-
     return () => { cancelled = true; };
   }, [notReady, enqueueUris]);
 
   // Warm: Linking ACTION_VIEW deep links.
   useEffect(() => {
-    const sub = Linking.addEventListener('url', ({ url }) => {
-      enqueueUris([url]);
-    });
+    const sub = Linking.addEventListener('url', ({ url }) => { enqueueUris([url]); });
     return () => sub.remove();
   }, [enqueueUris]);
 
   // Warm: native ACTION_SEND while app is open.
   useEffect(() => {
-    return subscribeAndroidShareIntents((uris) => {
-      enqueueUris(uris);
-    });
+    return subscribeAndroidShareIntents((uris) => { enqueueUris(uris); });
   }, [enqueueUris]);
+
+  return { pendingShare, processing, dismissShare, confirmAnalyse };
 }

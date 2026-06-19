@@ -190,7 +190,9 @@ export async function processSharedFile(
     // suppressAlert: true — document is saved locally; a retry alert here would confuse the user.
     if (dispatch && persistedPages[0]?.uri) {
       try {
-        enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, { suppressAlert: true });
+        enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, {
+          suppressAlert: true,
+        });
       } catch (enqErr) {
         console.warn('[ShareUpload] enqueue failed, import preserved', enqErr);
       }

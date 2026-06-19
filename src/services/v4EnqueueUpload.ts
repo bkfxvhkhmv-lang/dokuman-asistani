@@ -18,6 +18,7 @@ export interface EnqueueV4UploadOptions {
   suppressAlert?: boolean;
   /** Forwarded to attachV4JobPolling — labeler uses this to defer store writes. */
   suppressResultApply?: boolean;
+  onUploaded?: (result: { remoteDocId: string; duplicate: boolean; existingDocumentId: string | null }) => void;
   onCompleted?: (remoteDocId: string) => void;
   onFailed?: () => void;
 }
@@ -56,6 +57,12 @@ export function enqueueV4Upload(
           ? result.existing_document_id.trim()
           : result.id.trim()
       );
+      options?.onUploaded?.({
+        remoteDocId: remoteId,
+        duplicate: result.duplicate === true,
+        existingDocumentId:
+          typeof result.existing_document_id === 'string' ? result.existing_document_id.trim() : null,
+      });
       const st = parseV4JobStatus(result.status);
       dispatch({
         type:    'UPDATE_DOKUMENT',

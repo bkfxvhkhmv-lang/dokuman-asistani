@@ -39,6 +39,7 @@ export function useDocumentDetail(dokId: string, ozetQuellenSichtbar = false) {
     dok,
     dispatch,
     state,
+    einstellungen: state.einstellungen,
     Colors,
     Shadow,
     S,

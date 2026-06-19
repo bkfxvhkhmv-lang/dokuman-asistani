@@ -33,8 +33,30 @@ const TYPE_KEY_MAP: Record<string, string> = {
 };
 
 export function translateDocumentTypeLabel(raw: string | null | undefined, lang = getLangSync()): string {
-  const text = String(raw ?? '').trim();
+  // Strip raw i18n key prefix (e.g. "ocr.doctype.Mahnung" → "Mahnung")
+  const text = String(raw ?? '').trim().replace(/^ocr\.doctype\./i, '');
   if (!text) return t(lang, 'doc.type.unknown');
   const key = TYPE_KEY_MAP[text.toLowerCase()];
   return key ? t(lang, key) : text;
+}
+
+/**
+ * Resolves a user-facing label for an OCR document kind.
+ * Uses the `ocr.doctype.*` key space; falls back to the raw kind string
+ * (e.g. a German word returned by the backend) or 'ocr.doctype.unknown'
+ * rather than ever leaking a raw `ocr.doctype.XYZ` key to the UI.
+ *
+ * @param kind - OCR kind slug (e.g. "invoice", "Mahnung", null)
+ * @param translate - bound t() from useT(); must accept a key and return a string
+ */
+export function resolveOcrDocTypeLabel(
+  kind: string | null | undefined,
+  translate: (key: string) => string,
+): string {
+  const k = (kind ?? '').trim();
+  if (!k || k === 'unknown') return translate('ocr.doctype.unknown');
+  const key = `ocr.doctype.${k}`;
+  const result = translate(key);
+  if (result !== key) return result;
+  return k;
 }

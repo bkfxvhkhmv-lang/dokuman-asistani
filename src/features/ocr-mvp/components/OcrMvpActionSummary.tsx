@@ -6,6 +6,7 @@ import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import type { OcrMvpActionSummary as ActionSummaryType } from '@/services/ocrMvpApi';
 import { humanizeTitle, formatGermanCurrency, buildDocumentSender, buildDocumentTitle, extractDokumentDatum } from '@/features/ocr-mvp/adapters/ocrMvpDocumentIdentity';
+import { resolveOcrDocTypeLabel } from '@/i18n/documentTypeLabels';
 import { useT } from '@/hooks/useT';
 
 const GENERIC_TITLE_FALLBACKS = new Set([
@@ -45,7 +46,7 @@ export default function OcrMvpActionSummary({
   const st = styles(Colors);
 
   const kind      = summary.kind ?? 'unknown';
-  const kindLabel = T(`ocr.doctype.${kind}`) || T('ocr.doctype.unknown');
+  const kindLabel = resolveOcrDocTypeLabel(kind, T);
   // Backend echoes the upload filename as title (e.g. "Scan 1780169901922") — treat as no-title.
   const rawTitle  = /^Scan[\s_]+\d/i.test(summary.title ?? '') ? null : summary.title;
   const humanized = humanizeTitle(rawTitle);

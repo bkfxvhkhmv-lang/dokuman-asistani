@@ -239,6 +239,8 @@ export default function Home() {
     ({ item }: { item: HomeFeedItem }) => (
       <HomeFeedRow item={item} data={data} onOpen={openFromList} onNavigate={navigateWithHero} />
     ),
+    // openFromList is stable (reads data via ref); data still needed for HomeFeedRow prop.
+    // HomeFeedRow is memoized with areFeedRowPropsEqual — re-renders only on relevant changes.
     [data, openFromList, navigateWithHero],
   );
 

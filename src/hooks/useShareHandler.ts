@@ -84,13 +84,10 @@ export function useShareHandler() {
   // This prevents normaliseSharedUri / FileSystem.copyAsync failures from silently
   // swallowing the share event before the user ever sees anything.
   const handleUri = useCallback(async (rawUri: string) => {
-    console.warn('[BP175_SHARE] handleUri entry:', rawUri.slice(0, 100));
     if (!rawUri || processingRef.current) {
-      console.warn('[BP175_SHARE] handleUri blocked —', processingRef.current ? 'processingRef=true' : 'empty URI');
       return;
     }
     if (!isShareableUri(rawUri)) {
-      console.warn('[BP175_SHARE] handleUri: URI not shareable:', rawUri.slice(0, 100));
       return;
     }
 
@@ -113,7 +110,6 @@ export function useShareHandler() {
       }
 
       const fileName = extractFileNameFromUri(rawUri);
-      console.warn('[BP175_SHARE] setPendingShare calling — fileName:', fileName);
       setPendingShare({ uri: rawUri, fileName });
       // processingRef stays true until user acts (confirm or dismiss)
     } catch (e) {
@@ -234,9 +230,7 @@ export function useShareHandler() {
   // Warm: native ACTION_SEND — stable, never re-subscribes between renders.
   // Frequent re-subscription caused listener gaps during which share events were lost.
   useEffect(() => {
-    console.warn('[BP175_PROBE] subscribeAndroidShareIntents registering');
     return subscribeAndroidShareIntents((uris) => {
-      console.warn('[BP175_SHARE] native intent received uris:', uris.length, uris[0]?.slice(0, 80));
       enqueueUrisRef.current(uris);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

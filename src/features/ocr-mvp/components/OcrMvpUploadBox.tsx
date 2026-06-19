@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Image, Alert,
 } from 'react-native';
@@ -17,6 +17,7 @@ interface Props {
   onScannerPresentingChange?: (presenting: boolean) => void;
   saveWithoutAnalysisBusy?: boolean;
   batchBusy?: boolean;
+  externallySelectedAsset?: ScannedAsset | null;
 }
 
 export default function OcrMvpUploadBox({
@@ -26,11 +27,17 @@ export default function OcrMvpUploadBox({
   onScannerPresentingChange,
   saveWithoutAnalysisBusy = false,
   batchBusy = false,
+  externallySelectedAsset = null,
 }: Props) {
   const { Colors: C } = useTheme();
   const { t: T } = useT();
   const [selectedAsset, setSelectedAsset] = useState<ScannedAsset | null>(null);
   const [picking, setPicking] = useState(false);
+
+  useEffect(() => {
+    if (!externallySelectedAsset) return;
+    setSelectedAsset(externallySelectedAsset);
+  }, [externallySelectedAsset]);
 
   const withPicking = async (fn: () => Promise<ScannedAsset | null>) => {
     setPicking(true);

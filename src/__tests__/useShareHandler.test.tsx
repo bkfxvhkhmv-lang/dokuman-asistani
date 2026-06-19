@@ -1,33 +1,25 @@
 import React from 'react';
 import TestRenderer, { act } from 'react-test-renderer';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import { useShareHandler } from '@/hooks/useShareHandler';
 
-const mockReplace = jest.fn();
 const mockPush = jest.fn();
-const mockDispatch = jest.fn();
-const mockProcessSharedFile = jest.fn();
 const mockGetPendingAndroidShareUris = jest.fn();
 const mockSubscribeAndroidShareIntents = jest.fn(() => jest.fn());
-const mockRecordDocument = jest.fn(async () => undefined);
+const mockSetPendingSharedAsset = jest.fn();
 let shareIntentListener: ((uris: string[]) => void) | null = null;
-let mockDocuments = [
-  { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', gelesen: false },
-];
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
-    replace: mockReplace,
-    push:    mockPush,
+    replace: jest.fn(),
+    push: mockPush,
   }),
 }));
 
 jest.mock('@/store', () => ({
   useStore: () => ({
-    state: {
-      dokumente: mockDocuments,
-    },
-    dispatch: mockDispatch,
+    state: { dokumente: [] },
+    dispatch: jest.fn(),
     storeHydrated: true,
   }),
 }));
@@ -46,11 +38,13 @@ jest.mock('@/hooks/useT', () => ({
 
 jest.mock('@/services/guestLimitService', () => ({
   canAddDocument: jest.fn(async () => true),
-  recordDocument: () => mockRecordDocument(),
+  recordDocument: jest.fn(async () => undefined),
 }));
 
 jest.mock('@/services/androidShareIntentBridge', () => ({
   getPendingAndroidShareUris: () => mockGetPendingAndroidShareUris(),
+  getPendingNativeAndroidShareUris: jest.fn(async () => []),
+  removeBufferedUri: jest.fn(),
   subscribeAndroidShareIntents: (cb: (uris: string[]) => void) => {
     shareIntentListener = cb;
     return mockSubscribeAndroidShareIntents(cb);
@@ -58,23 +52,20 @@ jest.mock('@/services/androidShareIntentBridge', () => ({
 }));
 
 jest.mock('@/services/ShareUploadService', () => ({
-  processSharedFile: (...args: unknown[]) => mockProcessSharedFile(...args),
   normaliseSharedUri: jest.fn(async (uri: string) => uri),
   extractFileNameFromUri: jest.fn(() => 'test.pdf'),
+  detectFileType: jest.fn(() => 'pdf'),
+}));
+
+jest.mock('@/services/pendingShareUpload', () => ({
+  setPendingSharedAsset: (...args: unknown[]) => mockSetPendingSharedAsset(...args),
 }));
 
 describe('useShareHandler', () => {
-  function mockUseStoreState(dokumente: typeof mockDocuments) {
-    mockDocuments = dokumente;
-  }
-
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     shareIntentListener = null;
-    mockDocuments = [
-      { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', gelesen: false },
-    ];
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
     mockGetPendingAndroidShareUris.mockResolvedValue(['file:///cache/share.pdf']);
   });
@@ -98,12 +89,7 @@ describe('useShareHandler', () => {
     return { ref, renderer: renderer! };
   }
 
-  it('navigates new share imports to detail/processing flow', async () => {
-    mockProcessSharedFile.mockResolvedValue({
-      dokument: { id: 'new-local-doc' },
-      rawText: 'text',
-    });
-
+  it('hands off the shared asset to Kamera instead of processing it directly', async () => {
     const { ref } = renderHook();
 
     await act(async () => {
@@ -117,40 +103,18 @@ describe('useShareHandler', () => {
       await ref.current?.confirmAnalyse();
     });
 
-    // Navigation is deferred by setTimeout(0) to let ADD_DOKUMENT commit first.
-    act(() => { jest.runAllTimers(); });
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'ADD_DOKUMENT',
-      payload: { id: 'new-local-doc' },
+    expect(mockSetPendingSharedAsset).toHaveBeenCalledWith({
+      uri: 'file:///cache/share.pdf',
+      name: 'test.pdf',
+      mimeType: 'application/pdf',
+      source: 'file',
+      displayName: 'test.pdf',
+      previewUri: undefined,
     });
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/detail',
-      params: { dokId: 'new-local-doc', tab: 'analiz' },
-    });
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/Kamera');
   });
 
-  it('navigates duplicate share imports to the existing document', async () => {
-    mockProcessSharedFile.mockImplementation(
-      async (
-        _uri: string,
-        _docs: unknown[],
-        _dispatch: unknown,
-        options?: { onUploaded?: (result: { duplicate: boolean; existingDocumentId: string | null; remoteDocId: string }) => void },
-      ) => {
-        options?.onUploaded?.({
-          remoteDocId: 'remote-existing-doc',
-          duplicate: true,
-          existingDocumentId: 'remote-existing-doc',
-        });
-        return {
-          dokument: { id: 'new-local-doc' },
-          rawText: 'text',
-        };
-      },
-    );
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-
+  it('cancel does not hand off or navigate', async () => {
     const { ref } = renderHook();
 
     await act(async () => {
@@ -158,66 +122,15 @@ describe('useShareHandler', () => {
       await Promise.resolve();
     });
 
-    await act(async () => {
-      await ref.current?.confirmAnalyse();
+    act(() => {
+      ref.current?.dismissShare();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith('share.confirm.title', 'ocr.upload.duplicate_toast');
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/detail',
-      params: { dokId: 'existing-local-doc', tab: 'ozet' },
-    });
-  });
-
-  it('navigates duplicate processing documents to the processing tab', async () => {
-    mockProcessSharedFile.mockImplementation(
-      async (
-        _uri: string,
-        _docs: unknown[],
-        _dispatch: unknown,
-        options?: { onUploaded?: (result: { duplicate: boolean; existingDocumentId: string | null; remoteDocId: string }) => void },
-      ) => {
-        options?.onUploaded?.({
-          remoteDocId: 'remote-existing-doc',
-          duplicate: true,
-          existingDocumentId: 'remote-existing-doc',
-        });
-        return {
-          dokument: { id: 'new-local-doc' },
-          rawText: 'text',
-        };
-      },
-    );
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
-
-    mockUseStoreState([
-      { id: 'existing-local-doc', v4DocId: 'remote-existing-doc', v4JobStatus: 'processing', gelesen: false },
-    ]);
-
-    const { ref } = renderHook();
-
-    await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    await act(async () => {
-      await ref.current?.confirmAnalyse();
-    });
-
-    expect(alertSpy).toHaveBeenCalledWith('share.confirm.title', 'ocr.upload.duplicate_toast');
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: '/detail',
-      params: { dokId: 'existing-local-doc', tab: 'analiz' },
-    });
+    expect(mockSetPendingSharedAsset).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('allows the same URI to be shared again after cancel', async () => {
-    mockProcessSharedFile.mockResolvedValue({
-      dokument: { id: 'new-local-doc' },
-      rawText: 'text',
-    });
-
     const { ref } = renderHook();
 
     await act(async () => {
@@ -241,11 +154,6 @@ describe('useShareHandler', () => {
   });
 
   it('allows the same URI to be shared again after analyze starts', async () => {
-    mockProcessSharedFile.mockResolvedValue({
-      dokument: { id: 'new-local-doc' },
-      rawText: 'text',
-    });
-
     const { ref } = renderHook();
 
     await act(async () => {
@@ -256,6 +164,9 @@ describe('useShareHandler', () => {
     await act(async () => {
       await ref.current?.confirmAnalyse();
     });
+
+    expect(mockSetPendingSharedAsset).toHaveBeenCalledTimes(1);
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/Kamera');
 
     await act(async () => {
       shareIntentListener?.(['file:///cache/share.pdf']);

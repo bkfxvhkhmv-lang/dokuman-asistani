@@ -90,6 +90,7 @@ export interface ShareUploadResult {
 
 export interface ProcessSharedFileOptions {
   onUploaded?: (result: { remoteDocId: string; duplicate: boolean; existingDocumentId: string | null }) => void;
+  onCompleted?: (remoteDocId: string) => void;
   onFailed?: () => void;
 }
 
@@ -203,6 +204,7 @@ export async function processSharedFile(
         enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, {
           suppressAlert: true,
           onUploaded: options?.onUploaded,
+          onCompleted: options?.onCompleted,
           onFailed: options?.onFailed,
         });
       } catch (enqErr) {

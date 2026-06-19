@@ -234,8 +234,10 @@ export async function normaliseSharedUri(uri: string): Promise<string | null> {
       const ext = type === 'image' ? '.jpg' : '.pdf';
       const dest = `${cacheDir}briefpilot_share_${Date.now()}${ext}`;
       await FileSystem.copyAsync({ from: uri, to: dest });
+      console.warn('[ShareUpload] normaliseSharedUri: copyAsync OK →', dest.slice(-40));
       return dest;
-    } catch {
+    } catch (e) {
+      console.warn('[ShareUpload] normaliseSharedUri: copyAsync FAILED for', uri.slice(0, 80), String(e));
       return null;
     }
   }

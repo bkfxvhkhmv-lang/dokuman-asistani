@@ -105,7 +105,7 @@ export function useDetailBildschirmLogic() {
       detail.dok
         ? getDetailActionPlan(detail.dok, detail.digitalTwin, actionHandlers, detail.state)
         : null,
-    [detail.dok, detail.digitalTwin, actionHandlers, detail.state]
+    [detail.dok, detail.digitalTwin, actionHandlers, detail.einstellungen?.partnerEmail]
   );
 
   const pulseUrgency: PulseUrgency = !detail.dok

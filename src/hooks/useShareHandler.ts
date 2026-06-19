@@ -26,10 +26,12 @@ function isShareableUri(uri: string): boolean {
   return false;
 }
 
-function dedupeUris(uris: string[], seen: Set<string>): string[] {
+function dedupeUris(uris: string[]): string[] {
   const out: string[] = [];
+  const seen = new Set<string>();
   for (const uri of uris) {
     if (!uri || seen.has(uri)) continue;
+    seen.add(uri);
     out.push(uri);
   }
   return out;
@@ -51,7 +53,6 @@ export function useShareHandler() {
   const { t: T } = useT();
 
   const processingRef = useRef(false);
-  const seenUrisRef = useRef(new Set<string>());
   const pendingUrisRef = useRef<string[]>([]);
   const userRef = useRef(user);
   const docsRef = useRef(state.dokumente);
@@ -63,10 +64,9 @@ export function useShareHandler() {
   useEffect(() => { docsRef.current = state.dokumente; }, [state.dokumente]);
 
   const handleUri = useCallback(async (rawUri: string) => {
-    if (!rawUri || processingRef.current || seenUrisRef.current.has(rawUri)) return;
+    if (!rawUri || processingRef.current) return;
     if (!isShareableUri(rawUri)) return;
 
-    seenUrisRef.current.add(rawUri);
     processingRef.current = true;
     try {
       const uri = await normaliseSharedUri(rawUri);
@@ -148,7 +148,7 @@ export function useShareHandler() {
   }, [pendingShare, dispatch, navigateToDocument, T]);
 
   const processUris = useCallback(async (uris: string[]) => {
-    const novel = dedupeUris(uris, seenUrisRef.current);
+    const novel = dedupeUris(uris);
     for (const uri of novel) {
       await handleUri(uri);
     }
@@ -158,10 +158,11 @@ export function useShareHandler() {
   const notReady = authLoading || !storeHydrated;
 
   const enqueueUris = useCallback((uris: string[]) => {
-    const novel = dedupeUris(uris, seenUrisRef.current);
+    const novel = dedupeUris(uris);
     if (!novel.length) return;
     if (notReady) {
       pendingUrisRef.current.push(...novel);
+      pendingUrisRef.current = dedupeUris(pendingUrisRef.current);
       return;
     }
     void processUris(novel);

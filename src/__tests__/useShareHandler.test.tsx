@@ -10,6 +10,7 @@ const mockProcessSharedFile = jest.fn();
 const mockGetPendingAndroidShareUris = jest.fn();
 const mockSubscribeAndroidShareIntents = jest.fn(() => jest.fn());
 const mockRecordDocument = jest.fn(async () => undefined);
+let shareIntentListener: ((uris: string[]) => void) | null = null;
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({
@@ -49,7 +50,10 @@ jest.mock('@/services/guestLimitService', () => ({
 
 jest.mock('@/services/androidShareIntentBridge', () => ({
   getPendingAndroidShareUris: () => mockGetPendingAndroidShareUris(),
-  subscribeAndroidShareIntents: (cb: (uris: string[]) => void) => mockSubscribeAndroidShareIntents(cb),
+  subscribeAndroidShareIntents: (cb: (uris: string[]) => void) => {
+    shareIntentListener = cb;
+    return mockSubscribeAndroidShareIntents(cb);
+  },
 }));
 
 jest.mock('@/services/ShareUploadService', () => ({
@@ -61,6 +65,7 @@ jest.mock('@/services/ShareUploadService', () => ({
 describe('useShareHandler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    shareIntentListener = null;
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
     mockGetPendingAndroidShareUris.mockResolvedValue(['file:///cache/share.pdf']);
   });
@@ -148,5 +153,77 @@ describe('useShareHandler', () => {
       pathname: '/detail',
       params: { dokId: 'existing-local-doc', tab: 'ozet' },
     });
+  });
+
+  it('allows the same URI to be shared again after cancel', async () => {
+    mockProcessSharedFile.mockResolvedValue({
+      dokument: { id: 'new-local-doc' },
+      rawText: 'text',
+    });
+
+    const { ref } = renderHook();
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(ref.current?.pendingShare?.uri).toBe('file:///cache/share.pdf');
+
+    act(() => {
+      ref.current?.dismissShare();
+    });
+
+    await act(async () => {
+      shareIntentListener?.(['file:///cache/share.pdf']);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(ref.current?.pendingShare?.uri).toBe('file:///cache/share.pdf');
+  });
+
+  it('allows the same URI to be shared again after analyze starts', async () => {
+    mockProcessSharedFile.mockResolvedValue({
+      dokument: { id: 'new-local-doc' },
+      rawText: 'text',
+    });
+
+    const { ref } = renderHook();
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await ref.current?.confirmAnalyse();
+    });
+
+    await act(async () => {
+      shareIntentListener?.(['file:///cache/share.pdf']);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(ref.current?.pendingShare?.uri).toBe('file:///cache/share.pdf');
+  });
+
+  it('dedupes duplicate native warm events within the same batch', async () => {
+    mockGetPendingAndroidShareUris.mockResolvedValue([]);
+
+    const { ref } = renderHook();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      shareIntentListener?.(['file:///cache/share.pdf', 'file:///cache/share.pdf']);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(ref.current?.pendingShare?.uri).toBe('file:///cache/share.pdf');
   });
 });

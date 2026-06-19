@@ -18,6 +18,10 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 **Kapsam:** Ürün yönü — belge aracından asistan-first ürüne geçiş planı. Phase 1 Trust fixes → Phase 2 Detail Intelligence („BriefPilot empfiehlt“) → Phase 3 Classification/Home → Phase 4 Premium (NK role, Kalender, SEPA handoff). Kod yok; PR sırası ve acceptance kriterleri dahil.
 
+📄 [ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md](ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md) — #189 Absender extraction/display audit
+
+**Kapsam:** Screen-rec trust failures (Finanzamt-on-invoice, Wasserwerk title vs Fehlt, Sonstiges cluster). Data-flow diagram; confirmed root causes; risk ranking; recommended #189a display fallback PR + #189b save-path follow-up. Audit-only — no code.
+
 ---
 
 ## 2026-06-18 AI Usage Reporting — CLI + Persistent Telemetry

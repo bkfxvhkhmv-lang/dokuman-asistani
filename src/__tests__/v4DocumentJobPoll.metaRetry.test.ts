@@ -97,4 +97,32 @@ describe('attachV4JobPolling meta retry', () => {
     expect(updates.some(p => p.rohText === 'OCR text')).toBe(true);
     expect(updates.some(p => p.aiDisplayTitle)).toBe(false);
   });
+
+  it('does not re-dispatch UPDATE_DOKUMENT when status is unchanged across ticks', async () => {
+    // API always returns 'processing' — same status every tick.
+    mockGetDocumentV4.mockResolvedValue({ id: 'remote-1', status: 'processing' });
+    mockGetDocumentWorkerResult.mockResolvedValue(ENRICHED);
+
+    const dispatch = jest.fn();
+    attachV4JobPolling(dispatch, 'local-1', 'remote-1');
+    await flushPromises();
+
+    const statusDispatches = () =>
+      dispatch.mock.calls.filter(
+        c => c[0]?.type === 'UPDATE_DOKUMENT' && c[0]?.payload?.v4JobStatus,
+      );
+
+    // After first tick: exactly one status dispatch ('processing').
+    expect(statusDispatches()).toHaveLength(1);
+    expect(statusDispatches()[0][0].payload.v4JobStatus).toBe('processing');
+
+    // Advance 3 more ticks — same 'processing' status returned each time.
+    for (let i = 0; i < 3; i += 1) {
+      await jest.advanceTimersByTimeAsync(2_600);
+      await flushPromises();
+    }
+
+    // Still exactly one status dispatch — dirty check suppressed the rest.
+    expect(statusDispatches()).toHaveLength(1);
+  });
 });

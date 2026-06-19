@@ -135,6 +135,29 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
       }
     };
 
+    const finishWhenResultReady = async (
+      remoteId: string,
+      timingCb: Partial<OcrMvpTimingCallbacks> | undefined,
+      gen: number,
+      metaAttempt = 0,
+    ): Promise<void> => {
+      const wr = await getDocumentWorkerResult(remoteId);
+      if (gen !== pollGenRef.current) return;
+
+      const metaReady = hasWorkerResultAiMeta(wr);
+      if (!metaReady && metaAttempt < WORKER_RESULT_META_RETRY_MAX) {
+        schedulePoll(
+          () => void finishWhenResultReady(remoteId, timingCb, gen, metaAttempt + 1),
+          WORKER_RESULT_META_RETRY_MS,
+        );
+        return;
+      }
+
+      timingCb?.onPollingResult?.(remoteId, 'done');
+      setResult(workerResultToOcrMvpStatus(wr, remoteId));
+      setStatus('done');
+    };
+
     void tick();
   }, [schedulePoll, finishWhenResultReady]);
 

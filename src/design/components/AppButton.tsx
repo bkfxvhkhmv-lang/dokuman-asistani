@@ -6,6 +6,7 @@ import {
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
 import { Motion } from '@/design/motion';
+import { T as Type } from '@/design/tokens';
 
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 
@@ -97,7 +98,7 @@ const st = StyleSheet.create({
   },
   content: { flexDirection: 'row', alignItems: 'center' },
   contentReverse: { flexDirection: 'row-reverse' },
-  label: { fontSize: 14, fontWeight: '700', letterSpacing: -0.1 },
+  label: { ...Type.meta, fontWeight: '700', letterSpacing: -0.1 },
   iconLeft:  { marginRight: 7 },
   iconRight: { marginLeft: 7 },
 });

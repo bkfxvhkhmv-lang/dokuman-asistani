@@ -15,6 +15,7 @@ import type { ThemeColors } from '@/ThemeContext';
 import type { SpacingTokens } from '@/theme';
 import { useT } from '@/hooks/useT';
 import { translateLegacyBusinessLabel } from '@/i18n/legacyBusinessLabels';
+import { T as Type } from '@/design/tokens';
 
 
 function fristTag(
@@ -96,16 +97,16 @@ export default function HomeDashboardCards({
           <TouchableOpacity key={dok.id} onPress={() => onDocPress?.(dok)}
             style={[st.snippet, { backgroundColor: C.bgCard, borderColor: C.border }]} activeOpacity={0.75}>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.text, letterSpacing: -0.1 }} numberOfLines={1}>
+              <Text style={{ ...Type.meta, fontWeight: '700', color: C.text, letterSpacing: -0.1 }} numberOfLines={1}>
                 {translateLegacyBusinessLabel(resolveDocumentTitle(dok), lang)}
               </Text>
-              <Text style={{ fontSize: 11, color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
+              <Text style={{ ...Type.label, fontWeight: '400', color: C.textSecondary, letterSpacing: 0.1 }} numberOfLines={1}>
                 {safeDisplayAbsender(dok.absender, dok.confidence, dok.rohText)}
               </Text>
               {frist && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
                   <Icon name="time-outline" size={11} color={frist.color ?? C.textTertiary} />
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: frist.color ?? C.textTertiary }}>
+                  <Text style={{ ...Type.label, color: frist.color ?? C.textTertiary }}>
                     {frist.text}
                   </Text>
                 </View>
@@ -153,16 +154,16 @@ export default function HomeDashboardCards({
 
 const st = StyleSheet.create({
   heroCard:          { marginBottom: 10 },
-  eyebrow:           { fontSize: 10, color: 'rgba(255,255,255,0.65)', fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-  heroNumber:        { fontSize: 32, fontWeight: '800', color: '#fff', letterSpacing: -1 },
+  eyebrow:           { ...Type.eyebrow, color: 'rgba(255,255,255,0.65)', marginBottom: 6 },
+  heroNumber:        { ...Type.display, color: '#fff', letterSpacing: -1 },
   allClearIndicator: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  heroText:        { fontSize: 12, color: 'rgba(255,255,255,0.80)', marginTop: 4, lineHeight: 17 },
+  heroText:        { ...Type.meta, color: 'rgba(255,255,255,0.80)', marginTop: 4 },
   snippet:         { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, borderWidth: 1, padding: 14, marginBottom: 8 },
   workflowBox:     { alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 5, marginTop: 4 },
-  workflowStamp:   { fontSize: 10, fontWeight: '800', letterSpacing: 0.4 },
-  workflowTimeline:{ fontSize: 10, fontWeight: '500', marginTop: 1 },
+  workflowStamp:   { ...Type.eyebrow, fontWeight: '800', letterSpacing: 0.4 },
+  workflowTimeline:{ ...Type.eyebrow, fontWeight: '500', marginTop: 1 },
   chipsRow:        { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 4 },
   chip:            { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 9, borderRadius: 20, borderWidth: 1 },
-  chipVal:         { fontSize: 13, fontWeight: '700' },
-  chipLabel:       { fontSize: 11, fontWeight: '500' },
+  chipVal:         { ...Type.meta, fontWeight: '700' },
+  chipLabel:       { ...Type.label, fontWeight: '500' },
 });

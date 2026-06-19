@@ -4,6 +4,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import Icon from '@/components/Icon';
+import { T as Type } from '@/design/tokens';
 
 // ── Variant configs ────────────────────────────────────────────────────────
 
@@ -156,22 +157,26 @@ const st = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginBottom: 20,
   },
   title: {
-    fontSize: 17, fontWeight: '700', textAlign: 'center',
-    letterSpacing: -0.25, lineHeight: 22, marginBottom: 8,
+    ...Type.title,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14, textAlign: 'center', lineHeight: 21,
-    letterSpacing: -0.1, marginBottom: 24, maxWidth: 280,
+    ...Type.meta,
+    textAlign: 'center',
+    marginBottom: 24,
+    maxWidth: 280,
   },
   btn: {
     paddingHorizontal: 20, paddingVertical: 10,
     borderRadius: 10, borderWidth: 1,
   },
-  btnText:        { fontSize: 14, fontWeight: '700', letterSpacing: -0.1 },
+  btnText:        { ...Type.meta, fontWeight: '700', letterSpacing: -0.1 },
   secondaryBtn:   { marginTop: 14, paddingVertical: 6 },
-  secondaryBtnText: { fontSize: 14, fontWeight: '500', letterSpacing: -0.1 },
+  secondaryBtnText: { ...Type.meta, fontWeight: '500', letterSpacing: -0.1 },
   compact:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 20 },
   compactDot:     { width: 32, height: 32, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   compactDotInner: { width: 10, height: 10, borderRadius: 5 },
-  compactTitle:   { fontSize: 14, fontWeight: '600', flex: 1, lineHeight: 19 },
+  compactTitle:   { ...Type.meta, fontWeight: '600', flex: 1 },
 });

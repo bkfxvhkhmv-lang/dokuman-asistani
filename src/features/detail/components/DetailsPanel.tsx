@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { NkSummaryCard } from '@/features/detail/components/NkSummaryCard';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
@@ -275,14 +276,8 @@ export default function DetailsPanel({
         </View>
       )}
 
-      {onNebenkostenPruefen && (
-        <TouchableOpacity
-          onPress={onNebenkostenPruefen}
-          style={{ alignItems: 'center', marginTop: 16, paddingVertical: 12,
-            borderWidth: 1, borderColor: C.border, borderRadius: R.md ?? R.lg, backgroundColor: C.bgCard }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>Nebenkosten prüfen</Text>
-        </TouchableOpacity>
+      {onNebenkostenPruefen && dok && (
+        <NkSummaryCard dok={dok} onPress={onNebenkostenPruefen} />
       )}
 
       {onErledigt && (

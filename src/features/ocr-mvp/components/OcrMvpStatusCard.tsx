@@ -21,11 +21,16 @@ interface StepDescriptor {
   state: StepState;
 }
 
-function getElapsedStageIndex(elapsed: number): number {
+export function getElapsedStageIndex(elapsed: number): number {
   if (elapsed >= 8) return 3;
   if (elapsed >= 5) return 2;
   if (elapsed >= 2) return 1;
   return 0;
+}
+
+export function getStatusCardActiveIndex(status: OcrMvpStatus, elapsed: number): number {
+  if (status !== 'uploading' && status !== 'processing') return 0;
+  return getElapsedStageIndex(elapsed);
 }
 
 function buildStepLabels(T: (key: string, vars?: Record<string, string | number>) => string, elapsed: number): string[] {
@@ -55,7 +60,7 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const st = styles(Colors);
 
-  const activeIndex = status === 'uploading' ? 0 : getElapsedStageIndex(elapsed);
+  const activeIndex = getStatusCardActiveIndex(status, elapsed);
   const stepLabels = useMemo(() => buildStepLabels(T, elapsed), [T, elapsed]);
 
   useEffect(() => {
@@ -87,7 +92,7 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
   }, [status, pulse]);
 
   useEffect(() => {
-    if (status !== 'processing') {
+    if (status !== 'uploading' && status !== 'processing') {
       scanY.setValue(0);
       return;
     }
@@ -131,7 +136,7 @@ export default function OcrMvpStatusCard({ status, previewUri }: Props) {
                   <Icon name="document-text-outline" size={54} color={Colors.textTertiary} />
                 </View>
               )}
-              {status === 'processing' && (
+              {(status === 'uploading' || status === 'processing') && (
                 <Animated.View style={[st.scanLine, { transform: [{ translateY: scanY }] }]} />
               )}
             </View>

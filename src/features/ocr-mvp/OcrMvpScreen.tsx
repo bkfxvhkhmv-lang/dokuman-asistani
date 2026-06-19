@@ -39,6 +39,7 @@ import { toUserFacingOcrMessage } from './domain/userFacingErrors';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
 import PremiumToast from '@/design/components/PremiumToast';
 import { useToast } from '@/hooks/useToast';
+import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 

@@ -88,10 +88,16 @@ export interface ShareUploadResult {
   rawText: string;
 }
 
+export interface ProcessSharedFileOptions {
+  onUploaded?: (result: { remoteDocId: string; duplicate: boolean; existingDocumentId: string | null }) => void;
+  onFailed?: () => void;
+}
+
 export async function processSharedFile(
   uri: string,
   alleDocs: Dokument[],
   dispatch?: (a: StoreAction) => void,
+  options?: ProcessSharedFileOptions,
 ): Promise<ShareUploadResult | null> {
   const lang = getLangSync();
   const fileType = detectFileType(uri);
@@ -180,6 +186,10 @@ export async function processSharedFile(
       rohText:          rawText || null,
       importSource,
       dateiName:        fileName,
+      // Mark upload as pending immediately so the detail screen shows the
+      // processing/laser UI before the first UPDATE_DOKUMENT from enqueueV4Upload.
+      // Only set when upload will actually be enqueued (dispatch + persisted file).
+      ...(dispatch && persistedPages[0]?.uri ? { v4JobStatus: 'pending' as const } : {}),
     };
 
     // Step 3 — value-first "done" notification
@@ -192,6 +202,8 @@ export async function processSharedFile(
       try {
         enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, {
           suppressAlert: true,
+          onUploaded: options?.onUploaded,
+          onFailed: options?.onFailed,
         });
       } catch (enqErr) {
         console.warn('[ShareUpload] enqueue failed, import preserved', enqErr);
@@ -222,8 +234,10 @@ export async function normaliseSharedUri(uri: string): Promise<string | null> {
       const ext = type === 'image' ? '.jpg' : '.pdf';
       const dest = `${cacheDir}briefpilot_share_${Date.now()}${ext}`;
       await FileSystem.copyAsync({ from: uri, to: dest });
+      console.warn('[ShareUpload] normaliseSharedUri: copyAsync OK →', dest.slice(-40));
       return dest;
-    } catch {
+    } catch (e) {
+      console.warn('[ShareUpload] normaliseSharedUri: copyAsync FAILED for', uri.slice(0, 80), String(e));
       return null;
     }
   }

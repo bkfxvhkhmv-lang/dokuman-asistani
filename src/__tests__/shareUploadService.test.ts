@@ -163,6 +163,19 @@ describe('processSharedFile — #143A: enqueueV4Upload integration', () => {
     const options = mockEnqueueV4Upload.mock.calls[0][4];
     expect(options?.suppressAlert).toBe(true);
   });
+
+  it('returned dokument has v4JobStatus: pending when upload is enqueued', async () => {
+    const dispatch = jest.fn();
+    const result = await processSharedFile(PDF_URI, ALL_DOCS, dispatch);
+
+    expect(result?.dokument.v4JobStatus).toBe('pending');
+  });
+
+  it('returned dokument has no v4JobStatus when dispatch is absent (no upload)', async () => {
+    const result = await processSharedFile(PDF_URI, ALL_DOCS);
+
+    expect(result?.dokument.v4JobStatus).toBeUndefined();
+  });
 });
 
 describe('processSharedFile — importSource preserved', () => {

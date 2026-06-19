@@ -7,6 +7,7 @@ a separate process where asyncio event loops are not shared with the API.
 """
 from app.workers.celery_app import celery_app
 from app.services.ocr import run_ocr
+from app.models.document import DocumentStatus
 import structlog
 
 log = structlog.get_logger()
@@ -40,7 +41,9 @@ def process_ocr(self, doc_id: str, storage_key: str) -> dict:
     try:
         return execute_ocr_job(doc_id, storage_key)
     except Exception as exc:
-        log.error("ocr.failed", doc_id=doc_id, error=str(exc))
+        log.error("ocr.failed", doc_id=doc_id, error=str(exc), retry=self.request.retries)
+        if self.request.retries >= self.max_retries:
+            _mark_failed(doc_id, str(exc))
         raise self.retry(exc=exc, countdown=30) from exc
 
 
@@ -73,6 +76,21 @@ def _save_text(doc_id: str, text: str, confidence: float) -> None:
             _sql("UPDATE documents SET status='completed', updated_at=:ts WHERE id=:id"),
             {"ts": datetime.now(timezone.utc), "id": doc_id},
         )
+
+
+def _mark_failed(doc_id: str, error: str) -> None:
+    from datetime import datetime, timezone
+    engine = _sync_engine()
+    with engine.begin() as conn:
+        conn.execute(
+            _sql("UPDATE documents SET status=:status, updated_at=:ts WHERE id=:id"),
+            {
+                "status": DocumentStatus.failed.value,
+                "ts": datetime.now(timezone.utc),
+                "id": doc_id,
+            },
+        )
+    log.info("ocr.marked_failed", doc_id=doc_id, error=error)
 
 
 def _sync_engine():

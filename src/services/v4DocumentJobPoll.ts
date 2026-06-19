@@ -42,6 +42,7 @@ export function attachV4JobPolling(
   const options = resolvePollingOptions(getDokOrOptions);
   let tries = 0;
   const maxTries = 48;
+  let lastDispatchedStatus: string | null = null;
 
   const finishFailed = (): void => {
     options.onFailed?.();
@@ -66,7 +67,8 @@ export function attachV4JobPolling(
     try {
       const d = await getDocumentV4(remoteDocId);
       const st = normalizeStatus(d);
-      if (st) {
+      if (st && st !== lastDispatchedStatus) {
+        lastDispatchedStatus = st;
         dispatch({
           type:    'UPDATE_DOKUMENT',
           payload: { id: localDocId, v4JobStatus: st },

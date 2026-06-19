@@ -86,6 +86,13 @@ export function normalizeCanonical(raw: string): string | null {
   return null;
 }
 
+/** Utility issuers — checked before generic authority patterns (#189a). */
+const UTILITY_RECOVERY_RES: RegExp[] = [
+  /\b(wasserwerk\s+[\wÄÖÜäöüß-]{2,30})/i,
+  /\b(gemeindewasserwerk\b)/i,
+  /\b(stadtwerke\s+[\wÄÖÜäöüß-]{2,30})/i,
+];
+
 // Authority patterns to try recovering a sender from OCR raw text.
 // Each produces: match[0] = full match to use as display sender.
 // Most specific patterns first (Kreisjugendamt before Kreis, etc.)
@@ -98,10 +105,63 @@ const AUTHORITY_RECOVERY_RES: RegExp[] = [
   /\b(jobcenter\s+\w[\w\s-]{0,30})/i,
   /\b(agentur\s+f[uü]r\s+arbeit\s+\w[\w\s-]{0,30})/i,
   /\b(finanzamt\s+\w[\w\s-]{0,30})/i,
-  /\b(stadtwerke\s+\w[\w\s-]{0,30})/i,
   /\b(stadt\s+\w[\w\s-]{0,20})/i,
   /\b(gemeinde\s+\w[\w\s-]{0,20})/i,
 ];
+
+const COMPANY_LINE_RE =
+  /([\wÄÖÜäöüß.&\-][\wÄÖÜäöüß.&\-'\s]{1,50}?\s+(?:GmbH(?:\s*&\s*Co\.\s*KG)?|AG|KG|UG|e\.?\s?K\.?|OHG|GbR)\b)/i;
+
+const TITLE_ISSUER_PATTERNS: RegExp[] = [
+  /\b(wasserwerk\s+[\wÄÖÜäöüß-]{2,30})/i,
+  /\b(stadtwerke\s+[\wÄÖÜäöüß-]{2,30})/i,
+  /\b(gemeindewasserwerk\b)/i,
+  /([\wÄÖÜäöüß.&\-][\wÄÖÜäöüß.&\-'\s]{1,55}?\s+(?:GmbH(?:\s*&\s*Co\.\s*KG)?|AG|KG|UG|e\.?\s?K\.?|OHG|GbR))/i,
+];
+
+const GENERIC_TITLE_ONLY_RE =
+  /^(?:schreiben(?:\s+von)?|dokument|sonstiges|brief|formular)(?:\s|$)/i;
+
+export function isPaymentLikeDocumentTyp(typ?: string | null): boolean {
+  const t = (typ ?? '').trim().toLowerCase();
+  if (!t) return false;
+  return /rechnung|mahnung|invoice|zahlung|beitrag|gebühr|versicherung/.test(t);
+}
+
+export function isAuthorityDocumentTyp(typ?: string | null): boolean {
+  const t = (typ ?? '').trim().toLowerCase();
+  if (!t) return false;
+  return /behörde|behörden|amt|bescheid|finanzamt|steuer|jobcenter|gericht|versicherung.*bescheid/.test(t);
+}
+
+/** Footer/tax composite senders on vendor invoices — display demotion only (#189a). */
+export function isLikelyTaxFooterSender(text: string, typ?: string | null): boolean {
+  if (isAuthorityDocumentTyp(typ)) return false;
+  const n = text.trim();
+  if (!/\bfinanzamt\b/i.test(n)) return false;
+  return /\bsteuer\s*nr\b|\bust\s*-?\s*id\b|\bustid\b|\bsteuernummer\b/i.test(n);
+}
+
+function isLikelyInvoiceRohText(rohText: string): boolean {
+  const head = rohText.slice(0, 1200).toLowerCase();
+  return /\b(rechnung|mahnung|rechnungsnummer|zahlungserinnerung|invoice)\b/.test(head);
+}
+
+function recoverCompanyFromRohText(rohText: string): string | null {
+  const lines = rohText.split('\n').map(l => l.trim()).filter(Boolean).slice(0, 15);
+  for (const line of lines) {
+    if (/finanzamt|steuer\s*nr|handelsregister|geschäftsführer|ust\s*-?\s*id/i.test(line)) continue;
+    const match = line.match(COMPANY_LINE_RE);
+    if (match?.[1]) {
+      const cleaned = cleanRecovered(match[1]);
+      if (cleaned) {
+        const canonical = normalizeCanonical(cleaned);
+        return canonical ?? cleaned;
+      }
+    }
+  }
+  return null;
+}
 
 // Personal-name prefixes — values starting with these are never a sender.
 const PERSONAL_NAME_PREFIX_RE = /^(herr|frau|herrn|sehr geehrter|sehr geehrte)\b/i;
@@ -118,11 +178,16 @@ function cleanRecovered(value: string): string | null {
  * absender is weak or missing. Only returns high-confidence institution names.
  * Returns null if nothing usable is found.
  */
-export function recoverSenderFromRohText(rohText: string | null | undefined): string | null {
+export function recoverSenderFromRohText(
+  rohText: string | null | undefined,
+  typ?: string | null,
+): string | null {
   if (!rohText?.trim()) return null;
 
-  // 1. Try authority patterns (Kreisjugendamt, Landkreis, Finanzamt, etc.)
-  for (const re of AUTHORITY_RECOVERY_RES) {
+  const invoiceCtx = isLikelyInvoiceRohText(rohText) || isPaymentLikeDocumentTyp(typ);
+
+  // 1. Utility issuers (Wasserwerk, Stadtwerke, …)
+  for (const re of UTILITY_RECOVERY_RES) {
     const m = rohText.match(re);
     if (m?.[1]) {
       const cleaned = cleanRecovered(m[1]);
@@ -130,13 +195,58 @@ export function recoverSenderFromRohText(rohText: string | null | undefined): st
     }
   }
 
-  // 2. Try canonical known brands in rohText
+  // 2. Invoice header company before footer tax entities
+  if (invoiceCtx) {
+    const company = recoverCompanyFromRohText(rohText);
+    if (company) return company;
+  }
+
+  // 3. Authority patterns — skip Finanzamt on vendor invoices
+  for (const re of AUTHORITY_RECOVERY_RES) {
+    if (invoiceCtx && /\bfinanzamt\b/i.test(re.source)) continue;
+    const m = rohText.match(re);
+    if (m?.[1]) {
+      const cleaned = cleanRecovered(m[1]);
+      if (cleaned) return cleaned;
+    }
+  }
+
+  // 4. Canonical known brands in rohText
   for (const rule of CANONICAL_RULES) {
     if (rule.name && rule.pattern.test(rohText)) {
       return rule.name;
     }
   }
 
+  return null;
+}
+
+/**
+ * Conservative issuer inference from a strong title — display fallback only (#189a).
+ * Returns null for generic titles (Schreiben, Sonstiges, Dokument ohne Issuer).
+ */
+export function inferSenderFromTitle(
+  title: string | null | undefined,
+  typ?: string | null,
+): string | null {
+  const t = (title ?? '').trim().replace(/\s+/g, ' ');
+  if (t.length < 8) return null;
+  if (/^schreiben von unbekannter absender/i.test(t)) return null;
+  if (/^sonstiges(?:\s*[—–-]|\s|$)/i.test(t) && !/\b(gmbh|ag|wasserwerk|stadtwerke)\b/i.test(t)) return null;
+
+  const hasIssuerSignal = TITLE_ISSUER_PATTERNS.some(re => re.test(t));
+  if (GENERIC_TITLE_ONLY_RE.test(t) && !hasIssuerSignal) return null;
+
+  for (const re of TITLE_ISSUER_PATTERNS) {
+    const m = t.match(re);
+    if (m?.[1]) {
+      let cleaned = m[1].trim().replace(/\s*[·•|].*$/, '').trim();
+      cleaned = cleaned.replace(/^(?:rechnung|mahnung|zahlungserinnerung)\s+/i, '').trim();
+      if (cleaned.length >= 4 && cleaned.length <= 80) return cleaned;
+    }
+  }
+
+  void typ;
   return null;
 }
 
@@ -151,13 +261,14 @@ export function recoverSenderFromRohText(rohText: string | null | undefined): st
 export function normalizeSender(
   absender: string | null | undefined,
   rohText?: string | null,
+  typ?: string | null,
 ): string {
   const raw = absender?.trim() ?? '';
 
   if (!raw || isWeakSender(raw)) {
     // Recovery path
     if (rohText) {
-      const recovered = recoverSenderFromRohText(rohText);
+      const recovered = recoverSenderFromRohText(rohText, typ);
       if (recovered) return recovered;
     }
     return '';

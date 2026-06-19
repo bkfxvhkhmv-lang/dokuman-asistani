@@ -10,7 +10,7 @@ import type { MoreMenuItem } from '@/features/detail/detail-modals/types';
 import type { ModalData } from '@/features/detail/hooks/useModalController';
 import type { useDocumentActions } from '@/features/detail/hooks/useDocumentActions';
 import { canOfferPaymentAction, hasCompletePaymentTarget } from '@/utils/documentGuards';
-import { analyzeFinanzamt } from '@/features/detail/services/finanzamtAnalysis';
+import { inferReplyCategory } from '@/features/reply-assistant/domain/inferReplyCategory';
 import { useT } from '@/hooks/useT';
 
 type OpenModalFn = (name: string, data?: ModalData) => void;
@@ -81,7 +81,7 @@ export function useDetailMoreItems({
 
     const aktiv = dok.aktionen ?? [];
     const rows: MoreMenuItem[] = [];
-    const isFinanzamtReply = analyzeFinanzamt(dok).isFinanzamt;
+    const hasReplyTemplate = !!inferReplyCategory(dok.typ, dok.absender, dok.titel);
 
     // ── 0. Mit KI analysieren (only for saved documents without OCR) ──────────
     if (!dok.rohText && dok.uri && onAnalyzeSavedDocument) {
@@ -137,7 +137,7 @@ export function useDetailMoreItems({
     }
 
     // ── 4. Antwort schreiben (conditional) ───────────────────────────────────
-    if (isFinanzamtReply) {
+    if (hasReplyTemplate) {
       rows.push({
         key: 'menu_vorlage', icon: 'envelope-simple', label: t('detail.more.reply'), group: 'communication',
         onPress: () => openModal('yanitSablon'),

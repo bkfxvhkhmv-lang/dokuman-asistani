@@ -10,7 +10,7 @@ from typing import Optional
 
 import structlog
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
 from sqlalchemy.orm import selectinload
@@ -72,14 +72,26 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 sync_alias_router = APIRouter(prefix="/sync", tags=["sync"])
 
 
-@router.post("/", response_model=DocumentOut, status_code=201)
+@router.post("/", response_model=DocumentOut)
 async def upload_document(
+    response: Response,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user_id),
 ):
     data = await file.read()
     checksum = hashlib.sha256(data).hexdigest()
+
+    existing = await _find_duplicate_document(db, user_id, checksum)
+    if existing:
+        log.info(
+            "upload.duplicate_checksum",
+            user_id=user_id,
+            checksum=checksum[:12],
+            existing_id=existing.id,
+        )
+        response.status_code = 200
+        return _upload_out(existing, duplicate=True)
 
     doc_id     = str(uuid.uuid4())
     storage_key = f"{user_id}/{doc_id}/{file.filename}"
@@ -136,14 +148,8 @@ async def upload_document(
         else:
             process_ocr.delay(doc_id, storage_key)
 
-    # Return immediately without touching lazy-loaded relations (meta/text not yet set)
-    return DocumentOut(
-        id=doc.id,
-        status=doc.status.value,
-        checksum=doc.checksum,
-        version=doc.version,
-        updated_at=doc.updated_at.isoformat() if doc.updated_at else None,
-    )
+    response.status_code = 201
+    return _upload_out(doc, duplicate=False)
 
 
 @router.get("/", response_model=DocumentListOut)
@@ -246,6 +252,32 @@ async def delta_sync(
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+async def _find_duplicate_document(
+    db: AsyncSession,
+    user_id: str,
+    checksum: str,
+) -> Optional[Document]:
+    row = await db.execute(
+        select(Document)
+        .where(Document.user_id == user_id, Document.checksum == checksum)
+        .order_by(Document.created_at.asc())
+        .limit(1)
+    )
+    return row.scalar_one_or_none()
+
+
+def _upload_out(doc: Document, *, duplicate: bool) -> DocumentOut:
+    return DocumentOut(
+        id=doc.id,
+        status=doc.status.value,
+        checksum=doc.checksum,
+        version=doc.version,
+        updated_at=doc.updated_at.isoformat() if doc.updated_at else None,
+        duplicate=duplicate,
+        existing_document_id=doc.id if duplicate else None,
+    )
+
 
 async def _get_or_404(db: AsyncSession, doc_id: str, user_id: str) -> Document:
     row = await db.execute(

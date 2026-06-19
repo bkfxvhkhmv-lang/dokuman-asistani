@@ -7,11 +7,14 @@ Run inside container:
 MinIO and DB are mocked so these tests run without external services.
 """
 import io
+from datetime import datetime, timezone
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.database import get_db
+from app.models.document import Document, DocumentStatus
 
 
 @pytest.fixture
@@ -36,6 +39,26 @@ def jpeg_bytes() -> bytes:
     ])
 
 
+def _make_existing_doc(
+    doc_id: str = "existing-doc-1",
+    user_id: str = "dev-user-local",
+    status: DocumentStatus = DocumentStatus.completed,
+) -> Document:
+    now = datetime.now(timezone.utc)
+    return Document(
+        id=doc_id,
+        user_id=user_id,
+        filename="test.jpg",
+        mime_type="image/jpeg",
+        storage_key=f"{user_id}/{doc_id}/test.jpg",
+        checksum="abc123checksum",
+        version=1,
+        status=status,
+        created_at=now,
+        updated_at=now,
+    )
+
+
 async def test_health():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
         r = await c.get("/health/")
@@ -47,7 +70,9 @@ async def test_upload_dev_mode(jpeg_bytes):
     """Upload in dev mode — MinIO mocked, OCR mocked, DB via dependency override."""
 
     mock_doc_attrs = MagicMock()
+    mock_doc_attrs.id = "new-doc-1"
     mock_doc_attrs.status = MagicMock(value="pending")
+    mock_doc_attrs.checksum = "sha256"
     mock_doc_attrs.version = 1
     mock_doc_attrs.updated_at = None
 
@@ -66,6 +91,7 @@ async def test_upload_dev_mode(jpeg_bytes):
 
         async def execute(self, _stmt):
             row = MagicMock()
+            row.scalar_one_or_none.return_value = None
             row.scalar_one.return_value = self._doc or mock_doc_attrs
             return row
 
@@ -77,8 +103,7 @@ async def test_upload_dev_mode(jpeg_bytes):
     with (
         patch("app.api.documents.upload_file", new=AsyncMock(return_value="key")),
         patch("app.api.documents._inline_ocr_in_subprocess", new=MagicMock(return_value=None)),
-        patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock(return_value=None)),
-        patch("app.workers.ocr_worker.process_ocr.apply", new=MagicMock(return_value=None)),
+        patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock()) as mock_delay,
     ):
         try:
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
@@ -87,6 +112,140 @@ async def test_upload_dev_mode(jpeg_bytes):
                     files={"file": ("test.jpg", io.BytesIO(jpeg_bytes), "image/jpeg")},
                 )
             assert r.status_code == 201
+            body = r.json()
+            assert body["duplicate"] is False
+            assert body["existing_document_id"] is None
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+
+
+async def test_upload_duplicate_returns_existing(jpeg_bytes):
+    existing = _make_existing_doc()
+
+    class _FakeSession:
+        async def flush(self):
+            pass
+
+        async def commit(self):
+            pass
+
+        def add(self, _doc):
+            raise AssertionError("must not create a new document on duplicate upload")
+
+        async def execute(self, _stmt):
+            row = MagicMock()
+            row.scalar_one_or_none.return_value = existing
+            return row
+
+    async def fake_get_db():
+        yield _FakeSession()
+
+    app.dependency_overrides[get_db] = fake_get_db
+
+    with (
+        patch("app.api.documents.upload_file", new=AsyncMock()) as mock_upload,
+        patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock()) as mock_delay,
+    ):
+        try:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+                r = await c.post(
+                    "/documents/",
+                    files={"file": ("test.jpg", io.BytesIO(jpeg_bytes), "image/jpeg")},
+                )
+            assert r.status_code == 200
+            body = r.json()
+            assert body["duplicate"] is True
+            assert body["id"] == existing.id
+            assert body["existing_document_id"] == existing.id
+            assert body["status"] == "completed"
+            mock_upload.assert_not_called()
+            mock_delay.assert_not_called()
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+
+
+async def test_upload_duplicate_does_not_reprocess_pending(jpeg_bytes):
+    existing = _make_existing_doc(status=DocumentStatus.pending)
+
+    class _FakeSession:
+        async def flush(self):
+            pass
+
+        async def commit(self):
+            pass
+
+        def add(self, _doc):
+            raise AssertionError("must not create a new document on duplicate upload")
+
+        async def execute(self, _stmt):
+            row = MagicMock()
+            row.scalar_one_or_none.return_value = existing
+            return row
+
+    async def fake_get_db():
+        yield _FakeSession()
+
+    app.dependency_overrides[get_db] = fake_get_db
+
+    with (
+        patch("app.api.documents.upload_file", new=AsyncMock()) as mock_upload,
+        patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock()) as mock_delay,
+    ):
+        try:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+                r = await c.post(
+                    "/documents/",
+                    files={"file": ("test.jpg", io.BytesIO(jpeg_bytes), "image/jpeg")},
+                )
+            assert r.status_code == 200
+            body = r.json()
+            assert body["duplicate"] is True
+            assert body["status"] == "pending"
+            mock_upload.assert_not_called()
+            mock_delay.assert_not_called()
+        finally:
+            app.dependency_overrides.pop(get_db, None)
+
+
+async def test_upload_duplicate_does_not_reprocess_failed(jpeg_bytes):
+    existing = _make_existing_doc(status=DocumentStatus.failed)
+
+    class _FakeSession:
+        async def flush(self):
+            pass
+
+        async def commit(self):
+            pass
+
+        def add(self, _doc):
+            raise AssertionError("must not create a new document on duplicate upload")
+
+        async def execute(self, _stmt):
+            row = MagicMock()
+            row.scalar_one_or_none.return_value = existing
+            return row
+
+    async def fake_get_db():
+        yield _FakeSession()
+
+    app.dependency_overrides[get_db] = fake_get_db
+
+    with (
+        patch("app.api.documents.upload_file", new=AsyncMock()) as mock_upload,
+        patch("app.workers.ocr_worker.process_ocr.delay", new=MagicMock()) as mock_delay,
+    ):
+        try:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+                r = await c.post(
+                    "/documents/",
+                    files={"file": ("test.jpg", io.BytesIO(jpeg_bytes), "image/jpeg")},
+                )
+            assert r.status_code == 200
+            body = r.json()
+            assert body["duplicate"] is True
+            assert body["status"] == "failed"
+            mock_upload.assert_not_called()
+            mock_delay.assert_not_called()
         finally:
             app.dependency_overrides.pop(get_db, None)
 

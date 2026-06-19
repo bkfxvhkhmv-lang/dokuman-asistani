@@ -37,7 +37,8 @@ import {
 } from './domain/saveImportDraft';
 import { toUserFacingOcrMessage } from './domain/userFacingErrors';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
-import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
+import PremiumToast from '@/design/components/PremiumToast';
+import { useToast } from '@/hooks/useToast';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -104,7 +105,8 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const router = useRouter();
   const { state, dispatch } = useStore();
   const { gateDocument, gateOcr, upgradeVisible, dismissUpgrade } = useGuestLimit();
-  const { status, jobId, result, error, errorKind, startJob, reset } = useCoreScanJob();
+  const { status, jobId, result, error, errorKind, duplicateDetected, startJob, reset } = useCoreScanJob();
+  const { config: toastConfig, show: showToast, hide: hideToast } = useToast();
   const [health, setHealth] = useState<HealthState>('checking');
   const [savedDocId, setSavedDocId] = useState<string | null>(null);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
@@ -333,6 +335,13 @@ export default function OcrMvpScreen({ onClose }: Props) {
         onJobCreated:    () => setTiming('jobCreated'),
         onPollingStarted: () => setTiming('pollStart'),
         onPollingResult: () => setTiming('pollResult'),
+        onDuplicate:     () => {
+          showToast({
+            message: T('ocr.upload.duplicate_toast'),
+            tone:    'info',
+            icon:    'document-outline',
+          });
+        },
       },
     );
   };
@@ -346,6 +355,15 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const handleSaveToDocuments = useCallback(async () => {
     if (!result || savedDocId) return;
     try {
+      const remoteId = jobId?.trim() || result.job_id?.trim() || '';
+      if (remoteId) {
+        const existingByV4 = state.dokumente.find(d => d.v4DocId === remoteId);
+        if (existingByV4) {
+          setSavedDocId(existingByV4.id);
+          return;
+        }
+      }
+
       // Use early-persisted data if available; otherwise retry persist now.
       let docId = earlyPersistedDocId;
       let persistedPages = earlyPersistedPages;
@@ -389,7 +407,15 @@ export default function OcrMvpScreen({ onClose }: Props) {
     } catch (e: any) {
       Alert.alert(T('ocr.save.error.title'), toUserFacingOcrMessage(e?.message, T, 'ocr.save.error.generic'));
     }
-  }, [result, savedDocId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente, gateDocument, T, emitTimingSummary, setTiming]);
+  }, [result, savedDocId, jobId, selectedUri, earlyPersistedDocId, earlyPersistedPages, dispatch, state.dokumente, gateDocument, T, emitTimingSummary, setTiming]);
+
+  useEffect(() => {
+    if (status !== 'done' || !duplicateDetected || !jobId) return;
+    const existingLocal = state.dokumente.find(d => d.v4DocId === jobId);
+    if (!existingLocal) return;
+    setSavedDocId(existingLocal.id);
+    router.push({ pathname: '/detail', params: { dokId: existingLocal.id, tab: 'ozet' } });
+  }, [status, duplicateDetected, jobId, state.dokumente, router]);
 
   const handleOpenDocument = useCallback(() => {
     if (!savedDocId) return;
@@ -764,6 +790,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
         </View>
       )}
 
+      <PremiumToast config={toastConfig} onHide={hideToast} />
       <GuestUpgradeSheet visible={upgradeVisible} onClose={dismissUpgrade} />
     </SafeAreaView>
   );

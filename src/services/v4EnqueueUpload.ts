@@ -51,16 +51,21 @@ export function enqueueV4Upload(
         options?.onFailed?.();
         return;
       }
+      const remoteId = (
+        result.duplicate === true && typeof result.existing_document_id === 'string'
+          ? result.existing_document_id.trim()
+          : result.id.trim()
+      );
       const st = parseV4JobStatus(result.status);
       dispatch({
         type:    'UPDATE_DOKUMENT',
         payload: {
           id:        localDocumentId,
-          v4DocId:   result.id,
+          v4DocId:   remoteId,
           ...(st ? { v4JobStatus: st } : {}),
         },
       });
-      attachV4JobPolling(dispatch, localDocumentId, result.id, toPollingOptions(options));
+      attachV4JobPolling(dispatch, localDocumentId, remoteId, toPollingOptions(options));
     } catch (e) {
       dispatch({
         type:    'UPDATE_DOKUMENT',

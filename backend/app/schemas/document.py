@@ -14,6 +14,8 @@ class DocumentOut(BaseModel):
     checksum:   Optional[str]  = None
     version:    Optional[int]  = None
     updated_at: Optional[str]  = None
+    duplicate:  bool = False
+    existing_document_id: Optional[str] = None
 
     model_config = {"from_attributes": True, "extra": "allow"}
 

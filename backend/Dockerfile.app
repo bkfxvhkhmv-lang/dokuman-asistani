@@ -15,13 +15,14 @@ RUN pip install --no-cache-dir \
 COPY pyproject.toml .
 RUN pip install --no-cache-dir -e ".[dev]"
 # Warm models (PO 2.x vs 3.x ctor differs — mirror app/services/ocr.py).
-RUN python -c "\
-from paddleocr import PaddleOCR\n\
-kw = dict(lang='de', use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False)\n\
-try:\n\
-    PaddleOCR(**kw)\n\
-except TypeError:\n\
-    PaddleOCR(lang='de')"
+RUN python - <<'PY'
+from paddleocr import PaddleOCR
+kw = dict(lang='de', use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False)
+try:
+    PaddleOCR(**kw)
+except TypeError:
+    PaddleOCR(lang='de')
+PY
 
 COPY app/ ./app/
 COPY alembic.ini ./

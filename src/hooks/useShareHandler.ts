@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Linking } from 'react-native';
+import { Alert, AppState, Linking, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/store';
 import { useAuth } from '@/providers/AuthContext';
@@ -120,15 +120,21 @@ export function useShareHandler() {
   const navigateToDocument = useCallback((dokId: string, tab: 'analiz' | 'ozet' = 'analiz') => {
     if (!dokId?.trim()) return;
     const target = { pathname: '/detail' as const, params: { dokId, tab } };
-    try {
-      router.replace(target);
-      return;
-    } catch {}
-    setTimeout(() => {
+    // Use push so the back stack is preserved — safeBack() in DetailScreen can then
+    // navigate back to the previous screen rather than falling through to /(tabs)/index.
+    const tryNavigate = (attempt: number) => {
       try {
-        router.replace(target);
-      } catch {}
-    }, 0);
+        router.push(target);
+        console.warn('[ShareHandler] navigated to detail (attempt', attempt, ')');
+      } catch (e) {
+        console.warn('[ShareHandler] navigation failed attempt', attempt, String(e));
+        if (attempt < 3) {
+          // Exponential backoff: 100ms, 300ms — gives router time to finish transitions.
+          setTimeout(() => tryNavigate(attempt + 1), 100 * attempt);
+        }
+      }
+    };
+    tryNavigate(1);
   }, [router]);
 
   const confirmAnalyse = useCallback(async () => {
@@ -217,7 +223,10 @@ export function useShareHandler() {
     void processUris(batch);
   }, [notReady, processUris]);
 
-  // Cold start: Linking (ACTION_VIEW) + native ACTION_SEND pending queue.
+  // Cold start: native ACTION_SEND pending queue + iOS Linking ("Open With").
+  // Android uses the native bridge exclusively — Linking.getInitialURL() on Android
+  // triggers Expo Router's own linking machinery ("configured in multiple places" warning)
+  // which remounts the navigation tree and resets share state before the sheet renders.
   // drainedUrisRef ensures URIs drained from the native queue are not lost when
   // this effect re-runs (notReady change) before the async body completes.
   useEffect(() => {
@@ -225,7 +234,7 @@ export function useShareHandler() {
     let cancelled = false;
     (async () => {
       const [linkUrl, nativeUris] = await Promise.all([
-        Linking.getInitialURL(),
+        Platform.OS === 'ios' ? Linking.getInitialURL() : Promise.resolve(null),
         getPendingAndroidShareUris(),
       ]);
       // Persist drained URIs BEFORE checking cancelled.
@@ -239,8 +248,12 @@ export function useShareHandler() {
     return () => { cancelled = true; };
   }, [notReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Warm: Linking ACTION_VIEW — stable, never re-subscribes between renders.
+  // Warm: Linking ACTION_VIEW — iOS only.
+  // Android: skip — native bridge handles all intents and Linking.addEventListener
+  // conflicts with Expo Router's built-in Linking listener, causing "Looks like you
+  // have configured linking in multiple places" + navigation tree remount on share.
   useEffect(() => {
+    if (Platform.OS === 'android') return;
     const sub = Linking.addEventListener('url', ({ url }) => { enqueueUrisRef.current([url]); });
     return () => sub.remove();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

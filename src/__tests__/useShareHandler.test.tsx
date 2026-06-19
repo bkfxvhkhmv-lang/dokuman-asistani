@@ -124,7 +124,7 @@ describe('useShareHandler', () => {
       type: 'ADD_DOKUMENT',
       payload: { id: 'new-local-doc' },
     });
-    expect(mockReplace).toHaveBeenCalledWith({
+    expect(mockPush).toHaveBeenCalledWith({
       pathname: '/detail',
       params: { dokId: 'new-local-doc', tab: 'analiz' },
     });
@@ -163,7 +163,7 @@ describe('useShareHandler', () => {
     });
 
     expect(alertSpy).toHaveBeenCalledWith('share.confirm.title', 'ocr.upload.duplicate_toast');
-    expect(mockReplace).toHaveBeenCalledWith({
+    expect(mockPush).toHaveBeenCalledWith({
       pathname: '/detail',
       params: { dokId: 'existing-local-doc', tab: 'ozet' },
     });
@@ -206,7 +206,7 @@ describe('useShareHandler', () => {
     });
 
     expect(alertSpy).toHaveBeenCalledWith('share.confirm.title', 'ocr.upload.duplicate_toast');
-    expect(mockReplace).toHaveBeenCalledWith({
+    expect(mockPush).toHaveBeenCalledWith({
       pathname: '/detail',
       params: { dokId: 'existing-local-doc', tab: 'analiz' },
     });

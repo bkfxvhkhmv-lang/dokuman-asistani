@@ -59,8 +59,15 @@ def _download(storage_key: str) -> bytes:
     return data
 
 
+def _sanitize_text_for_db(text: str) -> str:
+    return text.replace("\x00", "")
+
+
 def _save_text(doc_id: str, text: str, confidence: float) -> None:
     from datetime import datetime, timezone
+    clean_text = _sanitize_text_for_db(text)
+    if clean_text != text:
+        log.warning("ocr.nul_removed", doc_id=doc_id, removed=len(text) - len(clean_text))
     engine = _sync_engine()
     with engine.begin() as conn:
         conn.execute(
@@ -70,7 +77,7 @@ def _save_text(doc_id: str, text: str, confidence: float) -> None:
                 ON CONFLICT (doc_id) DO UPDATE
                 SET roh_text=EXCLUDED.roh_text, confidence=EXCLUDED.confidence, updated_at=EXCLUDED.updated_at
             """),
-            {"doc_id": doc_id, "text": text, "conf": confidence, "ts": datetime.now(timezone.utc)},
+            {"doc_id": doc_id, "text": clean_text, "conf": confidence, "ts": datetime.now(timezone.utc)},
         )
         conn.execute(
             _sql("UPDATE documents SET status='completed', updated_at=:ts WHERE id=:id"),

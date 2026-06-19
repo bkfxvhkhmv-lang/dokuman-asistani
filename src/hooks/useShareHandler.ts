@@ -140,11 +140,17 @@ export function useShareHandler() {
           );
         },
       });
-      if (!result) return;
+      if (!result) {
+        console.warn('[ShareHandler] processSharedFile returned null — import failed');
+        return;
+      }
       dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
+      const targetId = result.dokument.id;
       if (userRef.current?.isGuest) await recordDocument();
       if (!duplicateNavigationHandled) {
-        navigateToDocument(result.dokument.id, 'analiz');
+        // Defer navigation by one scheduler tick so React commits ADD_DOKUMENT
+        // before DetailScreen reads state.dokumente; prevents DocumentNotFoundView flash.
+        setTimeout(() => navigateToDocument(targetId, 'analiz'), 0);
       }
     } finally {
       setProcessing(false);

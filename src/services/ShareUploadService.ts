@@ -186,6 +186,10 @@ export async function processSharedFile(
       rohText:          rawText || null,
       importSource,
       dateiName:        fileName,
+      // Mark upload as pending immediately so the detail screen shows the
+      // processing/laser UI before the first UPDATE_DOKUMENT from enqueueV4Upload.
+      // Only set when upload will actually be enqueued (dispatch + persisted file).
+      ...(dispatch && persistedPages[0]?.uri ? { v4JobStatus: 'pending' as const } : {}),
     };
 
     // Step 3 — value-first "done" notification

@@ -69,6 +69,7 @@ describe('useShareHandler', () => {
   }
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     shareIntentListener = null;
     mockDocuments = [
@@ -79,6 +80,8 @@ describe('useShareHandler', () => {
   });
 
   afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -113,6 +116,9 @@ describe('useShareHandler', () => {
     await act(async () => {
       await ref.current?.confirmAnalyse();
     });
+
+    // Navigation is deferred by setTimeout(0) to let ADD_DOKUMENT commit first.
+    act(() => { jest.runAllTimers(); });
 
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'ADD_DOKUMENT',

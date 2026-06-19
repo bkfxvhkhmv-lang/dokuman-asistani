@@ -18,6 +18,8 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 **Kapsam:** `ai_usage_events` DB tablosu (migration 0003), `persist_usage_event`, `scripts/ai_usage_report.py` CLI. Telemetri PASS; dashboard/cron LATER.
 
+📄 [AI_COST_DASHBOARD_BACKLOG.md](AI_COST_DASHBOARD_BACKLOG.md) — Future AI Cost Dashboard / LLM Spend Overview (phases 1–5, KPIs, charts, safety, acceptance)
+
 ---
 
 ## 2026-06-18 LLM Extraction Usage Telemetry

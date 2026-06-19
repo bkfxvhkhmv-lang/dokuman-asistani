@@ -54,3 +54,25 @@ def test_process_ocr_does_not_mark_failed_before_max_retries():
             )
 
     mock_mark_failed.assert_not_called()
+
+
+def test_save_text_strips_nul_bytes():
+    """NUL characters in OCR output must not crash DB insert/update."""
+    mock_conn = MagicMock()
+    mock_engine = MagicMock()
+    mock_engine.begin.return_value.__enter__.return_value = mock_conn
+
+    with patch.object(ow, "_sync_engine", return_value=mock_engine):
+        with patch.object(ow.log, "warning") as mock_warning:
+            ow._save_text("doc-nul-001", "abc\x00def\x00ghi", 0.95)
+
+    calls = mock_conn.execute.call_args_list
+    _sql_arg, params_arg = calls[0].args
+    assert params_arg["text"] == "abcdefghi"
+    assert "\x00" not in params_arg["text"]
+    assert mock_warning.call_count == 1
+    assert mock_warning.call_args.kwargs["doc_id"] == "doc-nul-001"
+
+
+def test_sanitize_text_helper_is_noop_for_clean_text():
+    assert ow._sanitize_text_for_db("clean text") == "clean text"

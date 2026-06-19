@@ -13,17 +13,9 @@ import { OCR_MVP_BASE } from '@/config';
 import type { OcrMvpJobStatus } from '@/services/ocrMvpApi';
 import { buildHumanExportBasename } from '@/utils/exportFilename';
 import OcrMvpActionSummary from './OcrMvpActionSummary';
+import { resolveOcrDocTypeLabel } from '@/i18n/documentTypeLabels';
 import { useT } from '@/hooks/useT';
 
-const DOC_TYPE_KEY: Record<string, string> = {
-  invoice:    'ocr.doctype.invoice',
-  settlement: 'ocr.doctype.settlement',
-  insurance:  'ocr.doctype.insurance',
-  quote:      'ocr.doctype.quote',
-  form:       'ocr.doctype.form',
-  letter:     'ocr.doctype.letter',
-  unknown:    'ocr.doctype.unknown',
-};
 
 function buildExportFilename(
   summary: import('@/services/ocrMvpApi').OcrMvpActionSummary | undefined,
@@ -74,7 +66,7 @@ export default function OcrMvpResultCard({
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
 
-  const docLabel = T(DOC_TYPE_KEY[result.document_type ?? ''] ?? 'ocr.doctype.unknown');
+  const docLabel = resolveOcrDocTypeLabel(result.document_type, T);
   const isHighRisk = HIGH_RISK_TYPES.has(result.document_type ?? '') && result.needs_review;
   const confPct    = result.confidence != null ? Math.round(result.confidence * 100) : null;
   const hasSummary = !!result.action_summary;

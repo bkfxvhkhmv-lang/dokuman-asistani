@@ -7,13 +7,16 @@ import { useT } from '@/hooks/useT';
 import { canAddDocument, recordDocument } from '@/services/guestLimitService';
 import {
   getPendingAndroidShareUris,
+  getPendingNativeAndroidShareUris,
+  removeBufferedUri,
   subscribeAndroidShareIntents,
 } from '@/services/androidShareIntentBridge';
 import {
-  processSharedFile,
   normaliseSharedUri,
   extractFileNameFromUri,
 } from '@/services/ShareUploadService';
+import { detectFileType } from '@/services/ShareUploadService';
+import { setPendingSharedAsset } from '@/services/pendingShareUpload';
 
 const PDF_EXTENSIONS = /\.(pdf)$/i;
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|heic|tiff?|webp|bmp)$/i;
@@ -47,7 +50,7 @@ export interface PendingShare {
 //   Android — ACTION_VIEW via Linking; ACTION_SEND via BriefPilotShareIntent native bridge
 
 export function useShareHandler() {
-  const { state, dispatch, storeHydrated } = useStore();
+  const { storeHydrated } = useStore();
   const router = useRouter();
   const { user, loading: authLoading, loginWithGoogle } = useAuth();
   const { t: T } = useT();
@@ -55,7 +58,6 @@ export function useShareHandler() {
   const processingRef = useRef(false);
   const pendingUrisRef = useRef<string[]>([]);
   const userRef = useRef(user);
-  const docsRef = useRef(state.dokumente);
   // Stable ref to latest enqueueUris — subscriptions use this so they never need to
   // teardown/re-register when enqueueUris reference changes between renders.
   const enqueueUrisRef = useRef<(uris: string[]) => void>(() => {});
@@ -68,19 +70,27 @@ export function useShareHandler() {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => { userRef.current = user; }, [user]);
-  useEffect(() => { docsRef.current = state.dokumente; }, [state.dokumente]);
+
+  // When React commits pendingShare, the URI has been successfully received by a
+  // stable (non-unmounting) component → safe to remove from the module-level warm
+  // buffer. This effect does NOT run on unmounting components, so a concurrent
+  // "Running main" that replaces the React root will leave the buffer intact for
+  // the new root's cold-start drain to pick up.
+  useEffect(() => {
+    if (pendingShare?.uri) removeBufferedUri(pendingShare.uri);
+  }, [pendingShare?.uri]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show sheet IMMEDIATELY on URI receipt — file copy is deferred to confirmAnalyse.
   // This prevents normaliseSharedUri / FileSystem.copyAsync failures from silently
   // swallowing the share event before the user ever sees anything.
   const handleUri = useCallback(async (rawUri: string) => {
-    console.warn('[ShareHandler] handleUri called:', rawUri.slice(0, 100));
+    console.warn('[BP175_SHARE] handleUri entry:', rawUri.slice(0, 100));
     if (!rawUri || processingRef.current) {
-      console.warn('[ShareHandler] handleUri blocked —', processingRef.current ? 'processingRef=true' : 'empty URI');
+      console.warn('[BP175_SHARE] handleUri blocked —', processingRef.current ? 'processingRef=true' : 'empty URI');
       return;
     }
     if (!isShareableUri(rawUri)) {
-      console.warn('[ShareHandler] handleUri: URI not shareable:', rawUri.slice(0, 100));
+      console.warn('[BP175_SHARE] handleUri: URI not shareable:', rawUri.slice(0, 100));
       return;
     }
 
@@ -103,7 +113,7 @@ export function useShareHandler() {
       }
 
       const fileName = extractFileNameFromUri(rawUri);
-      console.warn('[ShareHandler] setPendingShare:', fileName);
+      console.warn('[BP175_SHARE] setPendingShare calling — fileName:', fileName);
       setPendingShare({ uri: rawUri, fileName });
       // processingRef stays true until user acts (confirm or dismiss)
     } catch (e) {
@@ -117,35 +127,13 @@ export function useShareHandler() {
     processingRef.current = false;
   }, []);
 
-  const navigateToDocument = useCallback((dokId: string, tab: 'analiz' | 'ozet' = 'analiz') => {
-    if (!dokId?.trim()) return;
-    const target = { pathname: '/detail' as const, params: { dokId, tab } };
-    // Use push so the back stack is preserved — safeBack() in DetailScreen can then
-    // navigate back to the previous screen rather than falling through to /(tabs)/index.
-    const tryNavigate = (attempt: number) => {
-      try {
-        router.push(target);
-        console.warn('[ShareHandler] navigated to detail (attempt', attempt, ')');
-      } catch (e) {
-        console.warn('[ShareHandler] navigation failed attempt', attempt, String(e));
-        if (attempt < 3) {
-          // Exponential backoff: 100ms, 300ms — gives router time to finish transitions.
-          setTimeout(() => tryNavigate(attempt + 1), 100 * attempt);
-        }
-      }
-    };
-    tryNavigate(1);
-  }, [router]);
-
   const confirmAnalyse = useCallback(async () => {
     if (!pendingShare) return;
     const { uri: rawUri } = pendingShare;
     setPendingShare(null);
     setProcessing(true);
-    console.warn('[ShareHandler] confirmAnalyse: upload started for', rawUri.slice(0, 100));
+    console.warn('[ShareHandler] confirmAnalyse: handoff started for', rawUri.slice(0, 100));
     try {
-      // Normalise URI here (after user confirmed, not before showing sheet).
-      // Fail-soft: if copyAsync fails, use raw URI and let processSharedFile attempt it.
       let resolvedUri = rawUri;
       const normalised = await normaliseSharedUri(rawUri);
       if (normalised) {
@@ -154,42 +142,27 @@ export function useShareHandler() {
       } else {
         console.warn('[ShareHandler] normaliseSharedUri failed — using raw URI fallback:', rawUri.slice(0, 100));
       }
-
-      let duplicateNavigationHandled = false;
-      const result = await processSharedFile(resolvedUri, docsRef.current, dispatch, {
-        onUploaded: ({ duplicate, existingDocumentId }) => {
-          if (!duplicate || !existingDocumentId) return;
-          const existingLocal = docsRef.current.find(d => d.v4DocId === existingDocumentId);
-          if (!existingLocal) return;
-          duplicateNavigationHandled = true;
-          Alert.alert(T('share.confirm.title'), T('ocr.upload.duplicate_toast'));
-          navigateToDocument(
-            existingLocal.id,
-            existingLocal.v4JobStatus === 'pending' || existingLocal.v4JobStatus === 'processing'
-              ? 'analiz'
-              : 'ozet',
-          );
-        },
+      const fileName = extractFileNameFromUri(rawUri);
+      const fileType = detectFileType(resolvedUri);
+      setPendingSharedAsset({
+        uri: resolvedUri,
+        name: fileName,
+        mimeType: fileType === 'pdf'
+          ? 'application/pdf'
+          : fileType === 'image'
+            ? 'image/jpeg'
+            : 'application/octet-stream',
+        source: 'file',
+        displayName: fileName,
+        previewUri: fileType === 'image' ? resolvedUri : undefined,
       });
-      if (!result) {
-        console.warn('[ShareHandler] processSharedFile returned null — import failed');
-        return;
-      }
-      console.warn('[ShareHandler] dispatch ADD_DOKUMENT:', result.dokument.id);
-      dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
-      const targetId = result.dokument.id;
-      if (userRef.current?.isGuest) await recordDocument();
-      if (!duplicateNavigationHandled) {
-        // Defer navigation by one scheduler tick so React commits ADD_DOKUMENT
-        // before DetailScreen reads state.dokumente; prevents DocumentNotFoundView flash.
-        console.warn('[ShareHandler] navigate to /detail?dokId=', targetId, '&tab=analiz');
-        setTimeout(() => navigateToDocument(targetId, 'analiz'), 0);
-      }
+      console.warn('[ShareHandler] pending shared asset set — routing to Kamera');
+      router.push('/(tabs)/Kamera');
     } finally {
       setProcessing(false);
       processingRef.current = false;
     }
-  }, [pendingShare, dispatch, navigateToDocument, T]);
+  }, [pendingShare, router]);
 
   const processUris = useCallback(async (uris: string[]) => {
     const novel = dedupeUris(uris);
@@ -261,15 +234,22 @@ export function useShareHandler() {
   // Warm: native ACTION_SEND — stable, never re-subscribes between renders.
   // Frequent re-subscription caused listener gaps during which share events were lost.
   useEffect(() => {
-    return subscribeAndroidShareIntents((uris) => { enqueueUrisRef.current(uris); });
+    console.warn('[BP175_PROBE] subscribeAndroidShareIntents registering');
+    return subscribeAndroidShareIntents((uris) => {
+      console.warn('[BP175_SHARE] native intent received uris:', uris.length, uris[0]?.slice(0, 80));
+      enqueueUrisRef.current(uris);
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Foreground drain: recovers URIs stuck in the native pending queue when
   // hasActiveReactInstance()=false prevented emitShareUris from firing.
+  // Uses getPendingNativeAndroidShareUris (native queue only) — must NOT drain
+  // the module-level warm buffer here, as the buffer must be preserved for a
+  // concurrently mounting new React root's cold-start drain.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState !== 'active') return;
-      getPendingAndroidShareUris().then(uris => {
+      getPendingNativeAndroidShareUris().then(uris => {
         if (uris.length) enqueueUrisRef.current(uris);
       }).catch(() => {});
     });

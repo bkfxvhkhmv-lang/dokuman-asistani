@@ -5,6 +5,9 @@ const mockUseCoreScanJob = jest.fn();
 const mockUseOcrMvpJob = jest.fn();
 const mockPostAcceptedSnapshot = jest.fn();
 const mockAnalyzeDocument = jest.fn();
+const mockConsumePendingSharedAsset = jest.fn();
+const mockSubscribePendingSharedAsset = jest.fn(() => jest.fn());
+const mockUploadBox = jest.fn(() => null);
 
 jest.mock('@/hooks/useCoreScanJob', () => ({
   useCoreScanJob: (...args: unknown[]) => mockUseCoreScanJob(...args),
@@ -55,6 +58,7 @@ jest.mock('@/contexts/OfflineBannerContext', () => ({
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn(), back: jest.fn(), replace: jest.fn() }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('expo-keep-awake', () => ({
@@ -67,13 +71,20 @@ jest.mock('@/features/ocr-mvp/domain/ocrBackend', () => ({
   resetOcrBackendCache: jest.fn(),
 }));
 
-jest.mock('@/features/ocr-mvp/components/OcrMvpUploadBox', () => () => null);
+jest.mock('@/features/ocr-mvp/components/OcrMvpUploadBox', () => (props: unknown) => {
+  mockUploadBox(props);
+  return null;
+});
 jest.mock('@/features/ocr-mvp/components/OcrMvpMultiFileConfirmCard', () => () => null);
 jest.mock('@/features/ocr-mvp/components/OcrMvpStatusCard', () => () => null);
 jest.mock('@/features/ocr-mvp/components/OcrMvpResultCard', () => () => null);
 jest.mock('@/features/auth/GuestUpgradeSheet', () => () => null);
 jest.mock('@/components/Icon', () => () => null);
 jest.mock('@/components/IconButton', () => ({ children }: { children: React.ReactNode }) => children);
+jest.mock('@/services/pendingShareUpload', () => ({
+  consumePendingSharedAsset: (...args: unknown[]) => mockConsumePendingSharedAsset(...args),
+  subscribePendingSharedAsset: (...args: unknown[]) => mockSubscribePendingSharedAsset(...args),
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
@@ -99,6 +110,8 @@ describe('OcrMvpScreen — core scan hook wire (#147-A2)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseCoreScanJob.mockReturnValue(idleJob);
+    mockConsumePendingSharedAsset.mockReturnValue(null);
+    mockSubscribePendingSharedAsset.mockImplementation(() => jest.fn());
     appStateSpy = jest.spyOn(AppState, 'addEventListener').mockReturnValue({ remove: jest.fn() } as never);
     backHandlerSpy = jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({ remove: jest.fn() } as never);
   });
@@ -117,6 +130,34 @@ describe('OcrMvpScreen — core scan hook wire (#147-A2)', () => {
 
     expect(mockUseCoreScanJob).toHaveBeenCalled();
     expect(mockUseOcrMvpJob).not.toHaveBeenCalled();
+
+    await act(async () => {
+      renderer?.unmount();
+      await Promise.resolve();
+    });
+  });
+
+  it('consumes a pending shared asset and passes it to the normal upload box', async () => {
+    const asset = {
+      uri: 'file:///cache/share.pdf',
+      name: 'share.pdf',
+      mimeType: 'application/pdf',
+      source: 'file',
+      displayName: 'share.pdf',
+    };
+    mockSubscribePendingSharedAsset.mockImplementation((listener: (value: typeof asset) => void) => {
+      listener(asset);
+      return jest.fn();
+    });
+
+    let renderer: TestRenderer.ReactTestRenderer | undefined;
+    await act(async () => {
+      renderer = TestRenderer.create(<OcrMvpScreen />);
+      await Promise.resolve();
+    });
+
+    const lastCall = mockUploadBox.mock.calls[mockUploadBox.mock.calls.length - 1]?.[0] as { externallySelectedAsset?: typeof asset } | undefined;
+    expect(lastCall?.externallySelectedAsset).toEqual(asset);
 
     await act(async () => {
       renderer?.unmount();

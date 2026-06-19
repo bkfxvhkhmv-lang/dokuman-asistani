@@ -23,9 +23,20 @@ class MainActivity : ReactActivity() {
   }
 
   override fun onNewIntent(intent: Intent) {
-    super.onNewIntent(intent)
-    setIntent(intent)
-    ShareIntentRouter.captureIntent(intent)
+    val action = intent.action
+    if (action == Intent.ACTION_SEND || action == Intent.ACTION_SEND_MULTIPLE) {
+      // Share intents must NOT propagate to super (Expo Router's linking system).
+      // super.onNewIntent fires ReactHost.onNewIntent which Expo Router intercepts as a
+      // deep link event, triggering "configured linking in multiple places" + navigation
+      // tree remount that resets JS share state before the sheet can render.
+      // Our native bridge is the sole handler for share intents.
+      setIntent(intent)
+      ShareIntentRouter.captureIntent(intent)
+    } else {
+      super.onNewIntent(intent)
+      setIntent(intent)
+      ShareIntentRouter.captureIntent(intent)
+    }
   }
 
   /**

@@ -3,7 +3,7 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Alert, AppState, BackHandler, Platform, type AppStateStatus,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { useTheme } from '@/ThemeContext';
 import Icon from '@/components/Icon';
@@ -40,6 +40,10 @@ import { useGuestLimit } from '@/hooks/useGuestLimit';
 import PremiumToast from '@/design/components/PremiumToast';
 import { useToast } from '@/hooks/useToast';
 import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
+import {
+  consumePendingSharedAsset,
+  subscribePendingSharedAsset,
+} from '@/services/pendingShareUpload';
 
 type SafeError = { title: string; body: string; icon: string; ctaLabel: string };
 
@@ -120,6 +124,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
   const [batchBusy, setBatchBusy] = useState(false);
   const [batchAssets, setBatchAssets] = useState<ScannedAsset[] | null>(null);
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; name: string } | null>(null);
+  const [pendingSharedAsset, setPendingSharedAsset] = useState<ScannedAsset | null>(null);
   const { setSuppressBanner } = useOfflineBannerSuppression();
   const timingRef = useRef<TimingMarks>({});
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -192,6 +197,38 @@ export default function OcrMvpScreen({ onClose }: Props) {
   useEffect(() => {
     setTiming('mounted');
   }, [setTiming]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const asset = consumePendingSharedAsset();
+      if (!asset) return undefined;
+      setSavedDocId(null);
+      setSelectedUri(null);
+      setSelectedFileName(null);
+      setSelectedPreviewUri(null);
+      setEarlyPersistedDocId(null);
+      setEarlyPersistedPages(null);
+      timingRef.current = {};
+      reset();
+      setPendingSharedAsset(asset);
+      return undefined;
+    }, [reset]),
+  );
+
+  useEffect(() => {
+    return subscribePendingSharedAsset((asset) => {
+      consumePendingSharedAsset();
+      setSavedDocId(null);
+      setSelectedUri(null);
+      setSelectedFileName(null);
+      setSelectedPreviewUri(null);
+      setEarlyPersistedDocId(null);
+      setEarlyPersistedPages(null);
+      timingRef.current = {};
+      reset();
+      setPendingSharedAsset(asset);
+    });
+  }, [reset]);
 
   const checkHealth = useCallback(async () => {
     setHealth('checking');
@@ -432,6 +469,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
     setSelectedPreviewUri(null);
     setEarlyPersistedDocId(null);
     setEarlyPersistedPages(null);
+    setPendingSharedAsset(null);
     timingRef.current = {};
     reset();
   }, [reset]);
@@ -768,6 +806,7 @@ export default function OcrMvpScreen({ onClose }: Props) {
               />
             ) : (
               <OcrMvpUploadBox
+                externallySelectedAsset={pendingSharedAsset}
                 onSubmit={handleSubmit}
                 onMultiFilePick={handleMultiFilePick}
                 onSaveWithoutAnalysis={handleSaveWithoutAnalysisFromAsset}

@@ -4,6 +4,7 @@ import { useTheme } from '@/ThemeContext';
 import AiSparkle from '@/components/AiSparkle';
 import Icon from '@/components/Icon';
 import { useT } from '@/hooks/useT';
+import { T as Type } from '@/design/tokens';
 
 export type FieldStatus = 'pruefen' | 'fehlt' | undefined;
 
@@ -40,7 +41,7 @@ export function FieldRow({
       {/* Label + value */}
       <View style={{ flex: 1, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 10, color: C.textTertiary, fontWeight: '600' }}>
+          <Text style={{ ...Type.eyebrow, fontWeight: '600', color: C.textTertiary }}>
             {label.toUpperCase()}
           </Text>
           {aiSparkle && <AiSparkle size={8} />}
@@ -49,12 +50,12 @@ export function FieldRow({
         {displayValue ? (
           <Text
             selectable
-            style={{ fontSize: 13, color: C.text, fontWeight: '600', marginTop: 2, flexShrink: 1, lineHeight: 19 }}
+            style={{ ...Type.meta, fontWeight: '600', color: C.text, marginTop: 2, flexShrink: 1 }}
           >
             {displayValue}
           </Text>
         ) : (
-          <Text style={{ fontSize: 13, color: C.textTertiary, fontStyle: 'italic', marginTop: 2 }}>
+          <Text style={{ ...Type.meta, color: C.textTertiary, fontStyle: 'italic', marginTop: 2 }}>
             {T('field.not_recognized')}
           </Text>
         )}
@@ -69,7 +70,7 @@ export function FieldRow({
           borderColor: `${C.warning}66`,
           alignSelf: 'flex-start',
         }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: C.warning ?? C.warningText }}>
+          <Text style={{ ...Type.eyebrow, color: C.warning ?? C.warningText }}>
             {T('field.review')}
           </Text>
         </View>
@@ -82,7 +83,7 @@ export function FieldRow({
           borderColor: `${C.danger}44`,
           alignSelf: 'flex-start',
         }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: C.danger }}>
+          <Text style={{ ...Type.eyebrow, color: C.danger }}>
             {T('field.missing')}
           </Text>
         </View>

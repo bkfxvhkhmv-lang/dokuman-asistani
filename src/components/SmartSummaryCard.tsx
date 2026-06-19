@@ -5,6 +5,7 @@ import { useTheme } from '@/ThemeContext';
 import type { SummaryResult, SummaryMode } from '@/services/SmartSummaryService';
 import { stripLlmLanguageMetaLines } from '@/utils/sanitizeLlmText';
 import { useT } from '@/hooks/useT';
+import { T as Type } from '@/design/tokens';
 
 // ── Simple inline markdown renderer (bold only) ───────────────────────────────
 
@@ -59,7 +60,7 @@ export default function SmartSummaryCard({
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: '800', color: C.text }}>{T('summary.title')}</Text>
+          <Text style={{ ...Type.title, fontWeight: '800', color: C.text }}>{T('summary.title')}</Text>
           <AiSparkle size={10} />
         </View>
       </View>
@@ -76,7 +77,7 @@ export default function SmartSummaryCard({
             style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingVertical: 6, borderRadius: R.md,
               backgroundColor: currentMode === m ? C.primary : C.bgCard,
               borderWidth: 1, borderColor: currentMode === m ? C.primary : C.border }}>
-            <Text style={{ fontSize: 11, fontWeight: '700',
+            <Text style={{ ...Type.label, fontWeight: '700',
               color: currentMode === m ? '#fff' : C.textSecondary }}>
               {modeLabel[m]}
             </Text>
@@ -88,7 +89,7 @@ export default function SmartSummaryCard({
       {loading ? (
         <View style={{ alignItems: 'center', paddingVertical: 20 }}>
           <ActivityIndicator color={C.primary} />
-          <Text style={{ fontSize: 12, color: C.textSecondary, marginTop: 8 }}>
+          <Text style={{ ...Type.label, color: C.textSecondary, marginTop: 8 }}>
             {T('summary.loading')}
           </Text>
         </View>
@@ -97,12 +98,12 @@ export default function SmartSummaryCard({
           {(currentMode === 'mittel' || currentMode === 'kurz') && (
             <View style={{ gap: 6 }}>
               {result.kurzSatz ? (
-                <Text style={{ fontSize: 14, lineHeight: 21, color: C.text, fontWeight: '600' }}>
+                <Text style={{ ...Type.meta, fontWeight: '600', color: C.text }}>
                   {normalizeDetailSingularCopy(result.kurzSatz)}
                 </Text>
               ) : null}
               {result.kernPunkte.map((p, i) => (
-                <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.textSecondary }}>
+                <Text key={i} style={{ ...Type.meta, color: C.textSecondary }}>
                   {normalizeDetailSingularCopy(p.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
                 </Text>
               ))}
@@ -113,15 +114,15 @@ export default function SmartSummaryCard({
             <>
               <MarkdownText
                 text={normalizeDetailSingularCopy(stripLlmLanguageMetaLines(result.detailText))}
-                style={{ fontSize: 13, lineHeight: 20, color: C.text }}
+                style={{ ...Type.meta, color: C.text }}
               />
               {result.handlungsempfehlungen.length > 0 && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 6 }}>
+                  <Text style={{ ...Type.eyebrow, color: C.textTertiary, marginBottom: 6 }}>
                     {T('summary.recommendations').toUpperCase()}
                   </Text>
                   {result.handlungsempfehlungen.map((e, i) => (
-                    <Text key={i} style={{ fontSize: 13, lineHeight: 20, color: C.text, marginBottom: 3 }}>
+                    <Text key={i} style={{ ...Type.meta, color: C.text, marginBottom: 3 }}>
                       {normalizeDetailSingularCopy(e.replace(/^[^\x00-\x7F]{1,2}\s+/, ''))}
                     </Text>
                   ))}
@@ -135,7 +136,7 @@ export default function SmartSummaryCard({
               onPress={() => onLoadDetailed()}
               style={{ backgroundColor: C.primary, borderRadius: R.md,
                 padding: 12, alignItems: 'center' }}>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
+              <Text style={{ ...Type.meta, fontWeight: '700', color: '#fff' }}>
                 Analyse laden
               </Text>
             </TouchableOpacity>

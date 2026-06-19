@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme, type ThemeColors } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
 import type { ShadowTokens, SpacingTokens } from '@/theme';
+import { T as Type } from '@/design/tokens';
 
 interface StatItem { n: number; label: string; color: string; tabId?: string }
 interface HomeStatsRowProps {
@@ -50,6 +51,6 @@ const st = StyleSheet.create({
   row:      { flexDirection: 'row', gap: 10 },
   card:     { flex: 1, borderRadius: 18, paddingHorizontal: 12, paddingTop: 18, paddingBottom: 14, alignItems: 'center', borderWidth: 1, overflow: 'hidden' },
   topAccent:{ position: 'absolute', left: 0, right: 0, top: 0, height: 4 },
-  value:    { fontSize: 22, fontWeight: '800', letterSpacing: -0.4 },
-  label:    { fontSize: 11, marginTop: 8, fontWeight: '600' },
+  value:    { ...Type.heroNumber, fontWeight: '800', letterSpacing: -0.4 },
+  label:    { ...Type.label, marginTop: 8 },
 });

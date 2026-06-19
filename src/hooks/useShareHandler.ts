@@ -104,24 +104,48 @@ export function useShareHandler() {
     processingRef.current = false;
   }, []);
 
+  const navigateToDocument = useCallback((dokId: string) => {
+    if (!dokId?.trim()) return;
+    const target = { pathname: '/detail' as const, params: { dokId, tab: 'ozet' } };
+    try {
+      router.replace(target);
+      return;
+    } catch {}
+    setTimeout(() => {
+      try {
+        router.replace(target);
+      } catch {}
+    }, 0);
+  }, [router]);
+
   const confirmAnalyse = useCallback(async () => {
     if (!pendingShare) return;
     const { uri } = pendingShare;
     setPendingShare(null);
     setProcessing(true);
     try {
-      const result = await processSharedFile(uri, docsRef.current, dispatch);
+      let duplicateNavigationHandled = false;
+      const result = await processSharedFile(uri, docsRef.current, dispatch, {
+        onUploaded: ({ duplicate, existingDocumentId }) => {
+          if (!duplicate || !existingDocumentId) return;
+          const existingLocal = docsRef.current.find(d => d.v4DocId === existingDocumentId);
+          if (!existingLocal) return;
+          duplicateNavigationHandled = true;
+          Alert.alert(T('share.confirm.title'), T('ocr.upload.duplicate_toast'));
+          navigateToDocument(existingLocal.id);
+        },
+      });
       if (!result) return;
       dispatch({ type: 'ADD_DOKUMENT', payload: result.dokument });
       if (userRef.current?.isGuest) await recordDocument();
-      try {
-        router.push({ pathname: '/detail', params: { dokId: result.dokument.id } });
-      } catch { /* navigation may fail on cold-start share */ }
+      if (!duplicateNavigationHandled) {
+        navigateToDocument(result.dokument.id);
+      }
     } finally {
       setProcessing(false);
       processingRef.current = false;
     }
-  }, [pendingShare, dispatch, router]);
+  }, [pendingShare, dispatch, navigateToDocument, T]);
 
   const processUris = useCallback(async (uris: string[]) => {
     const novel = dedupeUris(uris, seenUrisRef.current);

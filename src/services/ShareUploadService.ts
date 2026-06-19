@@ -88,10 +88,16 @@ export interface ShareUploadResult {
   rawText: string;
 }
 
+export interface ProcessSharedFileOptions {
+  onUploaded?: (result: { remoteDocId: string; duplicate: boolean; existingDocumentId: string | null }) => void;
+  onFailed?: () => void;
+}
+
 export async function processSharedFile(
   uri: string,
   alleDocs: Dokument[],
   dispatch?: (a: StoreAction) => void,
+  options?: ProcessSharedFileOptions,
 ): Promise<ShareUploadResult | null> {
   const lang = getLangSync();
   const fileType = detectFileType(uri);
@@ -192,6 +198,8 @@ export async function processSharedFile(
       try {
         enqueueV4Upload(dispatch, documentId, persistedPages[0].uri, fileName, {
           suppressAlert: true,
+          onUploaded: options?.onUploaded,
+          onFailed: options?.onFailed,
         });
       } catch (enqErr) {
         console.warn('[ShareUpload] enqueue failed, import preserved', enqErr);

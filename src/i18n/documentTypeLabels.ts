@@ -33,7 +33,8 @@ const TYPE_KEY_MAP: Record<string, string> = {
 };
 
 export function translateDocumentTypeLabel(raw: string | null | undefined, lang = getLangSync()): string {
-  const text = String(raw ?? '').trim();
+  // Strip raw i18n key prefix (e.g. "ocr.doctype.Mahnung" → "Mahnung")
+  const text = String(raw ?? '').trim().replace(/^ocr\.doctype\./i, '');
   if (!text) return t(lang, 'doc.type.unknown');
   const key = TYPE_KEY_MAP[text.toLowerCase()];
   return key ? t(lang, key) : text;

@@ -12,6 +12,14 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
+## 2026-06-19 Assistant-First Product Roadmap
+
+📄 [ASSISTANT_FIRST_ROADMAP.md](ASSISTANT_FIRST_ROADMAP.md) — BriefPilot Assistant-First Roadmap (#186–#198)
+
+**Kapsam:** Ürün yönü — belge aracından asistan-first ürüne geçiş planı. Phase 1 Trust fixes → Phase 2 Detail Intelligence („BriefPilot empfiehlt“) → Phase 3 Classification/Home → Phase 4 Premium (NK role, Kalender, SEPA handoff). Kod yok; PR sırası ve acceptance kriterleri dahil.
+
+---
+
 ## 2026-06-18 AI Usage Reporting — CLI + Persistent Telemetry
 
 📄 [AI_USAGE_REPORTING.md](AI_USAGE_REPORTING.md) — `ai_usage_events` tablo şeması; CLI rapor komutları; PII guard; smoke sonucu; operasyonel kararlar

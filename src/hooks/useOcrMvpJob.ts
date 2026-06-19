@@ -31,6 +31,7 @@ export interface OcrMvpTimingCallbacks {
   onJobCreated: (jobId: string) => void;
   onPollingStarted: (jobId: string) => void;
   onPollingResult: (jobId: string, status: OcrMvpJobStatus['status']) => void;
+  onDuplicate?: (existingDocId: string) => void;
 }
 
 export function useOcrMvpJob(): UseOcrMvpJobReturn {

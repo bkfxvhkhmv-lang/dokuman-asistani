@@ -14,7 +14,17 @@ async function fileReq<T = unknown>(method: string, path: string, body?: FormDat
   return res.json() as Promise<T>;
 }
 
-export interface V4Document { id: string; titel?: string; status?: string; [key: string]: unknown; }
+export interface V4Document {
+  id: string;
+  titel?: string;
+  status?: string;
+  checksum?: string;
+  version?: number;
+  updated_at?: string;
+  duplicate?: boolean;
+  existing_document_id?: string | null;
+  [key: string]: unknown;
+}
 
 export async function uploadDocumentV4(fileUri: string, filename: string): Promise<V4Document> {
   const form = new FormData();

@@ -72,6 +72,30 @@ describe('useCoreScanJob', () => {
     jest.useRealTimers();
   });
 
+  it('handles duplicate upload by reusing existing document without polling OCR', async () => {
+    renderHook();
+
+    mockUploadDocumentV4Safe.mockResolvedValue({
+      id: 'existing-remote-1',
+      existing_document_id: 'existing-remote-1',
+      status: 'completed',
+      duplicate: true,
+    });
+    mockGetDocumentV4.mockResolvedValue({ id: 'existing-remote-1', status: 'completed' });
+    mockGetDocumentWorkerResult.mockResolvedValue(WORKER_RESULT);
+
+    await act(async () => {
+      await hookApi.startJob({ uri: 'file:///scan.pdf', name: 'scan.pdf', mimeType: 'application/pdf' });
+    });
+    await flushMicrotasks();
+
+    expect(hookApi.duplicateDetected).toBe(true);
+    expect(hookApi.jobId).toBe('existing-remote-1');
+    expect(mockGetDocumentV4).not.toHaveBeenCalled();
+    expect(mockGetDocumentWorkerResult).toHaveBeenCalledWith('existing-remote-1');
+    expect(hookApi.status).toBe('done');
+  });
+
   it('uploads via core API and reaches done after pending/processing/completed poll', async () => {
     renderHook();
 

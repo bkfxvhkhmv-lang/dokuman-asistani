@@ -333,9 +333,14 @@ def _worker_result_out(doc: Document) -> BackendWorkerResult:
     )
 
     inv = extract_invoice_fields(raw_text)
-    sender = inv["sender"]
-    date = inv["date"]
-    rechnungsnr = inv["rechnungsnr"]
+
+    def _db_str(attr: str) -> Optional[str]:
+        val = getattr(meta, attr, None) if meta else None
+        return val if isinstance(val, str) and val.strip() else None
+
+    sender = _db_str("absender") or _db_str("sender") or inv["sender"]
+    date = _db_str("dokument_datum") or _db_str("date") or inv["date"]
+    rechnungsnr = _db_str("rechnungsnr") or inv["rechnungsnr"]
 
     return BackendWorkerResult(
         job_id=doc.id,

@@ -291,10 +291,11 @@ export function NkMinimalSetupCard({ onSave }: NkMinimalSetupCardProps) {
         value={billingStart}
         onChangeText={setBillingStart}
         placeholder="TT.MM.JJJJ"
+        keyboardType="number-pad"
       />
 
       <FieldLabel>Abrechnungszeitraum Ende</FieldLabel>
-      <FieldInput value={billingEnd} onChangeText={setBillingEnd} placeholder="TT.MM.JJJJ" />
+      <FieldInput value={billingEnd} onChangeText={setBillingEnd} placeholder="TT.MM.JJJJ" keyboardType="number-pad" />
 
       <FieldLabel>Einheit</FieldLabel>
       <FieldInput value={unitLabel} onChangeText={setUnitLabel} placeholder="Wohnung 1" />

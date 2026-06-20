@@ -1,3 +1,5 @@
+import { normalizeAmountForCompare, normalizeDateForCompare } from '@/utils/germanInputFormat';
+
 export interface EditSnapshot {
   titel: string;
   absender: string;
@@ -28,9 +30,9 @@ export function computeEditDirty(current: EditSnapshot, initial: EditSnapshot): 
   return (
     norm(current.titel)          !== norm(initial.titel)          ||
     norm(current.absender)       !== norm(initial.absender)       ||
-    norm(current.betrag)         !== norm(initial.betrag)         ||
-    norm(current.frist)          !== norm(initial.frist)          ||
-    norm(current.dokumentDatum)  !== norm(initial.dokumentDatum)  ||
+    normalizeAmountForCompare(current.betrag)         !== normalizeAmountForCompare(initial.betrag)         ||
+    normalizeDateForCompare(current.frist)          !== normalizeDateForCompare(initial.frist)          ||
+    normalizeDateForCompare(current.dokumentDatum)  !== normalizeDateForCompare(initial.dokumentDatum)  ||
     norm(current.iban)           !== norm(initial.iban)           ||
     norm(current.zahlungszweck)  !== norm(initial.zahlungszweck)  ||
     norm(current.aktenzeichen)   !== norm(initial.aktenzeichen)   ||

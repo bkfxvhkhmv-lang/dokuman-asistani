@@ -5,7 +5,12 @@ import { erkenneLernvorschlag } from '@/utils';
 import { normalizeDocumentTyp } from '@/product/canonicalDocTypes';
 import { postCorrectionEvent } from '@/services/ocrMvpApi';
 import { humanizeTitle } from '@/utils/displaySanitizer';
-
+import {
+  formatAmountForEditInput,
+  formatIsoToGermanDate,
+  parseAmountForStore,
+  parseGermanDateInput,
+} from '@/utils/germanInputFormat';
 type OpenConfirm = (
   title: string,
   message: string,
@@ -28,9 +33,9 @@ export function runHandleEdit(
     || '';
   modal.setEditTitel(displayForEdit);
   modal.setEditAbsender(dok.absender || '');
-  modal.setEditBetrag(dok.betrag ? String(dok.betrag) : '');
-  modal.setEditFrist(dok.frist ? dok.frist.slice(0, 10) : '');
-  modal.setEditDokumentDatum(dok.dokumentDatum ? dok.dokumentDatum.slice(0, 10) : '');
+  modal.setEditBetrag(dok.betrag != null ? formatAmountForEditInput(dok.betrag) : '');
+  modal.setEditFrist(dok.frist ? formatIsoToGermanDate(dok.frist) : '');
+  modal.setEditDokumentDatum(dok.dokumentDatum ? formatIsoToGermanDate(dok.dokumentDatum) : '');
   modal.setEditIban(dok.iban || '');
   modal.setEditZahlungszweck(dok.zahlungszweck || '');
   modal.setEditAktenzeichen(dok.aktenzeichen || '');
@@ -52,13 +57,17 @@ export function runHandleEditSpeichern(params: {
   if (!dok) return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-  const betragNum = modal.editBetrag ? parseFloat(modal.editBetrag.replace(',', '.')) : null;
-  const fristVal = modal.editFrist ? new Date(modal.editFrist).toISOString() : null;
+  const betragNum = modal.editBetrag ? parseAmountForStore(modal.editBetrag) : null;
+  const fristYmd = modal.editFrist ? parseGermanDateInput(modal.editFrist) : null;
+  const fristVal = fristYmd ? new Date(fristYmd).toISOString() : null;
   const fristGeaendert =
     String(fristVal ?? '') !== String(dok.frist ?? '');
 
-  const dokumentDatumVal = modal.editDokumentDatum
-    ? new Date(modal.editDokumentDatum).toISOString()
+  const dokumentDatumYmd = modal.editDokumentDatum
+    ? parseGermanDateInput(modal.editDokumentDatum)
+    : null;
+  const dokumentDatumVal = dokumentDatumYmd
+    ? new Date(dokumentDatumYmd).toISOString()
     : dok.dokumentDatum ?? null;
 
   const editedTitle = modal.editTitel.trim();

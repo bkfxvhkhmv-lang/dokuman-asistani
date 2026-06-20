@@ -14,7 +14,8 @@ import { EtikettenSection } from '@/features/detail/components/details-panel/Eti
 import { BesserErkennenCard } from '@/features/detail/components/details-panel/BesserErkennenCard';
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
-import { formatBetrag, formatFrist, formatDatum } from '@/utils/formatters';
+import { formatBetrag } from '@/utils/formatters';
+import { formatIsoToGermanDate } from '@/utils/germanInputFormat';
 import { resolveDocumentSender } from '@/utils/displaySanitizer';
 import { useT } from '@/hooks/useT';
 
@@ -54,8 +55,8 @@ export default function DetailsPanel({
   const confidencePct = dok.confidence ?? 100;
   const displaySender = resolveDocumentSender(dok);
 
-  const belegDatum   = dok.dokumentDatum ? formatDatum(dok.dokumentDatum) : null;
-  const erfasstDatum = formatDatum(dok.datum);
+  const belegDatum   = dok.dokumentDatum ? formatIsoToGermanDate(dok.dokumentDatum) : null;
+  const erfasstDatum = formatIsoToGermanDate(dok.datum);
   const showBeideDaten = !!(belegDatum && belegDatum !== erfasstDatum);
 
   const lowConfidence = (dok.confidence ?? 100) < 55;
@@ -86,7 +87,7 @@ export default function DetailsPanel({
         ? undefined
         : (/rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? ('fehlt' as FieldStatus) : undefined),
     }] : []),
-    ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatFrist(dok.frist) }] : []),
+    ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatIsoToGermanDate(dok.frist) }] : []),
     // AI-inferred reference fields — always mark for review (but not for unanalysed quick-saves)
     ...(isUnanalysedQuickSaved ? [] : groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle }))),
   ];

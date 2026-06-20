@@ -92,12 +92,13 @@ def test_worker_result_completed_maps_text_and_meta():
     assert result.language == "de"
     assert result.document.suggested_title == "Kostenbescheid"
     assert result.document.document_type == "Behörden / Amt"
-    assert result.document.sender is None
+    assert result.document.sender == "Finanzamt"
     assert result.document.date is None
     assert result.document.deadline == "2026-07-01"
     assert result.document.amount == 128.5
     assert result.document.currency == "EUR"
     assert result.document.raw_text == "Kostenbescheid Finanzamt"
+    assert result.document.rechnungsnr is None
     assert result.action_summary.kind is None
     assert result.action_summary.summary == "Zahlung erforderlich"
     assert result.action_summary.short_summary == "128,50 € bis 01.07."
@@ -195,3 +196,33 @@ async def test_worker_result_endpoint_pending_via_api():
         assert body["meta"]["source"] == "paddle_worker"
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+def test_worker_result_fallback_extracts_invoice_fields():
+    vodafone_raw = (
+        "Vodafone GmbH\n"
+        "Kundenservice 99116 Erfurt\n"
+        "Datum\n"
+        "9. Juli 2024\n"
+        "Rechnungsnummer 100000000000\n"
+        "Rechnungsbetrag -93,01 EUR"
+    )
+    doc = _make_doc(
+        id="doc-vodafone",
+        status=DocumentStatus.completed.value,
+        text=_make_text(roh_text=vodafone_raw, confidence=0.95, lang="de"),
+        meta=_make_meta(
+            titel="Vodafone Rechnung",
+            typ="Rechnung",
+            betrag=-93.01,
+            zusammenfassung="Monatliche Gebühren",
+            kurzfassung="-93,01 €",
+        ),
+    )
+    result = _worker_result_out(doc)
+
+    assert "Vodafone" in result.document.sender
+    assert result.document.date == "2024-07-09"
+    assert result.document.rechnungsnr == "100000000000"
+    assert result.document.amount == -93.01
+    assert result.action_summary.amount == -93.01

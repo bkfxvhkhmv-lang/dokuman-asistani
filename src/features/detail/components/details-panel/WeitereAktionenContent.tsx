@@ -13,6 +13,7 @@ import { BesserErkennenCard } from '@/features/detail/components/details-panel/B
 import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
 import { NkSummaryCard } from '@/features/detail/components/NkSummaryCard';
 import { ReplyDraftCard } from '@/features/detail/components/ReplyDraftCard';
+import DocumentSpeechSection from '@/features/detail/components/DocumentSpeechSection';
 import type { GroupedDocFields } from '@/features/detail/components/details-panel/groupDocumentFields';
 import { useT } from '@/hooks/useT';
 
@@ -235,6 +236,10 @@ export function WeitereAktionenContent({
 
       {onReplyDraft ? (
         <ReplyDraftCard onPress={onReplyDraft} />
+      ) : null}
+
+      {!isUnanalysedQuickSaved ? (
+        <DocumentSpeechSection dok={dok} />
       ) : null}
     </View>
   );

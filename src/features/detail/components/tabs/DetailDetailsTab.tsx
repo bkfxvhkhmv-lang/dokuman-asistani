@@ -1,8 +1,6 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
 import DetailsPanel from '@/features/detail/components/DetailsPanel';
-
-import DocumentSpeechSection from '@/features/detail/components/DocumentSpeechSection';
 import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
 
 type Props = {
@@ -75,9 +73,6 @@ export default function DetailDetailsTab({
         onReplyDraft={onReplyDraft}
         isUnanalysedQuickSaved={isUnanalysedQuickSaved}
       />
-      {detail.dok && !isUnanalysedQuickSaved ? (
-        <DocumentSpeechSection dok={detail.dok} prominent />
-      ) : null}
     </ScrollView>
   );
 }

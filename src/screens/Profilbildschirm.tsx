@@ -10,6 +10,7 @@ import { useAuth } from '@/providers/AuthContext';
 import { useAuthFlow } from '@/hooks/useAuthFlow';
 import Icon from '@/components/Icon';
 import { useT } from '@/hooks/useT';
+import { settingsLogoutConfirmAlertStyle } from '@/features/settings/settingsProduction';
 
 type MenuRow = {
   icon: string;
@@ -113,7 +114,7 @@ export default function Profilbildschirm() {
     if (isGuest) { router.push('/login'); return; }
     Alert.alert(T('profile.logout_title'), T('profile.logout_body'), [
       { text: T('common.cancel'), style: 'cancel' },
-      { text: T('profile.logout'), style: 'destructive', onPress: logout },
+      { text: T('profile.logout'), style: settingsLogoutConfirmAlertStyle(), onPress: logout },
     ]);
   };
 
@@ -179,7 +180,7 @@ export default function Profilbildschirm() {
           {
             icon: isGuest ? 'key' : 'log-out',
             label: isGuest ? T('profile.login') : T('profile.logout'),
-            danger: !isGuest,
+            danger: false,
             onPress: showAbmelden,
           },
         ]} />

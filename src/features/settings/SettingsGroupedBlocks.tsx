@@ -7,6 +7,10 @@ import { useT } from '@/hooks/useT';
 import { useAuth, type AuthUser } from '@/providers/AuthContext';
 import type { Router } from 'expo-router';
 import { FlatRow } from '@/features/settings/SettingsPrimitives';
+import {
+  getSettingsLogoutButtonStyle,
+  settingsLogoutConfirmAlertStyle,
+} from '@/features/settings/settingsProduction';
 
 function kontoProfileSub(
   T: (key: string, params?: Record<string, string | number>) => string,
@@ -57,6 +61,7 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false, on
   const { user } = useAuth();
   const isGuest = user?.isGuest === true;
   const goProfil = () => router.push('/profil');
+  const logoutStyle = getSettingsLogoutButtonStyle(isGuest, C);
 
   if (flat) {
     return (
@@ -93,15 +98,15 @@ export function KontoShortcutsBlock({ router, logout, docCount, flat = false, on
           if (isGuest) { router.push('/login'); return; }
           Alert.alert(T('modal.logout.title'), T('modal.logout.body'), [
             { text: T('common.cancel'), style: 'cancel' },
-            { text: T('settings.logout'), style: 'destructive', onPress: () => { void logout(); } },
+            { text: T('settings.logout'), style: settingsLogoutConfirmAlertStyle(), onPress: () => { void logout(); } },
           ]);
         }}
         style={{ marginTop: 8, alignItems: 'center', paddingVertical: 14,
           borderRadius: 14, borderWidth: 1,
-          borderColor: isGuest ? `${C.primary}55` : C.dangerBorder,
-          backgroundColor: isGuest ? C.primaryLight : C.dangerLight }}
+          borderColor: logoutStyle.borderColor,
+          backgroundColor: logoutStyle.backgroundColor }}
       >
-        <Text style={{ color: isGuest ? C.primaryDark : C.danger, fontSize: fs(14), fontWeight: '700' }}>
+        <Text style={{ color: logoutStyle.textColor, fontSize: fs(14), fontWeight: '700' }}>
           {isGuest ? T('auth.login') : T('settings.logout')}
         </Text>
       </TouchableOpacity>

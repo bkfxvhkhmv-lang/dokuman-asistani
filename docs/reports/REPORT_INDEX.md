@@ -12,11 +12,11 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 ---
 
-## 2026-06-19 Assistant-First Product Roadmap
+## 2026-06-19 Product Roadmap — Quiet Document Workflow
 
-📄 [ASSISTANT_FIRST_ROADMAP.md](ASSISTANT_FIRST_ROADMAP.md) — BriefPilot Assistant-First Roadmap (#186–#198)
+📄 [ASSISTANT_FIRST_ROADMAP.md](ASSISTANT_FIRST_ROADMAP.md) — BriefPilot product roadmap (revised: quiet workflow, not banners)
 
-**Kapsam:** Ürün yönü — belge aracından asistan-first ürüne geçiş planı. Phase 1 Trust fixes → Phase 2 Detail Intelligence („BriefPilot empfiehlt“) → Phase 3 Classification/Home → Phase 4 Premium (NK role, Kalender, SEPA handoff). Kod yok; PR sırası ve acceptance kriterleri dahil.
+**Kapsam:** Ürün yönü güncellendi — „BriefPilot empfiehlt“ hero/banner **retired**; hedef: sakin belge iş akışı (max 2–3 Detail kartı, Weitere Aktionen, veri güveni önce). Tamamlanan: #186, #189 audit, #189a/#190. Sıradaki PR: #191–#199 (isDirty, date/numeric, Detail card limit, Settings, classification, invoice export, NK, calendar, SEPA handoff).
 
 📄 [ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md](ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md) — #189 Absender extraction/display audit
 

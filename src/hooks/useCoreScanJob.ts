@@ -17,8 +17,9 @@ import type {
 
 const POLL_INTERVAL_MS = 2_600;
 const POLL_ERROR_RETRY_MS = 4_000;
-const POLL_TIMEOUT_MS = 90_000;
+const POLL_TIMEOUT_MS = 45_000;
 const MAX_POLL_TRIES = 48;
+const MAX_CONSECUTIVE_NETWORK_ERRORS = 3;
 
 export type UseCoreScanJobReturn = UseOcrMvpJobReturn & {
   duplicateDetected: boolean;
@@ -83,11 +84,18 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
     timing?.onPollingStarted?.(remoteDocId);
     startedRef.current = Date.now();
     let tries = 0;
+    let consecutiveNetworkErrors = 0;
 
     const failTimeout = () => {
       setStatus('timeout');
       setErrorKind('timeout');
       setError('İşlem uzun sürdü. Lütfen tekrar deneyin.');
+    };
+
+    const failNetwork = (e: unknown) => {
+      setError(e instanceof Error ? e.message : null);
+      setErrorKind('network');
+      setStatus('error');
     };
 
     const tick = async (): Promise<void> => {
@@ -102,6 +110,7 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
       try {
         const d = await getDocumentV4(remoteDocId);
         if (gen !== pollGenRef.current) return;
+        consecutiveNetworkErrors = 0;
 
         const st = normalizeV4Status(d.status);
         if (st === 'failed') {
@@ -125,10 +134,14 @@ export function useCoreScanJob(): UseCoreScanJobReturn {
         schedulePoll(() => void tick(), POLL_INTERVAL_MS);
       } catch (e) {
         if (gen !== pollGenRef.current) return;
-        if (tries >= MAX_POLL_TRIES) {
-          setError(e instanceof Error ? e.message : null);
-          setErrorKind('network');
-          setStatus('error');
+        consecutiveNetworkErrors += 1;
+        const wallClockExpired = Date.now() - startedRef.current >= POLL_TIMEOUT_MS;
+        if (consecutiveNetworkErrors >= MAX_CONSECUTIVE_NETWORK_ERRORS || tries >= MAX_POLL_TRIES || wallClockExpired) {
+          if (wallClockExpired && consecutiveNetworkErrors < MAX_CONSECUTIVE_NETWORK_ERRORS) {
+            failTimeout();
+          } else {
+            failNetwork(e);
+          }
           return;
         }
         schedulePoll(() => void tick(), POLL_ERROR_RETRY_MS);

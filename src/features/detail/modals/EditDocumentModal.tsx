@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useTheme } from '@/ThemeContext';
 import { useT } from '@/hooks/useT';
@@ -7,6 +7,7 @@ import { AppInput } from '@/design/components';
 import type { ModalController } from '@/features/detail/hooks/useModalController';
 import type { StoreState } from '@/store';
 import { CANONICAL_DOCUMENT_TYPES } from '@/product/canonicalDocTypes';
+import { computeEditDirty, EMPTY_EDIT_SNAPSHOT, type EditSnapshot } from './editDirtyCheck';
 const RISIKEN = [
   { id: 'hoch',    label: 'Dringend' },
   { id: 'mittel',  label: 'Diese Woche' },
@@ -25,15 +26,15 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
   const { Colors: C, S, R } = useTheme();
   const { t } = useT();
 
-  const initialRef = useRef({
-    titel: '', absender: '', betrag: '', frist: '', dokumentDatum: '',
-    iban: '', zahlungszweck: '', aktenzeichen: '', kundennr: '',
-    typ: '', risiko: '', profilId: null as string | null, userOrdner: '',
-  });
+  // useState (not useRef) so that setting the snapshot triggers a re-render,
+  // which recomputes isDirty correctly before the user can interact.
+  // With useRef the snapshot update happened after render but isDirty was already
+  // computed against empty initial values → false positive on immediate close.
+  const [initialValues, setInitialValues] = useState<EditSnapshot>(EMPTY_EDIT_SNAPSHOT);
 
   useEffect(() => {
     if (visible) {
-      initialRef.current = {
+      setInitialValues({
         titel: modal.editTitel,
         absender: modal.editAbsender,
         betrag: modal.editBetrag,
@@ -47,24 +48,27 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
         risiko: modal.editRisiko,
         profilId: modal.editProfilId,
         userOrdner: modal.editUserOrdner,
-      };
+      });
     }
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isDirty =
-    modal.editTitel !== initialRef.current.titel ||
-    modal.editAbsender !== initialRef.current.absender ||
-    modal.editBetrag !== initialRef.current.betrag ||
-    modal.editFrist !== initialRef.current.frist ||
-    modal.editDokumentDatum !== initialRef.current.dokumentDatum ||
-    modal.editIban !== initialRef.current.iban ||
-    modal.editZahlungszweck !== initialRef.current.zahlungszweck ||
-    modal.editAktenzeichen !== initialRef.current.aktenzeichen ||
-    modal.editKundennr !== initialRef.current.kundennr ||
-    modal.editTyp !== initialRef.current.typ ||
-    modal.editRisiko !== initialRef.current.risiko ||
-    modal.editProfilId !== initialRef.current.profilId ||
-    modal.editUserOrdner !== initialRef.current.userOrdner;
+  const currentValues: EditSnapshot = {
+    titel: modal.editTitel,
+    absender: modal.editAbsender,
+    betrag: modal.editBetrag,
+    frist: modal.editFrist,
+    dokumentDatum: modal.editDokumentDatum,
+    iban: modal.editIban,
+    zahlungszweck: modal.editZahlungszweck,
+    aktenzeichen: modal.editAktenzeichen,
+    kundennr: modal.editKundennr,
+    typ: modal.editTyp,
+    risiko: modal.editRisiko,
+    profilId: modal.editProfilId,
+    userOrdner: modal.editUserOrdner,
+  };
+
+  const isDirty = computeEditDirty(currentValues, initialValues);
 
   const handleBackdropPress = useCallback(() => {
     if (!isDirty) { onClose(); return; }

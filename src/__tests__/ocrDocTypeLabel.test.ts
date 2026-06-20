@@ -55,6 +55,8 @@ describe('translateDocumentTypeLabel — ocr.doctype.* prefix strip', () => {
     expect(translateDocumentTypeLabel('ocr.doctype.Rechnung', 'de')).toBe('Rechnung');
     expect(translateDocumentTypeLabel('ocr.doctype.Bußgeld', 'de')).toBe('Bußgeld');
     expect(translateDocumentTypeLabel('ocr.doctype.Vertrag', 'de')).toBe('Vertrag');
+    expect(translateDocumentTypeLabel('ocr.doctype.Zahlungserinnerung', 'de')).toBe('Mahnung');
+    expect(translateDocumentTypeLabel('ocr.doctype.Zahlungserinnerung', 'de')).not.toContain('ocr.doctype');
   });
 
   it('strips prefix for English OCR kind names', () => {

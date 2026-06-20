@@ -35,14 +35,19 @@ export const SEARCH_CATEGORY_QUICK_CHIPS = [
 const LEGACY_TO_CANONICAL: Record<string, CanonicalDocumentType> = {
   Rechnung: 'Rechnungen',
   Mahnung: 'Mahnung / Zahlungserinnerung',
+  Zahlungserinnerung: 'Mahnung / Zahlungserinnerung',
   Vertrag: 'Verträge',
   Kündigung: 'Verträge',
   Behörde: 'Behörden / Amt',
+  Bescheid: 'Behörden / Amt',
   Bußgeld: 'Behörden / Amt',
   Termin: 'Behörden / Amt',
+  Jobcenter: 'Behörden / Amt',
   Versicherung: 'Versicherung',
   Steuer: 'Steuer',
   Steuerbescheid: 'Steuer',
+  Finanzamt: 'Steuer',
+  Nebenkostenabrechnung: 'Rechnungen',
   Sonstiges: 'Sonstiges',
 };
 
@@ -87,6 +92,29 @@ export function refineCanonicalTypFromText(
   // Only runs when the current type carries no meaningful classification.
   const WEAK = new Set(['Sonstiges', 'Dokument', 'Formular', 'Unbekannt', 'unknown']);
   if (WEAK.has(current)) {
+    const isReminder =
+      /\b(mahnung|zahlungserinnerung|zahlungsaufforderung|mahngeb[uü]hr|mahnstufe|zahlungsverzug)\b/i;
+    if (isReminder.test(rawText)) return 'Mahnung / Zahlungserinnerung';
+
+    const isNebenkosten =
+      /\b(nebenkostenabrechnung|betriebskostenabrechnung|heizkostenabrechnung|hausgeldabrechnung)\b/i;
+    if (isNebenkosten.test(rawText)) return 'Rechnungen';
+
+    const isTaxDoc =
+      /\b(steuerbescheid|einkommensteuerbescheid|festsetzungsbescheid|lohnsteuerbescheid|einkommensteuer)\b/i;
+    if (isTaxDoc.test(rawText)) return 'Steuer';
+
+    const isFinanzamtDoc =
+      /\bfinanzamt\b/i.test(rawText) &&
+      !/\b(rechnung|rechnungsnummer|invoice|mahnung|zahlungserinnerung)\b/i.test(rawText);
+    if (isFinanzamtDoc) return 'Steuer';
+
+    const isAuthorityDoc =
+      /\b(jobcenter|agentur\s+f[uü]r\s+arbeit|verwaltungsbescheid|bu[sß]geldbescheid)\b/i;
+    if (isAuthorityDoc.test(rawText)) return 'Behörden / Amt';
+
+    if (/\bbescheid\b/i.test(rawText) && !isTaxDoc.test(rawText)) return 'Behörden / Amt';
+
     // Invoice: explicit Rechnung keyword or Rechnungsnummer field
     const isInvoice =
       /\b(rechnung|rechnungsnummer|rechnungsdatum|invoice|gesamtsumme|endsumme|nettobetrag)\b/i;

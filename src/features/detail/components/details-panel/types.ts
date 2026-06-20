@@ -1,6 +1,9 @@
 import type { Dokument } from '@/store';
 import type { ErweiterteFeld, OcrRisikoItem, BeziehungsGraph } from '@/utils/types';
 
+import type { ActionPlan } from '@/features/detail/components/ActionsPanel';
+import type { DocumentDigitalTwinModel } from '@/core/intelligence/DocumentDigitalTwin';
+
 export interface DetailsPanelProps {
   dok: Dokument | undefined;
   mevcutEtiketten?: string[];
@@ -9,9 +12,12 @@ export interface DetailsPanelProps {
   ocrRisiken?: OcrRisikoItem[];
   /** Für künftige Graph-Ansicht reserviert. */
   graph?: BeziehungsGraph;
+  actionPlan?: ActionPlan | null;
+  digitalTwin?: DocumentDigitalTwinModel | null;
   onEdit?: () => void;
   onExport?: () => void;
   onSign?: () => void;
+  onShare?: () => void;
   onErledigt?: () => void;
   onLoeschen?: () => void;
   onNebenkostenPruefen?: () => void;

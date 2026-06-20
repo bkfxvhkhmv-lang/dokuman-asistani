@@ -1,9 +1,11 @@
 # BriefPilot Product Roadmap — Quiet Document Workflow
 
 **Status:** Active product roadmap (revised)  
-**Son güncelleme:** 2026-06-19  
+**Son güncelleme:** 2026-06-20  
 **Kategori:** Product direction — docs only  
-**Bağımlılık:** [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md), [CURRENT_BACKLOG.md](CURRENT_BACKLOG.md)
+**Bağımlılık:** [CANONICAL_CONTEXT.md](CANONICAL_CONTEXT.md)
+
+> **Numara kuralı:** Backlog maddeleri (aşağıdaki isimler) ≠ GitHub PR numarası. PR açılınca GitHub # netleşir; konuşmada backlog **adı** kullanılır.
 
 > **Direction change:** The earlier „BriefPilot empfiehlt“ / large assistant-header concept is **retired**. It felt noisy and toy-like. BriefPilot is a **quiet, practical document workflow app** — not an AI show.
 
@@ -40,12 +42,20 @@ Data trust first. Few visible cards. User picks the workflow.
 - No AI-toy UI (glowing badges, fake certainty, chatty coach copy)
 - Information density through **fields and actions**, not prose blocks
 
-### 2. Max 2–3 visible cards on Detail
+### 2. Max 2–3 visible cards on Detail + accordion actions
 
 - Show only the most relevant cards for this document type
-- Collapse the rest under **„Weitere Aktionen“**
-- Do not mount/render every possible card by default (performance + clarity)
+- Collapse the rest under **„Weitere Aktionen“** accordion (**Detail card limit + accordion actions**)
+- **Accordion content must be lazy-rendered** — closed accordion must not mount heavy cards
 - One clear primary action is enough; secondary actions stay reachable, not dominant
+
+**Scope lock (Detail card limit + accordion actions):**
+
+- No new banner
+- No **BriefPilot empfiehlt** header
+- No AI toy UI
+- No more than 2–3 visible cards
+- Accordion content must be lazy-rendered
 
 ### 3. Correct data before pretty UI
 
@@ -68,7 +78,7 @@ BriefPilot suggests paths through **contextual entry points**, not a mandatory a
 
 ### 5. Secondary actions stay hidden
 
-PDF export, sign, edit, delete, OCR-Rohtext, technical debug — available under **Weitere Aktionen** or Angaben, not competing with the main workflow.
+PDF export, sign, edit, delete, OCR-Rohtext, technical debug — available under **Weitere Aktionen** accordion, not competing with the main workflow.
 
 ### 6. Invoices are a major product lane
 
@@ -90,7 +100,126 @@ Not a generic card on every Detail screen — only when document type warrants i
 
 ---
 
-## 3. Completed / shipped (reference)
+## 3. Active product backlog (canonical)
+
+Sıralı yapılacaklar listesi. GitHub PR numarası backlog adından bağımsızdır.
+
+### 1. isDirty false positive fix
+
+| | |
+|---|---|
+| **Durum** | GitHub [#191](https://github.com/bkfxvhkhmv-lang/dokuman-asistani/pull/191) open |
+| **Amaç** | Edit modal değişiklik yokken „Änderungen verwerfen?“ göstermesin. |
+
+### 2. Date / Betrag / numeric input polish
+
+| | |
+|---|---|
+| **Durum** | #191 merge sonrası |
+| **Amaç** | |
+| | Tarihler ISO placeholder göstermesin |
+| | Almanca format: **TT.MM.JJJJ** |
+| | Tarih alanları **DatePicker** kullansın |
+| | Tutar Almanca formatta görünsün: **99,36 €** |
+| | Metrekare / kişi / tutar alanları **numeric keyboard** kullansın |
+
+### 3. Detail card limit + accordion actions
+
+*Türkçe:* Detail sadeleştirme — maksimum 2–3 görünür kart + akordiyon sistemi
+
+| | |
+|---|---|
+| **Durum** | Date/Betrag polish sonrası |
+| **Amaç** | |
+| | Detail ekranında maksimum **2–3 görünür kart** |
+| | Geri kalan aksiyonlar **„Weitere Aktionen“** akordiyonu altında |
+| | Akordiyon kapalıyken içerideki ağır kartlar **mount/render edilmesin** |
+| | Secondary, destructive ve teknik aksiyonlar görünür alandan çıkarılsın |
+
+**Görünür kalacak yapı:**
+
+1. Belge kimliği / kısa özet
+2. Belge tipine göre en alakalı ana işlem
+3. En fazla bir yardımcı işlem
+
+**Akordiyon altına taşınacaklar:**
+
+- Bearbeiten
+- PDF exportieren
+- PDF unterschreiben
+- Originaltext / OCR anzeigen
+- Teilen
+- Löschen
+- technische Details
+- secondary workflow actions
+
+**Scope lock:**
+
+- No new banner
+- No BriefPilot empfiehlt header
+- No AI toy UI
+- No more than 2–3 visible cards
+- Accordion content must be lazy-rendered
+
+### 4. Settings production cleanup
+
+| | |
+|---|---|
+| **Amaç** | |
+| | Production’da „Erweitert · Profi-Optionen“ görünmesin |
+| | „Demo zurücksetzen“ görünmesin |
+| | „Abmelden“ kırmızı/destructive gibi görünmesin |
+
+### 5. Classification quality / Sonstiges reduction
+
+| | |
+|---|---|
+| **Amaç** | |
+| | „Sonstiges / Unbekannter Absender“ oranı düşsün |
+| | Yanlış sender, missing sender’dan daha kötü kabul edilsin |
+| | Rule parser + LLM fallback / prompt iyileştirmesi değerlendirilsin |
+
+### 6. Invoice / expense export workflow
+
+| | |
+|---|---|
+| **Amaç** | |
+| | Faturalar gider/vergi için düzgün sınıflandırılsın |
+| | Excel export hazırlansın |
+| | Steuerberater export paketi hazırlansın |
+| | Giderler günlük / haftalık / aylık / yıllık görülebilsin |
+
+### 7. Nebenkosten workflow refinement
+
+| | |
+|---|---|
+| **Amaç** | |
+| | Mieter review |
+| | Vermieter preparation |
+| | Widerspruch / Antwortentwurf |
+| | Supporting docs / export |
+
+### 8. Calendar reminder UX
+
+| | |
+|---|---|
+| **Amaç** | |
+| | Frist / ödeme tarihi bulunursa kullanıcıya takvim hatırlatması önerilsin |
+| | App kullanıcı adına otomatik riskli işlem yapmasın |
+
+### 9. SEPA / GiroCode handoff
+
+| | |
+|---|---|
+| **Amaç** | |
+| | BriefPilot ödeme yapmasın |
+| | IBAN / Empfänger / Betrag / Verwendungszweck çıkarılsın |
+| | Kullanıcı kendi banka uygulamasına yönlendirilsin |
+| | Fallback: Überweisungsdaten kopieren, SEPA/GiroCode QR |
+
+---
+
+## 4. Completed / shipped (reference)
 
 | Item | Status | Notes |
 |------|--------|-------|
@@ -102,11 +231,11 @@ Not a generic card on every Detail screen — only when document type warrants i
 
 ---
 
-## 4. Phase 1 — Trust & edit UX (current)
+## 5. Phase 1 — Trust & edit UX (current)
 
-Fix broken basics before Detail layout work.
+Fix broken basics before Detail layout work. Maps to backlog **§1–2**.
 
-### #191 — Edit form `isDirty` false positive
+### isDirty false positive fix (backlog §1, GitHub #191)
 
 | | |
 |---|---|
@@ -114,9 +243,7 @@ Fix broken basics before Detail layout work.
 | **Fix** | Snapshot after hydration; normalized compare; optional dirty only after first keystroke. |
 | **Acceptance** | Open → close untouched → no alert. Edit → close → alert. |
 
-### #192 — Date / Betrag / numeric input polish
-
-Combines former #189a (DE date copy) and #189b (DatePicker).
+### Date / Betrag / numeric input polish (backlog §2)
 
 | | |
 |---|---|
@@ -125,27 +252,30 @@ Combines former #189a (DE date copy) and #189b (DatePicker).
 
 ### Absender / classification (ongoing)
 
-| Track | PR | Notes |
-|-------|-----|-------|
+| Track | Backlog | Notes |
+|-------|---------|-------|
 | Display fallback | #189a ✅ | Title/rohText inference; tax-footer demotion |
-| Save-path sender | Later | `buildDocumentSender` + backend `absender` — after display proves value |
-| Classification | #195 | Sonstiges rate down |
+| Save-path sender | Later | `buildDocumentSender` + backend `absender` |
+| Classification | §5 | Sonstiges rate down |
 
 ---
 
-## 5. Phase 2 — Quiet Detail layout
+## 6. Phase 2 — Detail card limit + accordion actions
 
-**Retired:** #190 Intelligence Header plan, #191 „BriefPilot empfiehlt“ MVP, loud recommendation banners.
+**Retired:** Intelligence Header, „BriefPilot empfiehlt“ MVP, loud recommendation banners.
 
-**Replaced with:** sparse Detail, workflow entry points, collapsed secondary actions.
+**Replaced with:** sparse Detail, workflow entry points, **Weitere Aktionen** accordion with lazy render.
 
-### #193 — Detail visible-card limit + „Weitere Aktionen“
+Maps to backlog **§3**.
+
+### Detail card limit + accordion actions (backlog §3)
 
 | | |
 |---|---|
 | **Problem** | Detail mounts many cards (NK, Antwortentwurf, Besser erkennen, payment, export…) — noisy and slow. |
-| **Target** | Max **2–3** visible cards by document type; rest under **Weitere Aktionen**. |
-| **Rules** | Lazy-mount collapsed section; primary CTA from existing `actionMapping.ts` (one per type); NK / Antwortentwurf only when eligible. |
+| **Target** | Max **2–3** visible cards by document type; rest under **Weitere Aktionen** accordion. |
+| **Rules** | **Lazy-render** accordion content; primary CTA from `actionMapping.ts`; NK / Antwortentwurf only when eligible. |
+| **Scope lock** | No banner · No BriefPilot empfiehlt · No AI toy UI · ≤3 visible cards · lazy accordion |
 | **Out of scope** | New LLM copy blocks; hero header; stacked risk banners. |
 
 ### Detail hierarchy (quiet)
@@ -159,19 +289,21 @@ Combines former #189a (DE date copy) and #189b (DatePicker).
 ├─────────────────────────────┤
 │  Angaben (fields)           │
 ├─────────────────────────────┤
-│  Weitere Aktionen ▾         │  export, edit, delete, OCR, …
+│  Weitere Aktionen ▾         │  export, edit, delete, OCR, … (lazy)
 └─────────────────────────────┘
 ```
 
 ---
 
-## 6. Phase 3 — Settings & classification
+## 7. Phase 3 — Settings & classification
 
-### #194 — Settings production cleanup
+Maps to backlog **§4–5**.
 
-Remove debug toggles, stale copy, and non-production entries from Settings. Align with store/release expectations.
+### Settings production cleanup (backlog §4)
 
-### #195 — Classification quality / Sonstiges reduction
+Remove debug toggles, stale copy, and non-production entries from Settings (Erweitert · Profi-Optionen, Demo zurücksetzen, destructive Abmelden styling).
+
+### Classification quality / Sonstiges reduction (backlog §5)
 
 | | |
 |---|---|
@@ -181,62 +313,66 @@ Remove debug toggles, stale copy, and non-production entries from Settings. Alig
 
 ---
 
-## 7. Phase 4 — Workflow lanes
+## 8. Phase 4 — Workflow lanes
 
-### #196 — Invoice / expense export workflow
+Maps to backlog **§6–7**.
+
+### Invoice / expense export workflow (backlog §6)
 
 | | |
 |---|---|
 | **Scope** | Rechnung lane: expense tagging, Excel export, **Steuerberater** package, period summaries (day/week/month/year). |
-| **Dependencies** | Reliable Betrag/Belegdatum (#192); classification (#195). |
+| **Dependencies** | Reliable Betrag/Belegdatum (backlog §2); classification (backlog §5). |
 | **Non-goals** | In-app tax advice; automated filing. |
 
-### #197 — Nebenkosten workflow refinement
+### Nebenkosten workflow refinement (backlog §7)
 
 | | |
 |---|---|
-| **Scope** | Mieter vs Vermieter paths; objection + Antwortentwurf; export bundle; only surfaced on NK-eligible docs (#193 gating). |
+| **Scope** | Mieter vs Vermieter paths; objection + Antwortentwurf; export bundle; only on NK-eligible docs (backlog §3 gating). |
 | **Safety** | Template + disclaimer; no automated Widerspruch filing. |
 
 ---
 
-## 8. Phase 5 — Later premium / handoff
+## 9. Phase 5 — Later premium / handoff
 
-### #198 — Calendar reminder UX
+Maps to backlog **§8–9**.
+
+### Calendar reminder UX (backlog §8)
 
 Export **Frist** / Termin to device calendar. User confirms each event; no background writes; minimal event title (no full doc text).
 
-### #199 — SEPA / GiroCode handoff
+### SEPA / GiroCode handoff (backlog §9)
 
-Pre-fill bank app: IBAN, Betrag, Verwendungszweck. **No payment execution in app.** User confirms in bank app.
-
----
-
-## 9. Prioritized PR order (revised)
-
-```
-#191 → #192 → #193 → #194 → #195 → #196 → #197 → #198 → #199
-```
-
-| Order | PR | Focus |
-|-------|-----|--------|
-| 1 | #191 | isDirty false positive |
-| 2 | #192 | Date / Betrag / numeric input |
-| 3 | #193 | Detail 2–3 cards + Weitere Aktionen |
-| 4 | #194 | Settings production cleanup |
-| 5 | #195 | Classification / Sonstiges |
-| 6 | #196 | Invoice / expense / Steuerberater export |
-| 7 | #197 | Nebenkosten workflow |
-| 8 | #198 | Calendar reminder |
-| 9 | #199 | SEPA / GiroCode handoff |
-
-**Do not merge:** Detail card limit (#193) + invoice export (#196) in one PR. Classification (#195) + parser routing switch in one PR.
-
-**Parallel OK:** #194 Settings while #192 in review.
+Pre-fill bank app: IBAN, Betrag, Verwendungszweck. **No payment execution in app.** User confirms in bank app. Fallback: copy Überweisungsdaten, SEPA/GiroCode QR.
 
 ---
 
-## 10. Non-goals
+## 10. Prioritized order (backlog §1–9)
+
+```
+isDirty fix → Date/Betrag polish → Detail card limit + accordion actions → Settings cleanup → Classification → Invoice export → NK workflow → Calendar → SEPA handoff
+```
+
+| Order | Backlog item | Notes |
+|-------|--------------|-------|
+| 1 | isDirty false positive fix | GitHub #191 open |
+| 2 | Date / Betrag / numeric input polish | After #191 |
+| 3 | **Detail card limit + accordion actions** | Lazy accordion; scope lock |
+| 4 | Settings production cleanup | |
+| 5 | Classification quality / Sonstiges reduction | |
+| 6 | Invoice / expense export workflow | |
+| 7 | Nebenkosten workflow refinement | |
+| 8 | Calendar reminder UX | |
+| 9 | SEPA / GiroCode handoff | |
+
+**Do not merge:** Detail card limit + accordion actions with invoice export in one PR. Classification with parser routing switch in one PR.
+
+**Parallel OK:** Settings cleanup while Date/Betrag polish in review.
+
+---
+
+## 11. Non-goals
 
 | Non-goal | Reason |
 |----------|--------|
@@ -245,34 +381,34 @@ Pre-fill bank app: IBAN, Betrag, Verwendungszweck. **No payment execution in app
 | 6+ visible cards on Detail | Violates quiet layout principle |
 | Stacked warning cards by default | Same |
 | Legal advice claims | Entwurf + disclaimer only |
-| Payment execution inside app | Regulatory risk; handoff only (#199) |
+| Payment execution inside app | Regulatory risk; handoff only (backlog §9) |
 | OCR/parser rewrite without scoped proof | Shadow-mode first |
 | Loud Home dashboard metrics wall | Optional later; not current priority |
 
 ---
 
-## 11. Definition of „production-ready“ workflow app
+## 12. Definition of „production-ready“ workflow app
 
 - [ ] **No raw technical keys** in UI (#186 ✅)
-- [ ] **Absender / Typ / Datum / Betrag** trustworthy enough for export (#189a ✅ display; #195 classification)
-- [ ] **Edit flow** — no false dirty (#191)
-- [ ] **DE date + numeric entry** (#192)
-- [ ] **Detail shows ≤3 cards**; rest under Weitere Aktionen (#193)
-- [ ] **Sonstiges rate** materially down (#195)
-- [ ] **Invoice lane** — store, tag, export (#196)
-- [ ] **NK workflow** focused, role-aware (#197)
-- [ ] **Settings** production-clean (#194)
+- [ ] **Absender / Typ / Datum / Betrag** trustworthy enough for export (#189a ✅ display; backlog §5)
+- [ ] **Edit flow** — no false dirty (backlog §1 / #191)
+- [ ] **DE date + numeric entry** (backlog §2)
+- [ ] **Detail card limit + accordion actions** — ≤3 visible cards; lazy accordion (backlog §3)
+- [ ] **Sonstiges rate** materially down (backlog §5)
+- [ ] **Invoice lane** — store, tag, export (backlog §6)
+- [ ] **NK workflow** focused, role-aware (backlog §7)
+- [ ] **Settings** production-clean (backlog §4)
 - [ ] **Cost monitoring** for owner — [AI_COST_DASHBOARD_BACKLOG.md](AI_COST_DASHBOARD_BACKLOG.md)
 
 ---
 
-## 12. Retired concepts (do not reintroduce without explicit decision)
+## 13. Retired concepts (do not reintroduce without explicit decision)
 
 | Retired | Replacement |
 |---------|-------------|
-| Detail Intelligence Header (#190) | Sparse fields + 1–2 workflow cards |
-| „BriefPilot empfiehlt“ banner (#191 old) | Contextual workflow entry (Antwortentwurf, NK, export) |
-| Home „Aktive Risiken“ metrics wall (#195 old) | Calm feed; optional subtle indicators later |
+| Detail Intelligence Header | **Detail card limit + accordion actions** |
+| „BriefPilot empfiehlt“ banner | Contextual workflow entry (Antwortentwurf, NK, export) |
+| Home „Aktive Risiken“ metrics wall | Calm feed; optional subtle indicators later |
 | Assistant-first marketing copy | Quiet document workflow |
 
 ---
@@ -282,10 +418,9 @@ Pre-fill bank app: IBAN, Betrag, Verwendungszweck. **No payment execution in app
 | Doc | Relevance |
 |-----|-----------|
 | [ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md](ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md) | Absender trust (#189a done) |
-| [CURRENT_BACKLOG.md](CURRENT_BACKLOG.md) | Engineering backlog |
-| [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) | #195 classification tiers |
+| [PARSER_CONFIDENCE_GATE_DESIGN.md](PARSER_CONFIDENCE_GATE_DESIGN.md) | Classification (backlog §5) |
 | [AI_COST_DASHBOARD_BACKLOG.md](AI_COST_DASHBOARD_BACKLOG.md) | Owner cost visibility |
 
 ---
 
-*For Claude / Cursor / Kimi: trust fixes before Detail layout. No banner PRs. UI copy German; this doc English + German product terms.*
+*For Claude / Cursor / Kimi: use backlog **names** (§1–9), not GitHub PR numbers. Trust fixes before Detail card limit + accordion actions. No banner PRs. UI copy German; this doc English + German/Turkish product terms.*

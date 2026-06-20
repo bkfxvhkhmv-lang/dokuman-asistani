@@ -9,6 +9,8 @@ const TYPE_KEY_MAP: Record<string, string> = {
   rechnung: 'doc.type.invoice',
   rechnungen: 'doc.type.invoice_plural',
   mahnung: 'doc.type.reminder',
+  zahlungserinnerung: 'doc.type.reminder',
+  'mahnung / zahlungserinnerung': 'doc.type.reminder',
   bußgeld: 'doc.type.fine',
   bussgeld: 'doc.type.fine',
   behörde: 'doc.type.authority',

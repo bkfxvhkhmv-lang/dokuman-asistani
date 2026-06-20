@@ -1,18 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { NkSummaryCard } from '@/features/detail/components/NkSummaryCard';
-import { ReplyDraftCard } from '@/features/detail/components/ReplyDraftCard';
+import React, { useMemo } from 'react';
+import { View, Text } from 'react-native';
 import Icon from '@/components/Icon';
 import { useTheme } from '@/ThemeContext';
 import type { DetailsPanelProps } from '@/features/detail/components/details-panel/types';
 import { SectionCard } from '@/features/detail/components/details-panel/SectionCard';
 import { FieldRow } from '@/features/detail/components/details-panel/FieldRow';
 import { groupDocumentFields } from '@/features/detail/components/details-panel/groupDocumentFields';
-import { OcrConfidenceSection } from '@/features/detail/components/details-panel/OcrConfidenceSection';
-import { DocumentPreviewSection } from '@/features/detail/components/details-panel/DocumentPreviewSection';
-import { EtikettenSection } from '@/features/detail/components/details-panel/EtikettenSection';
-import { BesserErkennenCard } from '@/features/detail/components/details-panel/BesserErkennenCard';
-import { RohTextSection } from '@/features/detail/components/details-panel/RohTextSection';
+import { DetailVisibleActionCards } from '@/features/detail/components/details-panel/DetailVisibleActionCards';
+import { WeitereAktionenAccordion } from '@/features/detail/components/details-panel/WeitereAktionenAccordion';
+import { WeitereAktionenContent } from '@/features/detail/components/details-panel/WeitereAktionenContent';
 import type { FieldStatus } from '@/features/detail/components/details-panel/FieldRow';
 import { formatBetrag } from '@/utils/formatters';
 import { formatIsoToGermanDate } from '@/utils/germanInputFormat';
@@ -25,7 +21,7 @@ export default function DetailsPanel({
   dok,
   mevcutEtiketten = [],
   extrahierteFelder = [],
-  aehnlicheDoks = [],
+  aehnlicheDoks: _aehnlicheDoks = [],
   ocrRisiken = [],
   graph: _graph,
   onOpenFullscreen,
@@ -36,15 +32,17 @@ export default function DetailsPanel({
   onLoeschen,
   onNebenkostenPruefen,
   onReplyDraft,
+  onShare,
+  actionPlan = null,
+  digitalTwin,
   suspendPreview = false,
   isUnanalysedQuickSaved = false,
 }: DetailsPanelProps & { onOpenFullscreen?: () => void }) {
   void _graph;
+  void _aehnlicheDoks;
 
   const { S, Colors: C, R } = useTheme();
   const { t: T } = useT();
-
-  const [weitereSichtbar, setWeitereSichtbar] = useState(false);
 
   if (!dok) return null;
 
@@ -79,7 +77,6 @@ export default function DetailsPanel({
           status: isUnanalysedQuickSaved || dok.dokumentDatum ? undefined : ('pruefen' as FieldStatus),
         }]
     ),
-    // Betrag: 'fehlt' only for payment-relevant document types
     ...(dok.betrag != null || /rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? [{
       icon: 'currency-eur', label: T('field.amount'),
       value: dok.betrag != null ? (formatBetrag(dok.betrag as number, dok.waehrung) ?? '') : '',
@@ -88,24 +85,17 @@ export default function DetailsPanel({
         : (/rechnung|mahnung|bußgeld|bussgeld|zahlungsaufforderung|beitragsrechnung|gebührenbescheid/i.test(dok.aiDocumentType ?? dok.typ ?? '') ? ('fehlt' as FieldStatus) : undefined),
     }] : []),
     ...(dok.frist ? [{ icon: 'clock', label: T('field.deadline'), value: formatIsoToGermanDate(dok.frist) }] : []),
-    // AI-inferred reference fields — always mark for review (but not for unanalysed quick-saves)
     ...(isUnanalysedQuickSaved ? [] : groups.wichtigste.map(f => ({ icon: f.icon, label: f.label, value: f.value, status: 'pruefen' as FieldStatus, aiSparkle: f.aiSparkle }))),
   ];
 
   const hasContent = !!(dok.uri || groups.wichtigste.length > 0 || groups.zahlung.length > 0 || groups.weitere.length > 0 || dok.rohText);
 
+  const showVisibleActions = !isUnanalysedQuickSaved && actionPlan;
+
   return (
-    <View style={{ padding: S.md, paddingBottom: 16 }}>
+    <View style={{ padding: S.md, paddingBottom: 16 }} testID="details-panel">
 
-      {/* ── 1. Seiten-Vorschau ────────────────────────────────────────────── */}
-      {!suspendPreview ? (
-        <DocumentPreviewSection
-          dok={dok}
-          onOpenFullscreen={onOpenFullscreen}
-        />
-      ) : null}
-
-      {/* ── 2. Dokumentdaten ─────────────────────────────────────────────── */}
+      {/* Visible card 1: document identity / summary */}
       <SectionCard title={T('detail.section.doc_data')}>
         {wichtigsteRows.map((f, i) => (
           <FieldRow
@@ -122,105 +112,11 @@ export default function DetailsPanel({
         ))}
       </SectionCard>
 
-      {/* ── 3. KI-Erkennung (manual enrichment, shown only for weak docs) ── */}
-      <BesserErkennenCard dok={dok} />
-
-      {/* ── 4. Zahlungsinformationen ──────────────────────────────────────── */}
-      {groups.zahlung.length > 0 && (
-        <SectionCard title={T('detail.section.payment_info')}>
-          {groups.zahlung.map((f, i) => (
-            <FieldRow
-              key={f.key}
-              icon={f.icon}
-              label={f.label}
-              value={f.value}
-              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
-              status={!isUnanalysedQuickSaved && f.aiSparkle ? 'pruefen' : undefined}
-              isLast={i === groups.zahlung.length - 1}
-            />
-          ))}
-        </SectionCard>
-      )}
-
-      {/* ── 4. Kontakt ───────────────────────────────────────────────────── */}
-      {groups.kontakt.length > 0 && (
-        <SectionCard title={T('detail.section.contact')}>
-          {groups.kontakt.map((f, i) => (
-            <FieldRow
-              key={f.key}
-              icon={f.icon}
-              label={f.label}
-              value={f.value}
-              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
-              isLast={i === groups.kontakt.length - 1}
-            />
-          ))}
-        </SectionCard>
-      )}
-
-      {/* ── 4b. Vertragsdetails ───────────────────────────────────────────── */}
-      {groups.vertrag.length > 0 && (
-        <SectionCard title={T('detail.section.contract_details')}>
-          {groups.vertrag.map((f, i) => (
-            <FieldRow
-              key={f.key}
-              icon={f.icon}
-              label={f.label}
-              value={f.value}
-              aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
-              isLast={i === groups.vertrag.length - 1}
-            />
-          ))}
-        </SectionCard>
-      )}
-
-      {/* ── 5. Weitere Angaben (collapsed) ───────────────────────────────── */}
-      {groups.weitere.length > 0 && (
-        <View style={{ marginBottom: S.md, borderRadius: R.lg, backgroundColor: C.bgCard,
-          borderWidth: 0.5, borderColor: C.border }}>
-          <TouchableOpacity
-            onPress={() => setWeitereSichtbar(v => !v)}
-            activeOpacity={0.7}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-              padding: S.lg, paddingBottom: weitereSichtbar ? S.sm : S.lg }}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: C.textSecondary }}>
-              {T('detail.section.more_info')}
-            </Text>
-            <Icon name={weitereSichtbar ? 'caret-up' : 'caret-down'} size={14} color={C.textTertiary} />
-          </TouchableOpacity>
-          {weitereSichtbar && (
-            <View style={{ paddingHorizontal: S.lg, paddingBottom: S.lg }}>
-              {groups.weitere.map((f, i) => (
-                <FieldRow
-                  key={f.key}
-                  icon={f.icon}
-                  label={f.label}
-                  value={f.value}
-                  aiSparkle={!isUnanalysedQuickSaved && f.aiSparkle}
-                  isLast={i === groups.weitere.length - 1}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* ── 6. OCR-Qualitätshinweis ──────────────────────────────────────── */}
-      <OcrConfidenceSection dok={dok} confidencePct={confidencePct} ocrRisiken={ocrRisiken} />
-
-      {/* ── 7. Etiketten ─────────────────────────────────────────────────── */}
-      <EtikettenSection mevcutEtiketten={mevcutEtiketten} />
-
-      {/* ── 8. Originaltext — eingeklappt, nur wenn vorhanden ────────────── */}
-      {dok.rohText ? (
-        <>
-          <View style={{ height: S.md }} />
-          <RohTextSection rohText={dok.rohText} />
-        </>
+      {/* Visible cards 2–3: primary + at most one secondary action */}
+      {showVisibleActions ? (
+        <DetailVisibleActionCards dok={dok} actionPlan={actionPlan} digitalTwin={digitalTwin} />
       ) : null}
 
-{/* ── Fallback: noch keine Felder erkannt ──────────────────────────── */}
       {!hasContent && (
         <View style={{
           alignItems: 'center', paddingVertical: 32, gap: 10,
@@ -234,79 +130,33 @@ export default function DetailsPanel({
           <Text style={{ fontSize: 12, color: C.textTertiary, textAlign: 'center', lineHeight: 18 }}>
             {T('details.empty_body')}
           </Text>
-          {onEdit && (
-            <TouchableOpacity
-              onPress={onEdit}
-              style={{ marginTop: 4, paddingHorizontal: 20, paddingVertical: 9,
-                borderRadius: 999, borderWidth: 1, borderColor: C.primary, backgroundColor: C.primaryLight }}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: C.primaryDark }}>{T('details.edit_fields')}</Text>
-            </TouchableOpacity>
-          )}
         </View>
       )}
 
-      {/* ── Aktionsleiste: Bearbeiten | Exportieren | Signieren ───────────── */}
-      {(onEdit || onExport || onSign) && (
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
-          {onEdit && (
-            <TouchableOpacity
-              onPress={onEdit}
-              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
-                alignItems: 'center', backgroundColor: C.bgCard, borderWidth: 1, borderColor: C.border }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('common.edit')}</Text>
-            </TouchableOpacity>
-          )}
-          {onExport && (
-            <TouchableOpacity
-              onPress={onExport}
-              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
-                alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: C.text }}>{T('export.sheet.title')}</Text>
-            </TouchableOpacity>
-          )}
-          {onSign && (
-            <TouchableOpacity
-              onPress={onSign}
-              style={{ flex: 1, minWidth: 140, borderRadius: R.md ?? R.lg, paddingVertical: 13,
-                alignItems: 'center', borderWidth: 1, borderColor: C.border, backgroundColor: C.bgCard }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.more.sign_pdf')}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {onNebenkostenPruefen && dok && (
-        <NkSummaryCard dok={dok} onPress={onNebenkostenPruefen} />
-      )}
-
-      {onReplyDraft && (
-        <ReplyDraftCard onPress={onReplyDraft} />
-      )}
-
-      {onErledigt && (
-        <TouchableOpacity
-          onPress={onErledigt}
-          style={{ alignItems: 'center', marginTop: 16, paddingVertical: 12,
-            borderWidth: 1, borderColor: C.border, borderRadius: R.md ?? R.lg, backgroundColor: C.bgCard }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text }}>{T('detail.action.mark_done')}</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* ── Löschen — destruktiv, bewusst klein ──────────────────────────── */}
-      {onLoeschen && (
-        <TouchableOpacity
-          onPress={onLoeschen}
-          style={{ alignItems: 'center', marginTop: 18, paddingVertical: 10,
-            borderWidth: 1, borderColor: C.dangerBorder, borderRadius: R.md ?? R.lg }}
-        >
-          <Text style={{ fontSize: 13, color: C.danger }}>{T('detail.delete_document')}</Text>
-        </TouchableOpacity>
-      )}
+      {/* Accordion: secondary/destructive/technical — lazy-mounted */}
+      <WeitereAktionenAccordion title={T('detail.panel.more_actions')}>
+        {() => (
+          <WeitereAktionenContent
+            dok={dok}
+            groups={groups}
+            actionPlan={actionPlan}
+            mevcutEtiketten={mevcutEtiketten}
+            ocrRisiken={ocrRisiken}
+            confidencePct={confidencePct}
+            isUnanalysedQuickSaved={isUnanalysedQuickSaved}
+            suspendPreview={suspendPreview}
+            onOpenFullscreen={onOpenFullscreen}
+            onEdit={onEdit}
+            onExport={onExport}
+            onSign={onSign}
+            onShare={onShare}
+            onErledigt={onErledigt}
+            onLoeschen={onLoeschen}
+            onNebenkostenPruefen={onNebenkostenPruefen}
+            onReplyDraft={onReplyDraft}
+          />
+        )}
+      </WeitereAktionenAccordion>
     </View>
   );
 }

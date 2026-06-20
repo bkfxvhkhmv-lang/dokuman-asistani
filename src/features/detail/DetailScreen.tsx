@@ -309,6 +309,7 @@ export default function Detailbildschirm() {
             onEdit={actions.handleEdit}
             onExport={() => modal.open('exportieren')}
             onSign={dok.uri && !dok.unsignedUri ? () => modal.open('signatur') : undefined}
+            onShare={() => actions.handleTeilen(modal.anonModus)}
             onErledigt={actions.handleErledigt}
             onLoeschen={actions.handleLoeschen}
             onNebenkostenPruefen={isNkEligible ? () => router.push({ pathname: '/nebenkosten', params: { sourceDokId: dok.id } }) : undefined}

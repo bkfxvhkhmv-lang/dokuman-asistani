@@ -22,6 +22,7 @@ type Props = {
   onLoeschen?: () => void;
   onNebenkostenPruefen?: () => void;
   onReplyDraft?: () => void;
+  onShare?: () => void;
 };
 
 export default function DetailDetailsTab({
@@ -41,6 +42,7 @@ export default function DetailDetailsTab({
   onLoeschen,
   onNebenkostenPruefen,
   onReplyDraft,
+  onShare,
 }: Props) {
   return (
     <ScrollView
@@ -59,11 +61,14 @@ export default function DetailDetailsTab({
         aehnlicheDoks={detail.aehnlicheDoks}
         ocrRisiken={detail.ocrRisiken}
         graph={detail.graph}
+        actionPlan={actionPlan}
+        digitalTwin={detail.digitalTwin}
         suspendPreview={suspendPreview}
         onOpenFullscreen={onOpenPages ? () => onOpenPages(0) : undefined}
         onEdit={onEdit}
         onExport={onExport}
         onSign={onSign}
+        onShare={onShare}
         onErledigt={onErledigt}
         onLoeschen={onLoeschen}
         onNebenkostenPruefen={onNebenkostenPruefen}

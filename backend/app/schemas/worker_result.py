@@ -12,6 +12,7 @@ class WorkerResultDocument(BaseModel):
     amount: Optional[float] = None
     currency: Optional[str] = None
     raw_text: Optional[str] = None
+    rechnungsnr: Optional[str] = None
 
 
 class WorkerResultActionSummary(BaseModel):

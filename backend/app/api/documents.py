@@ -24,6 +24,7 @@ from app.schemas.worker_result import (
     WorkerResultDocument,
     WorkerResultMeta,
 )
+from app.services.result_extraction import extract_invoice_fields
 from app.services.storage import upload_file, delete_file
 from app.api.auth import get_current_user_id
 from app.config import get_settings
@@ -331,6 +332,11 @@ def _worker_result_out(doc: Document) -> BackendWorkerResult:
         processed_at.isoformat() if processed_at else datetime.now(timezone.utc).isoformat()
     )
 
+    inv = extract_invoice_fields(raw_text)
+    sender = inv["sender"]
+    date = inv["date"]
+    rechnungsnr = inv["rechnungsnr"]
+
     return BackendWorkerResult(
         job_id=doc.id,
         status=status,
@@ -339,12 +345,13 @@ def _worker_result_out(doc: Document) -> BackendWorkerResult:
         document=WorkerResultDocument(
             suggested_title=meta.titel if meta else None,
             document_type=meta.typ if meta else None,
-            sender=None,
-            date=None,
+            sender=sender,
+            date=date,
             deadline=deadline,
             amount=amount,
             currency="EUR" if amount is not None else None,
             raw_text=raw_text,
+            rechnungsnr=rechnungsnr,
         ),
         action_summary=WorkerResultActionSummary(
             kind=None,

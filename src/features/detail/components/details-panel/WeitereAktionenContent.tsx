@@ -102,7 +102,7 @@ export function WeitereAktionenContent({
     onExport && { key: 'export', icon: 'upload', label: T('export.sheet.title'), onPress: onExport },
     onSign && { key: 'sign', icon: 'pen-nib', label: T('detail.more.sign_pdf'), onPress: onSign },
     onShare && { key: 'share', icon: 'share-network', label: T('common.share'), onPress: onShare },
-    onErledigt && { key: 'done', icon: 'check-circle', label: T('detail.action.mark_done'), onPress: onErledigt },
+    ...extraSecondaryActions.map(a => ({
       key: `sec-${a.key}`,
       icon: a.icon,
       label: T(a.labelKey),

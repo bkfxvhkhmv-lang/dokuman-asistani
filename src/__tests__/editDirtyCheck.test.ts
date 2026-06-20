@@ -16,8 +16,22 @@ describe('computeEditDirty', () => {
     });
 
     it('hydrated values match snapshot → not dirty', () => {
-      const initial = snap({ titel: 'Mahnung', absender: 'Finanzamt', betrag: '250', risiko: 'mittel', typ: 'Behörden / Amt' });
-      const current = snap({ titel: 'Mahnung', absender: 'Finanzamt', betrag: '250', risiko: 'mittel', typ: 'Behörden / Amt' });
+      const initial = snap({ titel: 'Mahnung', absender: 'Finanzamt', betrag: '250,00', risiko: 'mittel', typ: 'Behörden / Amt' });
+      const current = snap({ titel: 'Mahnung', absender: 'Finanzamt', betrag: '250,00', risiko: 'mittel', typ: 'Behörden / Amt' });
+      expect(computeEditDirty(current, initial)).toBe(false);
+    });
+  });
+
+  describe('display vs stored format — not dirty when semantically equal', () => {
+    it('German date vs ISO date → not dirty', () => {
+      const initial = snap({ frist: '01.06.2026' });
+      const current = snap({ frist: '2026-06-01' });
+      expect(computeEditDirty(current, initial)).toBe(false);
+    });
+
+    it('comma vs dot betrag → not dirty', () => {
+      const initial = snap({ betrag: '99,36' });
+      const current = snap({ betrag: '99.36' });
       expect(computeEditDirty(current, initial)).toBe(false);
     });
   });
@@ -36,14 +50,14 @@ describe('computeEditDirty', () => {
     });
 
     it('changed betrag → dirty', () => {
-      const initial = snap({ betrag: '100' });
-      const current = snap({ betrag: '200' });
+      const initial = snap({ betrag: '100,00' });
+      const current = snap({ betrag: '200,00' });
       expect(computeEditDirty(current, initial)).toBe(true);
     });
 
     it('changed frist → dirty', () => {
-      const initial = snap({ frist: '2026-06-01' });
-      const current = snap({ frist: '2026-07-01' });
+      const initial = snap({ frist: '01.06.2026' });
+      const current = snap({ frist: '01.07.2026' });
       expect(computeEditDirty(current, initial)).toBe(true);
     });
 

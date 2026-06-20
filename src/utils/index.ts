@@ -2,6 +2,7 @@
 // Geriye dönük uyumluluk: import { X } from '@/utils' hâlâ çalışır
 
 export * from './formatters';
+export * from './germanInputFormat';
 export * from './search';
 export * from './documentAnalysis';
 export * from './riskAnalysis';

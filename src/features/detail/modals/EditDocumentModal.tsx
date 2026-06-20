@@ -8,6 +8,7 @@ import type { ModalController } from '@/features/detail/hooks/useModalController
 import type { StoreState } from '@/store';
 import { CANONICAL_DOCUMENT_TYPES } from '@/product/canonicalDocTypes';
 import { computeEditDirty, EMPTY_EDIT_SNAPSHOT, type EditSnapshot } from './editDirtyCheck';
+import { GERMAN_DATE_PLACEHOLDER } from '@/utils/germanInputFormat';
 const RISIKEN = [
   { id: 'hoch',    label: 'Dringend' },
   { id: 'mittel',  label: 'Diese Woche' },
@@ -109,10 +110,12 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
               <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>DOKUMENT</Text>
               <AppInput label="Titel" icon="file-text" placeholder="Dokumenttitel"
                 value={modal.editTitel} onChangeText={modal.setEditTitel} style={{ marginBottom: 10 }} />
-              <AppInput label="Belegdatum (JJJJ-MM-TT)" icon="calendar-blank" placeholder="z.B. 2026-04-30"
-                value={modal.editDokumentDatum} onChangeText={modal.setEditDokumentDatum} style={{ marginBottom: 10 }} />
-              <AppInput label="Frist (JJJJ-MM-TT)" icon="clock" placeholder="z.B. 2026-05-01"
-                value={modal.editFrist} onChangeText={modal.setEditFrist} style={{ marginBottom: 18 }} />
+              <AppInput label="Belegdatum" icon="calendar-blank" placeholder={GERMAN_DATE_PLACEHOLDER}
+                value={modal.editDokumentDatum} onChangeText={modal.setEditDokumentDatum}
+                keyboardType="number-pad" style={{ marginBottom: 10 }} />
+              <AppInput label="Frist" icon="clock" placeholder={GERMAN_DATE_PLACEHOLDER}
+                value={modal.editFrist} onChangeText={modal.setEditFrist}
+                keyboardType="number-pad" style={{ marginBottom: 18 }} />
 
               {/* Beteiligte */}
               <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>BETEILIGTE</Text>
@@ -121,7 +124,7 @@ export default function EditDocumentModal({ visible, onClose, onSave, state, mod
 
               {/* Zahlung */}
               <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: C.textTertiary, marginBottom: 8 }}>ZAHLUNG</Text>
-              <AppInput label="Betrag (€)" icon="currency-eur" placeholder="0.00"
+              <AppInput label="Betrag (€)" icon="currency-eur" placeholder="0,00"
                 value={modal.editBetrag} onChangeText={modal.setEditBetrag} keyboardType="decimal-pad" style={{ marginBottom: 10 }} />
               <AppInput label="IBAN" icon="bank" placeholder="DE00 0000 0000 0000 0000 00"
                 value={modal.editIban} onChangeText={modal.setEditIban}

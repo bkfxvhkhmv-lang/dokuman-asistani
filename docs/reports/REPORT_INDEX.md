@@ -16,7 +16,7 @@ Tüm proje raporları bu indeksten erişilebilir.
 
 📄 [ASSISTANT_FIRST_ROADMAP.md](ASSISTANT_FIRST_ROADMAP.md) — BriefPilot product roadmap (revised: quiet workflow, not banners)
 
-**Kapsam:** Ürün yönü güncellendi — „BriefPilot empfiehlt“ hero/banner **retired**; hedef: sakin belge iş akışı (max 2–3 Detail kartı, Weitere Aktionen, veri güveni önce). Tamamlanan: #186, #189 audit, #189a/#190. Sıradaki PR: #191–#199 (isDirty, date/numeric, Detail card limit, Settings, classification, invoice export, NK, calendar, SEPA handoff).
+**Kapsam:** Ürün yönü — quiet workflow (banner yok). **Canonical backlog §1–9:** isDirty → Date/Betrag → **Detail card limit + accordion actions** → Settings → Classification → Invoice export → NK → Calendar → SEPA. Backlog adı ≠ GitHub PR #.
 
 📄 [ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md](ABSENDER_EXTRACTION_INVESTIGATION_2026-06-19.md) — #189 Absender extraction/display audit
 

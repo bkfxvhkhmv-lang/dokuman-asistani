@@ -39,6 +39,11 @@ import { KontoShortcutsBlock, PrivacyLegalExtras } from '@/features/settings/Set
 import FeedbackModal from '@/features/feedback/FeedbackModal';
 import GuestUpgradeSheet from '@/features/auth/GuestUpgradeSheet';
 import { useGuestLimit } from '@/hooks/useGuestLimit';
+import {
+  getSettingsLogoutButtonStyle,
+  settingsLogoutConfirmAlertStyle,
+  showSettingsDevTools,
+} from '@/features/settings/settingsProduction';
 
 export default function EinstellungenScreen({ showBack = true }: { showBack?: boolean }) {
   const router = useRouter();
@@ -57,7 +62,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   const { lang, changeLang } = useLangPreference();
   const { aiLang, changeAiLang } = useAiLangPreference();
   const { config: sheetConfig, showSheet, hideSheet } = useSheet();
-  const showAutomationMarketplace = __DEV__;
+  const showAutomationMarketplace = showSettingsDevTools();
 
   const prefs = usePersistedPrefs();
   const [experteEin, setExperteEin] = useState(false);
@@ -99,6 +104,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
   }, [dispatch, importBackup, isGuest, showUpgrade, state.dokumente, state.einstellungen]);
 
   const docCount = state.dokumente.length;
+  const logoutStyle = getSettingsLogoutButtonStyle(isGuest, C);
 
   const appVersion = useMemo(
     () =>
@@ -115,7 +121,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
     }
     Alert.alert(T('modal.logout.title'), T('modal.logout.body'), [
       { text: T('common.cancel'), style: 'cancel' },
-      { text: T('settings.logout'), style: 'destructive', onPress: () => void logout() },
+      { text: T('settings.logout'), style: settingsLogoutConfirmAlertStyle(), onPress: () => void logout() },
     ]);
   }, [isGuest, logout, router, T]);
 
@@ -200,7 +206,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
               />
             }
           />
-          {__DEV__ && (
+          {showSettingsDevTools() && (
             <FlatRow
               icon="shield-checkmark-outline"
               label={T('settings.privacy_mode')}
@@ -277,7 +283,7 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
         </FlatGroup>
 
         {/* Beta-Feedback */}
-        {__DEV__ && (
+        {showSettingsDevTools() && (
           <TouchableOpacity
             onPress={() => {
               Alert.alert(
@@ -344,16 +350,16 @@ export default function EinstellungenScreen({ showBack = true }: { showBack?: bo
             borderRadius: 12,
             marginTop: 8,
             borderWidth: StyleSheet.hairlineWidth,
-            borderColor: isGuest ? `${C.primary}55` : C.dangerBorder,
-            backgroundColor: isGuest ? C.primaryLight : C.dangerLight,
+            borderColor: logoutStyle.borderColor,
+            backgroundColor: logoutStyle.backgroundColor,
           }}
         >
-          <Text style={{ color: isGuest ? C.primaryDark : C.danger, fontSize: fs(15), fontWeight: '700' }}>
+          <Text style={{ color: logoutStyle.textColor, fontSize: fs(15), fontWeight: '700' }}>
             {isGuest ? T('auth.login') : T('settings.logout')}
           </Text>
         </TouchableOpacity>
 
-        {__DEV__ && (
+        {showSettingsDevTools() && (
           <>
             <TouchableOpacity
               onPress={() => setExperteEin(v => !v)}
